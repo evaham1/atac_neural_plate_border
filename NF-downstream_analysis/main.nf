@@ -1,3 +1,5 @@
+// DONT USE FOR NOW
+
 #!/usr/bin/env nextflow
 /*
 ========================================================================================
@@ -17,7 +19,7 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
-params.fasta = WorkflowMain.getGenomeAttribute(params, 'fasta')
+//params.fasta = WorkflowMain.getGenomeAttribute(params, 'fasta')
 
 /*
 ========================================================================================
@@ -33,7 +35,7 @@ WorkflowMain.initialise(workflow, params, log)
 ========================================================================================
 */
 
-include { DOWNSTREAM } from './workflows/downstream'
+include { DOWNSTREAM } from './subworkflows/local/1_processing'
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
