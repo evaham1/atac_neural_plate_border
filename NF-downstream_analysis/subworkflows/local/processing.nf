@@ -1,17 +1,16 @@
-//
-// Run preprocessing R scripts
-//
+#!/usr/bin/env nextflow
+nextflow.enable.dsl = 2
 
-include {R_SIGNAC as PREPROCESSING} from "$baseDir/modules/local/r_signac/main"               addParams(options: modules['PREPROCESSING'],
-                                                                                                script: file("$baseDir/bin/1_preprocessing.R", checkIfExists: true) )
+include {R as PREPROCESSING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1_preprocessing.R", checkIfExists: true) )
 
 
 workflow PROCESSING {
-    input = [
-        [ id:'test'],
-        "$baseDir/../output/NF-luslab_sc_multiomic/hh7_1_cellranger_atac/outs/*", checkIfExists: true)
-    ]
+    take:
+    input
 
+    main:
     PREPROCESSING( input )
 
+    //emit:
+    //preprocessing_out = PREPROCESSING.out
 }

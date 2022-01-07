@@ -1,5 +1,3 @@
-// DONT USE FOR NOW
-
 #!/usr/bin/env nextflow
 /*
 ========================================================================================
@@ -27,7 +25,7 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
-WorkflowMain.initialise(workflow, params, log)
+//WorkflowMain.initialise(workflow, params, log)
 
 /*
 ========================================================================================
@@ -35,13 +33,19 @@ WorkflowMain.initialise(workflow, params, log)
 ========================================================================================
 */
 
-include { DOWNSTREAM } from './subworkflows/local/1_processing'
+include { PROCESSING } from './subworkflows/local/processing'
+
+// set inputs 
+input = [
+        [ id:'test'],
+        "$baseDir/../output/NF-luslab_sc_multiomic/hh7_1_cellranger_atac/outs/*"
+    ]
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
 //
 workflow NFCORE_DOWNSTREAM {
-    DOWNSTREAM ()
+    PROCESSING (input)
 }
 
 /*
