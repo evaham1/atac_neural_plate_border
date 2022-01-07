@@ -16,8 +16,8 @@ library(ggplot2)
 library(dplyr)
 
 # add this to dockerfile
-devtools::install_github('alexthiery/scHelper@v0.2.4', dependencies = TRUE, force = TRUE)
-library(scHelper)
+#devtools::install_github('alexthiery/scHelper@v0.2.4', dependencies = TRUE, force = TRUE)
+#library(scHelper)
 
 
 ############################## Set up script options #######################################
@@ -32,9 +32,9 @@ opt = getopt(spec)
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
 
-    plot_path = "./output/NF-downstream_analysis/1_preprocessing/plots/"
-    rds_path = "./output/NF-downstream_analysis/1_preprocessing/rds_files/"
-    data_path = "./output/NF-luslab_sc_multiomic/hh7_1_cellranger_atac/outs/"
+    plot_path = "../output/NF-downstream_analysis/1_preprocessing/plots/"
+    rds_path = "../output/NF-downstream_analysis/1_preprocessing/rds_files/"
+    data_path = "./input/cellranger_atac_output/"
     ncores = 8
 
   } else if (opt$runtype == "nextflow"){
@@ -42,7 +42,7 @@ opt = getopt(spec)
 
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/"
+    data_path = "./input/cellranger_atac_output/"
     ncores = opt$cores
 
     # Multi-core when running from command line
@@ -60,13 +60,13 @@ opt = getopt(spec)
 
 ############################## Read in data and set up Signac object #######################################
 
-filtered_peak_bc_matrix <- readRDS(list.files(data_path, pattern = "filtered_peak_bc_matrix.h5", full.names = TRUE))
-singlecell <- readRDS(list.files(data_path, pattern = "singlecell.csv", full.names = TRUE))
-fragments <- readRDS(list.files(data_path, pattern = "fragments.tsv.gz", full.names = TRUE))
+# Make dataframe with stage and replicate info extracted from path
+paths <- list.dirs(data_path, recursive = FALSE, full.names = TRUE)
 
-# # Make dataframe with stage and replicate info extracted from path
-# input <- list.dirs(data_path, recursive = FALSE, full.names = TRUE)
-# input <- data.frame(sample = sub('.*/', '', input), run = str_split(sub('.*/', '', input), pattern = "-", simplify = T)[,2], path = input)
+input <- data.frame(sample = sub('.*/', '', paths), 
+                   matrix_path = paste0(paths, "/filtered_peak_bc_matrix.h5"),
+                   metadata_path = paste0(paths, "/singlecell.csv"),
+                   fragments_path = paste0(paths, "/fragments.tsv.gz"))
 
 # # Init list of seurat objects then merge
 # seurat_list <- apply(input, 1, function(x) CreateSeuratObject(counts= Read10X(data.dir = x[["path"]]), project = x[["sample"]]))
@@ -92,34 +92,34 @@ fragments <- readRDS(list.files(data_path, pattern = "fragments.tsv.gz", full.na
 #singlecell = "../work/98/4887a345fb1f0935b6e5a404f3683c/hh7_1_cellranger_atac/outs/singlecell.csv"
 #fragments = "../work/98/4887a345fb1f0935b6e5a404f3683c/hh7_1_cellranger_atac/outs/fragments.tsv.gz"
 
-counts <- Read10X_h5(filename = filtered_peak_bc_matrix)
-metadata <- read.csv(
-  file = singlecell,
-  header = TRUE,
-  row.names = 1
-)
+#counts <- Read10X_h5(filename = filtered_peak_bc_matrix)
+# metadata <- read.csv(
+#   file = singlecell,
+#   header = TRUE,
+#   row.names = 1
+# )
 
-chrom_assay <- CreateChromatinAssay(
-  counts = counts,
-  sep = c(":", "-"),
-  fragments = fragments,
-  min.cells = 10,
-  min.features = 200
-)
+# chrom_assay <- CreateChromatinAssay(
+#   counts = counts,
+#   sep = c(":", "-"),
+#   fragments = fragments,
+#   min.cells = 10,
+#   min.features = 200
+# )
 
-signac_data <- CreateSeuratObject(
-  counts = chrom_assay,
-  assay = "peaks",
-  meta.data = metadata
-)
+# signac_data <- CreateSeuratObject(
+#   counts = chrom_assay,
+#   assay = "peaks",
+#   meta.data = metadata
+# )
 
 # add annotations
-gtf <- rtracklayer::import('../work/1b/b33a424af93ffb7603d5a968171b87/REFERENCE/genes/genes.gtf.gz')
-gene.coords <- gtf[gtf$type == 'gene']
-Annotation(signac_data) <- gene.coords
+# gtf <- rtracklayer::import('../work/1b/b33a424af93ffb7603d5a968171b87/REFERENCE/genes/genes.gtf.gz')
+# gene.coords <- gtf[gtf$type == 'gene']
+# Annotation(signac_data) <- gene.coords
 
 # to test: save RDS
-saveRDS(signac_data, paste0(rds_path, "TEST.RDS"), compress = FALSE)
+saveRDS(metadata, paste0(rds_path, "TEST.RDS"), compress = FALSE)
 
 # ############################## Try low/med/high filtering thresholds to QC #######################################
 # signac_data <- NucleosomeSignal(object = signac_data)
