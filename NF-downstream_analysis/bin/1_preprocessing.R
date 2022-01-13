@@ -18,7 +18,8 @@ library(dplyr)
 # add this to dockerfile
 #devtools::install_github('alexthiery/scHelper@v0.2.4', dependencies = TRUE, force = TRUE)
 #library(scHelper)
-
+install.packages("rtracklayer")
+library(rtracklayer)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -31,10 +32,12 @@ opt = getopt(spec)
 {
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
-
+    
+    setwd("~/NF-downstream_analysis")
     plot_path = "../output/NF-downstream_analysis/1_preprocessing/plots/"
     rds_path = "../output/NF-downstream_analysis/1_preprocessing/rds_files/"
-    data_path = "./input/cellranger_atac_output/"
+    data_path = "../output/NF-luslab_sc_multiomic/cellranger_atac_output/"
+    ref_path = "../output/NF-luslab_sc_multiomic/reference/"
     ncores = 8
 
   } else if (opt$runtype == "nextflow"){
@@ -43,6 +46,7 @@ opt = getopt(spec)
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/cellranger_atac_output/"
+    ## need to adjust to read in gtf as well
     ncores = opt$cores
 
     # Multi-core when running from command line
@@ -64,62 +68,48 @@ opt = getopt(spec)
 paths <- list.dirs(data_path, recursive = FALSE, full.names = TRUE)
 
 input <- data.frame(sample = sub('.*/', '', paths), 
-                   matrix_path = paste0(paths, "/filtered_peak_bc_matrix.h5"),
-                   metadata_path = paste0(paths, "/singlecell.csv"),
-                   fragments_path = paste0(paths, "/fragments.tsv.gz"))
+                   matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
+                   metadata_path = paste0(paths, "/outs/singlecell.csv"),
+                   fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
 
-# # Init list of seurat objects then merge
-# seurat_list <- apply(input, 1, function(x) CreateSeuratObject(counts= Read10X(data.dir = x[["path"]]), project = x[["sample"]]))
-# names(seurat_list) <- input$sample
-# seurat_all <- merge(x = seurat_list[[1]], y=seurat_list[-1], add.cell.ids = names(seurat_list), project = "chick.10x")
+# Load the 3 files needed in list format
+counts_list <- apply(input, 1, function(x) Read10X_h5(filename = x[["matrix_path"]]))
+metadata_list <- apply(input, 1, function(x) read.csv(file = x[["metadata_path"]], header = TRUE, row.names = 1))
+fragments_list <- as.list(input$fragments_path)
 
-# # Add metadata col for seq run
-# seurat_all@meta.data[["run"]] <- gsub(".*-", "", as.character(seurat_all@meta.data$orig.ident))
-# seurat_all@meta.data[["stage"]] <- gsub("-.*", "", as.character(seurat_all@meta.data$orig.ident))
+# Build list of assays using these files
+chrom_assays <- lapply(1:nrow(input), function(x) CreateChromatinAssay(
+                                                    counts = counts_list[[x]],
+                                                    sep = c(":", "-"),
+                                                    fragments = fragments_list[[x]],
+                                                    min.cells = 10,
+                                                    min.features = 200))
+signac_datas <- lapply(1:nrow(input), function(x) CreateSeuratObject(
+  counts = chrom_assays[[x]],
+  project = input$sample[x],
+  assay = "peaks",
+  meta.data = metadata_list[[x]]))
 
-# # Convert metadata character cols to factors
-# seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)] <- lapply(seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)], as.factor)
+# add annotations using chick gtf
+gtf <- rtracklayer::import(paste0(ref_path, "genes.gtf.gz"))
+gene.coords <- gtf[gtf$type == 'gene']
 
-# # Make seurat gene annotation dataframe and save
-# annotations <- read.table(paste0(input[1,'path'], '/features.tsv.gz'), col.names = c('Accession', 'Gene', 'V3', 'V4'))[,1:2]
-# # make gene names unique in annotations dataframe in order to match seurat annotations
-# annotations$Gene <- make.unique(annotations$Gene)
-# # Save annnotation dataframe
-# write.table(annotations, 'seurat_annotations.csv', row.names=FALSE, quote=FALSE, sep=',')
+signac_list <- lapply(signac_datas, function(x) SetAssayData(x, slot = "annotation", new.data = gene.coords))
 
-## hh7_1 test data
-#filtered_peak_bc_matrix = "../work/98/4887a345fb1f0935b6e5a404f3683c/hh7_1_cellranger_atac/outs/filtered_peak_bc_matrix.h5"
-#singlecell = "../work/98/4887a345fb1f0935b6e5a404f3683c/hh7_1_cellranger_atac/outs/singlecell.csv"
-#fragments = "../work/98/4887a345fb1f0935b6e5a404f3683c/hh7_1_cellranger_atac/outs/fragments.tsv.gz"
+# Init list of signac objects then merge
+names(signac_list) <- input$sample
+seurat_all <- merge(x = signac_list[[1]], y=signac_list[-1], add.cell.ids = names(signac_list), project = "chick.10x.atac")
 
-#counts <- Read10X_h5(filename = filtered_peak_bc_matrix)
-# metadata <- read.csv(
-#   file = singlecell,
-#   header = TRUE,
-#   row.names = 1
-# )
+# Add metadata col for stage and flow cell
+seurat_all@meta.data[["stage"]] <- substr(seurat_all@meta.data$orig.ident, 1, 3)
+seurat_all@meta.data[["flow_cell"]] <- substr(seurat_all@meta.data$orig.ident, 5, 5)
 
-# chrom_assay <- CreateChromatinAssay(
-#   counts = counts,
-#   sep = c(":", "-"),
-#   fragments = fragments,
-#   min.cells = 10,
-#   min.features = 200
-# )
+# Convert metadata character cols to factors
+seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)] <- lapply(seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)], as.factor)
 
-# signac_data <- CreateSeuratObject(
-#   counts = chrom_assay,
-#   assay = "peaks",
-#   meta.data = metadata
-# )
-
-# add annotations
-# gtf <- rtracklayer::import('../work/1b/b33a424af93ffb7603d5a968171b87/REFERENCE/genes/genes.gtf.gz')
-# gene.coords <- gtf[gtf$type == 'gene']
-# Annotation(signac_data) <- gene.coords
 
 # to test: save RDS
-saveRDS(metadata, paste0(rds_path, "TEST.RDS"), compress = FALSE)
+saveRDS(seurat_all, paste0(rds_path, "seurat_all.RDS"), compress = FALSE)
 
 # ############################## Try low/med/high filtering thresholds to QC #######################################
 # signac_data <- NucleosomeSignal(object = signac_data)
