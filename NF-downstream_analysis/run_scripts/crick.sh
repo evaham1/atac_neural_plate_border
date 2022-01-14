@@ -12,7 +12,7 @@ ml Nextflow/21.10.3
 ml Singularity/3.4.2
 ml Graphviz
 
-export NXF_VER=20.07.1
+export NXF_VER=21.10.3
 
 nextflow run ./main.nf \
 --input ./samplesheet.csv \
