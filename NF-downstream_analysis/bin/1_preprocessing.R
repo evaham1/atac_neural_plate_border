@@ -14,12 +14,12 @@ library(clustree)
 library(GenomeInfoDb)
 library(ggplot2)
 library(dplyr)
+library(rtracklayer)
 
 # add this to dockerfile
 #devtools::install_github('alexthiery/scHelper@v0.2.4', dependencies = TRUE, force = TRUE)
 #library(scHelper)
-install.packages("rtracklayer")
-library(rtracklayer)
+
 
 ############################## Set up script options #######################################
 spec = matrix(c(

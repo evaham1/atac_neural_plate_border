@@ -48,4 +48,5 @@ RUN R -e "install.packages('BiocManager')" && \
     R -e "install.packages('getopt')" && \
     R -e "install.packages('optparse')" && \
     R -e "install.packages('pheatmap')" && \
-    R -e "install.packages('hdf5r')"
+    R -e "install.packages('hdf5r')" && \
+    R -e "install.packages('rtracklayer')"
