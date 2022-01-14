@@ -27,36 +27,43 @@ spec = matrix(c(
   'cores'   , 'c', 2, "integer"
 ), byrow=TRUE, ncol=4)
 opt = getopt(spec)
+test = TRUE
 
-# Set paths and load data - NEED TO CHANGE TO WORK DIRS FOR INPUT PATHS
+# Set paths and load data
 {
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     setwd("~/NF-downstream_analysis")
-    plot_path = "../output/NF-downstream_analysis/1_preprocessing/plots/"
-    rds_path = "../output/NF-downstream_analysis/1_preprocessing/rds_files/"
-    data_path = "../output/NF-luslab_sc_multiomic/cellranger_atac_output/"
-    ref_path = "../output/NF-luslab_sc_multiomic/reference/"
     ncores = 8
-
+    ref_path = "../output/NF-luslab_sc_multiomic/reference/"
+    
+    if(test == TRUE){
+      plot_path = "../output/NF-downstream_analysis/TEST/plots/"
+      rds_path = "../output/NF-downstream_analysis/TEST/rds_files/"
+      data_path = "../output/NF-luslab_sc_multiomic/cellranger_atac_output_test/"
+      }else{
+      plot_path = "../output/NF-downstream_analysis/1_preprocessing/plots/"
+      rds_path = "../output/NF-downstream_analysis/1_preprocessing/rds_files/"
+      data_path = "../output/NF-luslab_sc_multiomic/cellranger_atac_output/"}
+    
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
-
+    
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/cellranger_atac_output/"
     ## need to adjust to read in gtf as well
     ncores = opt$cores
-
+    
     # Multi-core when running from command line
     plan("multiprocess", workers = ncores)
     options(future.globals.maxSize = 16* 1024^3) # 16gb
-
+    
   } else {
     stop("--runtype must be set to 'nextflow'")
   }
-
+  
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
@@ -72,7 +79,7 @@ input <- data.frame(sample = sub('.*/', '', paths),
                    metadata_path = paste0(paths, "/outs/singlecell.csv"),
                    fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
 
-# Load the 3 files needed in list format
+# Read in the 3 files needed in list format
 counts_list <- apply(input, 1, function(x) Read10X_h5(filename = x[["matrix_path"]]))
 metadata_list <- apply(input, 1, function(x) read.csv(file = x[["metadata_path"]], header = TRUE, row.names = 1))
 fragments_list <- as.list(input$fragments_path)
@@ -101,11 +108,11 @@ names(signac_list) <- input$sample
 seurat_all <- merge(x = signac_list[[1]], y=signac_list[-1], add.cell.ids = names(signac_list), project = "chick.10x.atac")
 
 # Add metadata col for stage and flow cell
-seurat_all@meta.data[["stage"]] <- substr(seurat_all@meta.data$orig.ident, 1, 3)
-seurat_all@meta.data[["flow_cell"]] <- substr(seurat_all@meta.data$orig.ident, 5, 5)
+#seurat_all@meta.data[["stage"]] <- substr(seurat_all@meta.data$orig.ident, 1, 3)
+#seurat_all@meta.data[["flow_cell"]] <- substr(seurat_all@meta.data$orig.ident, 5, 5)
 
 # Convert metadata character cols to factors
-seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)] <- lapply(seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)], as.factor)
+#seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)] <- lapply(seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)], as.factor)
 
 
 # to test: save RDS
