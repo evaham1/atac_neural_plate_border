@@ -53,7 +53,7 @@ test = TRUE
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/cellranger_atac_output/"
-    ref_path = "./input/reference/"
+    ref_path = "./input/"
     ncores = opt$cores
     
     # Multi-core when running from command line

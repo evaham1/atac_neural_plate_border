@@ -36,17 +36,26 @@ nextflow.enable.dsl = 2
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PROCESSING } from "$baseDir/subworkflows/local/processing"
 
-// set inputs 
-// input = [
-//         [ id:'test'],
-//         "$baseDir/../output/NF-luslab_sc_multiomic/hh7_1_cellranger_atac/outs/*"
-//     ]
+// set channel to reference gtf
+Channel
+    .value(params.gtf)
+    .set{ch_gtf}
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
 //
 workflow NFCORE_DOWNSTREAM {
+    ch_gtf.view()
+
     METADATA( 'samplesheet.csv' )
+
+    METADATA.out.view()
+
+    METADATA.out
+        .combine(ch_gtf)
+        .map{[it[0], it[1] + it[2]]}
+        .view()
+        .set {ch_metadata}
 
     // filter metadata outputs to only keep filtered_peak_bc_matrix.h5, singlecell.csv, fragments.tsv.gz
     // METADATA.out
@@ -54,7 +63,7 @@ workflow NFCORE_DOWNSTREAM {
     //     .map {[it[0], it[1].collect{ file(it+"/outs/filtered_peak_bc_matrix", checkIfExists: true) }]}
     //     .set {ch_scATACseq_peaks}
     
-    PROCESSING ( METADATA.out )
+    PROCESSING (ch_metadata )
 }
 
 /*
