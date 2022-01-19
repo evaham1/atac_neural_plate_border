@@ -47,7 +47,7 @@ Channel
 workflow NFCORE_DOWNSTREAM {
     ch_gtf.view()
 
-    METADATA( 'samplesheet.csv' )
+    METADATA( params.sample_sheet )
 
     METADATA.out.view()
 
