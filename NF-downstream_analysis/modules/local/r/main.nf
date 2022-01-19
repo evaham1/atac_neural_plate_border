@@ -12,7 +12,7 @@ process R {
 
     output:
     tuple val(meta), file('*')       , emit: outs
-    path "versions.yml"              , emit: versions
+    //path "versions.yml"              , emit: versions
 
     script:
     def args = task.ext.args ?: ''
