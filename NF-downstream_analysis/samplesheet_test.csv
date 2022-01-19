@@ -1,2 +1,2 @@
 sample_id,data
-NF-scATACseq_alignment_out,../output/NF-luslab_sc_multiomic/test/cellranger_atac_output_test
+NF-scATACseq_alignment_out,../output/NF-luslab_sc_multiomic/test/cellranger_atac_output
