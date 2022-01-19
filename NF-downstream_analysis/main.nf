@@ -45,11 +45,11 @@ Channel
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
 //
 workflow NFCORE_DOWNSTREAM {
-    ch_gtf.view()
+    //ch_gtf.view()
 
     METADATA( params.sample_sheet )
 
-    METADATA.out.view()
+    //METADATA.out.view()
 
     METADATA.out
         .combine(ch_gtf)
