@@ -58,7 +58,7 @@ test = TRUE
     
     # Multi-core when running from command line
     plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 60* 1024^3)
+    options(future.globals.maxSize = 120* 1024^3)
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -78,11 +78,14 @@ input <- data.frame(sample = sub('.*/', '', paths),
                    matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
                    metadata_path = paste0(paths, "/outs/singlecell.csv"),
                    fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+print("path df made")
 
 # Read in the 3 files needed in list format
 counts_list <- apply(input, 1, function(x) Read10X_h5(filename = x[["matrix_path"]]))
 metadata_list <- apply(input, 1, function(x) read.csv(file = x[["metadata_path"]], header = TRUE, row.names = 1))
 fragments_list <- as.list(input$fragments_path)
+
+print("data files read in")
 
 # Build list of assays using these files
 chrom_assays <- lapply(1:nrow(input), function(x) CreateChromatinAssay(
@@ -91,21 +94,26 @@ chrom_assays <- lapply(1:nrow(input), function(x) CreateChromatinAssay(
                                                     fragments = fragments_list[[x]],
                                                     min.cells = 10,
                                                     min.features = 200))
+print("ChromatinAssays made")
+
 signac_datas <- lapply(1:nrow(input), function(x) CreateSeuratObject(
   counts = chrom_assays[[x]],
   project = input$sample[x],
   assay = "peaks",
   meta.data = metadata_list[[x]]))
+print("seurat objects made")
 
 # add annotations using chick gtf
 gtf <- rtracklayer::import(paste0(ref_path, "genes.gtf.gz"))
 gene.coords <- gtf[gtf$type == 'gene']
 
 signac_list <- lapply(signac_datas, function(x) SetAssayData(x, slot = "annotation", new.data = gene.coords))
+print("Annotations set")
 
 # Init list of signac objects then merge
 names(signac_list) <- input$sample
 seurat_all <- merge(x = signac_list[[1]], y=signac_list[-1], add.cell.ids = names(signac_list), project = "chick.10x.atac")
+print("seurat objects merged")
 
 # Add metadata col for stage and flow cell
 seurat_all@meta.data[["stage"]] <- substr(seurat_all@meta.data$orig.ident, 1, 3)
