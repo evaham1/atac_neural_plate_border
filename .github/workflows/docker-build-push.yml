@@ -38,8 +38,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: containers/${{matrix.module-name}}
+          context: NF-downstream_analysis/containers/${{matrix.module-name}}
           push: true
-          file: NF-downstream_analysis/containers/${{matrix.module-name}}/${{matrix.docker-file}}
           tags: evahamrud/sc_multi_omic-${{matrix.module-name}}:latest
     
