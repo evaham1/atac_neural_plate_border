@@ -6,7 +6,7 @@ on:
     branches: 
       - main
     paths: 
-      - '**/Dockerfile'
+      - 'NF-downstream_analysis/containers/r_signac/Dockerfile'
 
 jobs:
   build-push-docker:
@@ -16,7 +16,7 @@ jobs:
       matrix:
         tag: ["base"]
         docker-file: ["Dockerfile"]
-        module-name: ["schelper"]
+        module-name: ["r_signac"]
 
     steps:
       -
