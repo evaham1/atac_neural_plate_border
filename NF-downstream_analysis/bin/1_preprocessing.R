@@ -58,7 +58,7 @@ test = TRUE
     
     # Multi-core when running from command line
     plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 120* 1024^3)
+    options(future.globals.maxSize = 60* 1024^3)
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -122,8 +122,6 @@ seurat_all@meta.data[["flow_cell"]] <- substr(seurat_all@meta.data$orig.ident, 5
 # Convert metadata character cols to factors
 seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)] <- lapply(seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)], as.factor)
 
-# to test: save RDS
-saveRDS(seurat_all, paste0(rds_path, "seurat_all.RDS"), compress = FALSE)
 
 ############################## Try low/med/high filtering thresholds to QC #######################################
 seurat_all <- NucleosomeSignal(object = seurat_all)
@@ -165,6 +163,9 @@ ggplot(filter_qc[filter_qc$orig.ident != "Total",] %>% reshape2::melt(), aes(x=v
   theme_classic() +
   theme(plot.title = element_text(hjust = 0.5))
 graphics.off()
+
+# to test: save RDS
+saveRDS(seurat_all, paste0(rds_path, "seurat_all.RDS"), compress = FALSE)
 
 
 ##!!! Median gene counts --> adapt to median peak counts??
@@ -225,113 +226,113 @@ graphics.off()
 
 
 # Plot violins for nCount, nFeature and percent.mt at different filtering thresholds
-filter_qc <- lapply(rownames(filter_thresholds), function(condition){
-  seurat_all@meta.data %>%
-    filter(nFeature_RNA > filter_thresholds[condition,'gene_min']) %>%
-    filter(nFeature_RNA < filter_thresholds[condition,'gene_max']) %>%
-    filter(percent.mt < filter_thresholds[condition,'MT_max']) %>%
-    dplyr::select(orig.ident, nCount_RNA, nFeature_RNA, percent.mt) %>%
-    mutate(filter_condition = !!condition)
-})
-
-filter_qc <- lapply(rownames(filter_thresholds), function(condition){
-  seurat_all@meta.data %>%
-    filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
-    filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
-    filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
-    dplyr::select(orig.ident, pct_reads_in_peaks, TSS.enrichment, nucleosome_signal) %>%
-    mutate(filter_condition = !!condition)
-})
-
-filter_qc <- do.call(rbind, filter_qc) %>%
-  mutate(filter_condition = factor(filter_condition, rownames(filter_thresholds))) %>%
-  #mutate(nCount_RNA = ifelse(nCount_RNA >= 100000, 100000, nCount_RNA)) %>% # limit max RNA to 100k for plotting
-  reshape2::melt()
-
-png(paste0(plot_path, 'violins_filter_thresholds.png'), height = 18, width = 30, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x = filter_condition, y = value, fill = orig.ident)) +
-  geom_violin() +
-  facet_wrap(~ variable, nrow = 3, strip.position = "left", scales = "free_y") +
-  theme_minimal() +
-  theme(axis.title.x=element_blank()) +
-  theme(axis.title.y=element_blank()) +
-  theme(strip.placement = "outside")
-graphics.off()
-
-##########################################################################
-############# Remove data which do not pass filter threshold #############
-seurat_split <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
-                                                TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
-                                                nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
-# Normalise
-seurat_split <- RunTFIDF(seurat_split)
-seurat_split <- FindTopFeatures(seurat_split, min.cutoff = 'q0')
-seurat_split <- RunSVD(seurat_split)
-
-# Plot LSI components
-png(paste0(plot_path, 'LSI_components.png'), height = 18, width = 30, units = 'cm', res = 400)
-DepthCor(seurat_split)
-graphics.off()
-
-# Dimensionality reduction and clustering
-seurat_split <- RunUMAP(object = seurat_split, reduction = 'lsi', dims = 2:30)
-seurat_split <- FindNeighbors(object = seurat_split, reduction = 'lsi', dims = 2:30)
-seurat_split <- FindClusters(object = seurat_split, verbose = FALSE, algorithm = 3)
-
-# Plot UMAP
-png(paste0(plot_path, 'UMAP.png'), height = 18, width = 18, units = 'cm', res = 400)
-DimPlot(object = seurat_split, label = TRUE) + NoLegend()
-graphics.off()
-
-####!!! Do I need to pick optimal LSI components like PCA components?
-
-####!!!! Find optimal cluster resolution - need scHelper for this
-#png(paste0(plot_path, "clustree_run_", run, ".png"), width=70, height=35, units = 'cm', res = 200)
-#ClustRes(seurat_object = seurat_split[[run]], by = 0.2)
-#graphics.off()
-
-############################## Identify poor quality clusters #######################################
-
-# Use higher cluster resolution for filtering poor clusters
-#seurat_split <- lapply(seurat_split, FindClusters, resolution = 2, verbose = FALSE)
-
-####!!! Plot UMAP for clusters and developmental stage - need scHelper
-#png(paste0(plot_path, "UMAP_run_", run, ".png"), width=40, height=20, units = 'cm', res = 200)
-#ClustStagePlot(seurat_split)
-#graphics.off()
-
-####!!! Need scHelper- Plot QC for each cluster
-# png(paste0(plot_path, "QCPlot_run_", run, ".png"), width=32, height=28, units = 'cm', res = 200)
-# QCPlot(seurat_split[[run]], quantiles = c(0.25, 0.75))
-# graphics.off()
-
-# # Automatically find poor quality clusters
-# poor_clusters <- lapply(seurat_split, IdentifyOutliers, metrics = c('nCount_RNA', 'nFeature_RNA'), quantiles = c(0.25, 0.75))
-# 
-# # Plot UMAP for poor quality clusters
-# for(run in names(seurat_split)){
-#   png(paste0(plot_path, "PoorClusters_run_", run, ".png"), width=60, height=20, units = 'cm', res = 200)
-#   ClusterDimplot(seurat_split[[run]], clusters = poor_clusters[[run]], plot_title = 'poor quality clusters')
-#   graphics.off()
-# }
-# 
-# # Filter poor quality clusters
-# preprocessing_data <- lapply(names(seurat_split), function(x) {
-#   subset(seurat_split[[x]], cells = rownames(filter(seurat_split[[x]]@meta.data, seurat_clusters %in% poor_clusters[[x]])), invert = T)
+# filter_qc <- lapply(rownames(filter_thresholds), function(condition){
+#   seurat_all@meta.data %>%
+#     filter(nFeature_RNA > filter_thresholds[condition,'gene_min']) %>%
+#     filter(nFeature_RNA < filter_thresholds[condition,'gene_max']) %>%
+#     filter(percent.mt < filter_thresholds[condition,'MT_max']) %>%
+#     dplyr::select(orig.ident, nCount_RNA, nFeature_RNA, percent.mt) %>%
+#     mutate(filter_condition = !!condition)
 # })
-# names(preprocessing_data) <- names(seurat_split)
-# 
-# 
-# # Plot table with remaining cell counts after full filtering
-# cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
-#                           filtered = lapply(preprocessing_data, function(x) summary(x@meta.data$orig.ident)) %>% do.call(cbind.data.frame, .) %>% rowSums())
-# 
-# cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
-# 
-# png(paste0(plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+
+# filter_qc <- lapply(rownames(filter_thresholds), function(condition){
+#   seurat_all@meta.data %>%
+#     filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
+#     filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
+#     filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+#     dplyr::select(orig.ident, pct_reads_in_peaks, TSS.enrichment, nucleosome_signal) %>%
+#     mutate(filter_condition = !!condition)
+# })
+
+# filter_qc <- do.call(rbind, filter_qc) %>%
+#   mutate(filter_condition = factor(filter_condition, rownames(filter_thresholds))) %>%
+#   #mutate(nCount_RNA = ifelse(nCount_RNA >= 100000, 100000, nCount_RNA)) %>% # limit max RNA to 100k for plotting
+#   reshape2::melt()
+
+# png(paste0(plot_path, 'violins_filter_thresholds.png'), height = 18, width = 30, units = 'cm', res = 400)
+# ggplot(filter_qc, aes(x = filter_condition, y = value, fill = orig.ident)) +
+#   geom_violin() +
+#   facet_wrap(~ variable, nrow = 3, strip.position = "left", scales = "free_y") +
+#   theme_minimal() +
+#   theme(axis.title.x=element_blank()) +
+#   theme(axis.title.y=element_blank()) +
+#   theme(strip.placement = "outside")
 # graphics.off()
-# 
-# # Save RDS output
-# saveRDS(preprocessing_data, paste0(rds_path, "preprocessing_data.RDS"), compress = FALSE)
+
+# ##########################################################################
+# ############# Remove data which do not pass filter threshold #############
+# seurat_split <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
+#                                                 TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
+#                                                 nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
+# # Normalise
+# seurat_split <- RunTFIDF(seurat_split)
+# seurat_split <- FindTopFeatures(seurat_split, min.cutoff = 'q0')
+# seurat_split <- RunSVD(seurat_split)
+
+# # Plot LSI components
+# png(paste0(plot_path, 'LSI_components.png'), height = 18, width = 30, units = 'cm', res = 400)
+# DepthCor(seurat_split)
+# graphics.off()
+
+# # Dimensionality reduction and clustering
+# seurat_split <- RunUMAP(object = seurat_split, reduction = 'lsi', dims = 2:30)
+# seurat_split <- FindNeighbors(object = seurat_split, reduction = 'lsi', dims = 2:30)
+# seurat_split <- FindClusters(object = seurat_split, verbose = FALSE, algorithm = 3)
+
+# # Plot UMAP
+# png(paste0(plot_path, 'UMAP.png'), height = 18, width = 18, units = 'cm', res = 400)
+# DimPlot(object = seurat_split, label = TRUE) + NoLegend()
+# graphics.off()
+
+# ####!!! Do I need to pick optimal LSI components like PCA components?
+
+# ####!!!! Find optimal cluster resolution - need scHelper for this
+# #png(paste0(plot_path, "clustree_run_", run, ".png"), width=70, height=35, units = 'cm', res = 200)
+# #ClustRes(seurat_object = seurat_split[[run]], by = 0.2)
+# #graphics.off()
+
+# ############################## Identify poor quality clusters #######################################
+
+# # Use higher cluster resolution for filtering poor clusters
+# #seurat_split <- lapply(seurat_split, FindClusters, resolution = 2, verbose = FALSE)
+
+# ####!!! Plot UMAP for clusters and developmental stage - need scHelper
+# #png(paste0(plot_path, "UMAP_run_", run, ".png"), width=40, height=20, units = 'cm', res = 200)
+# #ClustStagePlot(seurat_split)
+# #graphics.off()
+
+# ####!!! Need scHelper- Plot QC for each cluster
+# # png(paste0(plot_path, "QCPlot_run_", run, ".png"), width=32, height=28, units = 'cm', res = 200)
+# # QCPlot(seurat_split[[run]], quantiles = c(0.25, 0.75))
+# # graphics.off()
+
+# # # Automatically find poor quality clusters
+# # poor_clusters <- lapply(seurat_split, IdentifyOutliers, metrics = c('nCount_RNA', 'nFeature_RNA'), quantiles = c(0.25, 0.75))
+# # 
+# # # Plot UMAP for poor quality clusters
+# # for(run in names(seurat_split)){
+# #   png(paste0(plot_path, "PoorClusters_run_", run, ".png"), width=60, height=20, units = 'cm', res = 200)
+# #   ClusterDimplot(seurat_split[[run]], clusters = poor_clusters[[run]], plot_title = 'poor quality clusters')
+# #   graphics.off()
+# # }
+# # 
+# # # Filter poor quality clusters
+# # preprocessing_data <- lapply(names(seurat_split), function(x) {
+# #   subset(seurat_split[[x]], cells = rownames(filter(seurat_split[[x]]@meta.data, seurat_clusters %in% poor_clusters[[x]])), invert = T)
+# # })
+# # names(preprocessing_data) <- names(seurat_split)
+# # 
+# # 
+# # # Plot table with remaining cell counts after full filtering
+# # cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
+# #                           filtered = lapply(preprocessing_data, function(x) summary(x@meta.data$orig.ident)) %>% do.call(cbind.data.frame, .) %>% rowSums())
+# # 
+# # cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
+# # 
+# # png(paste0(plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+# # grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+# #              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+# # graphics.off()
+# # 
+# # # Save RDS output
+# # saveRDS(preprocessing_data, paste0(rds_path, "preprocessing_data.RDS"), compress = FALSE)
