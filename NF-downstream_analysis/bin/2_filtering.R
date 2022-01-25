@@ -14,11 +14,7 @@ library(clustree)
 library(GenomeInfoDb)
 library(ggplot2)
 library(dplyr)
-library(rtracklayer)
-
-# add this to dockerfile
-#devtools::install_github('alexthiery/scHelper@v0.2.4', dependencies = TRUE, force = TRUE)
-#library(scHelper)
+library(scHelper)
 
 
 ############################## Set up script options #######################################
@@ -39,13 +35,13 @@ test = TRUE
     ref_path = "../output/NF-luslab_sc_multiomic/reference/"
     
     if(test == TRUE){
-      plot_path = "../output/NF-downstream_analysis/2_filtering/TEST/plots/"
-      rds_path = "../output/NF-downstream_analysis/2_filtering/TEST/rds_files/"
-      data_path = "../output/NF-downstream_analysis/1_preprocessing/TEST/rds_files/"
+      plot_path = "../output/NF-downstream_analysis/filtering/TEST/plots/"
+      rds_path = "../output/NF-downstream_analysis/filtering/TEST/rds_files/"
+      data_path = "../output/NF-downstream_analysis/preprocessing/rds_files/"
       }else{
-      plot_path = "../output/NF-downstream_analysis/2_filtering/plots/"
-      rds_path = "../output/NF-downstream_analysis/2_filtering/rds_files/"
-      data_path = "../output/NF-downstream_analysis/1_preprocessing/rds_files/"}
+      plot_path = "../output/NF-downstream_analysis/filtering/plots/"
+      rds_path = "../output/NF-downstream_analysis/filtering/rds_files/"
+      data_path = "../output/NF-downstream_analysis/preprocessing/rds_files/"}
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -75,10 +71,202 @@ seurat_all <- readRDS(paste0(data_path, "seurat_all.RDS"))
 
 seurat_all
 
-seurat_all@meta.data
 
-#######   TEST CODE FROM PREVIOUS SCRIPT TO CHECK IT WORKS AND MAKES PLOTS
-filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 40, 50, 60), TSS.enrichment = c(0, 0.3, 2.5, 3), nucleosome_signal = c(Inf, 1.5, 0.8, 0.6), row.names = c("unfilt", "low", "med", "high"))
+############################## Plot simulated thresholds to QC #######################################
+
+simulated_plot_path = paste0(plot_path, "simulated_thresholds/")
+
+####    Number of fragments in peaks (peak_region_fragments)  ####
+
+# Max per sample
+maximums <- 
+  seurat_all@meta.data %>%
+  group_by(orig.ident) %>%
+  summarise(max = max(peak_region_fragments, na.rm = TRUE))
+
+png(paste0(simulated_plot_path, 'peak_region_fragments_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Maximum Number of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Simulation
+filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 10), function(cutoff){
+  seurat_all@meta.data %>%
+    filter(peak_region_fragments > cutoff) %>%
+    group_by(orig.ident) %>%
+    summarise(median = median(peak_region_fragments, na.rm = TRUE)) %>%
+    mutate(median = as.integer(median)) %>%
+    dplyr::rename(!! paste(cutoff) := median)
+})
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+
+png(paste0(simulated_plot_path, 'peak_region_fragments_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
+  geom_line(aes(colour = orig.ident)) +
+  xlab("Lower fragment in peak count Threshold") +
+  ylab("Median fragment in peaks Count") +
+  ggtitle("Median fragment in peaks counts at simulated minimum filter thresholds") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+graphics.off()
+
+####    Percentage of fragments in peaks (pct_reads_in_peaks)  ####
+
+# Max per sample
+maximums <- 
+  seurat_all@meta.data %>%
+  group_by(orig.ident) %>%
+  summarise(max = max(pct_reads_in_peaks, na.rm = TRUE))
+
+png(paste0(simulated_plot_path, 'pct_reads_in_peaks_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Maximum Percentage of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Simulation
+filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cutoff){
+  seurat_all@meta.data %>%
+    filter(pct_reads_in_peaks > cutoff) %>%
+    group_by(orig.ident) %>%
+    summarise(median = median(pct_reads_in_peaks, na.rm = TRUE)) %>%
+    mutate(median = as.integer(median)) %>%
+    dplyr::rename(!! paste(cutoff) := median)
+})
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+
+png(paste0(simulated_plot_path, 'pct_fragments_in_peaks_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
+  geom_line(aes(colour = orig.ident)) +
+  xlab("Lower pct fragments in peaks Threshold") +
+  ylab("Median pct fragments in peaks") +
+  ggtitle("pct_fragments_in_peaks_simulation at simulated minimum filter thresholds") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+graphics.off()
+
+####    TSS enrichment (TSS.enrichment)  ####
+
+# Max per sample
+maximums <- 
+  seurat_all@meta.data %>%
+  group_by(orig.ident) %>%
+  summarise(max = max(TSS.enrichment, na.rm = TRUE))
+
+png(paste0(simulated_plot_path, 'TSS_enrichment_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Maximum TSS Enrichment Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Simulation
+filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cutoff){
+  seurat_all@meta.data %>%
+    filter(TSS.enrichment > cutoff) %>%
+    group_by(orig.ident) %>%
+    summarise(median = median(TSS.enrichment, na.rm = TRUE)) %>%
+    mutate(median = as.integer(median)) %>%
+    dplyr::rename(!! paste(cutoff) := median)
+})
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+
+png(paste0(simulated_plot_path, 'TSS_enrichment_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
+  geom_line(aes(colour = orig.ident)) +
+  xlab("Lower TSS enrichment Threshold") +
+  ylab("Median TSS enrichment Count") +
+  ggtitle("TSS enrichment scores at simulated minimum filter thresholds") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+graphics.off()
+
+####    Nucleosome signal (nucleosome_signal)  ####
+
+# Max per sample
+maximums <- 
+  seurat_all@meta.data %>%
+  group_by(orig.ident) %>%
+  summarise(max = max(nucleosome_signal, na.rm = TRUE))
+
+png(paste0(simulated_plot_path, 'nucleosome_signal_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Maximum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Min per sample
+minimums <- 
+  seurat_all@meta.data %>%
+  group_by(orig.ident) %>%
+  summarise(min = min(nucleosome_signal, na.rm = TRUE))
+
+png(paste0(simulated_plot_path, 'nucleosome_signal_minimums.png'), height = 10, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Minimum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(minimums, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Simulation
+filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -0.01), function(cutoff){
+  seurat_all@meta.data %>%
+    filter(nucleosome_signal < cutoff) %>%
+    group_by(orig.ident) %>%
+    summarise(median = median(nucleosome_signal, na.rm = TRUE)) %>%
+    #mutate(median = as.integer(median)) %>%
+    dplyr::rename(!! paste(cutoff) := median)
+})
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+
+png(paste0(simulated_plot_path, 'Nucleosome_signal_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
+  geom_line(aes(colour = orig.ident)) +
+  xlab("Upper nucleosome signal Threshold") +
+  ylab("Median nucleosome signal Count") +
+  ggtitle("Nucleosome signal at simulated minimum filter thresholds") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+graphics.off()
+
+
+
+############################## Plot Vln plots with different thresholds #######################################
+
+### WOULD NEED TO ADJUST THIS BASED ON OUTPUT OF SIMULATIONS
+filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 40, 50, 60), 
+                                TSS.enrichment = c(0, 0.3, 2.5, 3), 
+                                nucleosome_signal = c(Inf, 1.5, 0.8, 0.6),
+                                peak_region_fragments_min = c(0, 100, 250, 400),
+                                peak_region_fragments_max = c(1559, 1250, 1000, 800),
+                                row.names = c("unfilt", "low", "med", "high"))
+
+png(paste0(plot_path, 'filter_thresholds.png'), height = 6, width = 30, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Selected Filter Thresholds", gp=gpar(fontsize=8, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(filter_thresholds, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Plot violins for nCount, nFeature and percent.mt at different filtering thresholds
+filter_qc <- lapply(rownames(filter_thresholds), function(condition){
+  seurat_all@meta.data %>%
+    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
+    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
+    filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
+    filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
+    filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+    dplyr::select(orig.ident, peak_region_fragments, pct_reads_in_peaks, TSS.enrichment, nucleosome_signal) %>%
+    mutate(filter_condition = !!condition)
+})
+
+filter_qc <- do.call(rbind, filter_qc) %>%
+  mutate(filter_condition = factor(filter_condition, rownames(filter_thresholds))) %>%
+  reshape2::melt()
+
+png(paste0(plot_path, 'violins_filter_thresholds.png'), height = 18, width = 40, units = 'cm', res = 400)
+ggplot(filter_qc, aes(x = filter_condition, y = value, fill = orig.ident)) +
+  geom_violin() +
+  facet_wrap(~ variable, nrow = 4, strip.position = "left", scales = "free_y") +
+  theme_minimal() +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.title.y=element_blank()) +
+  theme(strip.placement = "outside")
+graphics.off()
+
+############################## Try low/med/high filtering thresholds to QC #######################################
 
 # Calculate remaining cells following different filter thresholds
 filter_qc <- lapply(rownames(filter_thresholds), function(condition){
@@ -111,3 +299,44 @@ ggplot(filter_qc[filter_qc$orig.ident != "Total",] %>% reshape2::melt(), aes(x=v
   theme_classic() +
   theme(plot.title = element_text(hjust = 0.5))
 graphics.off()
+
+# Calculate median fragment count per cell following different filter thresholds
+filter_qc <- lapply(rownames(filter_thresholds), function(condition){
+  seurat_all@meta.data %>%
+    filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
+    filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
+    filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+    group_by(orig.ident) %>%
+    summarise(median = median(passed_filters, na.rm = TRUE)) %>%
+    mutate(median = as.integer(median)) %>%
+    dplyr::rename(!!condition := median)
+})
+
+# Plot median gene count per cell
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc)
+
+png(paste0(plot_path, 'median_fragment_count_table.png'), height = 10, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Median Fragment Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(filter_qc, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+png(paste0(plot_path, 'median_fragment_count_line.png'), height = 15, width = 21, units = 'cm', res = 400)
+ggplot(filter_qc %>% reshape2::melt(), aes(x=variable, y=value, group=orig.ident)) +
+  geom_line(aes(colour = orig.ident)) +
+  xlab("Filter Condition") +
+  ylab("Median Fragment Count") +
+  ggtitle("Median fragment count per cell after filtering") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+graphics.off()
+
+############################## Filter data #######################################
+seurat_all_filtered <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
+                                                 peak_region_fragments > filter_thresholds['med','peak_region_fragments_min'] &
+                                                 peak_region_fragments < filter_thresholds['med','peak_region_fragments_max'] &
+                                                 TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
+                                                 nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
+
+seurat_all_filtered
+
+saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
