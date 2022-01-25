@@ -74,11 +74,11 @@ print(seurat_all)
 ############################## Set filtering thresholds #######################################
 
 # These have been adjusted based on simulated plots below
-filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 40, 50, 60), 
+filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 55, 65, 75), 
                                 TSS.enrichment = c(0, 0.4, 2, 3), 
-                                nucleosome_signal = c(Inf, 1.25, 1, 0.7),
-                                peak_region_fragments_min = c(0, 210, 500, 1000),
-                                peak_region_fragments_max = c(Inf, 1250, 800, 500),
+                                nucleosome_signal = c(Inf, 2, 1.7, 1.5),
+                                peak_region_fragments_min = c(0, 500, 2500, 10000),
+                                peak_region_fragments_max = c(Inf, 30000, 35000, 40000),
                                 row.names = c("unfilt", "low", "med", "high"))
 
 
@@ -230,7 +230,7 @@ filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cuto
     mutate(median = as.integer(median)) %>%
     dplyr::rename(!! paste(cutoff) := median)
 })
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)/10)
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
 png(paste0(simulated_plot_path, 'TSS_enrichment_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
 ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
@@ -330,6 +330,8 @@ filter_qc <- lapply(rownames(filter_thresholds), function(condition){
     filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
     filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
     filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
+    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
     group_by(orig.ident) %>%
     tally() %>%
     dplyr::rename(!!condition := n)
@@ -362,6 +364,8 @@ filter_qc <- lapply(rownames(filter_thresholds), function(condition){
     filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
     filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
     filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
+    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
     group_by(orig.ident) %>%
     summarise(median = median(passed_filters, na.rm = TRUE)) %>%
     mutate(median = as.integer(median)) %>%
