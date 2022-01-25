@@ -16,6 +16,6 @@ export NXF_VER=21.10.3
 
 nextflow run ./main.nf \
 --input ./samplesheet.csv \
---outdir ./output/ \
+--outdir ../output/NF-downstream_analysis \
 -profile crick_test \
 -resume

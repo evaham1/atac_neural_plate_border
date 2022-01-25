@@ -59,6 +59,7 @@ test = TRUE
     # Multi-core when running from command line
     plan("multicore", workers = ncores)
     options(future.globals.maxSize = 220* 1024^3)
+    plan()
     
   } else {
     stop("--runtype must be set to 'nextflow'")
