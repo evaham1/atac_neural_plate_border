@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 
 include {R as PREPROCESSING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1_preprocessing.R", checkIfExists: true) )
-
+include {R as FILTERING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/2_filtering.R", checkIfExists: true) )
 
 workflow PROCESSING {
     take:
@@ -10,6 +10,7 @@ workflow PROCESSING {
 
     main:
     PREPROCESSING( input )
+    FILTERING(PREPROCESSING.out)
 
     //emit:
     //preprocessing_out = PREPROCESSING.out

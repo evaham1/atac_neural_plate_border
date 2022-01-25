@@ -39,8 +39,8 @@ test = TRUE
     ref_path = "../output/NF-luslab_sc_multiomic/reference/"
     
     if(test == TRUE){
-      plot_path = "../output/NF-downstream_analysis/TEST/plots/"
-      rds_path = "../output/NF-downstream_analysis/TEST/rds_files/"
+      plot_path = "../output/NF-downstream_analysis/1_preprocessing/TEST/plots/"
+      rds_path = "../output/NF-downstream_analysis/1_preprocessing/TEST/rds_files/"
       data_path = "../output/NF-luslab_sc_multiomic/test/cellranger_atac_output/"
       }else{
       plot_path = "../output/NF-downstream_analysis/1_preprocessing/plots/"
