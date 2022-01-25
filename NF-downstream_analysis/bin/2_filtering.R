@@ -75,6 +75,7 @@ seurat_all
 ############################## Plot simulated thresholds to QC #######################################
 
 simulated_plot_path = paste0(plot_path, "simulated_thresholds/")
+dir.create(simulated_plot_path, recursive = T)
 
 ####    Number of fragments in peaks (peak_region_fragments)  ####
 
