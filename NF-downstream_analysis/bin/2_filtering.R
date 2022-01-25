@@ -387,12 +387,89 @@ ggplot(filter_qc %>% reshape2::melt(), aes(x=variable, y=value, group=orig.ident
 graphics.off()
 
 ############################## Filter data #######################################
-seurat_all_filtered <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
+
+seurat_all <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
                                                  peak_region_fragments > filter_thresholds['med','peak_region_fragments_min'] &
                                                  peak_region_fragments < filter_thresholds['med','peak_region_fragments_max'] &
                                                  TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
                                                  nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
 
-seurat_all_filtered
+print(seurat_all)
 
+print("seurat object filtered based on QC thresholds")
+
+############################## Normalization and linear dimensional reduction #######################################
+
+normalising_plot_path = paste0(plot_path, "normalising/")
+dir.create(normalising_plot_path, recursive = T)
+
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+
+png(paste0(normalising_plot_path, 'DepthCor.png'), height = 15, width = 21, units = 'cm', res = 400)
+DepthCor(seurat_all)
+graphics.off()
+# just remove first LSI component
+
+############################## Non-linear dimension reduction and clustering #######################################
+
+clustering_plot_path = paste0(plot_path, "clustering/")
+dir.create(clustering_plot_path, recursive = T)
+
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+
+# Find optimal cluster resolution
+png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.") ## might need to change algorithm??
+graphics.off()
+
+
+############################## Identify poor quality clusters #######################################
+
+# Use higher cluster resolution for filtering poor clusters
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3, resolution = 2)
+
+# Plot UMAP for clusters and developmental stage
+png(paste0(clustering_plot_path, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+ClustStagePlot(seurat_all)
+graphics.off()
+
+# Plot QC for each cluster
+png(paste0(clustering_plot_path, "QCPlot.png"), width=32, height=28, units = 'cm', res = 200)
+QCPlot(seurat_all, quantiles = c(0.25, 0.75), y_elements = c("pct_reads_in_peaks", "peak_region_fragments", 
+                                                             "TSS.enrichment", "nucleosome_signal"),
+       x_lab = c("% fragments in peaks", "Number of fragments in peaks", "TSS enrichment score", "Nucleosome signal score"))
+graphics.off()
+
+# Automatically find poor quality clusters
+poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks", "peak_region_fragments", 
+                                                                  "TSS.enrichment", "nucleosome_signal"), quantiles = c(0.25, 0.75))
+
+# Plot UMAP for poor quality clusters
+png(paste0(clustering_plot_path, "PoorClusters.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
+graphics.off()
+
+# Filter poor quality clusters
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+
+print("seurat object filtered based on poor quality clusters")
+
+# Plot table with remaining cell counts after full filtering
+cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
+                          filtered = summary(seurat_all_filtered@meta.data$orig.ident))
+
+cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
+
+png(paste0(clustering_plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Save RDS output
 saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
+
