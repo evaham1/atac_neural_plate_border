@@ -470,6 +470,26 @@ grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface 
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+
+############################## Set stage as metadata and colour them - WILL NEED TO CHANGE TO HH over hh #######################################
+stage_order <- c("hh4", "hh5", "hh6", "hh7", "ss4", "ss8")
+stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
+
+seurat_all_filtered <- AddMetaData(seurat_all_filtered, substr(seurat_all_filtered@meta.data$orig.ident, 1, 3), col.name = "stage")
+seurat_all_filtered@meta.data$stage <- factor(seurat_all_filtered@meta.data$stage, levels = stage_order)
+
+stage_cols <- stage_colours[levels(droplevels(seurat_all_filtered@meta.data$stage))]
+
+png(paste0(clustering_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all_filtered, group.by = 'stage', label = TRUE, label.size = 12, 
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
 # Save RDS output
 saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
 
