@@ -85,10 +85,10 @@ maximums <-
   group_by(orig.ident) %>%
   summarise(max = max(peak_region_fragments, na.rm = TRUE))
 
-png(paste0(simulated_plot_path, 'peak_region_fragments_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Maximum Number of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(simulated_plot_path, 'peak_region_fragments_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Maximum Number of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
 # Simulation
 filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 10), function(cutoff){
@@ -111,7 +111,7 @@ ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
   theme(plot.title = element_text(hjust = 0.5))
 graphics.off()
 
-####    Percentage of fragments in peaks (pct_reads_in_peaks)  ####
+####    Percentage of reads in peaks (pct_reads_in_peaks)  ####
 
 # Max per sample
 maximums <- 
@@ -119,10 +119,10 @@ maximums <-
   group_by(orig.ident) %>%
   summarise(max = max(pct_reads_in_peaks, na.rm = TRUE))
 
-png(paste0(simulated_plot_path, 'pct_reads_in_peaks_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Maximum Percentage of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(simulated_plot_path, 'pct_reads_in_peaks_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Maximum Percentage of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
 # Simulation
 filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cutoff){
@@ -133,9 +133,9 @@ filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cuto
     mutate(median = as.integer(median)) %>%
     dplyr::rename(!! paste(cutoff) := median)
 })
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
-png(paste0(simulated_plot_path, 'pct_fragments_in_peaks_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+png(paste0(simulated_plot_path, 'pct_reads_in_peaks_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
 ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
   geom_line(aes(colour = orig.ident)) +
   xlab("Lower pct fragments in peaks Threshold") +
@@ -153,10 +153,10 @@ maximums <-
   group_by(orig.ident) %>%
   summarise(max = max(TSS.enrichment, na.rm = TRUE))
 
-png(paste0(simulated_plot_path, 'TSS_enrichment_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Maximum TSS Enrichment Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(simulated_plot_path, 'TSS_enrichment_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Maximum TSS Enrichment Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
 # Simulation
 filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cutoff){
@@ -167,7 +167,7 @@ filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cuto
     mutate(median = as.integer(median)) %>%
     dplyr::rename(!! paste(cutoff) := median)
 })
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
 png(paste0(simulated_plot_path, 'TSS_enrichment_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
 ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
@@ -187,10 +187,10 @@ maximums <-
   group_by(orig.ident) %>%
   summarise(max = max(nucleosome_signal, na.rm = TRUE))
 
-png(paste0(simulated_plot_path, 'nucleosome_signal_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Maximum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(simulated_plot_path, 'nucleosome_signal_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Maximum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
 # Min per sample
 minimums <- 
@@ -198,10 +198,10 @@ minimums <-
   group_by(orig.ident) %>%
   summarise(min = min(nucleosome_signal, na.rm = TRUE))
 
-png(paste0(simulated_plot_path, 'nucleosome_signal_minimums.png'), height = 10, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Minimum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(minimums, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(simulated_plot_path, 'nucleosome_signal_minimums.png'), height = 10, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Minimum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(minimums, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
 # Simulation
 filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -0.01), function(cutoff){
@@ -212,9 +212,9 @@ filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -
     #mutate(median = as.integer(median)) %>%
     dplyr::rename(!! paste(cutoff) := median)
 })
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
-png(paste0(simulated_plot_path, 'Nucleosome_signal_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+png(paste0(simulated_plot_path, 'nucleosome_signal_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
 ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
   geom_line(aes(colour = orig.ident)) +
   xlab("Upper nucleosome signal Threshold") +
