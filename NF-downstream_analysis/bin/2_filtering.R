@@ -67,17 +67,26 @@ test = TRUE
 ############################## Read merged Seurat RDS object and make plots #######################################
 
 seurat_all <- readRDS(paste0(data_path, "seurat_all.RDS"))
-
 print(seurat_all)
 
+
+############################## ATAC QC Plots #######################################
+
+png(paste0(plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
+TSSPlot(seurat_all, group.by = 'orig.ident') + NoLegend()
+graphics.off()
+
+#png(paste0(plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+#FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
+#graphics.off()
 
 ############################## Set filtering thresholds #######################################
 
 # These have been adjusted based on simulated plots below
-filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 50, 57, 75), 
+filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 50, 57, 62), 
                                 TSS.enrichment = c(0, 2.3, 2.8, 3.2), 
-                                nucleosome_signal = c(Inf, 2, 1.6, 1.2),
-                                peak_region_fragments_min = c(0, 250, 500, 2500),
+                                nucleosome_signal = c(Inf, 2, 1.8, 1.6),
+                                peak_region_fragments_min = c(0, 250, 500, 1000),
                                 peak_region_fragments_max = c(Inf, 40000, 35000, 30000),
                                 row.names = c("unfilt", "low", "med", "high"))
 
@@ -157,7 +166,7 @@ filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -
 filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
 png(paste0(simulated_plot_path, 'peak_region_fragments_simulation_max.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
+ggplot(filter_qc, aes(x=variable*10, y=value, group=orig.ident)) +
   geom_line(aes(colour = orig.ident)) +
   xlab("Maximum cut off") +
   ylab("Median number of fragments in peaks") +
@@ -209,12 +218,6 @@ ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
 graphics.off()
 
 ####    TSS enrichment (TSS.enrichment)  - Minimum cut off ####
-
-VlnPlot(
-  object = seurat_all,
-  features = 'TSS.enrichment',
-  pt.size = 0.00
-)
 
 # Max per sample
 maximums <- 
@@ -302,7 +305,7 @@ ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
   geom_line(aes(x = filter_thresholds$nucleosome_signal[4]))
 graphics.off()
 
-############################## Plot Vln plots with different thresholds #######################################
+############################## Try low/med/high filtering thresholds to QC #######################################
 
 # Plot violins for nCount, nFeature and percent.mt at different filtering thresholds
 filter_qc <- lapply(rownames(filter_thresholds), function(condition){
@@ -315,7 +318,6 @@ filter_qc <- lapply(rownames(filter_thresholds), function(condition){
     dplyr::select(orig.ident, peak_region_fragments, pct_reads_in_peaks, TSS.enrichment, nucleosome_signal) %>%
     mutate(filter_condition = !!condition)
 })
-
 filter_qc <- do.call(rbind, filter_qc) %>%
   mutate(filter_condition = factor(filter_condition, rownames(filter_thresholds))) %>%
   reshape2::melt()
@@ -330,21 +332,20 @@ ggplot(filter_qc, aes(x = filter_condition, y = value, fill = orig.ident)) +
   theme(strip.placement = "outside")
 graphics.off()
 
-############################## Try low/med/high filtering thresholds to QC #######################################
+#### TO ADD: NEW TSS ENRICHMENT PLOT AND NUCLEOSOME BANDING PLOT WITH DIFFERENT THRESHOLDS  #####
 
 # Calculate remaining cells following different filter thresholds
 filter_qc <- lapply(rownames(filter_thresholds), function(condition){
   seurat_all@meta.data %>%
+    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
+    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
     filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
     filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
     filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
-    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
-    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
     group_by(orig.ident) %>%
     tally() %>%
     dplyr::rename(!!condition := n)
-})
-
+  })
 filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc)
 
 # Plot remaining cell counts
