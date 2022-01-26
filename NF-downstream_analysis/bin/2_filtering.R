@@ -67,8 +67,8 @@ test = TRUE
 ############################## FUNCTIONS #######################################
 
 QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width = 10, ident_cols = NULL, title = "QC Metric"){
-  df <- data.frame(ident = FetchData(object = seurat_all, vars = c(identity)),
-                   value = FetchData(object = seurat_all, vars = c(QC_metric)))
+  df <- data.frame(ident = FetchData(object = seurat_obj, vars = c(identity)),
+                   value = FetchData(object = seurat_obj, vars = c(QC_metric)))
   colnames(df) <- c("ident", "value")
   if(is.null(ident_cols) == TRUE){
     ident_cols <- palette(rainbow(length(unique(df$ident))))
@@ -139,7 +139,7 @@ QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin
                ident_cols = stage_cols, title = "Number of fragments in peaks")
 graphics.off()
 
-png(paste0(before_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 21, units = 'cm', res = 400)
+png(paste0(before_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 28, units = 'cm', res = 400)
 VlnPlot(
   object = seurat_all, group.by = "mitochondrial",
   features = c('pct_reads_in_peaks', 'peak_region_fragments',
@@ -284,6 +284,43 @@ ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
   geom_line(aes(x = filter_thresholds$pct_reads_in_peaks[3])) +
   geom_line(aes(x = filter_thresholds$pct_reads_in_peaks[4]))
 graphics.off()
+
+from = 0
+to = min(maximums$max)
+by = 1
+QC_metric = "pct_reads_in_peaks"
+seurat_obj = seurat_all
+idents = "stage"
+
+simulation_plot <- function(seurat_obj, idents = "stage", QC_metric, from, to, by, cutoff_type = min, lines){
+  
+  metadata <- FetchData(object = seurat_obj, vars = c(idents, QC_metric))
+  
+  filter_qc <- lapply(seq(from = from, to = to, by = by), function(cutoff){
+    meta.data %>%
+      filter(!!QC_metric > cutoff)  %>%
+      group_by(!!idents) })
+  %>%
+      summarise(median = median(!!QC_metric))
+    
+                                
+                                
+                                , na.rm = TRUE)) %>%
+      mutate(median = as.integer(median)) %>%
+      dplyr::rename(!! paste(cutoff) := median)
+    })
+    
+    
+   
+  })
+  filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
+  
+  
+  
+  
+  
+}
+
 
 ####    TSS enrichment (TSS.enrichment)  - Minimum cut off ####
 
