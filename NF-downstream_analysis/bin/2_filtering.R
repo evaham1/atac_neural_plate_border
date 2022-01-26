@@ -74,11 +74,11 @@ print(seurat_all)
 ############################## Set filtering thresholds #######################################
 
 # These have been adjusted based on simulated plots below
-filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 55, 65, 75), 
-                                TSS.enrichment = c(0, 0.4, 2, 3), 
-                                nucleosome_signal = c(Inf, 2, 1.7, 1.5),
-                                peak_region_fragments_min = c(0, 500, 2500, 10000),
-                                peak_region_fragments_max = c(Inf, 30000, 35000, 40000),
+filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 50, 57, 75), 
+                                TSS.enrichment = c(0, 2.3, 2.8, 3.2), 
+                                nucleosome_signal = c(Inf, 2, 1.6, 1.2),
+                                peak_region_fragments_min = c(0, 250, 500, 2500),
+                                peak_region_fragments_max = c(Inf, 40000, 35000, 30000),
                                 row.names = c("unfilt", "low", "med", "high"))
 
 
@@ -116,7 +116,7 @@ filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 10), function(cut
     mutate(median = as.integer(median)) %>%
     dplyr::rename(!! paste(cutoff) := median)
 })
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
 png(paste0(simulated_plot_path, 'peak_region_fragments_simulation_min.png'), height = 15, width = 21, units = 'cm', res = 400)
 ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
@@ -154,7 +154,7 @@ filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -
     mutate(median = as.integer(median)) %>%
     dplyr::rename(!! paste(cutoff) := median)
 })
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)*10)
+filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
 png(paste0(simulated_plot_path, 'peak_region_fragments_simulation_max.png'), height = 15, width = 21, units = 'cm', res = 400)
 ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
@@ -199,7 +199,7 @@ ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
   geom_line(aes(colour = orig.ident)) +
   xlab("Minimum cut off") +
   ylab("Median % fragments in peaks") +
-  ggtitle("Meadian percentage of fragments in peaks at simulated minimum filter thresholds") +
+  ggtitle("Median percentage of fragments in peaks at simulated minimum filter thresholds") +
   theme_classic() +
   theme(plot.title = element_text(hjust = 0.5)) +
   geom_line(aes(x = filter_thresholds$pct_reads_in_peaks[1])) +
@@ -209,6 +209,12 @@ ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
 graphics.off()
 
 ####    TSS enrichment (TSS.enrichment)  - Minimum cut off ####
+
+VlnPlot(
+  object = seurat_all,
+  features = 'TSS.enrichment',
+  pt.size = 0.00
+)
 
 # Max per sample
 maximums <- 
@@ -222,18 +228,20 @@ maximums <-
 # graphics.off()
 
 # Simulation
-filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cutoff){
+filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 0.1), function(cutoff){
   seurat_all@meta.data %>%
     filter(TSS.enrichment > cutoff) %>%
     group_by(orig.ident) %>%
     summarise(median = median(TSS.enrichment, na.rm = TRUE)) %>%
+    mutate(median = median*100) %>%
     mutate(median = as.integer(median)) %>%
     dplyr::rename(!! paste(cutoff) := median)
 })
 filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
 
+
 png(paste0(simulated_plot_path, 'TSS_enrichment_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
+ggplot(filter_qc, aes(x=variable/10, y=value/100, group=orig.ident)) +
   geom_line(aes(colour = orig.ident)) +
   xlab("Minimum cut off") +
   ylab("Median TSS enrichment score") +
@@ -283,7 +291,7 @@ filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() 
 png(paste0(simulated_plot_path, 'nucleosome_signal_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
 ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
   geom_line(aes(colour = orig.ident)) +
-  xlab("Minimum cut off") +
+  xlab("Maximum cut off") +
   ylab("Median nucleosome signal score") +
   ggtitle("Nucleosome signal at simulated minimum filter thresholds") +
   theme_classic() +
