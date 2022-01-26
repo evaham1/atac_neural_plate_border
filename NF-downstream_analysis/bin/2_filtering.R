@@ -37,7 +37,7 @@ test = TRUE
       plot_path = "../output/NF-downstream_analysis/filtering/TEST/plots/"
       rds_path = "../output/NF-downstream_analysis/filtering/TEST/rds_files/"
       data_path = "../output/NF-downstream_analysis/preprocessing/rds_files/"
-      }else{
+    }else{
       plot_path = "../output/NF-downstream_analysis/filtering/plots/"
       rds_path = "../output/NF-downstream_analysis/filtering/rds_files/"
       data_path = "../output/NF-downstream_analysis/preprocessing/rds_files/"}
@@ -64,21 +64,89 @@ test = TRUE
   dir.create(rds_path, recursive = T)
 }
 
+############################## FUNCTIONS #######################################
+
+QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width = 10, ident_cols = NULL, title = "QC Metric"){
+  df <- data.frame(ident = FetchData(object = seurat_all, vars = c(identity)),
+                   value = FetchData(object = seurat_all, vars = c(QC_metric)))
+  colnames(df) <- c("ident", "value")
+  if(is.null(ident_cols) == TRUE){
+    ident_cols <- palette(rainbow(length(unique(df$ident))))
+  }
+  ggplot(df, aes(x=value, fill=ident, color=ident)) + 
+    geom_histogram(binwidth = bin_width) +
+    facet_wrap(~ ident) +
+    xlab("QC Metric") +
+    ylab("Frequency") +
+    ggtitle(title) +
+    theme_classic() +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(strip.text = element_blank()) +
+    scale_fill_manual(values = ident_cols) +
+    scale_color_manual(values = ident_cols)
+}
+
 ############################## Read merged Seurat RDS object and make plots #######################################
 
 seurat_all <- readRDS(paste0(data_path, "seurat_all.RDS"))
 print(seurat_all)
 
+############################## Set stage as metadata and colour them - WILL NEED TO CHANGE TO HH over hh #######################################
+stage_order <- c("hh4", "hh5", "hh6", "hh7", "ss4", "ss8")
+stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
 
-############################## ATAC QC Plots #######################################
+seurat_all <- AddMetaData(seurat_all, substr(seurat_all@meta.data$orig.ident, 1, 3), col.name = "stage")
+seurat_all@meta.data$stage <- factor(seurat_all@meta.data$stage, levels = stage_order)
 
-png(paste0(plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
-TSSPlot(seurat_all, group.by = 'orig.ident') + NoLegend()
+stage_cols <- stage_colours[levels(droplevels(seurat_all@meta.data$stage))]
+
+############################## TSS Enrichment Plot before filtering ######################################
+
+before_plot_path = paste0(plot_path, "before_filtering/")
+dir.create(before_plot_path, recursive = T)
+
+png(paste0(before_plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
+TSSPlot(seurat_all, group.by = 'stage') + NoLegend()
 graphics.off()
 
-#png(paste0(plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+############################## Nucleosome Banding Plot before filtering #######################################
+
+#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE
+#png(paste0(before_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
 #FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
 #graphics.off()
+
+############################## Histograms of QC metrics before filtering #######################################
+
+png(paste0(before_plot_path, 'pct_reads_in_peaks_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "pct_reads_in_peaks", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Percentage of fragments in peaks")
+graphics.off()
+
+png(paste0(before_plot_path, 'TSS.enrichment.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "TSS.enrichment", bin_width = 0.1,
+               ident_cols = stage_cols, title = "TSS enrichment score")
+graphics.off()
+
+png(paste0(before_plot_path, 'nucleosome_signal.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Nucleosome signal score")
+graphics.off()
+
+png(paste0(before_plot_path, 'peak_region_fragments.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 1,
+               ident_cols = stage_cols, title = "Number of fragments in peaks")
+graphics.off()
+
+png(paste0(before_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 21, units = 'cm', res = 400)
+VlnPlot(
+  object = seurat_all, group.by = "mitochondrial",
+  features = c('pct_reads_in_peaks', 'peak_region_fragments',
+               'TSS.enrichment', 'nucleosome_signal'),
+  pt.size = 0, ncol = 4)
+graphics.off()
+
 
 ############################## Set filtering thresholds #######################################
 
@@ -345,7 +413,7 @@ filter_qc <- lapply(rownames(filter_thresholds), function(condition){
     group_by(orig.ident) %>%
     tally() %>%
     dplyr::rename(!!condition := n)
-  })
+})
 filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc)
 
 # Plot remaining cell counts
@@ -399,17 +467,64 @@ ggplot(filter_qc %>% reshape2::melt(), aes(x=variable, y=value, group=orig.ident
   theme(plot.title = element_text(hjust = 0.5))
 graphics.off()
 
+############################## ########### #######################################
 ############################## Filter data #######################################
 
 seurat_all <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
-                                                 peak_region_fragments > filter_thresholds['med','peak_region_fragments_min'] &
-                                                 peak_region_fragments < filter_thresholds['med','peak_region_fragments_max'] &
-                                                 TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
-                                                 nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
+                       peak_region_fragments > filter_thresholds['med','peak_region_fragments_min'] &
+                       peak_region_fragments < filter_thresholds['med','peak_region_fragments_max'] &
+                       TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
+                       nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
 
 print(seurat_all)
 
 print("seurat object filtered based on QC thresholds")
+
+############################## TSS Enrichment Plot after filtering #######################################
+
+after_plot_path = paste0(plot_path, "after_filtering/")
+dir.create(after_plot_path, recursive = T)
+
+png(paste0(after_plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
+TSSPlot(seurat_all, group.by = 'stage') + NoLegend()
+graphics.off()
+
+############################## Nucleosome Banding Plot after filtering #######################################
+
+#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE
+#png(paste0(after_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+#FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
+#graphics.off()
+
+############################## Histograms of QC metrics after filtering #######################################
+
+png(paste0(after_plot_path, 'pct_reads_in_peaks_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "pct_reads_in_peaks", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Percentage of fragments in peaks")
+graphics.off()
+
+png(paste0(after_plot_path, 'TSS.enrichment.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "TSS.enrichment", bin_width = 0.1,
+               ident_cols = stage_cols, title = "TSS enrichment score")
+graphics.off()
+
+png(paste0(after_plot_path, 'nucleosome_signal.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Nucleosome signal score")
+graphics.off()
+
+png(paste0(after_plot_path, 'peak_region_fragments.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 1,
+               ident_cols = stage_cols, title = "Number of fragments in peaks")
+graphics.off()
+
+png(paste0(after_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 21, units = 'cm', res = 400)
+VlnPlot(
+  object = seurat_all, group.by = "mitochondrial",
+  features = c('pct_reads_in_peaks', 'peak_region_fragments',
+               'TSS.enrichment', 'nucleosome_signal'),
+  pt.size = 0, ncol = 4)
+graphics.off()
 
 ############################## Normalization and linear dimensional reduction #######################################
 
@@ -460,7 +575,7 @@ graphics.off()
 
 # Automatically find poor quality clusters
 poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks", "peak_region_fragments", 
-                                                                  "TSS.enrichment", "nucleosome_signal"), quantiles = c(0.25, 0.75))
+                                                          "TSS.enrichment", "nucleosome_signal"), quantiles = c(0.25, 0.75))
 
 # Plot UMAP for poor quality clusters
 png(paste0(clustering_plot_path, "PoorClusters.png"), width=60, height=20, units = 'cm', res = 200)
@@ -484,15 +599,6 @@ grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface 
 graphics.off()
 
 
-############################## Set stage as metadata and colour them - WILL NEED TO CHANGE TO HH over hh #######################################
-stage_order <- c("hh4", "hh5", "hh6", "hh7", "ss4", "ss8")
-stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
-names(stage_colours) <- stage_order
-
-seurat_all_filtered <- AddMetaData(seurat_all_filtered, substr(seurat_all_filtered@meta.data$orig.ident, 1, 3), col.name = "stage")
-seurat_all_filtered@meta.data$stage <- factor(seurat_all_filtered@meta.data$stage, levels = stage_order)
-
-stage_cols <- stage_colours[levels(droplevels(seurat_all_filtered@meta.data$stage))]
 
 png(paste0(clustering_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
 DimPlot(seurat_all_filtered, group.by = 'stage', label = TRUE, label.size = 12, 
