@@ -86,6 +86,78 @@ QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width 
     scale_color_manual(values = ident_cols)
 }
 
+simulation_cell_count <- function(seurat_obj, QC_metric, idents, 
+                                  from, to, by, cutoff_type = c("minimum", "maximum"), 
+                                  ident_cols = NULL){
+  
+  if (cutoff_type == "minimum"){
+    xlab <- "Minimum cut off"
+    filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+      seurat_obj@meta.data %>%
+        filter(!!rlang::sym(QC_metric) > cutoff) %>%
+        group_by(!!rlang::sym(idents)) %>%
+        tally() %>%
+        dplyr::rename(!! paste(cutoff) := n)
+    })} else {
+      xlab <- "Maximum cut off"
+      filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+        seurat_obj@meta.data %>%
+          filter(!!rlang::sym(QC_metric) < cutoff) %>%
+          group_by(!!rlang::sym(idents)) %>%
+          tally() %>%
+          dplyr::rename(!! paste(cutoff) := n)
+      })}
+  filter_cells <- Reduce(function(x, y) merge(x, y), filter_cells) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
+  
+  if(is.null(ident_cols) == TRUE){
+    ident_cols <- palette(rainbow(length(unique(filter_cells[,1]))))
+  }
+  
+  ggplot(filter_cells, aes(x=variable, y=value, group=!!rlang::sym(idents))) +
+    geom_line(aes(colour = !!rlang::sym(idents))) +
+    xlab(xlab) +
+    ylab("Number of cells") +
+    theme_classic() +
+    scale_color_manual(values = ident_cols)
+}
+
+simulation_medians <- function(seurat_obj, QC_metric, idents, 
+                                  from, to, by, cutoff_type = c("minimum", "maximum"), 
+                                  ident_cols = NULL){
+  
+  if (cutoff_type == "minimum"){
+    xlab <- "Minimum cut off"
+    filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+      seurat_obj@meta.data %>%
+        filter(!!rlang::sym(QC_metric) > cutoff) %>%
+        group_by(!!rlang::sym(idents)) %>%
+        summarise(median = median(!!rlang::sym(QC_metric), na.rm = TRUE)) %>%
+        mutate(median = as.integer(median)) %>%
+        dplyr::rename(!! paste(cutoff) := median)
+    })} else {
+      xlab <- "Maximum cut off"
+      filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+        seurat_obj@meta.data %>%
+          filter(!!rlang::sym(QC_metric) < cutoff) %>%
+          group_by(!!rlang::sym(idents)) %>%
+          summarise(median = median(!!rlang::sym(QC_metric), na.rm = TRUE)) %>%
+          mutate(median = as.integer(median)) %>%
+          dplyr::rename(!! paste(cutoff) := median)
+      })}
+  filter_cells <- Reduce(function(x, y) merge(x, y), filter_cells) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
+  
+  if(is.null(ident_cols) == TRUE){
+    ident_cols <- palette(rainbow(length(unique(filter_cells[,1]))))
+  }
+  
+  ggplot(filter_cells, aes(x=variable, y=value, group=!!rlang::sym(idents))) +
+    geom_line(aes(colour = !!rlang::sym(idents))) +
+    xlab(xlab) +
+    ylab("Median QC Metric") +
+    theme_classic() +
+    scale_color_manual(values = ident_cols)
+}
+
 ############################## Read merged Seurat RDS object and make plots #######################################
 
 seurat_all <- readRDS(paste0(data_path, "seurat_all.RDS"))
@@ -173,153 +245,83 @@ dir.create(simulated_plot_path, recursive = T)
 
 ####    Number of fragments in peaks (peak_region_fragments) - Minimum cut off  ####
 
-# Max per sample
-maximums <- 
-  seurat_all@meta.data %>%
-  group_by(orig.ident) %>%
-  summarise(max = max(peak_region_fragments, na.rm = TRUE))
+######    NEED TO SORT OUT x/y AXES AND ALSO WHY MAX CUT OFF GOES DOWNWARDS
 
-# png(paste0(simulated_plot_path, 'peak_region_fragments_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Maximum Number of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+# # Max per sample
+# maximums <- 
+#   seurat_all@meta.data %>%
+#   group_by(orig.ident) %>%
+#   summarise(max = max(peak_region_fragments, na.rm = TRUE))
+# 
+# # Median simulation
+# filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 10), function(cutoff){
+#   seurat_all@meta.data %>%
+#     filter(peak_region_fragments > cutoff) %>%
+#     group_by(orig.ident) %>%
+#     summarise(median = median(peak_region_fragments, na.rm = TRUE)) %>%
+#     mutate(median = as.integer(median)) %>%
+#     dplyr::rename(!! paste(cutoff) := median)
+# })
+# filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
+# 
+# png(paste0(simulated_plot_path, 'peak_region_fragments_simulation_min.png'), height = 15, width = 21, units = 'cm', res = 400)
+# ggplot(filter_qc, aes(x=variable*10, y=value, group=orig.ident)) +
+#   geom_line(aes(colour = orig.ident)) +
+#   xlab("Minimum cut off") +
+#   ylab("Median number of fragments in peaks") +
+#   ggtitle("Median number of fragments in peaks at simulated minimum filter thresholds") +
+#   theme_classic() +
+#   theme(plot.title = element_text(hjust = 0.5))
 # graphics.off()
-
-# Simulation
-filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 10), function(cutoff){
-  seurat_all@meta.data %>%
-    filter(peak_region_fragments > cutoff) %>%
-    group_by(orig.ident) %>%
-    summarise(median = median(peak_region_fragments, na.rm = TRUE)) %>%
-    mutate(median = as.integer(median)) %>%
-    dplyr::rename(!! paste(cutoff) := median)
-})
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
-
-png(paste0(simulated_plot_path, 'peak_region_fragments_simulation_min.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
-  geom_line(aes(colour = orig.ident)) +
-  xlab("Minimum cut off") +
-  ylab("Median number of fragments in peaks") +
-  ggtitle("Median number of fragments in peaks at simulated minimum filter thresholds") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_min[1])) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_min[2])) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_min[3])) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_min[4]))
-graphics.off()
-
-####    Number of fragments in peaks (peak_region_fragments) - Maximum cut off  ####
-
-# Mins per sample
-minimums <- 
-  seurat_all@meta.data %>%
-  group_by(orig.ident) %>%
-  summarise(min = min(peak_region_fragments, na.rm = TRUE))
-
-# png(paste0(simulated_plot_path, 'peak_region_fragments_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Maximum Number of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
+# 
+# ####    Number of fragments in peaks (peak_region_fragments) - Maximum cut off  ####
+# 
+# # Mins per sample
+# minimums <- 
+#   seurat_all@meta.data %>%
+#   group_by(orig.ident) %>%
+#   summarise(min = min(peak_region_fragments, na.rm = TRUE))
+# 
+# # Median simulation
+# filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -10), function(cutoff){
+#   seurat_all@meta.data %>%
+#     filter(peak_region_fragments < cutoff) %>%
+#     group_by(stage) %>%
+#     summarise(median = median(peak_region_fragments, na.rm = TRUE)) %>%
+#     mutate(median = as.integer(median)) %>%
+#     dplyr::rename(!! paste(cutoff) := median)
+# })
+# filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
+# 
+# png(paste0(simulated_plot_path, 'peak_region_fragments_simulation_max.png'), height = 15, width = 21, units = 'cm', res = 400)
+# ggplot(filter_qc, aes(x=variable*10, y=value, group=orig.ident)) +
+#   geom_line(aes(colour = orig.ident)) +
+#   xlab("Maximum cut off") +
+#   ylab("Median number of fragments in peaks") +
+#   ggtitle("Median number of fragments in peaks at simulated maximum filter thresholds") +
+#   theme_classic() +
+#   theme(plot.title = element_text(hjust = 0.5))
 # graphics.off()
-
-# Simulation
-filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -10), function(cutoff){
-  seurat_all@meta.data %>%
-    filter(peak_region_fragments < cutoff) %>%
-    group_by(orig.ident) %>%
-    summarise(median = median(peak_region_fragments, na.rm = TRUE)) %>%
-    mutate(median = as.integer(median)) %>%
-    dplyr::rename(!! paste(cutoff) := median)
-})
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
-
-png(paste0(simulated_plot_path, 'peak_region_fragments_simulation_max.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x=variable*10, y=value, group=orig.ident)) +
-  geom_line(aes(colour = orig.ident)) +
-  xlab("Maximum cut off") +
-  ylab("Median number of fragments in peaks") +
-  ggtitle("Median number of fragments in peaks at simulated maximum filter thresholds") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_max[1])) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_max[2])) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_max[3])) +
-  geom_line(aes(x = filter_thresholds$peak_region_fragments_max[4]))
-graphics.off()
 
 ####    Percentage of reads in peaks (pct_reads_in_peaks) - Minimum cut off ####
 
 # Max per sample
 maximums <- 
   seurat_all@meta.data %>%
-  group_by(orig.ident) %>%
+  group_by(stage) %>%
   summarise(max = max(pct_reads_in_peaks, na.rm = TRUE))
 
-# png(paste0(simulated_plot_path, 'pct_reads_in_peaks_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Maximum Percentage of Fragments in Peaks", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-# Simulation
-filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 1), function(cutoff){
-  seurat_all@meta.data %>%
-    filter(pct_reads_in_peaks > cutoff) %>%
-    group_by(orig.ident) %>%
-    summarise(median = median(pct_reads_in_peaks, na.rm = TRUE)) %>%
-    mutate(median = as.integer(median)) %>%
-    dplyr::rename(!! paste(cutoff) := median)
-})
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
-
-png(paste0(simulated_plot_path, 'pct_reads_in_peaks_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
-  geom_line(aes(colour = orig.ident)) +
-  xlab("Minimum cut off") +
-  ylab("Median % fragments in peaks") +
-  ggtitle("Median percentage of fragments in peaks at simulated minimum filter thresholds") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x = filter_thresholds$pct_reads_in_peaks[1])) +
-  geom_line(aes(x = filter_thresholds$pct_reads_in_peaks[2])) +
-  geom_line(aes(x = filter_thresholds$pct_reads_in_peaks[3])) +
-  geom_line(aes(x = filter_thresholds$pct_reads_in_peaks[4]))
+# Median simulation
+png(paste0(simulated_plot_path, 'pct_reads_in_peaks_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+simulation_medians(seurat_all, QC_metric = "pct_reads_in_peaks", idents = "stage", from = 0, to = min(maximums$max), by = 1, 
+                   ident_cols = stage_colours)
 graphics.off()
 
-from = 0
-to = min(maximums$max)
-by = 1
-QC_metric = "pct_reads_in_peaks"
-seurat_obj = seurat_all
-idents = "stage"
-
-simulation_plot <- function(seurat_obj, idents = "stage", QC_metric, from, to, by, cutoff_type = min, lines){
-  
-  metadata <- FetchData(object = seurat_obj, vars = c(idents, QC_metric))
-  
-  filter_qc <- lapply(seq(from = from, to = to, by = by), function(cutoff){
-    meta.data %>%
-      filter(!!QC_metric > cutoff)  %>%
-      group_by(!!idents) })
-  %>%
-      summarise(median = median(!!QC_metric))
-    
-                                
-                                
-                                , na.rm = TRUE)) %>%
-      mutate(median = as.integer(median)) %>%
-      dplyr::rename(!! paste(cutoff) := median)
-    })
-    
-    
-   
-  })
-  filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
-  
-  
-  
-  
-  
-}
+# Cell count simulation
+png(paste0(simulated_plot_path, 'pct_reads_in_peaks_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+simulation_cell_count(seurat_all, QC_metric = "pct_reads_in_peaks", idents = "stage", from = 0, to = min(maximums$max), by = 1, 
+           ident_cols = stage_colours)
+graphics.off()
 
 
 ####    TSS enrichment (TSS.enrichment)  - Minimum cut off ####
@@ -327,40 +329,21 @@ simulation_plot <- function(seurat_obj, idents = "stage", QC_metric, from, to, b
 # Max per sample
 maximums <- 
   seurat_all@meta.data %>%
-  group_by(orig.ident) %>%
+  group_by(stage) %>%
   summarise(max = max(TSS.enrichment, na.rm = TRUE))
 
-# png(paste0(simulated_plot_path, 'TSS_enrichment_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Maximum TSS Enrichment Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-# Simulation
-filter_qc <- lapply(seq(from = 0, to = min(maximums$max), by = 0.1), function(cutoff){
-  seurat_all@meta.data %>%
-    filter(TSS.enrichment > cutoff) %>%
-    group_by(orig.ident) %>%
-    summarise(median = median(TSS.enrichment, na.rm = TRUE)) %>%
-    mutate(median = median*100) %>%
-    mutate(median = as.integer(median)) %>%
-    dplyr::rename(!! paste(cutoff) := median)
-})
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
-
-
-png(paste0(simulated_plot_path, 'TSS_enrichment_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x=variable/10, y=value/100, group=orig.ident)) +
-  geom_line(aes(colour = orig.ident)) +
-  xlab("Minimum cut off") +
-  ylab("Median TSS enrichment score") +
-  ggtitle("TSS enrichment scores at simulated minimum filter thresholds") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x = filter_thresholds$TSS.enrichment[1])) +
-  geom_line(aes(x = filter_thresholds$TSS.enrichment[2])) +
-  geom_line(aes(x = filter_thresholds$TSS.enrichment[3])) +
-  geom_line(aes(x = filter_thresholds$TSS.enrichment[4]))
+# Median simulation
+png(paste0(simulated_plot_path, 'TSS.enrichment_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+simulation_medians(seurat_all, QC_metric = "TSS.enrichment", idents = "stage", from = 0, to = min(maximums$max), by = 0.1, 
+                   ident_cols = stage_colours)
 graphics.off()
+
+# Cell count simulation
+png(paste0(simulated_plot_path, 'TSS.enrichment_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+simulation_cell_count(seurat_all, QC_metric = "TSS.enrichment", idents = "stage", from = 0, to = min(maximums$max), by = 0.1, 
+                      ident_cols = stage_colours)
+graphics.off()
+
 
 ####    Nucleosome signal (nucleosome_signal) - Maximum cut off ####
 
@@ -370,148 +353,132 @@ maximums <-
   group_by(orig.ident) %>%
   summarise(max = max(nucleosome_signal, na.rm = TRUE))
 
-# png(paste0(simulated_plot_path, 'nucleosome_signal_maximums.png'), height = 10, width = 18, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Maximum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(maximums, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
 # Min per sample
 minimums <- 
   seurat_all@meta.data %>%
   group_by(orig.ident) %>%
   summarise(min = min(nucleosome_signal, na.rm = TRUE))
 
-# png(paste0(simulated_plot_path, 'nucleosome_signal_minimums.png'), height = 10, width = 18, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Minimum Nucleosome Signal Score", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(minimums, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
+# Median simulation
+png(paste0(simulated_plot_path, 'nucleosome_signal_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+simulation_medians(seurat_all, QC_metric = "nucleosome_signal", idents = "stage", 
+                   from = min(maximums$max), to = max(minimums$min), by = -0.01, 
+                   ident_cols = stage_colours, cutoff_type = "maximum")
+graphics.off()
 
-# Simulation
-filter_qc <- lapply(seq(from = min(maximums$max), to = max(minimums$min), by = -0.01), function(cutoff){
-  seurat_all@meta.data %>%
-    filter(nucleosome_signal < cutoff) %>%
-    group_by(orig.ident) %>%
-    summarise(median = median(nucleosome_signal, na.rm = TRUE)) %>%
-    dplyr::rename(!! paste(cutoff) := median)
-})
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc) %>% reshape2::melt() %>% mutate(variable = as.integer(variable)/100)
-
-png(paste0(simulated_plot_path, 'nucleosome_signal_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x=variable, y=value, group=orig.ident)) +
-  geom_line(aes(colour = orig.ident)) +
-  xlab("Maximum cut off") +
-  ylab("Median nucleosome signal score") +
-  ggtitle("Nucleosome signal at simulated minimum filter thresholds") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x = filter_thresholds$nucleosome_signal[1])) +
-  geom_line(aes(x = filter_thresholds$nucleosome_signal[2])) +
-  geom_line(aes(x = filter_thresholds$nucleosome_signal[3])) +
-  geom_line(aes(x = filter_thresholds$nucleosome_signal[4]))
+# Cell count simulation
+png(paste0(simulated_plot_path, 'nucleosome_signal_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+simulation_cell_count(seurat_all, QC_metric = "nucleosome_signal", idents = "stage", 
+                      from = min(maximums$max), to = max(minimums$min), by = -0.01, 
+                      ident_cols = stage_colours, cutoff_type = "maximum")
 graphics.off()
 
 ############################## Try low/med/high filtering thresholds to QC #######################################
 
-# Plot violins for nCount, nFeature and percent.mt at different filtering thresholds
-filter_qc <- lapply(rownames(filter_thresholds), function(condition){
-  seurat_all@meta.data %>%
-    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
-    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
-    filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
-    filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
-    filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
-    dplyr::select(orig.ident, peak_region_fragments, pct_reads_in_peaks, TSS.enrichment, nucleosome_signal) %>%
-    mutate(filter_condition = !!condition)
-})
-filter_qc <- do.call(rbind, filter_qc) %>%
-  mutate(filter_condition = factor(filter_condition, rownames(filter_thresholds))) %>%
-  reshape2::melt()
-
-png(paste0(plot_path, 'violins_filter_thresholds.png'), height = 18, width = 40, units = 'cm', res = 400)
-ggplot(filter_qc, aes(x = filter_condition, y = value, fill = orig.ident)) +
-  geom_violin() +
-  facet_wrap(~ variable, nrow = 4, strip.position = "left", scales = "free_y") +
-  theme_minimal() +
-  theme(axis.title.x=element_blank()) +
-  theme(axis.title.y=element_blank()) +
-  theme(strip.placement = "outside")
-graphics.off()
-
-#### TO ADD: NEW TSS ENRICHMENT PLOT AND NUCLEOSOME BANDING PLOT WITH DIFFERENT THRESHOLDS  #####
-
-# Calculate remaining cells following different filter thresholds
-filter_qc <- lapply(rownames(filter_thresholds), function(condition){
-  seurat_all@meta.data %>%
-    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
-    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
-    filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
-    filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
-    filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
-    group_by(orig.ident) %>%
-    tally() %>%
-    dplyr::rename(!!condition := n)
-})
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc)
-
-# Plot remaining cell counts
-filter_qc <-  filter_qc %>% column_to_rownames('orig.ident')
-filter_qc <- rbind(filter_qc, Total = colSums(filter_qc)) %>% rownames_to_column("orig.ident")
-
-png(paste0(plot_path, 'remaining_cell_table.png'), height = 10, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(filter_qc, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-png(paste0(plot_path, 'remaining_cell_bar.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc[filter_qc$orig.ident != "Total",] %>% reshape2::melt(), aes(x=variable, y=value, fill=orig.ident)) +
-  geom_bar(stat = "identity", position = position_dodge()) +
-  xlab("Filter Condition") +
-  ylab("Cell Count") +
-  ggtitle("Cell count after filtering") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5))
-graphics.off()
-
-# Calculate median fragment count per cell following different filter thresholds
-filter_qc <- lapply(rownames(filter_thresholds), function(condition){
-  seurat_all@meta.data %>%
-    filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
-    filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
-    filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
-    filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
-    filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
-    group_by(orig.ident) %>%
-    summarise(median = median(passed_filters, na.rm = TRUE)) %>%
-    mutate(median = as.integer(median)) %>%
-    dplyr::rename(!!condition := median)
-})
-
-# Plot median fragment count per cell
-filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc)
-
-png(paste0(plot_path, 'median_fragment_count_table.png'), height = 10, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Median Fragment Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(filter_qc, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-png(paste0(plot_path, 'median_fragment_count_line.png'), height = 15, width = 21, units = 'cm', res = 400)
-ggplot(filter_qc %>% reshape2::melt(), aes(x=variable, y=value, group=orig.ident)) +
-  geom_line(aes(colour = orig.ident)) +
-  xlab("Filter Condition") +
-  ylab("Median Fragment Count") +
-  ggtitle("Median fragment count per cell after filtering") +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5))
-graphics.off()
+# # Plot violins for nCount, nFeature and percent.mt at different filtering thresholds
+# filter_qc <- lapply(rownames(filter_thresholds), function(condition){
+#   seurat_all@meta.data %>%
+#     filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
+#     filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
+#     filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
+#     filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
+#     filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+#     dplyr::select(orig.ident, peak_region_fragments, pct_reads_in_peaks, TSS.enrichment, nucleosome_signal) %>%
+#     mutate(filter_condition = !!condition)
+# })
+# filter_qc <- do.call(rbind, filter_qc) %>%
+#   mutate(filter_condition = factor(filter_condition, rownames(filter_thresholds))) %>%
+#   reshape2::melt()
+# 
+# png(paste0(plot_path, 'violins_filter_thresholds.png'), height = 18, width = 40, units = 'cm', res = 400)
+# ggplot(filter_qc, aes(x = filter_condition, y = value, fill = orig.ident)) +
+#   geom_violin() +
+#   facet_wrap(~ variable, nrow = 4, strip.position = "left", scales = "free_y") +
+#   theme_minimal() +
+#   theme(axis.title.x=element_blank()) +
+#   theme(axis.title.y=element_blank()) +
+#   theme(strip.placement = "outside")
+# graphics.off()
+# 
+# #### TO ADD: NEW TSS ENRICHMENT PLOT AND NUCLEOSOME BANDING PLOT WITH DIFFERENT THRESHOLDS  #####
+# 
+# # Calculate remaining cells following different filter thresholds
+# filter_qc <- lapply(rownames(filter_thresholds), function(condition){
+#   seurat_all@meta.data %>%
+#     filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
+#     filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
+#     filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
+#     filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
+#     filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+#     group_by(orig.ident) %>%
+#     tally() %>%
+#     dplyr::rename(!!condition := n)
+# })
+# filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc)
+# 
+# # Plot remaining cell counts
+# filter_qc <-  filter_qc %>% column_to_rownames('orig.ident')
+# filter_qc <- rbind(filter_qc, Total = colSums(filter_qc)) %>% rownames_to_column("orig.ident")
+# 
+# png(paste0(plot_path, 'remaining_cell_table.png'), height = 10, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(filter_qc, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
+# 
+# png(paste0(plot_path, 'remaining_cell_bar.png'), height = 15, width = 21, units = 'cm', res = 400)
+# ggplot(filter_qc[filter_qc$orig.ident != "Total",] %>% reshape2::melt(), aes(x=variable, y=value, fill=orig.ident)) +
+#   geom_bar(stat = "identity", position = position_dodge()) +
+#   xlab("Filter Condition") +
+#   ylab("Cell Count") +
+#   ggtitle("Cell count after filtering") +
+#   theme_classic() +
+#   theme(plot.title = element_text(hjust = 0.5))
+# graphics.off()
+# 
+# # Calculate median fragment count per cell following different filter thresholds
+# filter_qc <- lapply(rownames(filter_thresholds), function(condition){
+#   seurat_all@meta.data %>%
+#     filter(pct_reads_in_peaks > filter_thresholds[condition,'pct_reads_in_peaks']) %>%
+#     filter(TSS.enrichment > filter_thresholds[condition,'TSS.enrichment']) %>%
+#     filter(nucleosome_signal < filter_thresholds[condition,'nucleosome_signal']) %>%
+#     filter(peak_region_fragments > filter_thresholds[condition,'peak_region_fragments_min']) %>%
+#     filter(peak_region_fragments < filter_thresholds[condition,'peak_region_fragments_max']) %>%
+#     group_by(orig.ident) %>%
+#     summarise(median = median(passed_filters, na.rm = TRUE)) %>%
+#     mutate(median = as.integer(median)) %>%
+#     dplyr::rename(!!condition := median)
+# })
+# 
+# # Plot median fragment count per cell
+# filter_qc <- Reduce(function(x, y) merge(x, y), filter_qc)
+# 
+# png(paste0(plot_path, 'median_fragment_count_table.png'), height = 10, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Median Fragment Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(filter_qc, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
+# 
+# png(paste0(plot_path, 'median_fragment_count_line.png'), height = 15, width = 21, units = 'cm', res = 400)
+# ggplot(filter_qc %>% reshape2::melt(), aes(x=variable, y=value, group=orig.ident)) +
+#   geom_line(aes(colour = orig.ident)) +
+#   xlab("Filter Condition") +
+#   ylab("Median Fragment Count") +
+#   ggtitle("Median fragment count per cell after filtering") +
+#   theme_classic() +
+#   theme(plot.title = element_text(hjust = 0.5))
+# graphics.off()
 
 ############################## ########### #######################################
 ############################## Filter data #######################################
 
-seurat_all <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
-                       peak_region_fragments > filter_thresholds['med','peak_region_fragments_min'] &
-                       peak_region_fragments < filter_thresholds['med','peak_region_fragments_max'] &
-                       TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
-                       nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
+# seurat_all <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
+#                        peak_region_fragments > filter_thresholds['med','peak_region_fragments_min'] &
+#                        peak_region_fragments < filter_thresholds['med','peak_region_fragments_max'] &
+#                        TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
+#                        nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
+
+seurat_all <- subset(seurat_all, subset = pct_reads_in_peaks > 57 &
+                       TSS.enrichment > 2.3 &
+                       nucleosome_signal < 1.8)
 
 print(seurat_all)
 
