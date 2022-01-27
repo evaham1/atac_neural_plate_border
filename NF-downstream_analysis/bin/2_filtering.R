@@ -66,10 +66,17 @@ test = TRUE
 
 ############################## FUNCTIONS #######################################
 
-QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width = 10, ident_cols = NULL, title = "QC Metric"){
+QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width = 10, ident_cols = NULL, 
+                           title = "QC Metric", xmin = NULL, xmax = NULL, intercept = NULL){
   df <- data.frame(ident = FetchData(object = seurat_obj, vars = c(identity)),
                    value = FetchData(object = seurat_obj, vars = c(QC_metric)))
   colnames(df) <- c("ident", "value")
+  if(is.null(xmin) == TRUE){
+    xmin <- min(df$value)
+  }
+  if(is.null(xmax) == TRUE){
+    xmax <- max(df$value)
+  }
   if(is.null(ident_cols) == TRUE){
     ident_cols <- palette(rainbow(length(unique(df$ident))))
   }
@@ -83,80 +90,11 @@ QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width 
     theme(plot.title = element_text(hjust = 0.5)) +
     theme(strip.text = element_blank()) +
     scale_fill_manual(values = ident_cols) +
-    scale_color_manual(values = ident_cols)
+    scale_color_manual(values = ident_cols) +
+    xlim(xmin, xmax) +
+    geom_vline(xintercept = intercept, linetype="dashed", size=1) 
 }
 
-simulation_cell_count <- function(seurat_obj, QC_metric, idents, 
-                                  from, to, by, cutoff_type = c("minimum", "maximum"), 
-                                  ident_cols = NULL){
-  
-  if (cutoff_type == "minimum"){
-    xlab <- "Minimum cut off"
-    filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
-      seurat_obj@meta.data %>%
-        filter(!!rlang::sym(QC_metric) > cutoff) %>%
-        group_by(!!rlang::sym(idents)) %>%
-        tally() %>%
-        dplyr::rename(!! paste(cutoff) := n)
-    })} else {
-      xlab <- "Maximum cut off"
-      filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
-        seurat_obj@meta.data %>%
-          filter(!!rlang::sym(QC_metric) < cutoff) %>%
-          group_by(!!rlang::sym(idents)) %>%
-          tally() %>%
-          dplyr::rename(!! paste(cutoff) := n)
-      })}
-  filter_cells <- Reduce(function(x, y) merge(x, y), filter_cells) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
-  
-  if(is.null(ident_cols) == TRUE){
-    ident_cols <- palette(rainbow(length(unique(filter_cells[,1]))))
-  }
-  
-  ggplot(filter_cells, aes(x=variable, y=value, group=!!rlang::sym(idents))) +
-    geom_line(aes(colour = !!rlang::sym(idents))) +
-    xlab(xlab) +
-    ylab("Number of cells") +
-    theme_classic() +
-    scale_color_manual(values = ident_cols)
-}
-
-simulation_medians <- function(seurat_obj, QC_metric, idents, 
-                                  from, to, by, cutoff_type = c("minimum", "maximum"), 
-                                  ident_cols = NULL){
-  
-  if (cutoff_type == "minimum"){
-    xlab <- "Minimum cut off"
-    filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
-      seurat_obj@meta.data %>%
-        filter(!!rlang::sym(QC_metric) > cutoff) %>%
-        group_by(!!rlang::sym(idents)) %>%
-        summarise(median = median(!!rlang::sym(QC_metric), na.rm = TRUE)) %>%
-        mutate(median = as.integer(median)) %>%
-        dplyr::rename(!! paste(cutoff) := median)
-    })} else {
-      xlab <- "Maximum cut off"
-      filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
-        seurat_obj@meta.data %>%
-          filter(!!rlang::sym(QC_metric) < cutoff) %>%
-          group_by(!!rlang::sym(idents)) %>%
-          summarise(median = median(!!rlang::sym(QC_metric), na.rm = TRUE)) %>%
-          mutate(median = as.integer(median)) %>%
-          dplyr::rename(!! paste(cutoff) := median)
-      })}
-  filter_cells <- Reduce(function(x, y) merge(x, y), filter_cells) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
-  
-  if(is.null(ident_cols) == TRUE){
-    ident_cols <- palette(rainbow(length(unique(filter_cells[,1]))))
-  }
-  
-  ggplot(filter_cells, aes(x=variable, y=value, group=!!rlang::sym(idents))) +
-    geom_line(aes(colour = !!rlang::sym(idents))) +
-    xlab(xlab) +
-    ylab("Median QC Metric") +
-    theme_classic() +
-    scale_color_manual(values = ident_cols)
-}
 
 ############################## Read merged Seurat RDS object and make plots #######################################
 
@@ -191,26 +129,56 @@ graphics.off()
 
 ############################## Histograms of QC metrics before filtering #######################################
 
+### Percentage of reads in peaks
 png(paste0(before_plot_path, 'pct_reads_in_peaks_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
 QC_metric_hist(seurat_obj = seurat_all, QC_metric = "pct_reads_in_peaks", bin_width = 0.1,
                ident_cols = stage_cols, title = "Percentage of fragments in peaks")
 graphics.off()
 
-png(paste0(before_plot_path, 'TSS.enrichment.png'), height = 15, width = 21, units = 'cm', res = 400)
+png(paste0(before_plot_path, 'pct_reads_in_peaks_hist_zoom.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "pct_reads_in_peaks", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Percentage of fragments in peaks - minimum threshold 50%", xmin = 0, xmax = 60, intercept = 50)
+graphics.off()
+
+### TSS enrichment score
+png(paste0(before_plot_path, 'TSS.enrichment_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
 QC_metric_hist(seurat_obj = seurat_all, QC_metric = "TSS.enrichment", bin_width = 0.1,
                ident_cols = stage_cols, title = "TSS enrichment score")
 graphics.off()
 
-png(paste0(before_plot_path, 'nucleosome_signal.png'), height = 15, width = 21, units = 'cm', res = 400)
+png(paste0(before_plot_path, 'TSS.enrichment_hist_zoom.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "TSS.enrichment", bin_width = 0.1,
+               ident_cols = stage_cols, title = "TSS enrichment score - minimum threshold 2", xmin = 0, xmax = 4, intercept = 2)
+graphics.off()
+
+### Nucleosome signal score
+png(paste0(before_plot_path, 'nucleosome_signal_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
 QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_width = 0.1,
                ident_cols = stage_cols, title = "Nucleosome signal score")
 graphics.off()
 
-png(paste0(before_plot_path, 'peak_region_fragments.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 1,
+png(paste0(before_plot_path, 'nucleosome_signal_hist_zoom.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Nucleosome signal score - maximum threshold 1.5", xmin = 0, xmax = 3, intercept = 1.5)
+graphics.off()
+
+### Number of reads in peaks
+png(paste0(before_plot_path, 'peak_region_fragments_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
                ident_cols = stage_cols, title = "Number of fragments in peaks")
 graphics.off()
 
+png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+               ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 2000", xmin = 0, xmax = 5000, intercept = 2000)
+graphics.off()
+
+png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+               ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 50000", xmin = 20000, xmax = 100000, intercept = 50000)
+graphics.off()
+
+### All QC metrics
 png(paste0(before_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 28, units = 'cm', res = 400)
 VlnPlot(
   object = seurat_all, group.by = "mitochondrial",
@@ -219,36 +187,217 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+############################## ########### #######################################
+############################## Filter data #######################################
+
+seurat_all <- subset(seurat_all, subset = 
+                       pct_reads_in_peaks > 50 &
+                       TSS.enrichment > 2 &
+                       nucleosome_signal < 1.5 &
+                       peak_region_fragments < 50000 &
+                       peak_region_fragments > 2000)
+
+print(seurat_all)
+
+print("seurat object filtered based on QC thresholds")
+
+############################## TSS Enrichment Plot after filtering #######################################
+
+after_plot_path = paste0(plot_path, "after_filtering/")
+dir.create(after_plot_path, recursive = T)
+
+png(paste0(after_plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
+TSSPlot(seurat_all, group.by = 'stage') + NoLegend()
+graphics.off()
+
+############################## Nucleosome Banding Plot after filtering #######################################
+
+#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE
+#png(paste0(after_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+#FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
+#graphics.off()
+
+############################## Histograms of QC metrics before filtering #######################################
+
+### Percentage of reads in peaks
+png(paste0(after_plot_path, 'pct_reads_in_peaks_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "pct_reads_in_peaks", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Percentage of fragments in peaks")
+graphics.off()
+
+png(paste0(after_plot_path, 'pct_reads_in_peaks_hist_zoom.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "pct_reads_in_peaks", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Percentage of fragments in peaks - minimum threshold 50%", xmin = 0, xmax = 60, intercept = 50)
+graphics.off()
+
+### TSS enrichment score
+png(paste0(after_plot_path, 'TSS.enrichment_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "TSS.enrichment", bin_width = 0.1,
+               ident_cols = stage_cols, title = "TSS enrichment score")
+graphics.off()
+
+png(paste0(after_plot_path, 'TSS.enrichment_hist_zoom.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "TSS.enrichment", bin_width = 0.1,
+               ident_cols = stage_cols, title = "TSS enrichment score - minimum threshold 2", xmin = 0, xmax = 4, intercept = 2)
+graphics.off()
+
+### Nucleosome signal score
+png(paste0(after_plot_path, 'nucleosome_signal_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Nucleosome signal score")
+graphics.off()
+
+png(paste0(after_plot_path, 'nucleosome_signal_hist_zoom.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_width = 0.1,
+               ident_cols = stage_cols, title = "Nucleosome signal score - maximum threshold 1.5", xmin = 0, xmax = 3, intercept = 1.5)
+graphics.off()
+
+### Number of reads in peaks
+png(paste0(after_plot_path, 'peak_region_fragments_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+               ident_cols = stage_cols, title = "Number of fragments in peaks")
+graphics.off()
+
+png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+               ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 2000", xmin = 0, xmax = 5000, intercept = 2000)
+graphics.off()
+
+png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
+QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+               ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 50000", xmin = 20000, xmax = 100000, intercept = 50000)
+graphics.off()
+
+### All QC metrics
+png(paste0(before_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 28, units = 'cm', res = 400)
+VlnPlot(
+  object = seurat_all, group.by = "mitochondrial",
+  features = c('pct_reads_in_peaks', 'peak_region_fragments',
+               'TSS.enrichment', 'nucleosome_signal'),
+  pt.size = 0, ncol = 4)
+graphics.off()
+
+############################## Normalization and linear dimensional reduction #######################################
+
+normalising_plot_path = paste0(plot_path, "normalising/")
+dir.create(normalising_plot_path, recursive = T)
+
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+
+png(paste0(normalising_plot_path, 'DepthCor.png'), height = 15, width = 21, units = 'cm', res = 400)
+DepthCor(seurat_all)
+graphics.off()
+# just remove first LSI component
+
+############################## Non-linear dimension reduction and clustering #######################################
+
+clustering_plot_path = paste0(plot_path, "clustering/")
+dir.create(clustering_plot_path, recursive = T)
+
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+
+# Find optimal cluster resolution
+png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.") ## might need to change algorithm??
+graphics.off()
+
+
+############################## Identify poor quality clusters #######################################
+
+# Use higher cluster resolution for filtering poor clusters
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3, resolution = 2)
+
+# Plot UMAP for clusters and developmental stage
+png(paste0(clustering_plot_path, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+ClustStagePlot(seurat_all)
+graphics.off()
+
+# Plot QC for each cluster
+png(paste0(clustering_plot_path, "QCPlot.png"), width=32, height=28, units = 'cm', res = 200)
+QCPlot(seurat_all, quantiles = c(0.25, 0.75), y_elements = c("pct_reads_in_peaks", "peak_region_fragments", 
+                                                             "TSS.enrichment", "nucleosome_signal"),
+       x_lab = c("% fragments in peaks", "Number of fragments in peaks", "TSS enrichment score", "Nucleosome signal score"))
+graphics.off()
+
+# Automatically find poor quality clusters
+poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks", "peak_region_fragments", 
+                                                          "TSS.enrichment", "nucleosome_signal"), quantiles = c(0.25, 0.75))
+
+# Plot UMAP for poor quality clusters
+png(paste0(clustering_plot_path, "PoorClusters.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
+graphics.off()
+
+# Filter poor quality clusters
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+
+print("seurat object filtered based on poor quality clusters")
+
+# Plot table with remaining cell counts after full filtering
+cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
+                          filtered = summary(seurat_all_filtered@meta.data$orig.ident))
+
+cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
+
+png(paste0(clustering_plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+
+
+png(paste0(clustering_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all_filtered, group.by = 'stage', label = TRUE, label.size = 12, 
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+# Save RDS output
+saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
+
+
+
+############################## **** ARCHIVED **** #######################################
+#########################################################################################
+#########################################################################################
 
 ############################## Set filtering thresholds #######################################
 
 # These have been adjusted based on simulated plots below
-filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 50, 57, 62), 
-                                TSS.enrichment = c(0, 2.3, 2.8, 3.2), 
-                                nucleosome_signal = c(Inf, 2, 1.8, 1.6),
-                                peak_region_fragments_min = c(0, 250, 500, 1000),
-                                peak_region_fragments_max = c(Inf, 40000, 35000, 30000),
-                                row.names = c("unfilt", "low", "med", "high"))
-
-
-
-png(paste0(plot_path, 'filter_thresholds.png'), height = 6, width = 30, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Selected Filter Thresholds", gp=gpar(fontsize=8, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(filter_thresholds, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# filter_thresholds <- data.frame(pct_reads_in_peaks = c(0, 50, 57, 62), 
+#                                 TSS.enrichment = c(0, 2.3, 2.8, 3.2), 
+#                                 nucleosome_signal = c(Inf, 2, 1.8, 1.6),
+#                                 peak_region_fragments_min = c(0, 250, 500, 1000),
+#                                 peak_region_fragments_max = c(Inf, 40000, 35000, 30000),
+#                                 row.names = c("unfilt", "low", "med", "high"))
+# 
+# 
+# 
+# png(paste0(plot_path, 'filter_thresholds.png'), height = 6, width = 30, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Selected Filter Thresholds", gp=gpar(fontsize=8, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(filter_thresholds, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
 
 ############################## Plot simulated thresholds to QC #######################################
 
-simulated_plot_path = paste0(plot_path, "simulated_thresholds/")
-dir.create(simulated_plot_path, recursive = T)
-
-####    Number of fragments in peaks (peak_region_fragments) - Minimum cut off  ####
-
-######    NEED TO SORT OUT x/y AXES AND ALSO WHY MAX CUT OFF GOES DOWNWARDS
-
-# # Max per sample
-# maximums <- 
+# simulated_plot_path = paste0(plot_path, "simulated_thresholds/")
+# dir.create(simulated_plot_path, recursive = T)
+# 
+# ####    Number of fragments in peaks (peak_region_fragments) - Minimum cut off  ####
+# 
+# ######    NEED TO SORT OUT x/y AXES AND ALSO WHY MAX CUT OFF GOES DOWNWARDS
+# 
+# # # Max per sample
+# maximums <-
 #   seurat_all@meta.data %>%
 #   group_by(orig.ident) %>%
 #   summarise(max = max(peak_region_fragments, na.rm = TRUE))
@@ -305,73 +454,73 @@ dir.create(simulated_plot_path, recursive = T)
 
 ####    Percentage of reads in peaks (pct_reads_in_peaks) - Minimum cut off ####
 
-# Max per sample
-maximums <- 
-  seurat_all@meta.data %>%
-  group_by(stage) %>%
-  summarise(max = max(pct_reads_in_peaks, na.rm = TRUE))
-
-# Median simulation
-png(paste0(simulated_plot_path, 'pct_reads_in_peaks_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-simulation_medians(seurat_all, QC_metric = "pct_reads_in_peaks", idents = "stage", from = 0, to = min(maximums$max), by = 1, 
-                   ident_cols = stage_colours)
-graphics.off()
-
-# Cell count simulation
-png(paste0(simulated_plot_path, 'pct_reads_in_peaks_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-simulation_cell_count(seurat_all, QC_metric = "pct_reads_in_peaks", idents = "stage", from = 0, to = min(maximums$max), by = 1, 
-           ident_cols = stage_colours)
-graphics.off()
-
-
-####    TSS enrichment (TSS.enrichment)  - Minimum cut off ####
-
-# Max per sample
-maximums <- 
-  seurat_all@meta.data %>%
-  group_by(stage) %>%
-  summarise(max = max(TSS.enrichment, na.rm = TRUE))
-
-# Median simulation
-png(paste0(simulated_plot_path, 'TSS.enrichment_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-simulation_medians(seurat_all, QC_metric = "TSS.enrichment", idents = "stage", from = 0, to = min(maximums$max), by = 0.1, 
-                   ident_cols = stage_colours)
-graphics.off()
-
-# Cell count simulation
-png(paste0(simulated_plot_path, 'TSS.enrichment_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-simulation_cell_count(seurat_all, QC_metric = "TSS.enrichment", idents = "stage", from = 0, to = min(maximums$max), by = 0.1, 
-                      ident_cols = stage_colours)
-graphics.off()
-
-
-####    Nucleosome signal (nucleosome_signal) - Maximum cut off ####
-
-# Max per sample
-maximums <- 
-  seurat_all@meta.data %>%
-  group_by(orig.ident) %>%
-  summarise(max = max(nucleosome_signal, na.rm = TRUE))
-
-# Min per sample
-minimums <- 
-  seurat_all@meta.data %>%
-  group_by(orig.ident) %>%
-  summarise(min = min(nucleosome_signal, na.rm = TRUE))
-
-# Median simulation
-png(paste0(simulated_plot_path, 'nucleosome_signal_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-simulation_medians(seurat_all, QC_metric = "nucleosome_signal", idents = "stage", 
-                   from = min(maximums$max), to = max(minimums$min), by = -0.01, 
-                   ident_cols = stage_colours, cutoff_type = "maximum")
-graphics.off()
-
-# Cell count simulation
-png(paste0(simulated_plot_path, 'nucleosome_signal_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
-simulation_cell_count(seurat_all, QC_metric = "nucleosome_signal", idents = "stage", 
-                      from = min(maximums$max), to = max(minimums$min), by = -0.01, 
-                      ident_cols = stage_colours, cutoff_type = "maximum")
-graphics.off()
+# # Max per sample
+# maximums <- 
+#   seurat_all@meta.data %>%
+#   group_by(stage) %>%
+#   summarise(max = max(pct_reads_in_peaks, na.rm = TRUE))
+# 
+# # Median simulation
+# png(paste0(simulated_plot_path, 'pct_reads_in_peaks_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+# simulation_medians(seurat_all, QC_metric = "pct_reads_in_peaks", idents = "stage", from = 0, to = min(maximums$max), by = 1, 
+#                    ident_cols = stage_colours)
+# graphics.off()
+# 
+# # Cell count simulation
+# png(paste0(simulated_plot_path, 'pct_reads_in_peaks_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+# simulation_cell_count(seurat_all, QC_metric = "pct_reads_in_peaks", idents = "stage", from = 0, to = min(maximums$max), by = 1, 
+#                       ident_cols = stage_colours)
+# graphics.off()
+# 
+# 
+# ####    TSS enrichment (TSS.enrichment)  - Minimum cut off ####
+# 
+# # Max per sample
+# maximums <- 
+#   seurat_all@meta.data %>%
+#   group_by(stage) %>%
+#   summarise(max = max(TSS.enrichment, na.rm = TRUE))
+# 
+# # Median simulation
+# png(paste0(simulated_plot_path, 'TSS.enrichment_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+# simulation_medians(seurat_all, QC_metric = "TSS.enrichment", idents = "stage", from = 0, to = min(maximums$max), by = 0.1, 
+#                    ident_cols = stage_colours)
+# graphics.off()
+# 
+# # Cell count simulation
+# png(paste0(simulated_plot_path, 'TSS.enrichment_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+# simulation_cell_count(seurat_all, QC_metric = "TSS.enrichment", idents = "stage", from = 0, to = min(maximums$max), by = 0.1, 
+#                       ident_cols = stage_colours)
+# graphics.off()
+# 
+# 
+# ####    Nucleosome signal (nucleosome_signal) - Maximum cut off ####
+# 
+# # Max per sample
+# maximums <- 
+#   seurat_all@meta.data %>%
+#   group_by(orig.ident) %>%
+#   summarise(max = max(nucleosome_signal, na.rm = TRUE))
+# 
+# # Min per sample
+# minimums <- 
+#   seurat_all@meta.data %>%
+#   group_by(orig.ident) %>%
+#   summarise(min = min(nucleosome_signal, na.rm = TRUE))
+# 
+# # Median simulation
+# png(paste0(simulated_plot_path, 'nucleosome_signal_medians_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+# simulation_medians(seurat_all, QC_metric = "nucleosome_signal", idents = "stage", 
+#                    from = min(maximums$max), to = max(minimums$min), by = -0.01, 
+#                    ident_cols = stage_colours, cutoff_type = "maximum")
+# graphics.off()
+# 
+# # Cell count simulation
+# png(paste0(simulated_plot_path, 'nucleosome_signal_cell_count_simulation.png'), height = 15, width = 21, units = 'cm', res = 400)
+# simulation_cell_count(seurat_all, QC_metric = "nucleosome_signal", idents = "stage", 
+#                       from = min(maximums$max), to = max(minimums$min), by = -0.01, 
+#                       ident_cols = stage_colours, cutoff_type = "maximum")
+# graphics.off()
 
 ############################## Try low/med/high filtering thresholds to QC #######################################
 
@@ -467,152 +616,84 @@ graphics.off()
 #   theme(plot.title = element_text(hjust = 0.5))
 # graphics.off()
 
-############################## ########### #######################################
-############################## Filter data #######################################
+#### Functions
+# x axes wrong
+# simulation_cell_count <- function(seurat_obj, QC_metric, idents, 
+#                                   from, to, by, cutoff_type = c("minimum", "maximum"), 
+#                                   ident_cols = NULL){
+#   
+#   if (cutoff_type == "minimum"){
+#     xlab <- "Minimum cut off"
+#     filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+#       seurat_obj@meta.data %>%
+#         filter(!!rlang::sym(QC_metric) > cutoff) %>%
+#         group_by(!!rlang::sym(idents)) %>%
+#         tally() %>%
+#         dplyr::rename(!! paste(cutoff) := n)
+#     })} else {
+#       xlab <- "Maximum cut off"
+#       filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+#         seurat_obj@meta.data %>%
+#           filter(!!rlang::sym(QC_metric) < cutoff) %>%
+#           group_by(!!rlang::sym(idents)) %>%
+#           tally() %>%
+#           dplyr::rename(!! paste(cutoff) := n)
+#       })}
+#   filter_cells <- Reduce(function(x, y) merge(x, y), filter_cells) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
+#   
+#   if(is.null(ident_cols) == TRUE){
+#     ident_cols <- palette(rainbow(length(unique(filter_cells[,1]))))
+#   }
+#   
+#   ggplot(filter_cells, aes(x=variable, y=value, group=!!rlang::sym(idents))) +
+#     geom_line(aes(colour = !!rlang::sym(idents))) +
+#     xlab(xlab) +
+#     ylab("Number of cells") +
+#     theme_classic() +
+#     scale_color_manual(values = ident_cols)
+# }
+# 
+# ## not working properly
+# simulation_medians <- function(seurat_obj, QC_metric, idents, 
+#                                from, to, by, cutoff_type = c("minimum", "maximum"), 
+#                                ident_cols = NULL){
+#   
+#   if (cutoff_type == "minimum"){
+#     xlab <- "Minimum cut off"
+#     filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+#       seurat_obj@meta.data %>%
+#         filter(!!rlang::sym(QC_metric) > cutoff) %>%
+#         group_by(!!rlang::sym(idents)) %>%
+#         summarise(median = median(!!rlang::sym(QC_metric), na.rm = TRUE)) %>%
+#         mutate(median = as.integer(median)) %>%
+#         dplyr::rename(!! paste(cutoff) := median)
+#     })} else {
+#       xlab <- "Maximum cut off"
+#       filter_cells <- lapply(seq(from = from, to, by = by), function(cutoff){
+#         seurat_obj@meta.data %>%
+#           filter(!!rlang::sym(QC_metric) < cutoff) %>%
+#           group_by(!!rlang::sym(idents)) %>%
+#           summarise(median = median(!!rlang::sym(QC_metric), na.rm = TRUE)) %>%
+#           mutate(median = as.integer(median)) %>%
+#           dplyr::rename(!! paste(cutoff) := median)
+#       })}
+#   filter_cells <- Reduce(function(x, y) merge(x, y), filter_cells) %>% reshape2::melt() %>% mutate(variable = as.integer(variable))
+#   
+#   if(is.null(ident_cols) == TRUE){
+#     ident_cols <- palette(rainbow(length(unique(filter_cells[,1]))))
+#   }
+#   
+#   ggplot(filter_cells, aes(x=variable, y=value, group=!!rlang::sym(idents))) +
+#     geom_line(aes(colour = !!rlang::sym(idents))) +
+#     xlab(xlab) +
+#     ylab("Median QC Metric") +
+#     theme_classic() +
+#     scale_color_manual(values = ident_cols)
+# }
 
 # seurat_all <- subset(seurat_all, subset = pct_reads_in_peaks > filter_thresholds['med','pct_reads_in_peaks'] &
 #                        peak_region_fragments > filter_thresholds['med','peak_region_fragments_min'] &
 #                        peak_region_fragments < filter_thresholds['med','peak_region_fragments_max'] &
 #                        TSS.enrichment > filter_thresholds['med','TSS.enrichment'] &
 #                        nucleosome_signal < filter_thresholds['med','nucleosome_signal'])
-
-seurat_all <- subset(seurat_all, subset = pct_reads_in_peaks > 57 &
-                       TSS.enrichment > 2.3 &
-                       nucleosome_signal < 1.8)
-
-print(seurat_all)
-
-print("seurat object filtered based on QC thresholds")
-
-############################## TSS Enrichment Plot after filtering #######################################
-
-after_plot_path = paste0(plot_path, "after_filtering/")
-dir.create(after_plot_path, recursive = T)
-
-png(paste0(after_plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
-TSSPlot(seurat_all, group.by = 'stage') + NoLegend()
-graphics.off()
-
-############################## Nucleosome Banding Plot after filtering #######################################
-
-#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE
-#png(paste0(after_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-#FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
-#graphics.off()
-
-############################## Histograms of QC metrics after filtering #######################################
-
-png(paste0(after_plot_path, 'pct_reads_in_peaks_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "pct_reads_in_peaks", bin_width = 0.1,
-               ident_cols = stage_cols, title = "Percentage of fragments in peaks")
-graphics.off()
-
-png(paste0(after_plot_path, 'TSS.enrichment.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "TSS.enrichment", bin_width = 0.1,
-               ident_cols = stage_cols, title = "TSS enrichment score")
-graphics.off()
-
-png(paste0(after_plot_path, 'nucleosome_signal.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_width = 0.1,
-               ident_cols = stage_cols, title = "Nucleosome signal score")
-graphics.off()
-
-png(paste0(after_plot_path, 'peak_region_fragments.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 1,
-               ident_cols = stage_cols, title = "Number of fragments in peaks")
-graphics.off()
-
-png(paste0(after_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 21, units = 'cm', res = 400)
-VlnPlot(
-  object = seurat_all, group.by = "mitochondrial",
-  features = c('pct_reads_in_peaks', 'peak_region_fragments',
-               'TSS.enrichment', 'nucleosome_signal'),
-  pt.size = 0, ncol = 4)
-graphics.off()
-
-############################## Normalization and linear dimensional reduction #######################################
-
-normalising_plot_path = paste0(plot_path, "normalising/")
-dir.create(normalising_plot_path, recursive = T)
-
-seurat_all <- RunTFIDF(seurat_all)
-seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
-seurat_all <- RunSVD(seurat_all)
-
-png(paste0(normalising_plot_path, 'DepthCor.png'), height = 15, width = 21, units = 'cm', res = 400)
-DepthCor(seurat_all)
-graphics.off()
-# just remove first LSI component
-
-############################## Non-linear dimension reduction and clustering #######################################
-
-clustering_plot_path = paste0(plot_path, "clustering/")
-dir.create(clustering_plot_path, recursive = T)
-
-seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
-seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
-seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
-DimPlot(object = seurat_all, label = TRUE) + NoLegend()
-
-# Find optimal cluster resolution
-png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.") ## might need to change algorithm??
-graphics.off()
-
-
-############################## Identify poor quality clusters #######################################
-
-# Use higher cluster resolution for filtering poor clusters
-seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3, resolution = 2)
-
-# Plot UMAP for clusters and developmental stage
-png(paste0(clustering_plot_path, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-ClustStagePlot(seurat_all)
-graphics.off()
-
-# Plot QC for each cluster
-png(paste0(clustering_plot_path, "QCPlot.png"), width=32, height=28, units = 'cm', res = 200)
-QCPlot(seurat_all, quantiles = c(0.25, 0.75), y_elements = c("pct_reads_in_peaks", "peak_region_fragments", 
-                                                             "TSS.enrichment", "nucleosome_signal"),
-       x_lab = c("% fragments in peaks", "Number of fragments in peaks", "TSS enrichment score", "Nucleosome signal score"))
-graphics.off()
-
-# Automatically find poor quality clusters
-poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks", "peak_region_fragments", 
-                                                          "TSS.enrichment", "nucleosome_signal"), quantiles = c(0.25, 0.75))
-
-# Plot UMAP for poor quality clusters
-png(paste0(clustering_plot_path, "PoorClusters.png"), width=60, height=20, units = 'cm', res = 200)
-ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
-graphics.off()
-
-# Filter poor quality clusters
-seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
-
-print("seurat object filtered based on poor quality clusters")
-
-# Plot table with remaining cell counts after full filtering
-cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
-                          filtered = summary(seurat_all_filtered@meta.data$orig.ident))
-
-cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
-
-png(paste0(clustering_plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-
-
-png(paste0(clustering_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
-DimPlot(seurat_all_filtered, group.by = 'stage', label = TRUE, label.size = 12, 
-        label.box = TRUE, repel = TRUE,
-        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
-  ggplot2::theme_void() +
-  ggplot2::theme(legend.position = "none", 
-                 plot.title = element_blank())
-graphics.off()
-
-# Save RDS output
-saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
 
