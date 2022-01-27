@@ -22,7 +22,7 @@ spec = matrix(c(
   'cores'   , 'c', 2, "integer"
 ), byrow=TRUE, ncol=4)
 opt = getopt(spec)
-test = TRUE
+test = FALSE
 
 # Set paths and load data
 {
@@ -190,21 +190,35 @@ graphics.off()
 ############################## ########### #######################################
 ############################## Filter data #######################################
 
-seurat_all <- subset(seurat_all, subset = 
+after_plot_path = paste0(plot_path, "after_filtering/")
+dir.create(after_plot_path, recursive = T)
+
+seurat_all_filtered <- subset(seurat_all, subset = 
                        pct_reads_in_peaks > 50 &
                        TSS.enrichment > 2 &
                        nucleosome_signal < 1.5 &
                        peak_region_fragments < 50000 &
                        peak_region_fragments > 2000)
 
-print(seurat_all)
+print(seurat_all_filtered)
 
 print("seurat object filtered based on QC thresholds")
 
-############################## TSS Enrichment Plot after filtering #######################################
+# Plot table with remaining cell counts after full filtering
+cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$stage),
+                          filtered = summary(seurat_all_filtered@meta.data$stage))
 
-after_plot_path = paste0(plot_path, "after_filtering/")
-dir.create(after_plot_path, recursive = T)
+cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
+
+png(paste0(after_plot_path, 'remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# set as seurat_all for further filtering
+seurat_all <- seurat_all_filtered
+
+############################## TSS Enrichment Plot after filtering #######################################
 
 png(paste0(after_plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
 TSSPlot(seurat_all, group.by = 'stage') + NoLegend()
@@ -269,7 +283,7 @@ QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin
 graphics.off()
 
 ### All QC metrics
-png(paste0(before_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 28, units = 'cm', res = 400)
+png(paste0(after_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 28, units = 'cm', res = 400)
 VlnPlot(
   object = seurat_all, group.by = "mitochondrial",
   features = c('pct_reads_in_peaks', 'peak_region_fragments',
@@ -301,9 +315,9 @@ seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
 seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
 DimPlot(object = seurat_all, label = TRUE) + NoLegend()
 
-# Find optimal cluster resolution
+# Find optimal cluster resolution -- need to change algorithm to match the one above (SLM)??
 png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.") ## might need to change algorithm??
+ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.")
 graphics.off()
 
 
@@ -318,25 +332,61 @@ ClustStagePlot(seurat_all)
 graphics.off()
 
 # Plot QC for each cluster
-png(paste0(clustering_plot_path, "QCPlot.png"), width=32, height=28, units = 'cm', res = 200)
-QCPlot(seurat_all, quantiles = c(0.25, 0.75), y_elements = c("pct_reads_in_peaks", "peak_region_fragments", 
+png(paste0(clustering_plot_path, "QCPlot.png"), width=55, height=32, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.25, 0.75), y_elements = c("pct_reads_in_peaks", "peak_region_fragments", 
                                                              "TSS.enrichment", "nucleosome_signal"),
        x_lab = c("% fragments in peaks", "Number of fragments in peaks", "TSS enrichment score", "Nucleosome signal score"))
 graphics.off()
 
-# Automatically find poor quality clusters
+# Automatically find poor quality clusters - all metrics
 poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks", "peak_region_fragments", 
                                                           "TSS.enrichment", "nucleosome_signal"), quantiles = c(0.25, 0.75))
 
-# Plot UMAP for poor quality clusters
-png(paste0(clustering_plot_path, "PoorClusters.png"), width=60, height=20, units = 'cm', res = 200)
+png(paste0(clustering_plot_path, "PoorClusters_all_metrics.png"), width=60, height=20, units = 'cm', res = 200)
 ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
 graphics.off()
 
-# Filter poor quality clusters
 seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
 
+# Automatically find poor quality clusters - pct_reads_in_peaks
+poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks"), quantiles = c(0.25, 0.75))
+
+png(paste0(clustering_plot_path, "PoorClusters_pct_reads_in_peaks.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
+graphics.off()
+
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+
+# Automatically find poor quality clusters - peak_region_fragments
+poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("peak_region_fragments"), quantiles = c(0.25, 0.75))
+
+png(paste0(clustering_plot_path, "PoorClusters_peak_region_fragments.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
+graphics.off()
+
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+
+# Automatically find poor quality clusters - TSS.enrichment
+poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.25, 0.75))
+
+png(paste0(clustering_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
+graphics.off()
+
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+
+# Automatically find poor quality clusters - nucleosome_signal
+poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0.25, 0.75))
+
+png(paste0(clustering_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
+graphics.off()
+
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+
+
 print("seurat object filtered based on poor quality clusters")
+
 
 # Plot table with remaining cell counts after full filtering
 cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
