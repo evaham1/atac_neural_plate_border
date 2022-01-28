@@ -102,8 +102,8 @@ seurat_all <- readRDS(paste0(data_path, "seurat_all.RDS"))
 print(seurat_all)
 
 ############################## Set stage as metadata and colour them - WILL NEED TO CHANGE TO HH over hh #######################################
-stage_order <- c("hh4", "hh5", "hh6", "hh7", "ss4", "ss8")
-stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+stage_order <- c("hh5", "hh6", "hh7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
 seurat_all <- AddMetaData(seurat_all, substr(seurat_all@meta.data$orig.ident, 1, 3), col.name = "stage")
