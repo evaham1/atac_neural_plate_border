@@ -231,7 +231,7 @@ graphics.off()
 #FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
 #graphics.off()
 
-############################## Histograms of QC metrics before filtering #######################################
+############################## Histograms of QC metrics after filtering #######################################
 
 ### Percentage of reads in peaks
 png(paste0(after_plot_path, 'pct_reads_in_peaks_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
