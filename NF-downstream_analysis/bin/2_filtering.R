@@ -320,102 +320,84 @@ png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = '
 ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.")
 graphics.off()
 
-
 ############################## Identify poor quality clusters #######################################
 
-# Use higher cluster resolution for filtering poor clusters
-seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3, resolution = 2)
+# Don't use pct reads in peaks as it may be biological
 
-# # Plot UMAP for clusters and developmental stage
-# png(paste0(clustering_plot_path, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-# ClustStagePlot(seurat_all)
-# graphics.off()
+# nucleosome_signal
+png(paste0(clustering_plot_path, "QCPlot_nucleosome_signal.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0, 0.85), y_elements = c("nucleosome_signal"),
+       x_lab = c("Cluster"))
+graphics.off()
 
-# # Plot QC for each cluster
-# png(paste0(clustering_plot_path, "QCPlot.png"), width=55, height=32, units = 'cm', res = 200)
-# QCPlot(seurat_all, stage = "stage", quantiles = c(0.25, 0.75), y_elements = c("pct_reads_in_peaks", "peak_region_fragments", 
-#                                                              "TSS.enrichment", "nucleosome_signal"),
-#        x_lab = c("% fragments in peaks", "Number of fragments in peaks", "TSS enrichment score", "Nucleosome signal score"))
-# graphics.off()
+poor_clusters_nucleosome_signal <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0, 0.85))
 
-# # Automatically find poor quality clusters - all metrics
-# poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks", "peak_region_fragments", 
-#                                                           "TSS.enrichment", "nucleosome_signal"), quantiles = c(0.25, 0.75))
+png(paste0(clustering_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_nucleosome_signal, plot_title = 'poor quality clusters')
+graphics.off()
 
-# png(paste0(clustering_plot_path, "PoorClusters_all_metrics.png"), width=60, height=20, units = 'cm', res = 200)
-# ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
-# graphics.off()
+# TSS.enrichment
+png(paste0(clustering_plot_path, "QCPlot_TSS.enrichment.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.15, 1), y_elements = c("TSS.enrichment"),
+       x_lab = c("Cluster"))
+graphics.off()
 
-# seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.15, 1))
 
-# # Automatically find poor quality clusters - pct_reads_in_peaks
-# poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("pct_reads_in_peaks"), quantiles = c(0.25, 0.75))
+png(paste0(clustering_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
+graphics.off()
 
-# png(paste0(clustering_plot_path, "PoorClusters_pct_reads_in_peaks.png"), width=60, height=20, units = 'cm', res = 200)
-# ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
-# graphics.off()
+# peak_region_fragments
+# QCPlot(seurat_all, stage = "stage", quantiles = c(0.2, 0.8), y_elements = c("peak_region_fragments"),
+#        x_lab = c("Cluster"))
 
-# seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
-
-# # Automatically find poor quality clusters - peak_region_fragments
-# poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("peak_region_fragments"), quantiles = c(0.25, 0.75))
+# poor_clusters_peak_region_fragments <- IdentifyOutliers(seurat_all, metrics = c("peak_region_fragments"), quantiles = c(0.2, 0.8))
 
 # png(paste0(clustering_plot_path, "PoorClusters_peak_region_fragments.png"), width=60, height=20, units = 'cm', res = 200)
 # ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
 # graphics.off()
 
-# seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+############################## Filter out poor quality clusters and count remaining cells #######################################
 
-# # Automatically find poor quality clusters - TSS.enrichment
-# poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.25, 0.75))
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters_nucleosome_signal)), invert = T)
+print("seurat object filtered based on poor quality clusters")
 
-# png(paste0(clustering_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
-# ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
-# graphics.off()
+# Plot table with remaining cell counts after full filtering
+cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
+                          filtered = summary(seurat_all_filtered@meta.data$orig.ident))
 
-# seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
 
-# # Automatically find poor quality clusters - nucleosome_signal
-# poor_clusters <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0.25, 0.75))
+png(paste0(clustering_plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
-# png(paste0(clustering_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
-# ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
-# graphics.off()
+############################## UMAP Visulations before cluster filtering #######################################
 
-# seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters)), invert = T)
+png(paste0(clustering_plot_path_filtered, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
 
+# UMAP for clusters and developmental stage
+png(paste0(clustering_plot_path, "ClustStagePlot_UMAP_filtered.png"), width=40, height=20, units = 'cm', res = 200)
+ClustStagePlot(seurat_all)
+graphics.off()
 
-# print("seurat object filtered based on poor quality clusters")
+png(paste0(clustering_plot_path, "stage_umap_filtered.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
 
+############################## Save output #######################################
 
-# # Plot table with remaining cell counts after full filtering
-# cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
-#                           filtered = summary(seurat_all_filtered@meta.data$orig.ident))
-
-# cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
-
-# png(paste0(clustering_plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-
-
-# png(paste0(clustering_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
-# DimPlot(seurat_all_filtered, group.by = 'stage', label = TRUE, label.size = 12, 
-#         label.box = TRUE, repel = TRUE,
-#         pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
-#   ggplot2::theme_void() +
-#   ggplot2::theme(legend.position = "none", 
-#                  plot.title = element_blank())
-# graphics.off()
-
-# # Save RDS output
-# saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
-
-saveRDS(seurat_all, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
-
-
+# Save RDS output
+saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
 
 ############################## **** ARCHIVED **** #######################################
 #########################################################################################
