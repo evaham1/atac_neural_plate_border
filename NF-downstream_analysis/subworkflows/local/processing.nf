@@ -10,29 +10,19 @@ workflow PROCESSING {
     input
 
     main:
-    input.view()
+    input
+        .set { ch_fragments }
 
     PREPROCESSING( input )
 
-    PREPROCESSING.out.view()
+    ch_fragments
+        .combine( PREPROCESSING.out )
+        .map{[it[0], it[1] + it[3]]}
+        .view()
+        .set { ch_input }
+    FILTERING( ch_input )
 
-    FILTERING(PREPROCESSING.out)
-
-    // filter input to only keep fragment files so can pass them to R processes that need them
-    input
-        .filter{ it[0].sample_id == 'NF-scATACseq_alignment_out' }
-        .map {[it[0], it[1].collect{ file(it+"/outs/fragments.tsv.gz", checkIfExists: true) }]}
-        .set {ch_fragments}
-
-    ch_fragments.view()
-
-    // combine the fragment files path with the rds objects from filtering
-    // FILTERING.out
-    //     .filter{ it[0].sample_id == 'NF-scATACseq_alignment_out' }
-    //     .map {[it[0], it[1].collect{ file(it+"/outs/fragments.tsv.gz", checkIfExists: true) }]}
-    //     .set {ch_filtering}
-
-    GENE_ACTIVITY(ch_fragments)
+    //GENE_ACTIVITY( ch_input )
 
     //emit:
     //preprocessing_out = PREPROCESSING.out
