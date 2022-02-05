@@ -56,12 +56,6 @@ workflow NFCORE_DOWNSTREAM {
         .map{[it[0], it[1] + it[2]]}
         .view()
         .set {ch_metadata}
-
-    // filter metadata outputs to only keep filtered_peak_bc_matrix.h5, singlecell.csv, fragments.tsv.gz
-    // METADATA.out
-    //     .filter{ it[0].sample_id == 'NF-scATACseq_alignment_out' }
-    //     .map {[it[0], it[1].collect{ file(it+"/outs/filtered_peak_bc_matrix", checkIfExists: true) }]}
-    //     .set {ch_scATACseq_peaks}
     
     PROCESSING (ch_metadata )
 }
