@@ -122,9 +122,9 @@ graphics.off()
 
 ############################## Nucleosome Banding Plot before filtering #######################################
 
-#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE
+#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE - takes ages???
 png(paste0(before_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
+FragmentHistogram(object = seurat_all, region = "chr1-1-2000", group.by = 'stage')
 graphics.off()
 
 ############################## Histograms of QC metrics before filtering #######################################
