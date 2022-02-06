@@ -320,6 +320,26 @@ png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = '
 ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.")
 graphics.off()
 
+############################## UMAP Visulations before cluster filtering #######################################
+
+png(paste0(clustering_plot_path, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
+
+# UMAP for clusters and developmental stage
+png(paste0(clustering_plot_path, "ClustStagePlot_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+ClustStagePlot(seurat_all)
+graphics.off()
+
+png(paste0(clustering_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
 ############################## Identify poor quality clusters #######################################
 
 # Don't use pct reads in peaks as it may be biological
@@ -380,16 +400,16 @@ clustering_plot_path_filtered = paste0(plot_path, "clustering_filtered/")
 dir.create(clustering_plot_path_filtered, recursive = T)
 
 png(paste0(clustering_plot_path_filtered, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+DimPlot(object = seurat_all_filtered, label = TRUE) + NoLegend()
 graphics.off()
 
 # UMAP for clusters and developmental stage
-png(paste0(clustering_plot_path_filtered, "ClustStagePlot_UMAP_filtered.png"), width=40, height=20, units = 'cm', res = 200)
-ClustStagePlot(seurat_all)
+png(paste0(clustering_plot_path_filtered, "ClustStagePlot_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+ClustStagePlot(seurat_all_filtered)
 graphics.off()
 
-png(paste0(clustering_plot_path_filtered, "stage_umap_filtered.png"), width=20, height=20, units = 'cm', res = 200)
-DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+png(paste0(clustering_plot_path_filtered, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all_filtered, group.by = 'stage', label = TRUE, label.size = 12,
         label.box = TRUE, repel = TRUE,
         pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
