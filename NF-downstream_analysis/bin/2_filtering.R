@@ -108,7 +108,6 @@ input <- data.frame(sample = sub('.*/', '', paths),
                     metadata_path = paste0(paths, "/outs/singlecell.csv"),
                     fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
 new.paths <- as.list(input$fragments_path)
-print(fragments_list)
 frags <- Fragments(seurat_all)  # get list of fragment objects
 Fragments(seurat_all) <- NULL  # remove fragment information from assay
 
