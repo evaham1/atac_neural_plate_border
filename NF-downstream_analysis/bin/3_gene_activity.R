@@ -1,7 +1,5 @@
 #!/usr/bin/env Rscript
 
-### Script to create seurat object, filter data, remove poor quality clusters and integrate across batches
-
 ############################## Load libraries #######################################
 library(getopt)
 library(Signac)
@@ -14,7 +12,6 @@ library(clustree)
 library(ggplot2)
 library(dplyr)
 library(scHelper)
-
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -36,11 +33,11 @@ test = TRUE
     if(test == TRUE){
       plot_path = "../output/NF-downstream_analysis/gene_activity/TEST/plots/"
       rds_path = "../output/NF-downstream_analysis/gene_activity/TEST/rds_files/"
-      data_path = "../output/NF-downstream_analysis/filtering/rds_files/"
+      data_path = "../output/NF-downstream_analysis/test_input/"
       }else{
       plot_path = "../output/NF-downstream_analysis/gene_activity/plots/"
       rds_path = "../output/NF-downstream_analysis/gene_activity/rds_files/"
-      data_path = "../output/NF-downstream_analysis/filtering/rds_files/"}
+      data_path = "../output/NF-downstream_analysis/test_input/"}
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -64,41 +61,10 @@ test = TRUE
   dir.create(rds_path, recursive = T)
 }
 
-###########################################################################################################
-## Function needed to calculate GEX
-CollapseToLongestTranscript <- function(ranges) {
-  range.df <- as.data.table(x = ranges)
-  range.df$strand <- as.character(x = range.df$strand)
-  range.df$strand <- ifelse(
-    test = range.df$strand == "*",
-    yes = "+",
-    no = range.df$strand
-  )
-  collapsed <- range.df[
-    , .(unique(seqnames),
-        min(start),
-        max(end),
-        strand[[1]],
-        gene_biotype[[1]],
-        gene_name[[1]]),
-    "gene_id"
-  ]
-  colnames(x = collapsed) <- c(
-    "gene_id", "seqnames", "start", "end", "strand", "gene_biotype", "gene_name"
-  )
-  collapsed$gene_name <- make.unique(names = collapsed$gene_name)
-  gene.ranges <- makeGRangesFromDataFrame(
-    df = collapsed,
-    keep.extra.columns = TRUE
-  )
-  return(gene.ranges)
-}
-###########################################################################################################
 
+############################## Read in Seurat RDS object and fragment files #######################################
 
-############################## Read filtered Seurat RDS object #######################################
-
-seurat <- readRDS(paste0(data_path, "rds_files/seurat_all.RDS"))
+seurat <- readRDS(paste0(data_path, "rds_files/seurat_all_filtered.RDS"))
 print(seurat)
 
 # read in fragment files
@@ -107,106 +73,83 @@ input <- data.frame(sample = sub('.*/', '', paths),
                    matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
                    metadata_path = paste0(paths, "/outs/singlecell.csv"),
                    fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+new.paths <- as.list(input$fragments_path)
+frags <- Fragments(seurat)  # get list of fragment objects
+Fragments(seurat) <- NULL  # remove fragment information from assay
 
-fragments_list <- as.list(input$fragments_path)
-print(fragments_list)
-
-Fragments(seurat)
+for (i in seq_along(frags)) {
+  frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
+}
+Fragments(seurat) <- frags # assign updated list back to the object
 
 
 ######################################## ESTIMATE GEX #####################################################
 
-# test plot
-#png(paste0(plot_path, "test_plot.png"), width=20, height=20, units = 'cm', res = 200)
-#DimPlot(seurat)
-#graphics.off()
-
-####    WILL NEED TO COMBINE FRAGMENT FILES FOR THE SAMPLES USING A BASH SCRIPT AND READ THEM IN HERE?
-# https://satijalab.org/signac/0.2/articles/merging.html
-
-# 
-# ### calculating gene activity doesnt work for chick data - last line:
-# # Error in intI(i, n = x@Dim[1], dn[[1]], give.dn = FALSE) : 
-# # 'NA' indices are not (yet?) supported for sparse Matrices
 gene.activities <- GeneActivity(seurat)
-# 
-# ## extract code for GeneActivity function minus error catching to run myself
-# annotation <- Annotation(object = signac_filtered)
-# transcripts <- CollapseToLongestTranscript(ranges = annotation)
-# transcripts <- Extend(x = transcripts, upstream = 2000, 
-#                       downstream = 0)
-# frags <- Fragments(object = signac_filtered[["peaks"]])
-# cells <- colnames(x = signac_filtered[["peaks"]])
-# counts <- FeatureMatrix(fragments = frags, features = transcripts, 
-#                         cells = cells, verbose = TRUE)
-# gene.key <- transcripts$gene_name
-# names(x = gene.key) <- GRangesToString(grange = transcripts)
-# rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
-# # this line doesnt run: counts <- counts[rownames(x = counts) != "", ]
-# NAs <- grepl("^NA\\.", rownames(counts))
-# counts_filtered <- counts[!NAs, ]
-# counts_filtered <- counts_filtered[-1,]
-# gene.activities <- counts_filtered
-# 
-# ################    NB lots of fragments are not assigned to a gene (NAs)
-# #length(rownames(counts)) #24324
-# #sum(grepl("^NA\\.", rownames(counts))) #10470
-# #length(rownames(counts_pbmc)) #60666
-# #sum(grepl("^NA\\.", rownames(counts_pbmc))) #0
-# ################
-# 
-# # add the gene activity matrix to the Seurat object as a new assay and normalize it
-# signac_filtered[['RNA']] <- CreateAssayObject(counts = gene.activities)
-# 
-# 
-# ###########################################################################################################
-# ######################################## GEX SCALING #####################################################
-# 
-# signac_rna <- signac_filtered
-# 
-# signac_rna <- NormalizeData(
-#   object = signac_rna,
-#   assay = 'RNA',
-#   normalization.method = 'LogNormalize',
-#   scale.factor = median(signac_rna$nCount_RNA)
-# )
-# 
-# DefaultAssay(signac_rna) <- 'RNA'
-# signac_rna <- FindVariableFeatures(signac_rna, selection.method = "vst", nfeatures = 2000)
-# 
-# # Identify the 10 most highly variable genes
-# top10 <- head(VariableFeatures(signac_rna), 10)
-# 
-# # plot variable features with and without labels
-# plot1 <- VariableFeaturePlot(signac_rna)
-# plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
-# plot1 + plot2
-# 
-# # scaling and clustering
-# all.genes <- rownames(signac_rna)
-# signac_rna <- ScaleData(signac_rna, features = all.genes)
-# signac_rna <- RunPCA(signac_rna, features = VariableFeatures(object = signac_rna))
-# signac_rna <- FindNeighbors(signac_rna, dims = 1:10)
-# signac_rna <- FindClusters(signac_rna, resolution = 0.5)
-# signac_rna <- RunUMAP(signac_rna, dims = 1:10)
-# 
-# saveRDS(signac_rna, paste0(plot_path, "signac_filtered_GeneActivity.RDS"))
-# 
-# ###########################################################################################################
-# ######################################## SEX FILTERING #####################################################
-# 
-# signac_rna <- readRDS(paste0(plot_path, "signac_filtered_GeneActivity.RDS"))
-# DefaultAssay(signac_rna) <- 'RNA'
-# 
-# DimPlot(signac_rna, reduction = "umap")
-# 
-# markers <- FindAllMarkers(signac_rna, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-# markers %>%
-#   group_by(cluster) %>%
-#   top_n(n = 10, wt = avg_log2FC) -> top10
-# DoHeatmap(signac_rna, features = top10$gene) + NoLegend()
-# 
-# 
+
+# add the gene activity matrix to the Seurat object as a new assay and normalize it
+seurat[['RNA']] <- CreateAssayObject(counts = gene.activities)
+seurat <- NormalizeData(
+  object = seurat,
+  assay = 'RNA',
+  normalization.method = 'LogNormalize',
+  scale.factor = median(seurat$nCount_RNA)
+)
+
+DefaultAssay(seurat) <- 'RNA'
+
+png(paste0(plot_path, 'TestFeaturePlot.png'), height = 15, width = 34, units = 'cm', res = 400)
+FeaturePlot(
+  object = seurat,
+  features = c('SIX1', 'EYA2', 'DLX5', 'SOX2', 'PAX7', 'TFAP2A'),
+  pt.size = 0.1,
+  max.cutoff = 'q95',
+  ncol = 3
+)
+graphics.off()
+
+
+###########################################################################################################
+######################################## GEX SCALING #####################################################
+
+seurat <- FindVariableFeatures(seurat, selection.method = "vst", nfeatures = 2000)
+ 
+# Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(seurat), 10)
+ 
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(seurat)
+plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
+
+png(paste0(plot_path, 'MostVariable.png'), height = 15, width = 20, units = 'cm', res = 400)
+plot2
+graphics.off()
+
+###########################################################################################################
+######################################## SEX FILTERING #####################################################
+ 
+DimPlot(seurat, reduction = "umap")
+ 
+markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+markers %>%
+  group_by(cluster) %>%
+  top_n(n = 10, wt = avg_log2FC) -> top10
+
+png(paste0(plot_path, 'top_markers.png'), height = 10, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Top Cluster Markers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(top10, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+png(paste0(plot_path, 'FeaturePlot_sex_genes.png'), height = 20, width = 30, units = 'cm', res = 400)
+FeaturePlot(
+  object = seurat,
+  features = c('W-Wpkci-7', 'W-NIPBLL', 'Z-SEMA6A', 'Z-ARID3C', 'W-Wpkci-7'),
+  pt.size = 0.1,
+  max.cutoff = 'q95',
+  ncol = 3
+)
+graphics.off()
+
 # #### need to remove MT and sex genes (will later regress properly)
 # names_sex_genes_W <- rownames(markers)[grepl("^W", rownames(markers))]
 # names_sex_genes_Z <- rownames(markers)[grepl("^Z", rownames(markers))]
@@ -218,13 +161,9 @@ gene.activities <- GeneActivity(seurat)
 #   top_n(n = 10, wt = avg_log2FC) -> top10
 # DoHeatmap(signac_rna, features = top10$gene) + NoLegend()
 # 
-# FeaturePlot(
-#   object = signac_rna,
-#   features = c('W-Wpkci-7', 'W-NIPBLL', 'Z-SEMA6A', 'Z-ARID3C', 'W-Wpkci-7'),
-#   pt.size = 0.1,
-#   max.cutoff = 'q95',
-#   ncol = 3
-# )
+
+
+
 # 
 # # Use W chromosome genes to K-means cluster the cells into male (zz) and female (zw)
 # W_genes <- as.matrix(signac_rna@assays$RNA[grepl("W-", rownames(signac_rna@assays$RNA)),])
