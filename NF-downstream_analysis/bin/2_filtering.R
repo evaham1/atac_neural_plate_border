@@ -36,18 +36,18 @@ test = FALSE
     if(test == TRUE){
       plot_path = "../output/NF-downstream_analysis/filtering/TEST/plots/"
       rds_path = "../output/NF-downstream_analysis/filtering/TEST/rds_files/"
-      data_path = "../output/NF-downstream_analysis/preprocessing/rds_files/"
+      data_path = "../output/NF-downstream_analysis/test_input/"
     }else{
       plot_path = "../output/NF-downstream_analysis/filtering/plots/"
       rds_path = "../output/NF-downstream_analysis/filtering/rds_files/"
-      data_path = "../output/NF-downstream_analysis/preprocessing/rds_files/"}
+      data_path = "../output/NF-downstream_analysis/test_input/"}
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
     # Multi-core when running from command line
@@ -96,10 +96,27 @@ QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width 
 }
 
 
-############################## Read merged Seurat RDS object and make plots #######################################
+############################## Read in Seurat RDS object and fragment files #######################################
 
-seurat_all <- readRDS(paste0(data_path, "seurat_all.RDS"))
+seurat_all <- readRDS(paste0(data_path, "rds_files/seurat_all.RDS"))
 print(seurat_all)
+
+# create a vector with all the new paths, in the correct order for your list of fragment objects
+paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
+input <- data.frame(sample = sub('.*/', '', paths), 
+                    matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
+                    metadata_path = paste0(paths, "/outs/singlecell.csv"),
+                    fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+new.paths <- as.list(input$fragments_path)
+print(fragments_list)
+frags <- Fragments(seurat_all)  # get list of fragment objects
+Fragments(seurat_all) <- NULL  # remove fragment information from assay
+
+for (i in seq_along(frags)) {
+  frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
+}
+
+Fragments(seurat_all) <- frags # assign updated list back to the object
 
 ############################## Set stage as metadata and colour them - WILL NEED TO CHANGE TO HH over hh #######################################
 stage_order <- c("hh5", "hh6", "hh7", "ss4", "ss8")
@@ -122,10 +139,10 @@ graphics.off()
 
 ############################## Nucleosome Banding Plot before filtering #######################################
 
-#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE - takes ages???
-#png(paste0(before_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-#FragmentHistogram(object = seurat_all, region = "chr1-1-50", group.by = 'stage')
-#graphics.off()
+# just using first 100bps of chromosome one as takes a long time
+png(paste0(before_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+FragmentHistogram(object = seurat_all, region = "chr1-1-100", group.by = 'stage')
+graphics.off()
 
 ############################## Histograms of QC metrics before filtering #######################################
 
@@ -255,10 +272,10 @@ graphics.off()
 
 ############################## Nucleosome Banding Plot after filtering #######################################
 
-#####   NEED TO SORT OUT FRAGMENT PATHS ISSUE
-#png(paste0(after_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-#FragmentHistogram(object = seurat_all, group.by = 'orig.ident')
-#graphics.off()
+# just using first 100bps of chromosome one as takes a long time
+png(paste0(after_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+FragmentHistogram(object = seurat_all, region = "chr1-1-100", group.by = 'stage')
+graphics.off()
 
 ############################## Histograms of QC metrics after filtering #######################################
 
