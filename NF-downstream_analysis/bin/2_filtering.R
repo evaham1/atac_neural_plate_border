@@ -162,21 +162,41 @@ QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_wid
                ident_cols = stage_cols, title = "Nucleosome signal score - maximum threshold 1.5", xmin = 0, xmax = 3, intercept = 1.5)
 graphics.off()
 
-### Number of reads in peaks
+### Number of reads in peaks - NB: thresholds vary depending on whether data is test data or not!
 png(paste0(before_plot_path, 'peak_region_fragments_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
 QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
                ident_cols = stage_cols, title = "Number of fragments in peaks")
 graphics.off()
 
-png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
-               ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 2000", xmin = 0, xmax = 5000, intercept = 2000)
-graphics.off()
-
-png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
-               ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 50000", xmin = 20000, xmax = 100000, intercept = 50000)
-graphics.off()
+if (length(unique(seurat_all@meta.data$stage)) > 2){
+  png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                 ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 2000", xmin = 0, xmax = 5000, intercept = 2000)
+  )
+  graphics.off()
+  
+  png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                 ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 50000", xmin = 20000, xmax = 100000, intercept = 50000)
+  )
+  graphics.off()
+} else {
+  png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                 ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 200", xmin = 0, xmax = 2000, intercept = 200)
+  )
+  graphics.off()
+  
+  png(paste0(before_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                 ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 1800", xmin = 1000, xmax = 2000, intercept = 1800)
+  )
+  graphics.off()
+}
 
 ### All QC metrics
 png(paste0(before_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 28, units = 'cm', res = 400)
@@ -193,12 +213,21 @@ graphics.off()
 after_plot_path = paste0(plot_path, "after_filtering/")
 dir.create(after_plot_path, recursive = T)
 
-seurat_all_filtered <- subset(seurat_all, subset = 
+if (length(unique(seurat_all@meta.data$stage)) > 2){
+  seurat_all_filtered <- subset(seurat_all, subset = 
                        pct_reads_in_peaks > 50 &
                        TSS.enrichment > 2 &
                        nucleosome_signal < 1.5 &
                        peak_region_fragments < 50000 &
                        peak_region_fragments > 2000)
+} else {
+  seurat_all_filtered <- subset(seurat_all, subset = 
+                                  pct_reads_in_peaks > 50 &
+                                  TSS.enrichment > 2 &
+                                  nucleosome_signal < 1.5 &
+                                  peak_region_fragments < 1800 &
+                                  peak_region_fragments > 200)
+}
 
 print(seurat_all_filtered)
 
@@ -267,20 +296,35 @@ QC_metric_hist(seurat_obj = seurat_all, QC_metric = "nucleosome_signal", bin_wid
 graphics.off()
 
 ### Number of reads in peaks
-png(paste0(after_plot_path, 'peak_region_fragments_hist.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
-               ident_cols = stage_cols, title = "Number of fragments in peaks")
-graphics.off()
-
-png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
-               ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 2000", xmin = 0, xmax = 5000, intercept = 2000)
-graphics.off()
-
-png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
-QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
-               ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 50000", xmin = 20000, xmax = 100000, intercept = 50000)
-graphics.off()
+if (length(unique(seurat_all@meta.data$stage)) > 2){
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 2000", xmin = 0, xmax = 5000, intercept = 2000)
+  )
+  graphics.off()
+  
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 50000", xmin = 20000, xmax = 100000, intercept = 50000)
+  )
+  graphics.off()
+} else {
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_min.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 200", xmin = 0, xmax = 2000, intercept = 200)
+  )
+  graphics.off()
+  
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_max.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 1800", xmin = 1000, xmax = 2000, intercept = 1800)
+  )
+  graphics.off()
+}
 
 ### All QC metrics
 png(paste0(after_plot_path, 'All_QC_VlnPlot.png'), height = 15, width = 28, units = 'cm', res = 400)
@@ -313,7 +357,6 @@ dir.create(clustering_plot_path, recursive = T)
 seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
 seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
 seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
-DimPlot(object = seurat_all, label = TRUE) + NoLegend()
 
 # Find optimal cluster resolution -- need to change algorithm to match the one above (SLM)??
 png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
@@ -322,7 +365,7 @@ graphics.off()
 
 ############################## UMAP Visulations before cluster filtering #######################################
 
-png(paste0(clustering_plot_path, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+png(paste0(clustering_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
 DimPlot(object = seurat_all, label = TRUE) + NoLegend()
 graphics.off()
 
