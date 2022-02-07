@@ -214,29 +214,29 @@ seurat_sex_filt <- FindNeighbors(object = seurat_sex_filt, reduction = 'lsi', di
 seurat_sex_filt <- FindClusters(object = seurat_sex_filt, verbose = FALSE, algorithm = 3)
 
 png(paste0(plot_path,"UMAP_sex_regressed.png"), height = 18, width = 18, units = "cm", res = 200)
-DimPlot(seurat, group.by = "sex")
+DimPlot(seurat_sex_filt, group.by = "sex")
 graphics.off()
 
-saveRDS(signac_rna_sex_filt, paste0(rds_path, "seurat_GeneActivity_sexfilt.RDS"))
+saveRDS(seurat_sex_filt, paste0(rds_path, "seurat_GeneActivity_sexfilt.RDS"))
 
 ###########################################################################################################
 ######################################## MT REGRESS #####################################################
 
-signac_rna_sex_mt_filt <- readRDS(paste0(plot_path, "signac_filtered_GeneActivity_sexfilt.RDS"))
-DefaultAssay(signac_rna_sex_mt_filt) <- 'RNA'
+# signac_rna_sex_mt_filt <- readRDS(paste0(plot_path, "signac_filtered_GeneActivity_sexfilt.RDS"))
+# DefaultAssay(signac_rna_sex_mt_filt) <- 'RNA'
 
-markers <- FindAllMarkers(signac_rna_sex_mt_filt, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-names_mt_genes <- rownames(markers)[grepl("^MT", rownames(markers))]
+# markers <- FindAllMarkers(signac_rna_sex_mt_filt, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+# names_mt_genes <- rownames(markers)[grepl("^MT", rownames(markers))]
 
-signac_rna_sex_mt_filt <- PercentageFeatureSet(signac_rna_sex_mt_filt, pattern = "^MT-", col.name = "percent.mt")
-signac_rna_sex_mt_filt <- ScaleData(signac_rna_sex_mt_filt, features = rownames(signac_rna_sex_mt_filt), vars.to.regress = c("percent.mt", "sex"))
+# signac_rna_sex_mt_filt <- PercentageFeatureSet(signac_rna_sex_mt_filt, pattern = "^MT-", col.name = "percent.mt")
+# signac_rna_sex_mt_filt <- ScaleData(signac_rna_sex_mt_filt, features = rownames(signac_rna_sex_mt_filt), vars.to.regress = c("percent.mt", "sex"))
 
-signac_rna_sex_mt_filt <- RunPCA(object = signac_rna_sex_mt_filt, verbose = FALSE)
-signac_rna_sex_mt_filt <- FindNeighbors(signac_rna_sex_mt_filt, dims = 1:10, verbose = FALSE)
-signac_rna_sex_mt_filt <- RunUMAP(signac_rna_sex_mt_filt, dims = 1:10, verbose = FALSE)
-signac_rna_sex_mt_filt <- FindClusters(signac_rna_sex_mt_filt, resolution = 0.5, verbose = FALSE)
+# signac_rna_sex_mt_filt <- RunPCA(object = signac_rna_sex_mt_filt, verbose = FALSE)
+# signac_rna_sex_mt_filt <- FindNeighbors(signac_rna_sex_mt_filt, dims = 1:10, verbose = FALSE)
+# signac_rna_sex_mt_filt <- RunUMAP(signac_rna_sex_mt_filt, dims = 1:10, verbose = FALSE)
+# signac_rna_sex_mt_filt <- FindClusters(signac_rna_sex_mt_filt, resolution = 0.5, verbose = FALSE)
 
-saveRDS(signac_rna_sex_mt_filt, paste0(plot_path, "signac_filtered_GeneActivity_sexmtfilt.RDS"))
+# saveRDS(signac_rna_sex_mt_filt, paste0(plot_path, "signac_filtered_GeneActivity_sexmtfilt.RDS"))
 
 # ###########################################################################################################
 # ######################################## VISUALISATIONS #####################################################
