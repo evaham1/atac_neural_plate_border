@@ -47,7 +47,7 @@ test = TRUE
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
     # Multi-core when running from command line
@@ -98,16 +98,28 @@ CollapseToLongestTranscript <- function(ranges) {
 
 ############################## Read filtered Seurat RDS object #######################################
 
-seurat <- readRDS(paste0(data_path, "seurat_all_filtered.RDS"))
-
+seurat <- readRDS(paste0(data_path, "rds_files/seurat_all.RDS"))
 print(seurat)
+
+# read in fragment files
+paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
+input <- data.frame(sample = sub('.*/', '', paths), 
+                   matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
+                   metadata_path = paste0(paths, "/outs/singlecell.csv"),
+                   fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+
+fragments_list <- as.list(input$fragments_path)
+print(fragments_list)
+
+Fragments(seurat)
+
 
 ######################################## ESTIMATE GEX #####################################################
 
 # test plot
-png(paste0(plot_path, "test_plot.png"), width=20, height=20, units = 'cm', res = 200)
-DimPlot(seurat)
-graphics.off()
+#png(paste0(plot_path, "test_plot.png"), width=20, height=20, units = 'cm', res = 200)
+#DimPlot(seurat)
+#graphics.off()
 
 ####    WILL NEED TO COMBINE FRAGMENT FILES FOR THE SAMPLES USING A BASH SCRIPT AND READ THEM IN HERE?
 # https://satijalab.org/signac/0.2/articles/merging.html
@@ -116,7 +128,7 @@ graphics.off()
 # ### calculating gene activity doesnt work for chick data - last line:
 # # Error in intI(i, n = x@Dim[1], dn[[1]], give.dn = FALSE) : 
 # # 'NA' indices are not (yet?) supported for sparse Matrices
-# gene.activities <- GeneActivity(seurat_all)
+gene.activities <- GeneActivity(seurat)
 # 
 # ## extract code for GeneActivity function minus error catching to run myself
 # annotation <- Annotation(object = signac_filtered)
