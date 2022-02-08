@@ -206,19 +206,68 @@ png(paste0(plot_path,"sex_kmeans_log2FC_boxplot.png"), height = 18, width = 18, 
 boxplot(c(FC$Z, FC$auto),  ylab = "male - female log2 FC (mean normalised UMI +1)", names = c("Z chromosome genes", "autosomal genes"))
 graphics.off()
 
-DefaultAssay(seurat) <- 'peaks'
-seurat_sex_filt <- ScaleData(seurat, vars.to.regress = c("sex"), verbose = TRUE)
+saveRDS(seurat, paste0(rds_path, "seurat_GeneActivity.RDS"))
 
-seurat_sex_filt <- RunSVD(seurat_sex_filt)
-seurat_sex_filt <- RunUMAP(object = seurat_sex_filt, reduction = 'lsi', dims = 2:30)
-seurat_sex_filt <- FindNeighbors(object = seurat_sex_filt, reduction = 'lsi', dims = 2:30)
-seurat_sex_filt <- FindClusters(object = seurat_sex_filt, verbose = FALSE, algorithm = 3)
+# DefaultAssay(seurat) <- 'peaks'
+# seurat_sex_filt <- ScaleData(seurat, vars.to.regress = c("sex"), verbose = TRUE)
 
-png(paste0(plot_path,"UMAP_sex_regressed.png"), height = 18, width = 18, units = "cm", res = 200)
-DimPlot(seurat_sex_filt, group.by = "sex")
-graphics.off()
+# seurat_sex_filt <- RunSVD(seurat_sex_filt)
+# seurat_sex_filt <- RunUMAP(object = seurat_sex_filt, reduction = 'lsi', dims = 2:30)
+# seurat_sex_filt <- FindNeighbors(object = seurat_sex_filt, reduction = 'lsi', dims = 2:30)
+# seurat_sex_filt <- FindClusters(object = seurat_sex_filt, verbose = FALSE, algorithm = 3)
 
-saveRDS(seurat_sex_filt, paste0(rds_path, "seurat_GeneActivity_sexfilt.RDS"))
+# png(paste0(plot_path,"UMAP_sex_regressed.png"), height = 18, width = 18, units = "cm", res = 200)
+# DimPlot(seurat_sex_filt, group.by = "sex")
+# graphics.off()
+
+# 
+
+
+# ###########. TESTING
+# seurat_small <- subset(x = seurat_sex_filt, subset = stage == "hh6")
+# seurat_small <- subset(x = seurat_small, downsample = 1000)
+# DimPlot(seurat_small)
+# DimPlot(seurat_small, group.by = "sex")
+
+# ### try to do dim reduction on atac data that has been scaled 
+# # and regressed with 'sex' from metadata
+# seurat_small <- RunSVD(seurat_small, scale.embeddings = FALSE)
+# seurat_small <- RunUMAP(object = seurat_small, reduction = 'lsi', dims = 2:30)
+# seurat_small <- FindNeighbors(object = seurat_small, reduction = 'lsi', dims = 2:30)
+# seurat_small <- FindClusters(object = seurat_small, verbose = FALSE, algorithm = 3)
+
+# DimPlot(seurat_small)
+# DimPlot(seurat_small, group.by = "sex")
+# DimPlot(seurat_small, group.by = "stage")
+
+# ## dont seem to be able to run RunSVD on the scaled data rather than the TF-IDF, 
+# # can only specify the assay (RNA or peaks)
+
+
+# # try just running scaling and dim reduction on the imputed RNA
+# DefaultAssay(seurat_small) <- 'RNA'
+# seurat_small <- FindVariableFeatures(seurat_small, selection.method = "vst", nfeatures = 2000)
+# seurat_small <- ScaleData(seurat_small, features = rownames(seurat_small), vars.to.regress = c("sex"), verbose = TRUE)
+
+# seurat_small <- RunPCA(object = seurat_small, verbose = TRUE)
+# print(ElbowCutoff(seurat_small, return = 'plot'))
+# pc_cutoff <- ElbowCutoff(seurat_small)
+
+# seurat_small <- FindNeighbors(seurat_small, dims = 1:pc_cutoff, verbose = TRUE)
+# seurat_small <- FindClusters(seurat_small, resolution = 0.5, verbose = TRUE)
+
+# seurat_small <- RunUMAP(seurat_small, dims = 1:pc_cutoff, verbose = TRUE)
+
+# DimPlot(seurat_small)
+# DimPlot(seurat_small, group.by = "sex")
+
+# DefaultAssay(seurat_small) <- 'peaks'
+# DimPlot(seurat_small)
+# DimPlot(seurat_small, group.by = "sex")
+
+
+
+
 
 ###########################################################################################################
 ######################################## MT REGRESS #####################################################
