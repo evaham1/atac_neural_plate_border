@@ -209,6 +209,7 @@ graphics.off()
 DefaultAssay(seurat) <- 'peaks'
 seurat_sex_filt <- ScaleData(seurat, vars.to.regress = c("sex"), verbose = TRUE)
 
+seurat_sex_filt <- RunSVD(seurat_sex_filt)
 seurat_sex_filt <- RunUMAP(object = seurat_sex_filt, reduction = 'lsi', dims = 2:30)
 seurat_sex_filt <- FindNeighbors(object = seurat_sex_filt, reduction = 'lsi', dims = 2:30)
 seurat_sex_filt <- FindClusters(object = seurat_sex_filt, verbose = FALSE, algorithm = 3)
