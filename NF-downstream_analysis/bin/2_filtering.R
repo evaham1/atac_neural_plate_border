@@ -446,14 +446,6 @@ grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface 
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-############################## Nucleosome Banding Plot after filtering #######################################
-
-# need to downsample first and then just using first 100bps of chromosome one as takes a long time
-seurat_small <- subset(seurat_all_filtered, downsample = 100)
-png(paste0(clustering_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-FragmentHistogram(object = seurat_small, region = "chr1-1-100", group.by = 'stage')
-graphics.off()
-
 ############################## UMAP Visulations after cluster filtering #######################################
 
 clustering_plot_path_filtered = paste0(plot_path, "clustering_filtered/")

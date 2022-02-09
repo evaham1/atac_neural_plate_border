@@ -49,7 +49,7 @@ test = TRUE
     
     # Multi-core when running from command line
     plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 155* 1024^3)
+    options(future.globals.maxSize = 205* 1024^3)
     plan()
     
   } else {
@@ -82,6 +82,13 @@ for (i in seq_along(frags)) {
 }
 Fragments(seurat) <- frags # assign updated list back to the object
 
+############################## Nucleosome Banding Plot after filtering #######################################
+
+# need to downsample first and then just using first 100bps of chromosome one as takes a long time
+seurat_small <- subset(seurat, downsample = 50)
+png(paste0(plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+FragmentHistogram(object = seurat_small, region = "chr1-1-100", group.by = 'stage')
+graphics.off()
 
 ######################################## ESTIMATE GEX #####################################################
 
