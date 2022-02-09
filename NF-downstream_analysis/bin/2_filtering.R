@@ -138,10 +138,10 @@ graphics.off()
 
 ############################## Nucleosome Banding Plot before filtering #######################################
 
-# just using first 100bps of chromosome one as takes a long time
-png(paste0(before_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-FragmentHistogram(object = seurat_all, region = "chr1-1-100", group.by = 'stage')
-graphics.off()
+# just using first 100bps of chromosome one as takes a long time - still takes too long!
+#png(paste0(before_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+#FragmentHistogram(object = seurat_all, region = "chr1-1-100", group.by = 'stage')
+#graphics.off()
 
 ############################## Histograms of QC metrics before filtering #######################################
 
@@ -267,13 +267,6 @@ seurat_all <- seurat_all_filtered
 
 png(paste0(after_plot_path, 'QC_TSS.png'), height = 15, width = 21, units = 'cm', res = 400)
 TSSPlot(seurat_all, group.by = 'stage') + NoLegend()
-graphics.off()
-
-############################## Nucleosome Banding Plot after filtering #######################################
-
-# just using first 100bps of chromosome one as takes a long time
-png(paste0(after_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-FragmentHistogram(object = seurat_all, region = "chr1-1-100", group.by = 'stage')
 graphics.off()
 
 ############################## Histograms of QC metrics after filtering #######################################
@@ -451,6 +444,14 @@ cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_
 png(paste0(clustering_plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+############################## Nucleosome Banding Plot after filtering #######################################
+
+# need to downsample first and then just using first 100bps of chromosome one as takes a long time
+seurat_small <- subset(seurat_all_filtered, downsample = 100)
+png(paste0(clustering_plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+FragmentHistogram(object = seurat_small, region = "chr1-1-100", group.by = 'stage')
 graphics.off()
 
 ############################## UMAP Visulations after cluster filtering #######################################
