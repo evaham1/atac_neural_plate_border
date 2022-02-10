@@ -49,7 +49,7 @@ test = TRUE
     
     # Multi-core when running from command line
     plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 395* 1024^3)
+    options(future.globals.maxSize = 305* 1024^3)
     plan()
     
   } else {
