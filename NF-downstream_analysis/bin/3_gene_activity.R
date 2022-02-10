@@ -102,6 +102,25 @@ png(paste0(plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, uni
 FragmentHistogram(object = seurat_small, region = "chr1-1-100", group.by = 'stage')
 graphics.off()
 
+
+######### Investigating seurat annotations
+annotation <- Annotation(seurat[["peaks"]])
+colnames(mcols(annotation))
+#[1] "source"             "type"               "score"              "phase"             
+#[5] "gene_id"            "gene_version"       "gene_source"        "gene_biotype"      
+#[9] "transcript_id"      "transcript_version" "transcript_source"  "transcript_biotype"
+#[13] "exon_number"        "exon_id"            "exon_version"       "protein_id"        
+#[17] "protein_version"    "gene_name"          "transcript_name"    "tag"
+dim(mcols(annotation))
+# 24356, 20
+unique(mcols(annotation)$gene_biotype)
+#  [1] "protein_coding"       "snRNA"                "lncRNA"               "miRNA"               
+# [5] "pseudogene"           "misc_RNA"             "snoRNA"               "rRNA"                
+# [9] "scaRNA"               "ribozyme"             "processed_pseudogene" "IG_V_gene"           
+# [13] "sRNA"                 "Mt_tRNA"              "Mt_rRNA"      
+sum(is.na(mcols(annotation)$gene_id)) #0
+sum(is.na(mcols(annotation)$gene_name)) #10501
+
 ######################################## ESTIMATE GEX #####################################################
 
 gene.activities <- GeneActivity(seurat)
