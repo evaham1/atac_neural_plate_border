@@ -85,6 +85,7 @@ Fragments(seurat) <- frags # assign updated list back to the object
 ############################## Nucleosome Banding Plot after filtering #######################################
 
 # need to downsample first and then just using first 100bps of chromosome one as takes a long time
+print("about to subset")
 seurat_small <- subset(seurat, downsample = 5)
 print(paste0("seurat subsetted:", seurat_small))
 
