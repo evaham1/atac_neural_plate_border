@@ -91,7 +91,8 @@ graphics.off()
 
 print("about to subset")
 seurat_small <- subset(seurat, downsample = 5)
-print(paste0("seurat subsetted:", seurat_small))
+print("seurat subsetted")
+seurat_small
 
 png(paste0(plot_path, "small_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
 DimPlot(object = seurat_small, label = TRUE) + NoLegend()
