@@ -35,6 +35,7 @@ nextflow.enable.dsl = 2
 
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PROCESSING } from "$baseDir/subworkflows/local/processing"
+include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
 
 // set channel to reference gtf
 Channel
@@ -63,6 +64,20 @@ workflow NFCORE_DOWNSTREAM {
         .set {ch_metadata}
     
     PROCESSING (ch_metadata )
+
+    METADATA.out
+        .combine( PROCESSING.out.signac_predicted_gex )
+        .map{[it[0], it[1] + it[3]]}
+        .view()
+        .set { ch_input }
+
+    ch_input
+        .combine( ch_transfer_labels )
+        .map{[it[0], it[1] + it[2]]}
+        .view()
+        .set {ch_input_rna}
+
+    INTEGRATE_RNA(ch_input_rna)
 }
 
 /*

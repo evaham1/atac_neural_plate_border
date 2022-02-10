@@ -5,6 +5,7 @@ include {R as PREPROCESSING} from "$baseDir/modules/local/r/main"               
 include {R as FILTERING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/2_filtering.R", checkIfExists: true) )
 include {R as GENE_ACTIVITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_gene_activity.R", checkIfExists: true) )
 
+
 workflow PROCESSING {
     take:
     input
@@ -29,6 +30,6 @@ workflow PROCESSING {
         .set { ch_input }
     GENE_ACTIVITY( ch_input )
 
-    //emit:
-    //preprocessing_out = PREPROCESSING.out
+    emit:
+    signac_predicted_gex = GENE_ACTIVITY.out
 }
