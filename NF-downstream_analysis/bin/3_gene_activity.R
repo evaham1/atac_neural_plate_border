@@ -13,6 +13,12 @@ library(ggplot2)
 library(dplyr)
 library(scHelper)
 
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("GenomicRanges")
+library(GenomicRanges)
+
 ############################## Set up script options #######################################
 spec = matrix(c(
   'runtype', 'l', 2, "character",
@@ -34,7 +40,7 @@ test = TRUE
       plot_path = "../output/NF-downstream_analysis/gene_activity/TEST/plots/"
       rds_path = "../output/NF-downstream_analysis/gene_activity/TEST/rds_files/"
       data_path = "../output/NF-downstream_analysis/test_input/"
-      }else{
+    }else{
       plot_path = "../output/NF-downstream_analysis/gene_activity/plots/"
       rds_path = "../output/NF-downstream_analysis/gene_activity/rds_files/"
       data_path = "../output/NF-downstream_analysis/test_input/"}
@@ -70,9 +76,9 @@ print(seurat)
 # read in fragment files
 paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
 input <- data.frame(sample = sub('.*/', '', paths), 
-                   matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
-                   metadata_path = paste0(paths, "/outs/singlecell.csv"),
-                   fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+                    matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
+                    metadata_path = paste0(paths, "/outs/singlecell.csv"),
+                    fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
 new.paths <- as.list(input$fragments_path)
 frags <- Fragments(seurat)  # get list of fragment objects
 Fragments(seurat) <- NULL  # remove fragment information from assay
@@ -84,26 +90,31 @@ Fragments(seurat) <- frags # assign updated list back to the object
 
 ############################## Nucleosome Banding Plot after filtering #######################################
 
+#########   DOES NOT WORK - TIME OUT/MEM ISSUES
+
 # need to downsample first and then just using first 100bps of chromosome one as takes a long time
-png(paste0(plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
-DimPlot(object = seurat, label = TRUE) + NoLegend()
-graphics.off()
+#png(paste0(plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+#DimPlot(object = seurat, label = TRUE) + NoLegend()
+#graphics.off()
 
-print("about to subset")
-seurat_small <- subset(seurat, downsample = 5)
-print("seurat subsetted")
-seurat_small
+#print("about to subset")
+#seurat_small <- subset(seurat, downsample = 5)
+#print("seurat subsetted")
+#seurat_small
 
-png(paste0(plot_path, "small_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
-DimPlot(object = seurat_small, label = TRUE) + NoLegend()
-graphics.off()
+#png(paste0(plot_path, "small_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+#DimPlot(object = seurat_small, label = TRUE) + NoLegend()
+#graphics.off()
 
-png(paste0(plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
-FragmentHistogram(object = seurat_small, region = "chr1-1-100", group.by = 'stage')
-graphics.off()
+#png(paste0(plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
+#FragmentHistogram(object = seurat_small, region = "chr1-1-100", group.by = 'stage')
+#graphics.off()
 
 
 ######### Investigating seurat annotations
+annotations_plot_path = paste0(plot_path, "annotations/")
+dir.create(annotations_plot_path, recursive = T)
+
 annotation <- Annotation(seurat[["peaks"]])
 colnames(mcols(annotation))
 #[1] "source"             "type"               "score"              "phase"             
@@ -111,8 +122,7 @@ colnames(mcols(annotation))
 #[9] "transcript_id"      "transcript_version" "transcript_source"  "transcript_biotype"
 #[13] "exon_number"        "exon_id"            "exon_version"       "protein_id"        
 #[17] "protein_version"    "gene_name"          "transcript_name"    "tag"
-dim(mcols(annotation))
-# 24356, 20
+dim(mcols(annotation)) # 24356, 20
 unique(mcols(annotation)$gene_biotype)
 #  [1] "protein_coding"       "snRNA"                "lncRNA"               "miRNA"               
 # [5] "pseudogene"           "misc_RNA"             "snoRNA"               "rRNA"                
@@ -120,13 +130,72 @@ unique(mcols(annotation)$gene_biotype)
 # [13] "sRNA"                 "Mt_tRNA"              "Mt_rRNA"      
 sum(is.na(mcols(annotation)$gene_id)) #0
 sum(is.na(mcols(annotation)$gene_name)) #10501
+sum(mcols(annotation)$gene_biotype == "protein_coding") # 16779
+
+datalist <- c()
+for (i in unique(mcols(annotation)$gene_biotype)){
+  sum <- sum(mcols(annotation)$gene_biotype == i)
+  datalist[[i]] <- sum # add it to your list
+}
+pie_chart = do.call(rbind, datalist)
+
+png(paste0(annotations_plot_path, "Gene_biotypes.png"), width=30, height=20, units = 'cm', res = 200)
+pie(pie_chart, labels = pie_chart, main = "Gene biotype annotations from GTF",
+    col = rainbow(length(pie_chart)), radius = 1)
+legend("bottomleft", rownames(pie_chart), cex = 0.8,
+       fill = rainbow(length(pie_chart)))
+graphics.off()
+
+protein_coding_annotations <- mcols(annotation)[grep("protein_coding", mcols(annotation)$gene_biotype), ]
+dim(protein_coding_annotations) # 16779 20
+sum(is.na(protein_coding_annotations$gene_id)) #0
+gene_name_NA <- sum(is.na(protein_coding_annotations$gene_name)) #4303
+gene_name <- length(protein_coding_annotations[,1]) - sum(is.na(protein_coding_annotations$gene_name))
+
+png(paste0(annotations_plot_path, "protein_coding_gene_names.png"), width=30, height=20, units = 'cm', res = 200)
+pie(c(gene_name_NA, gene_name), labels = c(gene_name_NA, gene_name), 
+    main = "Proportion of genes which have a gene name",
+    col = rainbow(2), radius = 1)
+legend("bottomleft", c("NAs", "named genes"), cex = 0.8,
+       fill = rainbow(2))
+graphics.off()
 
 ######################################## ESTIMATE GEX #####################################################
 
-gene.activities <- GeneActivity(seurat)
+gex_plot_path = paste0(plot_path, "gene_activity/")
+dir.create(gex_plot_path, recursive = T)
+
+gene.activities.names <- GeneActivity(seurat)
+length(rownames(gene.activities.names)) # 16731
+gene_name_NA <- sum(grepl("NA.", rownames(gene.activities.names), fixed = TRUE)) # 4274
+rownames(gene.activities.names)[grep("NA.", rownames(gene.activities.names), fixed = TRUE)]
+gene_name <- length(rownames(gene.activities.names)) - gene_name_NA
+
+png(paste0(gex_plot_path, "protein_coding_gene_names.png"), width=30, height=20, units = 'cm', res = 200)
+pie(c(gene_name_NA, gene_name), labels = c(gene_name_NA, gene_name), 
+    main = "Proportion of genes which have a gene name",
+    col = rainbow(2), radius = 1)
+legend("bottomleft", c("NAs", "named genes"), cex = 0.8,
+       fill = rainbow(2))
+graphics.off()
+
+### Can use gene ids instead of gene names - none of these are NAs
+#gene.activities.ids <- GeneActivity(seurat_small, gene.id = TRUE)
+#length(rownames(gene.activities.ids)) # 16731
+#NA_count_ids <- sum(grepl("NA.", rownames(gene.activities.ids), fixed = TRUE)) # 0
+#rownames(gene.activities.ids)[grep("NA.", rownames(gene.activities.ids), fixed = TRUE)]
+
+df <- data.frame(total_counts = rowSums(gene.activities.names))
+png(paste0(gex_plot_path, "gene_counts_boxplot.png"), width=30, height=20, units = 'cm', res = 200)
+ggplot(df, aes(x = total_counts)) + geom_boxplot()
+graphics.off()
+
+png(paste0(gex_plot_path, "gene_counts_hist_xmax20.png"), width=30, height=20, units = 'cm', res = 200)
+ggplot(df, aes(x = total_counts)) + geom_histogram(binwidth = 1) + xlim(-1, 20)
+graphics.off()
 
 # add the gene activity matrix to the Seurat object as a new assay and normalize it
-seurat[['RNA']] <- CreateAssayObject(counts = gene.activities)
+seurat[['RNA']] <- CreateAssayObject(counts = gene.activities.names)
 seurat <- NormalizeData(
   object = seurat,
   assay = 'RNA',
@@ -151,10 +220,10 @@ graphics.off()
 ######################################## Top variable genes ###############################################
 
 seurat <- FindVariableFeatures(seurat, selection.method = "vst", nfeatures = 2000)
- 
+
 # Identify the 10 most highly variable genes
 top10 <- head(VariableFeatures(seurat), 10)
- 
+
 # plot variable features with and without labels
 plot1 <- VariableFeaturePlot(seurat)
 plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
@@ -195,12 +264,12 @@ seurat@meta.data$k_clusters <- k_clusters[match(colnames(seurat@assays$RNA), row
 # Get rownames for kmeans clusters 1 and 2
 k_clus_1 <- rownames(seurat@meta.data[seurat@meta.data$k_clusters == 1,])
 k_clus_2 <- rownames(seurat@meta.data[seurat@meta.data$k_clusters == 2,])
- 
+
 # K clustering identities are stochastic, so I need to identify which cluster is male and female
 # Sum of W genes is order of magnitude greater in cluster 2 - these are the female cells
 sumclus1 <- sum(W_genes[,k_clus_1])
 sumclus2 <- sum(W_genes[,k_clus_2])
- 
+
 if(sumclus1 < sumclus2){
   k_male <- k_clus_1
   k_female <- k_clus_2
@@ -208,7 +277,7 @@ if(sumclus1 < sumclus2){
   k_female <- k_clus_1
   k_male <- k_clus_2
 }
- 
+
 # Add sex data to meta.data
 seurat@meta.data$sex <- unlist(lapply(rownames(seurat@meta.data), function(x)
   if(x %in% k_male){"male"} else if(x %in% k_female){"female"} else{stop("cell sex is not assigned")}))
@@ -233,12 +302,12 @@ mean_auto_male <- log2(mean_auto_male + 1)
 # Make dataframe for mean autosomal expression in male cells
 mean_auto_female <- data.frame(auto.mean = apply(seurat@assays$RNA[!grepl("Z-", rownames(seurat@assays$RNA)) & !grepl("W-", rownames(seurat@assays$RNA)), k_female], 1, mean))
 mean_auto_female <- log2(mean_auto_female + 1)
- 
+
 # Calculate FC by subtracting log2 expression from each other
 FC <- list()
 FC$Z <- mean_Z_male - mean_Z_female
 FC$auto <-  mean_auto_male - mean_auto_female
- 
+
 # Plot boxplot of Z gene and autosomal expression in male vs female cells
 png(paste0(plot_path,"sex_kmeans_log2FC_boxplot.png"), height = 18, width = 18, units = "cm", res = 200)
 boxplot(c(FC$Z, FC$auto),  ylab = "male - female log2 FC (mean normalised UMI +1)", names = c("Z chromosome genes", "autosomal genes"))
