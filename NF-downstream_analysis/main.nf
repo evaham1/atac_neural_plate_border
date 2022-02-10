@@ -41,6 +41,11 @@ Channel
     .value(params.gtf)
     .set{ch_gtf}
 
+// set channel to rna RDS object
+Channel
+    .value(params.transfer_labels)
+    .set{ch_transfer_labels}
+
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
 //
