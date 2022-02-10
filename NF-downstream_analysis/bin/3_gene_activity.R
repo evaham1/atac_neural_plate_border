@@ -85,7 +85,13 @@ Fragments(seurat) <- frags # assign updated list back to the object
 ############################## Nucleosome Banding Plot after filtering #######################################
 
 # need to downsample first and then just using first 100bps of chromosome one as takes a long time
-seurat_small <- subset(seurat, downsample = 50)
+seurat_small <- subset(seurat, downsample = 5)
+print(paste0("seurat subsetted:", seurat_small))
+
+png(paste0(plot_path, "small_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_small, label = TRUE) + NoLegend()
+graphics.off()
+
 png(paste0(plot_path, 'QC_Nucleosome_banding.png'), height = 15, width = 21, units = 'cm', res = 400)
 FragmentHistogram(object = seurat_small, region = "chr1-1-100", group.by = 'stage')
 graphics.off()
