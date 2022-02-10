@@ -379,7 +379,7 @@ DimPlot(object = seurat_all, label = TRUE) + NoLegend()
 graphics.off()
 
 # UMAP for clusters and developmental stage
-png(paste0(clustering_plot_path, "ClustStagePlot_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+png(paste0(clustering_plot_path, "ClustStagePlot_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
 ClustStagePlot(seurat_all)
 graphics.off()
 
@@ -451,12 +451,12 @@ graphics.off()
 clustering_plot_path_filtered = paste0(plot_path, "clustering_filtered/")
 dir.create(clustering_plot_path_filtered, recursive = T)
 
-png(paste0(clustering_plot_path_filtered, "UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+png(paste0(clustering_plot_path_filtered, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
 DimPlot(object = seurat_all_filtered, label = TRUE) + NoLegend()
 graphics.off()
 
 # UMAP for clusters and developmental stage
-png(paste0(clustering_plot_path_filtered, "ClustStagePlot_UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+png(paste0(clustering_plot_path_filtered, "ClustStagePlot_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
 ClustStagePlot(seurat_all_filtered)
 graphics.off()
 
