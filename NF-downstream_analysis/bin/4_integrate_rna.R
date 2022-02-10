@@ -25,7 +25,6 @@ spec = matrix(c(
   'cores'   , 'c', 2, "integer"
 ), byrow=TRUE, ncol=4)
 opt = getopt(spec)
-test = TRUE
 
 # Set paths and load data
 {
@@ -34,16 +33,11 @@ test = TRUE
     
     setwd("~/NF-downstream_analysis")
     ncores = 8
-    ref_path = "../output/NF-luslab_sc_multiomic/reference/"
-    
-    if(test == TRUE){
-      #plot_path = "../output/NF-downstream_analysis/gene_activity/TEST/plots/"
-      #rds_path = "../output/NF-downstream_analysis/gene_activity/TEST/rds_files/"
-      #data_path = "../output/NF-downstream_analysis/test_input/"
-    }else{
-      #plot_path = "../output/NF-downstream_analysis/gene_activity/plots/"
-      #rds_path = "../output/NF-downstream_analysis/gene_activity/rds_files/"
-      #data_path = "../output/NF-downstream_analysis/test_input/"}
+
+    plot_path = "../output/NF-downstream_analysis/integrate_rna/plots/"
+    rds_path = "../output/NF-downstream_analysis/integrate_rna/rds_files/"
+    data_path = "../output/NF-downstream_analysis/test_input/"
+  }
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -71,6 +65,7 @@ test = TRUE
 ############################## Read in Seurat RDS object and fragment files #######################################
 
 seurat <- readRDS(paste0(data_path, "rds_files/seurat_GeneActivity.RDS"))
+DefaultAssay(seurat) <- 'peaks'
 print(seurat)
 
 # read in fragment files
@@ -89,14 +84,56 @@ for (i in seq_along(frags)) {
 Fragments(seurat) <- frags # assign updated list back to the object
 
 # read in rna seurat object
-seurat_rna <- readRDS(paste0(data_path, "rds_files/seurat_label_transfer.RDS"))
+seurat_rna <- readRDS(paste0(data_path, "seurat_label_transfer.RDS"))
 seurat_rna
 
-# test plots
-png(paste0(plot_path, "atac_umap.png"), width=20, height=20, units = 'cm', res = 200)
-DimPlot(seurat)
+# UMAPs
+plot1 <- DimPlot(
+  object = seurat,
+  label = TRUE,
+  repel = TRUE) + NoLegend() + ggtitle('scATAC-seq')
+
+plot2 <- DimPlot(
+  object = seurat_rna,
+  group.by = 'scHelper_cell_type',
+  label = TRUE,
+  repel = TRUE) + NoLegend() + ggtitle('scRNA-seq')
+
+png(paste0(plot_path, "UMAPs.png"), width=40, height=20, units = 'cm', res = 200)
+plot1 + plot2
 graphics.off()
 
-png(paste0(plot_path, "rna_umap.png"), width=20, height=20, units = 'cm', res = 200)
-DimPlot(seurat_rna)
+# Integrate the RNA and ATAC data
+transfer.anchors <- FindTransferAnchors(
+  reference = seurat_rna,
+  query = seurat,
+  reduction = 'cca'
+)
+print("anchors calculated")
+
+predicted.labels <- TransferData(
+  anchorset = transfer.anchors,
+  refdata = seurat_rna$scHelper_cell_type,
+  weight.reduction = seurat[['lsi']],
+  dims = 2:30
+)
+print("predicted labels")
+
+seurat <- AddMetaData(object = seurat, metadata = predicted.labels)
+
+# UMAPs
+plot1 <- DimPlot(
+  object = seurat,
+  group.by = 'predicted.labels',
+  label = TRUE,
+  repel = TRUE) + NoLegend() + ggtitle('scATAC-seq')
+
+plot2 <- DimPlot(
+  object = seurat_rna,
+  group.by = 'scHelper_cell_type',
+  label = TRUE,
+  repel = TRUE) + NoLegend() + ggtitle('scRNA-seq')
+
+png(paste0(plot_path, "UMAPs_predicted_labels.png"), width=40, height=20, units = 'cm', res = 200)
+plot1 + plot2
 graphics.off()
