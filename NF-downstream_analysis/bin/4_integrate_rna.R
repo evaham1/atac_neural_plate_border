@@ -37,13 +37,13 @@ test = TRUE
     ref_path = "../output/NF-luslab_sc_multiomic/reference/"
     
     if(test == TRUE){
-      plot_path = "../output/NF-downstream_analysis/gene_activity/TEST/plots/"
-      rds_path = "../output/NF-downstream_analysis/gene_activity/TEST/rds_files/"
-      data_path = "../output/NF-downstream_analysis/test_input/"
+      #plot_path = "../output/NF-downstream_analysis/gene_activity/TEST/plots/"
+      #rds_path = "../output/NF-downstream_analysis/gene_activity/TEST/rds_files/"
+      #data_path = "../output/NF-downstream_analysis/test_input/"
     }else{
-      plot_path = "../output/NF-downstream_analysis/gene_activity/plots/"
-      rds_path = "../output/NF-downstream_analysis/gene_activity/rds_files/"
-      data_path = "../output/NF-downstream_analysis/test_input/"}
+      #plot_path = "../output/NF-downstream_analysis/gene_activity/plots/"
+      #rds_path = "../output/NF-downstream_analysis/gene_activity/rds_files/"
+      #data_path = "../output/NF-downstream_analysis/test_input/"}
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -87,3 +87,16 @@ for (i in seq_along(frags)) {
   frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
 }
 Fragments(seurat) <- frags # assign updated list back to the object
+
+# read in rna seurat object
+seurat_rna <- readRDS(paste0(data_path, "rds_files/seurat_label_transfer.RDS"))
+seurat_rna
+
+# test plots
+png(paste0(plot_path, "atac_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat)
+graphics.off()
+
+png(paste0(plot_path, "rna_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_rna)
+graphics.off()
