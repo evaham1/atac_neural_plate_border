@@ -117,7 +117,7 @@ plot1 <- DimPlot(seurat, group.by = 'stage', label = TRUE, label.size = 12,
   ggtitle('scATAC-seq')
 plot2 <- DimPlot(seurat_rna, group.by = 'stage', label = TRUE, label.size = 12,
                  label.box = TRUE, repel = TRUE,
-                 pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+                 pt.size = 0.9, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none") +
   ggtitle('scRNA-seq')
