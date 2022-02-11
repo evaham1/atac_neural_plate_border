@@ -1,5 +1,5 @@
 process R {
-    tag "$meta.id"
+    tag "$meta.sample_id"
     label 'process_medium'
 
     //if (params.enable_conda) {

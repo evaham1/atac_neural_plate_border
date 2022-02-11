@@ -19,14 +19,12 @@ workflow PROCESSING {
     ch_fragments
         .combine( PREPROCESSING.out )
         .map{[it[0], it[1] + it[3]]}
-        .view()
         .set { ch_input }
     FILTERING( ch_input )
 
     ch_fragments
         .combine( FILTERING.out )
         .map{[it[0], it[1] + it[3]]}
-        .view()
         .set { ch_input }
     GENE_ACTIVITY( ch_input )
 

@@ -35,6 +35,7 @@ nextflow.enable.dsl = 2
 
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PROCESSING } from "$baseDir/subworkflows/local/processing"
+include { INTEGRATE_SPLIT_PROCESS } from "$baseDir/subworkflows/local/integrate_split_process"
 include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
 
 // set channel to reference gtf
@@ -44,40 +45,37 @@ Channel
 
 // set channel to rna RDS object
 Channel
-    .value(params.transfer_labels)
-    .set{ch_transfer_labels}
+    .value(params.seurat_RNA)
+    .set{ch_rna} //ch_rna: seurat.RDS
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
 //
 workflow NFCORE_DOWNSTREAM {
-    //ch_gtf.view()
 
     METADATA( params.sample_sheet )
 
-    //METADATA.out.view()
-
-    METADATA.out
+    // add gtf to cellranger output so can add annotations
+    METADATA.out // METADATA.out: [[meta], [cellranger_output]]
         .combine(ch_gtf)
         .map{[it[0], it[1] + it[2]]}
-        .view()
-        .set {ch_metadata}
+        .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
     
+    // run preprocessing, filtering and predicted gex
     PROCESSING (ch_metadata )
 
+    // strip metadata from outputs
+    PROCESSING.out.signac_predicted_gex
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        .set {ch_atac} // ch_atac: seurat_GeneActivity.RDS
     METADATA.out
-        .combine( PROCESSING.out.signac_predicted_gex )
-        .map{[it[0], it[1] + it[3]]}
-        .view()
-        .set { ch_input }
+        .map{it[1]}
+        .set {ch_cellranger} // ch_cellranger: [cellranger_output]
+    
+    // run rna integration on individual stages
+    INTEGRATE_SPLIT_PROCESS( ch_atac , ch_rna, ch_cellranger )
 
-    ch_input
-        .combine( ch_transfer_labels )
-        .map{[it[0], it[1] + it[2]]}
-        .view()
-        .set {ch_input_rna}
-
-    INTEGRATE_RNA(ch_input_rna)
+    INTEGRATE_SPLIT_PROCESS.out.signac_integrated.view()
 }
 
 /*
