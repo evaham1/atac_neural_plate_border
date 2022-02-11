@@ -30,19 +30,21 @@ workflow INTEGRATE_SPLIT_PROCESS {
     SPLIT_ATAC.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
-        .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
+        .map { row -> [[sample_id:row.name.replace('_splitstage_atac_data.RDS', '')], row] }
         .set { ch_atac_out } 
+
     SPLIT_RNA.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
-        .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
+        .map { row -> [[sample_id:row.name.replace('_splitstage_rna_data.RDS', '')], row] }
         .set { ch_rna_out } 
 
     // combine split rna and atac objects together and with cellranger output
     ch_atac_out
+        .view()
         .combine(ch_rna_out, by:0)
         .combine(ch_cellranger)
-        .map{[it[0], it[1] + it[2] + it[3] ]}
+        .map{[[it[0]], [it[1], it[2], it[3]]]}
         .set { ch_integrate_input } 
 
     ch_integrate_input.view()

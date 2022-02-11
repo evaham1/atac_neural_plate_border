@@ -62,9 +62,14 @@ opt = getopt(spec)
 
 ############################## Read in RDS objects and fragment files #######################################
 
-seurat <- readRDS(paste0(data_path, "rds_files/seurat_GeneActivity.RDS"))
+# Retrieve seurat object label
+label <- sub('_.*', '', list.files(data_path, pattern = '*.RDS'))
+print(label)
+
+# Read in seurat atac object
+seurat <- readRDS(list.files(data_path, full.names = TRUE, pattern = 'atac_data.RDS'))
 DefaultAssay(seurat) <- 'peaks'
-print(seurat)
+seurat
 
 # read in fragment files
 paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
@@ -82,7 +87,7 @@ for (i in seq_along(frags)) {
 Fragments(seurat) <- frags # assign updated list back to the object
 
 # read in rna seurat object
-seurat_rna <- readRDS(paste0(data_path, "seurat_label_transfer.RDS"))
+seurat_rna <- readRDS(list.files(data_path, full.names = TRUE, pattern = 'rna_data.RDS'))
 seurat_rna
 
 ############################## Set colours - WILL NEED TO CHANGE TO HH over hh #######################################
