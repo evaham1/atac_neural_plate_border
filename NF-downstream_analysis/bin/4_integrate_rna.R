@@ -91,7 +91,7 @@ seurat_rna <- readRDS(list.files(data_path, full.names = TRUE, pattern = 'rna_da
 seurat_rna
 
 ############################## Set colours - WILL NEED TO CHANGE TO HH over hh #######################################
-stage_order <- c("hh5", "hh6", "hh7", "ss4", "ss8")
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
@@ -122,7 +122,7 @@ plot1 <- DimPlot(seurat, group.by = 'stage', label = TRUE, label.size = 12,
   ggtitle('scATAC-seq')
 plot2 <- DimPlot(seurat_rna, group.by = 'stage', label = TRUE, label.size = 12,
                  label.box = TRUE, repel = TRUE,
-                 pt.size = 0.9, shuffle = TRUE) +
+                 pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none") +
   ggtitle('scRNA-seq')
@@ -151,10 +151,14 @@ graphics.off()
 
 # Integrate the RNA and ATAC data
 DefaultAssay(seurat) <- 'RNA'
+DefaultAssay(seurat_rna) <- 'integrated'
 
 transfer.anchors <- FindTransferAnchors(
   reference = seurat_rna,
+  reference.assay = "integrated",
+  normalization.method = "LogNormalize",
   query = seurat,
+  query.assay = "RNA",
   reduction = 'cca'
 )
 print("anchors calculated")
@@ -169,7 +173,7 @@ print("predicted labels")
 
 seurat <- AddMetaData(object = seurat, metadata = predicted.labels)
 
-# Cluster UMAPs
+# Transferred labels UMAPs
 plot1 <- DimPlot(seurat, group.by = 'predicted.id', label = TRUE, label.size = 12,
                  label.box = TRUE, repel = TRUE,
                  pt.size = 0.9, cols = scHelper_cell_type_cols, shuffle = TRUE) +
