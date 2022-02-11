@@ -451,6 +451,11 @@ graphics.off()
 clustering_plot_path_filtered = paste0(plot_path, "clustering_filtered/")
 dir.create(clustering_plot_path_filtered, recursive = T)
 
+# Recluster after removing cells
+seurat_all_filtered <- RunUMAP(object = seurat_all_filtered, reduction = 'lsi', dims = 2:30)
+seurat_all_filtered <- FindNeighbors(object = seurat_all_filtered, reduction = 'lsi', dims = 2:30)
+seurat_all_filtered <- FindClusters(object = seurat_all_filtered, verbose = FALSE, algorithm = 3)
+
 png(paste0(clustering_plot_path_filtered, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
 DimPlot(object = seurat_all_filtered, label = TRUE) + NoLegend()
 graphics.off()
@@ -473,6 +478,9 @@ graphics.off()
 
 # Save RDS output
 saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
+
+
+
 
 ############################## **** ARCHIVED **** #######################################
 #########################################################################################
