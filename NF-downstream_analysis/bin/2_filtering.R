@@ -117,8 +117,8 @@ for (i in seq_along(frags)) {
 
 Fragments(seurat_all) <- frags # assign updated list back to the object
 
-############################## Set stage as metadata and colour them - WILL NEED TO CHANGE TO HH over hh #######################################
-stage_order <- c("hh5", "hh6", "hh7", "ss4", "ss8")
+############################## Set stage as metadata and colour them #######################################
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
