@@ -219,7 +219,7 @@ graphics.off()
 ###########################################################################################################
 ######################################## Top variable genes ###############################################
 
-seurat <- FindVariableFeatures(seurat, selection.method = "vst", nfeatures = 2000)
+seurat <- FindVariableFeatures(seurat, selection.method = "vst", nfeatures = 10000)
 
 # Identify the 10 most highly variable genes
 top10 <- head(VariableFeatures(seurat), 10)
@@ -237,9 +237,18 @@ markers %>%
   group_by(cluster) %>%
   top_n(n = 10, wt = avg_log2FC) -> top10
 
-png(paste0(plot_path, 'top_markers.png'), height = 10, width = 20, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Top Cluster Markers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(top10, rows=NULL, theme = ttheme_minimal()))
+png(paste0(plot_path, 'top_markers.png'), height = 20, width = 20, units = 'cm', res = 400)
+grid.arrange(tableGrob(top10, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.1)
+markers %>%
+  group_by(cluster) %>%
+  top_n(n = 10, wt = avg_log2FC) -> top10
+seurat <- ScaleData(object = seurat, verbose = TRUE)
+
+png(paste0(plot_path, 'markers_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+DoHeatmap(seurat, features = top10$gene) + NoLegend()
 graphics.off()
 
 ###########################################################################################################
