@@ -36,7 +36,7 @@ nextflow.enable.dsl = 2
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PROCESSING } from "$baseDir/subworkflows/local/processing"
 include { INTEGRATE_SPLIT_PROCESS } from "$baseDir/subworkflows/local/integrate_split_process"
-include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
+//include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
 
 // set channel to reference gtf
 Channel
