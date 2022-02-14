@@ -62,6 +62,7 @@ opt = getopt(spec)
 
 ############################## Read in RDS objects and fragment files #######################################
 
+### ATAC ###
 # Retrieve seurat object label
 label <- sub('_.*', '', list.files(data_path, pattern = '*.RDS'))
 print(label)
@@ -86,9 +87,27 @@ for (i in seq_along(frags)) {
 }
 Fragments(seurat) <- frags # assign updated list back to the object
 
+# Re-run UMAP and re-find clusters
+seurat <- RunUMAP(object = seurat, reduction = 'lsi', dims = 2:30)
+seurat <- FindNeighbors(object = seurat, reduction = 'lsi', dims = 2:30)
+seurat <- FindClusters(object = seurat, verbose = FALSE, algorithm = 3)
+
+### RNA ###
 # read in rna seurat object
 seurat_rna <- readRDS(list.files(data_path, full.names = TRUE, pattern = 'rna_data.RDS'))
 seurat_rna
+
+# rerun some processes from 'subset_cluster' script
+DefaultAssay(seurat_rna) <- "RNA"
+seurat_rna <- FindVariableFeatures(seurat_rna, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+seurat_rna <- ScaleData(seurat_rna, features = rownames(seurat_rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+DefaultAssay(seurat_rna) <- "integrated"
+seurat_rna <- ScaleData(seurat_rna, features = rownames(seurat_rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+seurat_data <- RunPCA(object = seurat_rna, verbose = FALSE)
+pc_cutoff <- ElbowCutoff(seurat_rna)
+seurat_rna <- FindNeighbors(seurat_rna, dims = 1:pc_cutoff, verbose = FALSE)
+seurat_rna <- RunUMAP(seurat_rna, dims = 1:pc_cutoff, verbose = FALSE)
+
 
 ############################## Set colours - WILL NEED TO CHANGE TO HH over hh #######################################
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
