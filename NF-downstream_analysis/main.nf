@@ -37,8 +37,6 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PROCESSING } from "$baseDir/subworkflows/local/processing"
 include { INTEGRATE_SPLIT_PROCESS } from "$baseDir/subworkflows/local/integrate_split_process"
 include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
-include {R as FILT_EXPLORE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/filt_explore.R", checkIfExists: true) )
-
 
 // set channel to reference gtf
 Channel
@@ -62,9 +60,6 @@ workflow NFCORE_DOWNSTREAM {
         .combine(ch_gtf)
         .map{[it[0], it[1] + it[2]]}
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
-
-    // run script to try different filtering params in parallel with actual filtering
-    FILT_EXPLORE( ch_metadata )
     
     // run preprocessing, filtering and predicted gex
     PROCESSING ( ch_metadata )
