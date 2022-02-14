@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript
 
+### Script to filter cells based on predicted GEX
+print("4_gex_filtering")
+
 ############################## Load libraries #######################################
 library(getopt)
 library(Signac)
@@ -25,7 +28,6 @@ spec = matrix(c(
   'cores'   , 'c', 2, "integer"
 ), byrow=TRUE, ncol=4)
 opt = getopt(spec)
-test = TRUE
 
 # Set paths and load data
 {
@@ -34,16 +36,10 @@ test = TRUE
     
     setwd("~/NF-downstream_analysis")
     ncores = 8
-    ref_path = "../output/NF-luslab_sc_multiomic/reference/"
-    
-    if(test == TRUE){
-      plot_path = "../output/NF-downstream_analysis/gene_activity/TEST/plots/"
-      rds_path = "../output/NF-downstream_analysis/gene_activity/TEST/rds_files/"
-      data_path = "../output/NF-downstream_analysis/test_input/"
-    }else{
-      plot_path = "../output/NF-downstream_analysis/gene_activity/plots/"
-      rds_path = "../output/NF-downstream_analysis/gene_activity/rds_files/"
-      data_path = "../output/NF-downstream_analysis/test_input/"}
+
+    plot_path = "../output/NF-downstream_analysis/gex_filtering/plots/"
+    rds_path = "../output/NF-downstream_analysis/gex_filtering/rds_files/"
+    data_path = "../output/NF-downstream_analysis/test_input/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -89,6 +85,7 @@ DefaultAssay(seurat) <- 'RNA'
 # }
 # Fragments(seurat) <- frags # assign updated list back to the object
 
+print("data read in")
 
 ######################################## SEX EFFECT #####################################################
 sex_plot_path = paste0(plot_path, "sex_effect/")
@@ -162,6 +159,8 @@ png(paste0(sex_plot_path,"sex_kmeans_log2FC_boxplot.png"), height = 18, width = 
 boxplot(c(FC$Z, FC$auto),  ylab = "male - female log2 FC (mean normalised UMI +1)", names = c("Z chromosome genes", "autosomal genes"))
 graphics.off()
 
+print("sex metadata added")
+
 ############################## Top differentially expressed genes #######################################
 
 # find marker genes for clusters and visualise them
@@ -181,7 +180,128 @@ png(paste0(plot_path, 'top_markers_heatmap.png'), height = 10, width = 20, units
 DoHeatmap(seurat, features = top10$gene) + NoLegend()
 graphics.off()
 
-###########################################################################################################
+print("top differentially expressed genes plotted")
+
+#####################################################################################################
+#                           Identify and remove contamination (mesoderm and PGCs)                   #
+#####################################################################################################
+
+contaminating_plot_path = paste0(plot_path, "contamination/")
+dir.create(contaminating_plot_path, recursive = T)
+
+# Make gene list containing markers used to identify contamination clusters
+genes <- list('PGC module' = 'DAZL',
+              'Blood island module' = c('CDH5', 'TAL1', 'HBZ'),
+              'Mesoderm module' = c('CDX2', 'GATA6', 'ALX1', 'PITX2', 'TWIST1', 'TBXT', 'MESP1'),
+              'Endoderm module' = c('SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6'))
 
 
-saveRDS(seurat, paste0(rds_path, "seurat_GeneActivity.RDS"))
+# Calculate average module expression for contamination gene list
+seurat <- AverageGeneModules(seurat_obj = seurat, gene_list = genes)
+
+# Plot distribution of contamination gene modules
+png(paste0(contaminating_plot_path, "ContaminationClustersBoxPLot.png"), width = 40, height = 30, units = "cm", res = 200)
+PlotCelltype(seurat_obj = seurat, gene_list = genes, quantiles = c(0.1, 0.90), ncol = 2)
+graphics.off()
+
+contaminating_clusters <- IdentifyOutliers(seurat_obj = seurat, metrics = names(genes), quantiles = c(0.1, 0.90), intersect_metrics = FALSE)
+
+# Plot UMAP for poor contaminating clusters
+png(paste0(contaminating_plot_path, "ContaminationClustersUMAP.png"), width=40, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat, clusters = contaminating_clusters, plot_title = 'Contamination')
+graphics.off()
+
+# Plot UMAPs for GOI
+ncol = 4
+png(paste0(contaminating_plot_path, "UMAP_GOI.png"), width = ncol*10, height = 10*ceiling((length(unlist(genes))+1)/ncol), units = "cm", res = 200)
+MultiFeaturePlot(seurat_obj = seurat, gene_list = unlist(genes), plot_clusters = T,
+                 plot_stage = T, label = "", n_col = ncol)
+graphics.off()
+
+# Dotplot for identifying PGCs, Early mesoderm and Late mesoderm
+png(paste0(contaminating_plot_path, "dotplot_GOI.png"), width = 30, height = 12, units = "cm", res = 200)
+DotPlot(seurat, features = unique(unlist(genes)))
+graphics.off()
+
+print("contaminating populations plotted")
+
+############################### Remove contaminating cells from clusters ########################################
+
+filter_cells <- rownames(filter(seurat@meta.data, seurat_clusters %in% contaminating_clusters))
+contamination_filt_data <- subset(seurat, cells = filter_cells, invert = T)
+
+# Recluster after removing cells
+contamination_filt_data <- RunUMAP(object = contamination_filt_data, reduction = 'lsi', dims = 2:30)
+contamination_filt_data <- FindNeighbors(object = contamination_filt_data, reduction = 'lsi', dims = 2:30)
+contamination_filt_data <- FindClusters(object = contamination_filt_data, verbose = FALSE, algorithm = 3)
+
+png(paste0(contaminating_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = contamination_filt_data, label = TRUE) + NoLegend()
+graphics.off()
+
+# UMAP for clusters and developmental stage
+png(paste0(contaminating_plot_path, "ClustStagePlot_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+ClustStagePlot(contamination_filt_data)
+graphics.off()
+
+png(paste0(contaminating_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(contamination_filt_data, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
+print("contaminating populations filtered")
+
+
+
+# Find differentially expressed genes and plot heatmap of top DE genes for each cluster
+markers <- FindAllMarkers(contamination_filt_data, only.pos = T, logfc.threshold = 0.25, assay = "RNA")
+# get automated cluster order based on percentage of cells in adjacent stages
+cluster_order = OrderCellClusters(seurat_object = contamination_filt_data, col_to_sort = 'seurat_clusters', sort_by = 'stage')
+# Re-order genes in top15 based on desired cluster order in subsequent plot - this orders them in the heatmap in the correct order
+top15 <- markers %>% group_by(cluster) %>% top_n(n = 15, wt = avg_log2FC) %>% arrange(factor(cluster, levels = cluster_order))
+
+png(paste0(contaminating_plot_path, 'HM.top15.DE.contamination_filt_data.png'), height = 75, width = 100, units = 'cm', res = 500)
+TenxPheatmap(data = contamination_filt_data, metadata = c("seurat_clusters", "stage"), custom_order_column = "seurat_clusters",
+             custom_order = cluster_order, selected_genes = unique(top15$gene), gaps_col = "seurat_clusters", assay = 'RNA')
+graphics.off()
+
+
+# Plot feature plots for all variable genes
+# Set RNA to default assay
+DefaultAssay(contamination_filt_data) <- "RNA"
+
+dir.create(paste0(contaminating_plot_path, 'feature_plots/'))
+for(i in contamination_filt_data@assays$RNA@var.features){
+    png(paste0(plot_path, 'feature_plots/', i, '.png'), height = 12, width = 12, units = 'cm', res = 100)
+    print(
+      FeaturePlot(contamination_filt_data, features = i, pt.size = 1.4) +
+        theme_void() +
+        theme(plot.title = element_blank(),
+          legend.text = element_text(size=16),
+          legend.key.size = unit(1, 'cm'))
+        )
+    graphics.off()
+}
+
+system(paste0("zip -rj ", contaminating_plot_path, "feature_plots.zip ", paste0(contaminating_plot_path, 'feature_plots/')))
+unlink(paste0(contaminating_plot_path, 'feature_plots/'), recursive=TRUE, force=TRUE)
+
+# Plot remaining cell counts
+filt_counts <- contamination_filt_data@meta.data %>%
+  group_by(orig.ident) %>%
+  tally() %>%
+  rename('filtered' := n)
+
+png(paste0(contaminating_plot_path, 'remaining_cell_table.png'), height = 10, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(filt_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+
+
+
+saveRDS(contamination_filt_data, paste0(rds_path, "contamination_filt_data.RDS"), compress = FALSE)
