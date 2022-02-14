@@ -158,7 +158,7 @@ cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$stage),
 
 cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("stage")
 
-png(paste0(after_plot_path, 'remaining_cell_table_count.png'), height = 10, width = 60, units = 'cm', res = 400)
+png(paste0(plot_path, 'remaining_cell_table_count.png'), height = 10, width = 60, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
@@ -243,6 +243,51 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+### Clustering, UMAP vis
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+
+png(paste0(after_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
+
+png(paste0(after_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
+### QC on clusters
+# nucleosome_signal
+png(paste0(after_plot_path, "QCPlot_nucleosome_signal.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0, 0.85), y_elements = c("nucleosome_signal"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_nucleosome_signal <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0, 0.85))
+png(paste0(after_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_nucleosome_signal, plot_title = 'poor quality clusters')
+graphics.off()
+
+# TSS.enrichment
+png(paste0(after_plot_path, "QCPlot_TSS.enrichment.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.15, 1), y_elements = c("TSS.enrichment"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.15, 1))
+png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
+graphics.off()
+
+
 #################   TSS enrichment    ###################
 seurat_all <- seurat_all_filtered_TSS
 after_plot_path = paste0(plot_path, "TSS_enrichment/")
@@ -319,6 +364,50 @@ VlnPlot(
   features = c('pct_reads_in_peaks', 'peak_region_fragments',
                'TSS.enrichment', 'nucleosome_signal'),
   pt.size = 0, ncol = 4)
+graphics.off()
+
+### Clustering, UMAP vis
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+
+png(paste0(after_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
+
+png(paste0(after_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
+### QC on clusters
+# nucleosome_signal
+png(paste0(after_plot_path, "QCPlot_nucleosome_signal.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0, 0.85), y_elements = c("nucleosome_signal"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_nucleosome_signal <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0, 0.85))
+png(paste0(after_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_nucleosome_signal, plot_title = 'poor quality clusters')
+graphics.off()
+
+# TSS.enrichment
+png(paste0(after_plot_path, "QCPlot_TSS.enrichment.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.15, 1), y_elements = c("TSS.enrichment"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.15, 1))
+png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
 graphics.off()
 
 #################   Nucleosome enrichment    ###################
@@ -399,6 +488,50 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+### Clustering, UMAP vis
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+
+png(paste0(after_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
+
+png(paste0(after_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
+### QC on clusters
+# nucleosome_signal
+png(paste0(after_plot_path, "QCPlot_nucleosome_signal.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0, 0.85), y_elements = c("nucleosome_signal"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_nucleosome_signal <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0, 0.85))
+png(paste0(after_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_nucleosome_signal, plot_title = 'poor quality clusters')
+graphics.off()
+
+# TSS.enrichment
+png(paste0(after_plot_path, "QCPlot_TSS.enrichment.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.15, 1), y_elements = c("TSS.enrichment"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.15, 1))
+png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
+graphics.off()
+
 #################   Fragments count max    ###################
 seurat_all <- seurat_all_filtered_fragments_max
 after_plot_path = paste0(plot_path, "max_frag_count/")
@@ -477,6 +610,50 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+### Clustering, UMAP vis
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+
+png(paste0(after_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
+
+png(paste0(after_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
+### QC on clusters
+# nucleosome_signal
+png(paste0(after_plot_path, "QCPlot_nucleosome_signal.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0, 0.85), y_elements = c("nucleosome_signal"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_nucleosome_signal <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0, 0.85))
+png(paste0(after_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_nucleosome_signal, plot_title = 'poor quality clusters')
+graphics.off()
+
+# TSS.enrichment
+png(paste0(after_plot_path, "QCPlot_TSS.enrichment.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.15, 1), y_elements = c("TSS.enrichment"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.15, 1))
+png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
+graphics.off()
+
 #################   Fragments count min    ###################
 seurat_all <- seurat_all_filtered_fragments_min
 after_plot_path = paste0(plot_path, "min_frag_count/")
@@ -553,6 +730,50 @@ VlnPlot(
   features = c('pct_reads_in_peaks', 'peak_region_fragments',
                'TSS.enrichment', 'nucleosome_signal'),
   pt.size = 0, ncol = 4)
+graphics.off()
+
+### Clustering, UMAP vis
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+
+png(paste0(after_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
+
+png(paste0(after_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
+### QC on clusters
+# nucleosome_signal
+png(paste0(after_plot_path, "QCPlot_nucleosome_signal.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0, 0.85), y_elements = c("nucleosome_signal"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_nucleosome_signal <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0, 0.85))
+png(paste0(after_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_nucleosome_signal, plot_title = 'poor quality clusters')
+graphics.off()
+
+# TSS.enrichment
+png(paste0(after_plot_path, "QCPlot_TSS.enrichment.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.15, 1), y_elements = c("TSS.enrichment"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.15, 1))
+png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
 graphics.off()
 
 
