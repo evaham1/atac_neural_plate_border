@@ -4,6 +4,7 @@ nextflow.enable.dsl = 2
 include {R as PREPROCESSING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1_preprocessing.R", checkIfExists: true) )
 include {R as FILTERING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/2_filtering.R", checkIfExists: true) )
 include {R as GENE_ACTIVITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_gene_activity.R", checkIfExists: true) )
+include {R as GEX_FILTERING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_gex_filtering.R", checkIfExists: true) )
 include {R as FILT_EXPLORE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/filt_explore.R", checkIfExists: true) )
 
 
@@ -33,6 +34,8 @@ workflow PROCESSING {
         .set { ch_input }
     GENE_ACTIVITY( ch_input )
 
+    GEX_FILTERING( GENE_ACTIVITY.out )
+
     emit:
-    signac_predicted_gex = GENE_ACTIVITY.out
+    signac_predicted_gex = GEX_FILTERING.out
 }
