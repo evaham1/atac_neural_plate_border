@@ -253,7 +253,7 @@ print("seurat object filtered based on QC thresholds")
 cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$stage),
                           filtered = summary(seurat_all_filtered@meta.data$stage))
 
-cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
+cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("stage")
 
 png(paste0(after_plot_path, 'remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -372,7 +372,7 @@ png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = '
 ClustRes(seurat_object = seurat_all, by = 0.2, prefix = "peaks_snn_res.")
 graphics.off()
 
-############################## UMAP Visulations before cluster filtering #######################################
+############################## UMAP Visualtions before cluster filtering #######################################
 
 png(paste0(clustering_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
 DimPlot(object = seurat_all, label = TRUE) + NoLegend()
@@ -478,6 +478,198 @@ graphics.off()
 
 # Save RDS output
 saveRDS(seurat_all_filtered, paste0(rds_path, "seurat_all_filtered.RDS"), compress = FALSE)
+
+
+############################## ########### ####################################### ############ ############ ######
+############################## Filtering data without using fragment counts #######################################
+
+after_plot_path = paste0(plot_path, "after_filtering_no_frag_count/")
+dir.create(after_plot_path, recursive = T)
+
+seurat_all_filtered_pct <- subset(seurat_all, subset = 
+                       pct_reads_in_peaks > 50 )
+seurat_all_filtered_pct_TSS <- subset(seurat_all, subset = 
+                       pct_reads_in_peaks > 50 &
+                       TSS.enrichment > 2 )
+seurat_all_filtered_pct_TSS_nucleosome <- subset(seurat_all, subset = 
+                       pct_reads_in_peaks > 50 &
+                       TSS.enrichment > 2 &
+                       nucleosome_signal < 1.5 )
+                       
+# Plot table with remaining cell counts after filtering
+cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$stage),
+                          pct = summary(seurat_all_filtered_pct@meta.data$stage),
+                          pct_and_TSS = summary(seurat_all_filtered_pct_TSS@meta.data$stage),
+                          pct_and_TSS_and_nucleosome = summary(seurat_all_filtered_pct_TSS_nucleosome@meta.data$stage))
+
+cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("stage")
+
+png(paste0(after_plot_path, 'remaining_cell_table_no_fragment_count.png'), height = 20, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+print("seurat object filtered with metrics other than fragment count")
+
+### Number of reads in peaks
+if (length(unique(seurat_all_filtered_pct_TSS_nucleosome@meta.data$stage)) > 2){
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_min_no_fragment_count.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all_filtered_pct_TSS_nucleosome, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 2000", xmin = 0, xmax = 5000, intercept = 2000)
+  )
+  graphics.off()
+  
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_max_no_fragment_count.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all_filtered_pct_TSS_nucleosome, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 50000", xmin = 20000, xmax = 100000, intercept = 50000)
+  )
+  graphics.off()
+} else {
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_min_no_fragment_count.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all_filtered_pct_TSS_nucleosome, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - minimum threshold 200", xmin = 0, xmax = 2000, intercept = 200)
+  )
+  graphics.off()
+  
+  png(paste0(after_plot_path, 'peak_region_fragments_hist_zoom_max_no_fragment_count.png'), height = 15, width = 21, units = 'cm', res = 400)
+  print(
+    QC_metric_hist(seurat_obj = seurat_all_filtered_pct_TSS_nucleosome, QC_metric = "peak_region_fragments", bin_width = 100,
+                   ident_cols = stage_cols, title = "Number of fragments in peaks - maximum threshold 1800", xmin = 1000, xmax = 2000, intercept = 1800)
+  )
+  graphics.off()
+}
+
+### All QC metrics
+png(paste0(after_plot_path, 'All_QC_VlnPlot_no_fragment_count.png'), height = 15, width = 28, units = 'cm', res = 400)
+VlnPlot(
+  object = seurat_all_filtered_pct_TSS_nucleosome, group.by = "mitochondrial",
+  features = c('pct_reads_in_peaks', 'peak_region_fragments',
+               'TSS.enrichment', 'nucleosome_signal'),
+  pt.size = 0, ncol = 4)
+graphics.off()
+
+
+############################## Pre-processing #######################################
+
+clustering_plot_path = paste0(plot_path, "clustering_no_fragment_count/")
+dir.create(clustering_plot_path, recursive = T)
+
+seurat_all <- RunTFIDF(seurat_all)
+seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
+seurat_all <- RunSVD(seurat_all)
+
+png(paste0(clustering_plot_path, 'DepthCor.png'), height = 15, width = 21, units = 'cm', res = 400)
+DepthCor(seurat_all)
+graphics.off()
+
+seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+
+############################## UMAP Visualtions before cluster filtering #######################################
+
+png(paste0(clustering_plot_path, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all, label = TRUE) + NoLegend()
+graphics.off()
+
+# UMAP for clusters and developmental stage
+png(paste0(clustering_plot_path, "ClustStagePlot_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+ClustStagePlot(seurat_all)
+graphics.off()
+
+png(paste0(clustering_plot_path, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
+
+############################## Identify poor quality clusters #######################################
+
+# Don't use pct reads in peaks as it may be biological
+
+# nucleosome_signal
+png(paste0(clustering_plot_path, "QCPlot_nucleosome_signal.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0, 0.85), y_elements = c("nucleosome_signal"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_nucleosome_signal <- IdentifyOutliers(seurat_all, metrics = c("nucleosome_signal"), quantiles = c(0, 0.85))
+
+png(paste0(clustering_plot_path, "PoorClusters_nucleosome_signal.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_nucleosome_signal, plot_title = 'poor quality clusters')
+graphics.off()
+
+# TSS.enrichment
+png(paste0(clustering_plot_path, "QCPlot_TSS.enrichment.png"), width=20, height=40, units = 'cm', res = 200)
+QCPlot(seurat_all, stage = "stage", quantiles = c(0.15, 1), y_elements = c("TSS.enrichment"),
+       x_lab = c("Cluster"))
+graphics.off()
+
+poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.enrichment"), quantiles = c(0.15, 1))
+
+png(paste0(clustering_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
+ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
+graphics.off()
+
+# peak_region_fragments
+# QCPlot(seurat_all, stage = "stage", quantiles = c(0.2, 0.8), y_elements = c("peak_region_fragments"),
+#        x_lab = c("Cluster"))
+
+# poor_clusters_peak_region_fragments <- IdentifyOutliers(seurat_all, metrics = c("peak_region_fragments"), quantiles = c(0.2, 0.8))
+
+# png(paste0(clustering_plot_path, "PoorClusters_peak_region_fragments.png"), width=60, height=20, units = 'cm', res = 200)
+# ClusterDimplot(seurat_all, clusters = poor_clusters, plot_title = 'poor quality clusters')
+# graphics.off()
+
+############################## Filter out poor quality clusters and count remaining cells #######################################
+
+seurat_all_filtered <- subset(seurat_all, cells = rownames(filter(seurat_all@meta.data, seurat_clusters %in% poor_clusters_nucleosome_signal)), invert = T)
+print("seurat object filtered based on poor quality clusters")
+
+# Plot table with remaining cell counts after full filtering
+cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$orig.ident),
+                          filtered = summary(seurat_all_filtered@meta.data$orig.ident))
+
+cell_counts <- rbind(cell_counts, Total = colSums(cell_counts)) %>% rownames_to_column("orig.ident")
+
+png(paste0(clustering_plot_path, 'final_remaining_cell_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+############################## UMAP Visulations after cluster filtering #######################################
+
+clustering_plot_path_filtered = paste0(plot_path, "clustering_filtered_no_frag_count/")
+dir.create(clustering_plot_path_filtered, recursive = T)
+
+# Recluster after removing cells
+seurat_all_filtered <- RunUMAP(object = seurat_all_filtered, reduction = 'lsi', dims = 2:30)
+seurat_all_filtered <- FindNeighbors(object = seurat_all_filtered, reduction = 'lsi', dims = 2:30)
+seurat_all_filtered <- FindClusters(object = seurat_all_filtered, verbose = FALSE, algorithm = 3)
+
+png(paste0(clustering_plot_path_filtered, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(object = seurat_all_filtered, label = TRUE) + NoLegend()
+graphics.off()
+
+# UMAP for clusters and developmental stage
+png(paste0(clustering_plot_path_filtered, "ClustStagePlot_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+ClustStagePlot(seurat_all_filtered)
+graphics.off()
+
+png(paste0(clustering_plot_path_filtered, "stage_umap.png"), width=20, height=20, units = 'cm', res = 200)
+DimPlot(seurat_all_filtered, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none",
+                 plot.title = element_blank())
+graphics.off()
 
 
 
