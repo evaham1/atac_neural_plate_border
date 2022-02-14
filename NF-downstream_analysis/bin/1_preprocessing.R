@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-### Script to create seurat object, filter data, remove poor quality clusters and integrate across batches
+### Script to create seurat objects and calculate QC metrics
+print("1_preprocessing")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -16,14 +17,12 @@ library(ggplot2)
 library(dplyr)
 library(rtracklayer)
 
-
 ############################## Set up script options #######################################
 spec = matrix(c(
   'runtype', 'l', 2, "character",
   'cores'   , 'c', 2, "integer"
 ), byrow=TRUE, ncol=4)
 opt = getopt(spec)
-test = TRUE
 
 # Set paths and load data
 {
@@ -32,16 +31,11 @@ test = TRUE
     
     setwd("~/NF-downstream_analysis")
     ncores = 8
+
+    plot_path = "../output/NF-downstream_analysis/1_preprocessing/plots/"
+    rds_path = "../output/NF-downstream_analysis/1_preprocessing/rds_files/"
+    data_path = "../output/NF-luslab_sc_multiomic/full/cellranger_atac_output/"
     ref_path = "../output/NF-luslab_sc_multiomic/reference/"
-    
-    if(test == TRUE){
-      plot_path = "../output/NF-downstream_analysis/1_preprocessing/TEST/plots/"
-      rds_path = "../output/NF-downstream_analysis/1_preprocessing/TEST/rds_files/"
-      data_path = "../output/NF-luslab_sc_multiomic/test/cellranger_atac_output/"
-      }else{
-      plot_path = "../output/NF-downstream_analysis/1_preprocessing/plots/"
-      rds_path = "../output/NF-downstream_analysis/1_preprocessing/rds_files/"
-      data_path = "../output/NF-luslab_sc_multiomic/full/cellranger_atac_output/"}
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -118,11 +112,13 @@ seurat_all@meta.data[["flow_cell"]] <- substr(seurat_all@meta.data$orig.ident, 5
 
 # Convert metadata character cols to factors
 seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)] <- lapply(seurat_all@meta.data[sapply(seurat_all@meta.data, is.character)], as.factor)
+print("metadata set")
 
 # Calculate QC metrics
 seurat_all <- NucleosomeSignal(object = seurat_all)
 seurat_all <- TSSEnrichment(object = seurat_all, fast = FALSE)
 seurat_all$pct_reads_in_peaks <- seurat_all$peak_region_fragments / seurat_all$passed_filters * 100
+print("QC metrics calculated")
 
 # save RDS
 saveRDS(seurat_all, paste0(rds_path, "seurat_all.RDS"), compress = FALSE)
