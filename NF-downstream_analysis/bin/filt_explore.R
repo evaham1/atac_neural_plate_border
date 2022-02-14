@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-### Script to create seurat object, filter data, remove poor quality clusters and integrate across batches
+### Script to try different filtering params
+print("filt_explore")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -15,14 +16,12 @@ library(ggplot2)
 library(dplyr)
 library(scHelper)
 
-
 ############################## Set up script options #######################################
 spec = matrix(c(
   'runtype', 'l', 2, "character",
   'cores'   , 'c', 2, "integer"
 ), byrow=TRUE, ncol=4)
 opt = getopt(spec)
-test = FALSE
 
 # Set paths and load data
 {
@@ -31,16 +30,10 @@ test = FALSE
     
     setwd("~/NF-downstream_analysis")
     ncores = 8
-    ref_path = "../output/NF-luslab_sc_multiomic/reference/"
-    
-    if(test == TRUE){
-      plot_path = "../output/NF-downstream_analysis/filtering/TEST/plots/"
-      rds_path = "../output/NF-downstream_analysis/filtering/TEST/rds_files/"
-      data_path = "../output/NF-downstream_analysis/test_input/"
-    }else{
-      plot_path = "../output/NF-downstream_analysis/filtering/plots/"
-      rds_path = "../output/NF-downstream_analysis/filtering/rds_files/"
-      data_path = "../output/NF-downstream_analysis/test_input/"}
+
+    plot_path = "../output/NF-downstream_analysis/filt_explore/plots/"
+    rds_path = "../output/NF-downstream_analysis/filt_explore/rds_files/"
+    data_path = "../output/NF-downstream_analysis/test_input/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -95,7 +88,6 @@ QC_metric_hist <- function(seurat_obj, QC_metric, identity = "stage", bin_width 
     geom_vline(xintercept = intercept, linetype="dashed", size=1) 
 }
 
-
 ############################## Read in Seurat RDS object and fragment files #######################################
 
 seurat_all <- readRDS(paste0(data_path, "rds_files/seurat_all.RDS"))
@@ -116,6 +108,8 @@ for (i in seq_along(frags)) {
 }
 
 Fragments(seurat_all) <- frags # assign updated list back to the object
+
+print("data read in")
 
 ############################## Set stage as metadata and colour them #######################################
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
@@ -147,6 +141,8 @@ if (length(unique(seurat_all@meta.data$stage)) > 2){
   seurat_all_filtered_fragments_min <- subset(seurat_all, subset = 
                        peak_region_fragments > 200)
 }
+
+print("data filtered with different metrics")
                 
 # Plot table with remaining cell counts after filtering on each of the metrics
 cell_counts <- data.frame(unfilt = summary(seurat_all@meta.data$stage),
@@ -162,6 +158,8 @@ png(paste0(plot_path, 'remaining_cell_table_count.png'), height = 10, width = 60
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
+
+print("cell counts")
 
 ############################## Histograms of QC metrics after filtering on different metrics #######################################
 
@@ -243,6 +241,8 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+print("pct fragments in peaks: plotted")
+
 ### Clustering, UMAP vis
 seurat_all <- RunTFIDF(seurat_all)
 seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
@@ -263,6 +263,8 @@ DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
   ggplot2::theme(legend.position = "none",
                  plot.title = element_blank())
 graphics.off()
+
+print("pct fragments in peaks: clustered")
 
 ### QC on clusters
 # nucleosome_signal
@@ -287,6 +289,7 @@ png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height
 ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
 graphics.off()
 
+print("pct fragments in peaks: cluster QCd")
 
 #################   TSS enrichment    ###################
 seurat_all <- seurat_all_filtered_TSS
@@ -366,6 +369,8 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+print("TSS enrihment: plotted")
+
 ### Clustering, UMAP vis
 seurat_all <- RunTFIDF(seurat_all)
 seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
@@ -386,6 +391,8 @@ DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
   ggplot2::theme(legend.position = "none",
                  plot.title = element_blank())
 graphics.off()
+
+print("TSS enrihment: clustered")
 
 ### QC on clusters
 # nucleosome_signal
@@ -409,6 +416,8 @@ poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.en
 png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
 ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
 graphics.off()
+
+print("TSS enrihment: clustered QCd")
 
 #################   Nucleosome enrichment    ###################
 seurat_all <- seurat_all_filtered_nucleosome
@@ -488,6 +497,8 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+print("Nucleosome enrichment: plotted")
+
 ### Clustering, UMAP vis
 seurat_all <- RunTFIDF(seurat_all)
 seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
@@ -508,6 +519,8 @@ DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
   ggplot2::theme(legend.position = "none",
                  plot.title = element_blank())
 graphics.off()
+
+print("Nucleosome enrichment: clustered")
 
 ### QC on clusters
 # nucleosome_signal
@@ -531,6 +544,8 @@ poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.en
 png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
 ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
 graphics.off()
+
+print("Nucleosome enrichment: clustered QCd")
 
 #################   Fragments count max    ###################
 seurat_all <- seurat_all_filtered_fragments_max
@@ -610,6 +625,8 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+print("Fragments count max: plotted")
+
 ### Clustering, UMAP vis
 seurat_all <- RunTFIDF(seurat_all)
 seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
@@ -630,6 +647,8 @@ DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
   ggplot2::theme(legend.position = "none",
                  plot.title = element_blank())
 graphics.off()
+
+print("Fragments count max: clustered")
 
 ### QC on clusters
 # nucleosome_signal
@@ -653,6 +672,8 @@ poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.en
 png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
 ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
 graphics.off()
+
+print("Fragments count max: clustered QCd")
 
 #################   Fragments count min    ###################
 seurat_all <- seurat_all_filtered_fragments_min
@@ -732,6 +753,8 @@ VlnPlot(
   pt.size = 0, ncol = 4)
 graphics.off()
 
+print("Fragments count min: plotted")
+
 ### Clustering, UMAP vis
 seurat_all <- RunTFIDF(seurat_all)
 seurat_all <- FindTopFeatures(seurat_all, min.cutoff = 'q0')
@@ -752,6 +775,8 @@ DimPlot(seurat_all, group.by = 'stage', label = TRUE, label.size = 12,
   ggplot2::theme(legend.position = "none",
                  plot.title = element_blank())
 graphics.off()
+
+print("Fragments count min: clustered")
 
 ### QC on clusters
 # nucleosome_signal
@@ -775,6 +800,8 @@ poor_clusters_TSS_enrichment <- IdentifyOutliers(seurat_all, metrics = c("TSS.en
 png(paste0(after_plot_path, "PoorClusters_TSS.enrichment.png"), width=60, height=20, units = 'cm', res = 200)
 ClusterDimplot(seurat_all, clusters = poor_clusters_TSS_enrichment, plot_title = 'poor quality clusters')
 graphics.off()
+
+print("Fragments count min: clustered QCd")
 
 
 ############################## Normalization and linear dimensional reduction #######################################
