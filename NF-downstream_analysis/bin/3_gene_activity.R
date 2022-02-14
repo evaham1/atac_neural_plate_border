@@ -232,6 +232,10 @@ png(paste0(plot_path, 'MostVariable.png'), height = 15, width = 20, units = 'cm'
 plot2
 graphics.off()
 
+# find marker genes for clusters and visualise them
+seurat <- ScaleData(object = seurat, verbose = TRUE)
+seurat
+
 markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 markers %>%
   group_by(cluster) %>%
@@ -241,14 +245,15 @@ png(paste0(plot_path, 'top_markers.png'), height = 20, width = 20, units = 'cm',
 grid.arrange(tableGrob(top10, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+png(paste0(plot_path, 'top_markers_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+DoHeatmap(seurat, features = top10$gene) + NoLegend()
+graphics.off()
+
 markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.1)
-markers %>%
-  group_by(cluster) %>%
-  top_n(n = 10, wt = avg_log2FC) -> top10
-seurat <- ScaleData(object = seurat, verbose = TRUE)
+markers <- markers %>% group_by(cluster)
 
 png(paste0(plot_path, 'markers_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-DoHeatmap(seurat, features = top10$gene) + NoLegend()
+DoHeatmap(seurat, features = markers$gene) + NoLegend()
 graphics.off()
 
 ###########################################################################################################
