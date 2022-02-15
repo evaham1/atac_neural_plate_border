@@ -63,7 +63,6 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-
 ############################## Read in Seurat RDS object and fragment files #######################################
 
 seurat <- readRDS(paste0(data_path, "rds_files/seurat_GeneActivity.RDS"))
@@ -86,6 +85,12 @@ DefaultAssay(seurat) <- 'RNA'
 # Fragments(seurat) <- frags # assign updated list back to the object
 
 print("data read in")
+
+############################## Set stage colours #######################################
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
+stage_cols <- stage_colours[levels(droplevels(seurat@meta.data$stage))]
 
 ######################################## SEX EFFECT #####################################################
 sex_plot_path = paste0(plot_path, "sex_effect/")
@@ -177,7 +182,7 @@ grid.arrange(tableGrob(top10, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
 png(paste0(plot_path, 'top_markers_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-DoHeatmap(seurat, features = top10$gene) + NoLegend()
+print(DoHeatmap(seurat, features = top10$gene) + NoLegend())
 graphics.off()
 
 print("top differentially expressed genes plotted")
@@ -200,7 +205,7 @@ genes <- list('PGC module' = 'DAZL',
 seurat <- AverageGeneModules(seurat_obj = seurat, gene_list = genes)
 
 # Plot distribution of contamination gene modules
-png(paste0(contaminating_plot_path, "ContaminationClustersBoxPLot.png"), width = 40, height = 30, units = "cm", res = 200)
+png(paste0(contaminating_plot_path, "ContaminationClustersBoxPlot.png"), width = 40, height = 30, units = "cm", res = 200)
 PlotCelltype(seurat_obj = seurat, gene_list = genes, quantiles = c(0.1, 0.90), ncol = 2)
 graphics.off()
 
@@ -212,11 +217,11 @@ ClusterDimplot(seurat, clusters = contaminating_clusters, plot_title = 'Contamin
 graphics.off()
 
 # Plot UMAPs for GOI
-ncol = 4
-png(paste0(contaminating_plot_path, "UMAP_GOI.png"), width = ncol*10, height = 10*ceiling((length(unlist(genes))+1)/ncol), units = "cm", res = 200)
-MultiFeaturePlot(seurat_obj = seurat, gene_list = unlist(genes), plot_clusters = T,
-                 plot_stage = T, label = "", n_col = ncol)
-graphics.off()
+# ncol = 4
+# png(paste0(contaminating_plot_path, "UMAP_GOI.png"), width = ncol*10, height = 10*ceiling((length(unlist(genes))+1)/ncol), units = "cm", res = 200)
+# MultiFeaturePlot(seurat_obj = seurat, gene_list = unlist(genes), plot_clusters = T,
+#                  plot_stage = T, label = "", n_col = ncol)
+# graphics.off()
 
 # Dotplot for identifying PGCs, Early mesoderm and Late mesoderm
 png(paste0(contaminating_plot_path, "dotplot_GOI.png"), width = 30, height = 12, units = "cm", res = 200)
@@ -231,6 +236,10 @@ filter_cells <- rownames(filter(seurat@meta.data, seurat_clusters %in% contamina
 contamination_filt_data <- subset(seurat, cells = filter_cells, invert = T)
 
 # Recluster after removing cells
+DefaultAssay(seurat) <- 'peaks'
+contamination_filt_data <- RunTFIDF(contamination_filt_data)
+contamination_filt_data <- FindTopFeatures(contamination_filt_data, min.cutoff = 'q0')
+contamination_filt_data <- RunSVD(contamination_filt_data)
 contamination_filt_data <- RunUMAP(object = contamination_filt_data, reduction = 'lsi', dims = 2:30)
 contamination_filt_data <- FindNeighbors(object = contamination_filt_data, reduction = 'lsi', dims = 2:30)
 contamination_filt_data <- FindClusters(object = contamination_filt_data, verbose = FALSE, algorithm = 3)
@@ -255,7 +264,7 @@ graphics.off()
 
 print("contaminating populations filtered")
 
-
+DefaultAssay(seurat) <- 'RNA'
 
 # Find differentially expressed genes and plot heatmap of top DE genes for each cluster
 markers <- FindAllMarkers(contamination_filt_data, only.pos = T, logfc.threshold = 0.25, assay = "RNA")
@@ -263,6 +272,7 @@ markers <- FindAllMarkers(contamination_filt_data, only.pos = T, logfc.threshold
 cluster_order = OrderCellClusters(seurat_object = contamination_filt_data, col_to_sort = 'seurat_clusters', sort_by = 'stage')
 # Re-order genes in top15 based on desired cluster order in subsequent plot - this orders them in the heatmap in the correct order
 top15 <- markers %>% group_by(cluster) %>% top_n(n = 15, wt = avg_log2FC) %>% arrange(factor(cluster, levels = cluster_order))
+print(top15)
 
 png(paste0(contaminating_plot_path, 'HM.top15.DE.contamination_filt_data.png'), height = 75, width = 100, units = 'cm', res = 500)
 TenxPheatmap(data = contamination_filt_data, metadata = c("seurat_clusters", "stage"), custom_order_column = "seurat_clusters",
