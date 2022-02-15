@@ -168,6 +168,8 @@ graphics.off()
 print("sex metadata added")
 
 ############################## Top differentially expressed genes #######################################
+unfilt_plot_path = paste0(plot_path, "unfiltered/")
+dir.create(unfilt_plot_path, recursive = T)
 
 # find marker genes for clusters and visualise them
 seurat <- ScaleData(object = seurat, verbose = TRUE)
@@ -178,11 +180,11 @@ markers %>%
   group_by(cluster) %>%
   top_n(n = 10, wt = avg_log2FC) -> top10
 
-png(paste0(plot_path, 'top_markers.png'), height = 40, width = 40, units = 'cm', res = 400)
+png(paste0(unfilt_plot_path, 'top_markers.png'), height = 40, width = 40, units = 'cm', res = 400)
 grid.arrange(tableGrob(top10, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-png(paste0(plot_path, 'top_markers_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(unfilt_plot_path, 'top_markers_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
 print(DoHeatmap(seurat, features = top10$gene) + NoLegend())
 graphics.off()
 
@@ -303,15 +305,15 @@ print(top15)
 scaled_data <- GetAssayData(object = seurat, assay = "RNA", slot = "scale.data")
 genes <- unique(top15$gene)[unique(top15$gene) %in% rownames(scaled_data)]
 
-png(paste0(plot_path, 'HM.top15.DE.contamination_filt_data.png'), height = 75, width = 100, units = 'cm', res = 500)
+png(paste0(plot_path, 'Top15_heatmap.png'), height = 75, width = 100, units = 'cm', res = 500)
 TenxPheatmap(data = seurat, metadata = c("seurat_clusters", "stage"), custom_order_column = "seurat_clusters",
              custom_order = cluster_order, selected_genes = genes, gaps_col = "seurat_clusters", 
              assay = 'RNA', slot = "scale.data")
 graphics.off()
 
-# Plot feature plots for all variable genes
+# Plot feature plots for all top marker genes
 dir.create(paste0(plot_path, 'feature_plots/'))
-for(i in seurat@assays$RNA@var.features){
+for(i in unique(top15$gene)){
     png(paste0(plot_path, 'feature_plots/', i, '.png'), height = 12, width = 12, units = 'cm', res = 100)
     print(
       FeaturePlot(seurat, features = i, pt.size = 1.4) +
@@ -326,7 +328,7 @@ for(i in seurat@assays$RNA@var.features){
 system(paste0("zip -rj ", plot_path, "feature_plots.zip ", paste0(plot_path, 'feature_plots/')))
 unlink(paste0(plot_path, 'feature_plots/'), recursive=TRUE, force=TRUE)
 
-print("variable and marker genes plotted")
+print("marker genes plotted")
 
 #############################################################################################################
 
