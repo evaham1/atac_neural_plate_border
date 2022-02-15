@@ -367,7 +367,7 @@ dir.create(clustering_plot_path, recursive = T)
 
 seurat_all <- RunUMAP(object = seurat_all, reduction = 'lsi', dims = 2:30)
 seurat_all <- FindNeighbors(object = seurat_all, reduction = 'lsi', dims = 2:30)
-seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3)
+seurat_all <- FindClusters(object = seurat_all, verbose = FALSE, algorithm = 3, resolution = 2)
 
 # Find optimal cluster resolution -- need to change algorithm to match the one above (SLM)??
 png(paste0(clustering_plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
