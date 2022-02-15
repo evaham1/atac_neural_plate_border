@@ -3,6 +3,7 @@ nextflow.enable.dsl = 2
 
 include {R as SPLIT_ATAC} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/split_seurat.R", checkIfExists: true) )
 include {R as SPLIT_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/split_seurat.R", checkIfExists: true) )
+include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cluster.R", checkIfExists: true) )
 include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
 
 workflow INTEGRATE_SPLIT_PROCESS {
@@ -26,7 +27,6 @@ workflow INTEGRATE_SPLIT_PROCESS {
     SPLIT_RNA ( ch_rna_input )
 
     // change metadata so its the stage
-
     SPLIT_ATAC.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
@@ -34,6 +34,14 @@ workflow INTEGRATE_SPLIT_PROCESS {
         .set { ch_atac_out } 
 
     SPLIT_RNA.out
+        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
+        .flatMap {it[1][0].listFiles()}
+        .map { row -> [[sample_id:row.name.replace('_splitstage_rna_data.RDS', '')], row] }
+        .set { rna_out } 
+
+    // rerun clustering on split rna data
+    CLUSTER( rna_out )
+    CLUSTER.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replace('_splitstage_rna_data.RDS', '')], row] }
