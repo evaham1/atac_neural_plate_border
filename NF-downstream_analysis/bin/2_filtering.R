@@ -458,7 +458,7 @@ dir.create(clustering_plot_path_filtered, recursive = T)
 # Recluster after removing cells
 seurat_all_filtered <- RunUMAP(object = seurat_all_filtered, reduction = 'lsi', dims = 2:30)
 seurat_all_filtered <- FindNeighbors(object = seurat_all_filtered, reduction = 'lsi', dims = 2:30)
-seurat_all_filtered <- FindClusters(object = seurat_all_filtered, verbose = FALSE, algorithm = 3)
+seurat_all_filtered <- FindClusters(object = seurat_all_filtered, verbose = FALSE, algorithm = 3, resolution = 2)
 
 png(paste0(clustering_plot_path_filtered, "UMAP.png"), width=20, height=20, units = 'cm', res = 200)
 DimPlot(object = seurat_all_filtered, label = TRUE) + NoLegend()
