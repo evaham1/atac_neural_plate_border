@@ -16,6 +16,7 @@ library(ggplot2)
 library(dplyr)
 library(scHelper)
 library(pheatmap)
+set.seed(100)
 
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
@@ -92,6 +93,56 @@ stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 stage_cols <- stage_colours[levels(droplevels(seurat@meta.data$stage))]
+
+############################## WILL REMOVE #######################################
+################################## TEST #######################################
+# Recluster and compare to orig
+seurat_test <- seurat
+DefaultAssay(seurat_test) <- 'peaks'
+seurat_test <- RunTFIDF(seurat_test)
+seurat_test <- FindTopFeatures(seurat_test, min.cutoff = 'q0')
+seurat_test <- RunSVD(seurat_test)
+seurat_test <- RunUMAP(object = seurat_test, reduction = 'lsi', dims = 2:30)
+seurat_test <- FindNeighbors(object = seurat_test, reduction = 'lsi', dims = 2:30)
+seurat_test <- FindClusters(object = seurat_test, verbose = FALSE, algorithm = 3, resolution = 2)
+
+# Stage UMAPs
+plot1 <- DimPlot(seurat, group.by = 'stage', label = TRUE, label.size = 12,
+        label.box = TRUE, repel = TRUE,
+        pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none") +
+  ggtitle('orig')
+plot2 <- DimPlot(seurat_test, group.by = 'stage', label = TRUE, label.size = 12,
+                 label.box = TRUE, repel = TRUE,
+                 pt.size = 0.9, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none") +
+  ggtitle('reclust')
+
+png(paste0(plot_path, "TEST_stage_UMAPs.png"), width=40, height=20, units = 'cm', res = 200)
+plot1 + plot2
+graphics.off()
+
+# Cluster UMAPs
+plot1 <- DimPlot(seurat, group.by = 'seurat_clusters', label = TRUE, label.size = 12,
+                 label.box = TRUE, repel = TRUE,
+                 pt.size = 0.9, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none") +
+  ggtitle('orig')
+plot2 <- DimPlot(seurat_test, group.by = 'seurat_clusters', label = TRUE, label.size = 12,
+                 label.box = TRUE, repel = TRUE,
+                 pt.size = 0.9, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none") +
+  ggtitle('reclust')
+
+png(paste0(plot_path, "TEST_cluster_UMAPs.png"), width=40, height=20, units = 'cm', res = 200)
+plot1 + plot2
+graphics.off()
+###############################################################################
+###############################################################################
 
 ##################################### Identify sex effect ###########################################
 sex_plot_path = paste0(plot_path, "sex_effect/")
@@ -257,7 +308,7 @@ filt_counts <- seurat@meta.data %>%
   group_by(stage) %>%
   tally()
 
-png(paste0(contaminating_plot_path, 'remaining_cell_table.png'), height = 10, width = 18, units = 'cm', res = 400)
+png(paste0(plot_path, 'remaining_cell_table.png'), height = 10, width = 18, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(filt_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
@@ -290,7 +341,7 @@ graphics.off()
 
 print("poor quality clusters filtered")
 
-############################### Remove poor quality clusters ########################################
+############################### Top markers in filtered data ########################################
 
 DefaultAssay(seurat) <- 'RNA'
 
@@ -301,6 +352,11 @@ cluster_order = OrderCellClusters(seurat_object = seurat, col_to_sort = 'seurat_
 # Re-order genes in top15 based on desired cluster order in subsequent plot - this orders them in the heatmap in the correct order
 top15 <- markers %>% group_by(cluster) %>% top_n(n = 15, wt = avg_log2FC) %>% arrange(factor(cluster, levels = cluster_order))
 print(top15)
+
+png(paste0(plot_path, 'top15_marker_genes.png'), height = 60, width = 25, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Top 15 marker genes", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(top15, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 scaled_data <- GetAssayData(object = seurat, assay = "RNA", slot = "scale.data")
 genes <- unique(top15$gene)[unique(top15$gene) %in% rownames(scaled_data)]
