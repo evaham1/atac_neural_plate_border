@@ -97,18 +97,6 @@ seurat <- FindClusters(object = seurat, verbose = FALSE, algorithm = 3)
 seurat_rna <- readRDS(list.files(data_path, full.names = TRUE, pattern = 'rna_data.RDS'))
 seurat_rna
 
-# rerun some processes from 'subset_cluster' script
-DefaultAssay(seurat_rna) <- "RNA"
-seurat_rna <- FindVariableFeatures(seurat_rna, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
-seurat_rna <- ScaleData(seurat_rna, features = rownames(seurat_rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
-DefaultAssay(seurat_rna) <- "integrated"
-seurat_rna <- ScaleData(seurat_rna, features = rownames(seurat_rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
-seurat_data <- RunPCA(object = seurat_rna, verbose = FALSE)
-pc_cutoff <- ElbowCutoff(seurat_rna)
-seurat_rna <- FindNeighbors(seurat_rna, dims = 1:pc_cutoff, verbose = FALSE)
-seurat_rna <- RunUMAP(seurat_rna, dims = 1:pc_cutoff, verbose = FALSE)
-
-
 ############################## Set colours - WILL NEED TO CHANGE TO HH over hh #######################################
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
