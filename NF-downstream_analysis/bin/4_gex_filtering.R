@@ -71,20 +71,20 @@ seurat <- readRDS(paste0(data_path, "rds_files/seurat_GeneActivity.RDS"))
 print(seurat)
 DefaultAssay(seurat) <- 'RNA'
 
-# # read in fragment files
-# paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
-# input <- data.frame(sample = sub('.*/', '', paths), 
-#                     matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
-#                     metadata_path = paste0(paths, "/outs/singlecell.csv"),
-#                     fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
-# new.paths <- as.list(input$fragments_path)
-# frags <- Fragments(seurat)  # get list of fragment objects
-# Fragments(seurat) <- NULL  # remove fragment information from assay
+# read in fragment files
+paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
+input <- data.frame(sample = sub('.*/', '', paths), 
+                    matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
+                    metadata_path = paste0(paths, "/outs/singlecell.csv"),
+                    fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+new.paths <- as.list(input$fragments_path)
+frags <- Fragments(seurat)  # get list of fragment objects
+Fragments(seurat) <- NULL  # remove fragment information from assay
 
-# for (i in seq_along(frags)) {
-#   frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
-# }
-# Fragments(seurat) <- frags # assign updated list back to the object
+for (i in seq_along(frags)) {
+  frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
+}
+Fragments(seurat) <- frags # assign updated list back to the object
 
 print("data read in")
 
@@ -222,24 +222,32 @@ print("sex metadata added")
 unfilt_plot_path = paste0(plot_path, "unfiltered/")
 dir.create(unfilt_plot_path, recursive = T)
 
-# find marker genes for clusters and visualise them
+# need to scale gex so can plot in heatmap
 seurat <- ScaleData(object = seurat, verbose = TRUE)
 seurat
 
-markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.5, logfc.threshold = 0.5)
-markers %>%
-  group_by(cluster) %>%
-  top_n(n = 10, wt = avg_log2FC) -> top10
+# Find differentially expressed genes and plot heatmap of top DE genes for each cluster
+markers <- FindAllMarkers(seurat, only.pos = T, logfc.threshold = 0.25, assay = "RNA")
+# get automated cluster order based on percentage of cells in adjacent stages
+cluster_order = OrderCellClusters(seurat_object = seurat, col_to_sort = 'seurat_clusters', sort_by = 'stage')
+# Re-order genes in top15 based on desired cluster order in subsequent plot - this orders them in the heatmap in the correct order
+top15 <- markers %>% group_by(cluster) %>% top_n(n = 15, wt = avg_log2FC) %>% arrange(factor(cluster, levels = cluster_order))
+print(top15)
 
-png(paste0(unfilt_plot_path, 'top_markers.png'), height = 40, width = 40, units = 'cm', res = 400)
-grid.arrange(tableGrob(top10, rows=NULL, theme = ttheme_minimal()))
+png(paste0(plot_path, 'top15_marker_genes.png'), height = 120, width = 25, units = 'cm', res = 400)
+grid.arrange(tableGrob(top15, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-png(paste0(unfilt_plot_path, 'top_markers_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-print(DoHeatmap(seurat, features = top10$gene) + NoLegend())
+scaled_data <- GetAssayData(object = seurat, assay = "RNA", slot = "scale.data")
+genes <- unique(top15$gene)[unique(top15$gene) %in% rownames(scaled_data)]
+
+png(paste0(plot_path, 'Top15_heatmap.png'), height = 75, width = 100, units = 'cm', res = 500)
+TenxPheatmap(data = seurat, metadata = c("seurat_clusters", "stage"), custom_order_column = "seurat_clusters",
+             custom_order = cluster_order, selected_genes = genes, gaps_col = "seurat_clusters", 
+             assay = 'RNA', slot = "scale.data")
 graphics.off()
 
-print("top differentially expressed genes plotted")
+print("top differentially expressed genes plotted (unflit)")
 
 
 ################## Identify contaminating cell populations (mesoderm and PGCs) ########################
@@ -353,7 +361,7 @@ cluster_order = OrderCellClusters(seurat_object = seurat, col_to_sort = 'seurat_
 top15 <- markers %>% group_by(cluster) %>% top_n(n = 15, wt = avg_log2FC) %>% arrange(factor(cluster, levels = cluster_order))
 print(top15)
 
-png(paste0(plot_path, 'top15_marker_genes.png'), height = 60, width = 25, units = 'cm', res = 400)
+png(paste0(plot_path, 'top15_marker_genes.png'), height = 120, width = 25, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Top 15 marker genes", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(top15, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
@@ -384,7 +392,7 @@ for(i in unique(top15$gene)){
 system(paste0("zip -rj ", plot_path, "feature_plots.zip ", paste0(plot_path, 'feature_plots/')))
 unlink(paste0(plot_path, 'feature_plots/'), recursive=TRUE, force=TRUE)
 
-print("marker genes plotted")
+print("marker genes plotted (filt)")
 
 #############################################################################################################
 
