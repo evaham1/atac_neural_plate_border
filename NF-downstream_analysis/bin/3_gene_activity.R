@@ -202,4 +202,4 @@ print("variable genes found")
 ######################################## Scaling ###############################################
 
 # save seurat object with predicted RNA assay
-saveRDS(seurat, paste0(rds_path, "seurat_GeneActivity.RDS"))
+saveRDS(seurat, paste0(rds_path, "seurat_GeneActivity.RDS"), compress = FALSE)
