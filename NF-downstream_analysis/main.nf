@@ -73,9 +73,9 @@ workflow NFCORE_DOWNSTREAM {
         .set {ch_cellranger} // ch_cellranger: [cellranger_output]
     
     // run rna integration on individual stages
-    INTEGRATE_SPLIT_PROCESS( ch_atac , ch_rna, ch_cellranger )
+    //INTEGRATE_SPLIT_PROCESS( ch_atac , ch_rna, ch_cellranger )
 
-    INTEGRATE_SPLIT_PROCESS.out.signac_integrated.view()
+    //INTEGRATE_SPLIT_PROCESS.out.signac_integrated.view()
 }
 
 /*
