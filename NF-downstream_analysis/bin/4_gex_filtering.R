@@ -69,7 +69,7 @@ opt = getopt(spec)
 
 seurat <- readRDS(paste0(data_path, "rds_files/seurat_GeneActivity.RDS"))
 print(seurat)
-DefaultAssay(seurat) <- 'RNA'
+DefaultAssay(seurat) <- 'peaks'
 
 # read in fragment files
 paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
@@ -85,6 +85,8 @@ for (i in seq_along(frags)) {
   frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
 }
 Fragments(seurat) <- frags # assign updated list back to the object
+
+DefaultAssay(seurat) <- 'RNA'
 
 print("data read in")
 
