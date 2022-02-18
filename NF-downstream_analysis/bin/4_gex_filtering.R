@@ -69,22 +69,22 @@ opt = getopt(spec)
 
 seurat <- readRDS(paste0(data_path, "rds_files/seurat_GeneActivity.RDS"))
 print(seurat)
-DefaultAssay(seurat) <- 'peaks'
 
-# read in fragment files
-paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
-input <- data.frame(sample = sub('.*/', '', paths), 
-                    matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
-                    metadata_path = paste0(paths, "/outs/singlecell.csv"),
-                    fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
-new.paths <- as.list(input$fragments_path)
-frags <- Fragments(seurat)  # get list of fragment objects
-Fragments(seurat) <- NULL  # remove fragment information from assay
+# read in fragment files - atm dont need this
+# DefaultAssay(seurat) <- 'peaks'
+# paths <- list.dirs(paste0(data_path, "cellranger_atac_output/"), recursive = FALSE, full.names = TRUE)
+# input <- data.frame(sample = sub('.*/', '', paths), 
+#                     matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
+#                     metadata_path = paste0(paths, "/outs/singlecell.csv"),
+#                     fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+# new.paths <- as.list(input$fragments_path)
+# frags <- Fragments(seurat)  # get list of fragment objects
+# Fragments(seurat) <- NULL  # remove fragment information from assay
 
-for (i in seq_along(frags)) {
-  frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
-}
-Fragments(seurat) <- frags # assign updated list back to the object
+# for (i in seq_along(frags)) {
+#   frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
+# }
+# Fragments(seurat) <- frags # assign updated list back to the object
 
 DefaultAssay(seurat) <- 'RNA'
 
