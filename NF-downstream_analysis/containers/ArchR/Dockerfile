@@ -5,5 +5,5 @@ LABEL authors="eva.hamrud@crick.ac.uk" \
 
 # Install ArchR
 RUN   R -e "devtools::install_github("GreenleafLab/ArchR", ref="master", repos = BiocManager::repositories())"
-# Install GenomicFeatures - required for annotations
+# Install GenomicFeatures - required for annotation
 RUN   R -e "BiocManager::install("GenomicFeatures")"
