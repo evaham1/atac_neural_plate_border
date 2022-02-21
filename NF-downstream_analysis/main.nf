@@ -66,15 +66,15 @@ workflow NFCORE_DOWNSTREAM {
     ARCHR_PROCESSING ( ch_metadata )
     
     // SIGNAC: run preprocessing, filtering and predicted gex
-    PROCESSING ( ch_metadata )
+    // PROCESSING ( ch_metadata )
 
-    // strip metadata from outputs
-    PROCESSING.out.signac_predicted_gex
-        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-        .set {ch_atac} // ch_atac: seurat_GeneActivity.RDS
-    METADATA.out
-        .map{it[1]}
-        .set {ch_cellranger} // ch_cellranger: [cellranger_output]
+    // // strip metadata from outputs
+    // PROCESSING.out.signac_predicted_gex
+    //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+    //     .set {ch_atac} // ch_atac: seurat_GeneActivity.RDS
+    // METADATA.out
+    //     .map{it[1]}
+    //     .set {ch_cellranger} // ch_cellranger: [cellranger_output]
     
     // SIGNAC: run rna integration on individual stages
     //INTEGRATE_SPLIT_PROCESS( ch_atac , ch_rna, ch_cellranger )
