@@ -36,6 +36,7 @@ nextflow.enable.dsl = 2
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PROCESSING } from "$baseDir/subworkflows/local/processing"
 include { INTEGRATE_SPLIT_PROCESS } from "$baseDir/subworkflows/local/integrate_split_process"
+include { ARCHR_PROCESSING } from "$baseDir/subworkflows/local/archr_processing"
 //include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
 
 // set channel to reference gtf
@@ -60,8 +61,11 @@ workflow NFCORE_DOWNSTREAM {
         .combine(ch_gtf)
         .map{[it[0], it[1] + it[2]]}
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
+
+    // ARCHR: run preprocessing
+    ARCHR_PROCESSING ( ch_metadata )
     
-    // run preprocessing, filtering and predicted gex
+    // SIGNAC: run preprocessing, filtering and predicted gex
     PROCESSING ( ch_metadata )
 
     // strip metadata from outputs
@@ -72,7 +76,7 @@ workflow NFCORE_DOWNSTREAM {
         .map{it[1]}
         .set {ch_cellranger} // ch_cellranger: [cellranger_output]
     
-    // run rna integration on individual stages
+    // SIGNAC: run rna integration on individual stages
     //INTEGRATE_SPLIT_PROCESS( ch_atac , ch_rna, ch_cellranger )
 
     //INTEGRATE_SPLIT_PROCESS.out.signac_integrated.view()
