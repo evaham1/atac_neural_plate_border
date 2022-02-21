@@ -16,7 +16,7 @@ jobs:
       matrix:
         tag: ["base"]
         docker-file: ["Dockerfile"]
-        module-name: ["schelper", "ArchR"]
+        module-name: ["schelper", "archr"]
 
     steps:
       -
