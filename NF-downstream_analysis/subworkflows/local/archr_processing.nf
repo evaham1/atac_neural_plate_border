@@ -3,7 +3,7 @@ nextflow.enable.dsl = 2
 
 include {R as ARCHR_PREPROCESSING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1_preprocessing_ArchR.R", checkIfExists: true) )
 
-workflow PROCESSING {
+workflow ARCHR_PROCESSING {
     take:
     input
 

@@ -51,7 +51,7 @@ opt = getopt(spec)
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/cellranger_atac_output/"
-    ref_path = "./input/"
+    ref_path = "./input/galgal/"
     ncores = opt$cores
     
     # Multi-core when running from command line
@@ -70,20 +70,62 @@ opt = getopt(spec)
 
 ############################## Read in data and set up ArchR object #######################################
 
+###   Make gene annotation
 # make TxDb file from gtf
 # https://seandavi.github.io/ITR/transcriptdb.html
-#gtf <- rtracklayer::import(paste0(ref_path, "genes.gtf.gz"))
 txdb <- makeTxDbFromGFF(paste0(ref_path, "genes.gtf.gz"))
 print("txdb made")
 genes(txdb)
-
 # download OrgDb for chick from Bioconductor (how do I know this is right?)
 if (!requireNamespace("org.Gg.eg.db", quietly = TRUE)){
   BiocManager::install("org.Gg.eg.db")
 }
 library(org.Gg.eg.db)
+# combine TxDB and OrgDB to make gene annotation
+geneAnnotation <- createGeneAnnotation(TxDb = txdb, OrgDb = org.Gg.eg.db)
+print("gene annotation:")
+geneAnnotation
 
-# combine TxDB and OrgDB to make annotation
-print("done")
+###   Make genome annotation
 
 
+print("genome annotation:")
+genomeAnnotation
+
+###   Read in fragment files to create Arrow files
+# Make dataframe with stage and replicate info extracted from path
+paths <- list.dirs(data_path, recursive = FALSE, full.names = TRUE)
+input <- data.frame(sample = sub('.*/', '', paths), 
+                   matrix_path = paste0(paths, "/outs/filtered_peak_bc_matrix.h5"),
+                   metadata_path = paste0(paths, "/outs/singlecell.csv"),
+                   fragments_path = paste0(paths, "/outs/fragments.tsv.gz"))
+fragments_list <- input$fragments_path
+names(fragments_list) <- input$sample
+print("path df made")
+
+# create arrow files
+ArrowFiles <- createArrowFiles(
+  inputFiles = fragments_list,
+  sampleNames = names(fragments_list),
+  geneAnnotation = geneAnnotation,
+  genomeAnnotation = genomeAnnotation,
+  filterTSS = 2, #Dont set this too high because you can always increase later
+  filterFrags = 500, 
+  addTileMat = TRUE,
+  addGeneScoreMat = TRUE
+)
+print("Arrow files:")
+ArrowFiles
+
+
+# create ArchR Project
+ArchR <- ArchRProject(
+  ArrowFiles = ArrowFiles, 
+  outputDirectory = "ArchR",
+  copyArrows = TRUE #This is recommened so that if you modify the Arrow files you have an original copy for later usage.
+)
+print("ArchR Project:")
+ArchR
+
+# save ArchR project
+saveArchRProject(ArchRProj = ArchR, outputDirectory = "Save-ArchR", load = FALSE)

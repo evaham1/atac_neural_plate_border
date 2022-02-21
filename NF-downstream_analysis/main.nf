@@ -39,10 +39,10 @@ include { INTEGRATE_SPLIT_PROCESS } from "$baseDir/subworkflows/local/integrate_
 include { ARCHR_PROCESSING } from "$baseDir/subworkflows/local/archr_processing"
 //include {R as INTEGRATE_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_integrate_rna.R", checkIfExists: true) )
 
-// set channel to reference gtf
+// set channel to reference folder containing fasta and gtf
 Channel
-    .value(params.gtf)
-    .set{ch_gtf}
+    .value(params.reference)
+    .set{ch_reference}
 
 // set channel to rna RDS object
 Channel
@@ -58,8 +58,9 @@ workflow NFCORE_DOWNSTREAM {
 
     // add gtf to cellranger output so can add annotations
     METADATA.out // METADATA.out: [[meta], [cellranger_output]]
-        .combine(ch_gtf)
+        .combine(ch_reference)
         .map{[it[0], it[1] + it[2]]}
+        .view()
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
 
     // ARCHR: run preprocessing
