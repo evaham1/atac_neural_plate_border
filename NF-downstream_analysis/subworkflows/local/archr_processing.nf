@@ -10,8 +10,17 @@ workflow ARCHR_PROCESSING {
     input
 
     main:
-    EDIT_GTF ( input )
-    ARCHR_PREPROCESSING( EDIT_GTF.out )
+    input // [[meta], [cellranger_output, galgal_reference]]
+        .set {ch_input}
+
+    EDIT_GTF ( input ) //edits the gtf file to add 'chr' to chromosome names
+
+    EDIT_GTF.out 
+        .combine(ch_input) //[[meta], temp.gtf, [meta], cellranger_output, galgal_reference]]
+        .map{[it[0], it[[1]] + it[3]]} //[[meta], [temp.gtf, cellranger_output, galgal_reference]]
+        .set {ch_input_modified} // ch_metadata: [[meta], [cellranger_output, gtf]]
+
+    ARCHR_PREPROCESSING( ch_input_modified )
     ARCHR_FILTERING( ARCHR_PREPROCESSING.out )
 
     //emit:

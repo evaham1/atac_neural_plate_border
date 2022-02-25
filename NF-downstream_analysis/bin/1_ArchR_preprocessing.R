@@ -114,7 +114,7 @@ ArrowFiles <- createArrowFiles(
   genomeAnnotation = genomeAnnotation,
   addTileMat = TRUE,
   addGeneScoreMat = TRUE,
-  logFile = createLogFile(paste0(plot_path, "createArrows"))
+  logFile = paste0(plot_path, "createArrows")
 )
 print("Arrow files:")
 ArrowFiles
