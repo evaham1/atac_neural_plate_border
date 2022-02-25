@@ -5,8 +5,6 @@ print("1_preprocessing_ArchR")
 
 ############################## Load libraries #######################################
 library(getopt)
-library(Signac)
-library(Seurat)
 library(future)
 library(tidyverse)
 library(grid)
@@ -17,12 +15,9 @@ library(ggplot2)
 library(dplyr)
 library(rtracklayer)
 library(GenomicRanges)
-
-#devtools::install_github("GreenleafLab/ArchR", ref="master", repos = BiocManager::repositories())
+library(GenomicFeatures)
+library(parallel)
 library(ArchR)
-ArchR::installExtraPackages()
-
-#BiocManager::install("GenomicFeatures")
 library(GenomicFeatures)
 
 ############################## Set up script options #######################################
@@ -40,9 +35,9 @@ opt = getopt(spec)
     setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    plot_path = "../output/NF-downstream_analysis/1_preprocessing_ArchR/plots/"
-    rds_path = "../output/NF-downstream_analysis/1_preprocessing_ArchR/rds_files/"
-    data_path = "../output/NF-luslab_sc_multiomic/full/cellranger_atac_output/"
+    plot_path = "../output/NF-downstream_analysis/1_ArchR_preprocessing/plots/"
+    rds_path = "../output/NF-downstream_analysis/1_ArchR_preprocessing/rds_files/"
+    data_path = "../output/NF-luslab_sc_multiomic/test/cellranger_atac_output/"
     ref_path = "../output/NF-luslab_sc_multiomic/reference/"
     
   } else if (opt$runtype == "nextflow"){
@@ -51,7 +46,7 @@ opt = getopt(spec)
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/cellranger_atac_output/"
-    ref_path = "./input/galgal/"
+    ref_path = "./input/"
     ncores = opt$cores
     
     # Multi-core when running from command line
@@ -68,12 +63,14 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-############################## Read in data and set up ArchR object #######################################
+############################## Set up Annotation files - will need to revisit #######################################
 
 ###   Make gene annotation
 # make TxDb file from gtf
 # https://seandavi.github.io/ITR/transcriptdb.html
-txdb <- makeTxDbFromGFF(paste0(ref_path, "genes.gtf.gz"))
+
+# changed gtf to include 'chr' in each chromosome name
+txdb <- makeTxDbFromGFF(paste0(ref_path, "temp.gtf"))
 print("txdb made")
 genes(txdb)
 # download OrgDb for chick from Bioconductor (how do I know this is right?)
@@ -86,13 +83,18 @@ geneAnnotation <- createGeneAnnotation(TxDb = txdb, OrgDb = org.Gg.eg.db)
 print("gene annotation:")
 geneAnnotation
 
-###   Make genome annotation
-
+###   Make genome annotation - THIS IS USING UCSC GENOME WILL NEED TO CHANGE
+if (!requireNamespace("BSgenome.Ggallus.UCSC.galGal6", quietly = TRUE)){
+  BiocManager::install("BSgenome.Ggallus.UCSC.galGal6")
+}
+library(BSgenome.Ggallus.UCSC.galGal6)
+genomeAnnotation <- createGenomeAnnotation(genome = BSgenome.Ggallus.UCSC.galGal6)
 
 print("genome annotation:")
 genomeAnnotation
 
-###   Read in fragment files to create Arrow files
+############################## Fragment files -> Arrow Files #######################################
+
 # Make dataframe with stage and replicate info extracted from path
 paths <- list.dirs(data_path, recursive = FALSE, full.names = TRUE)
 input <- data.frame(sample = sub('.*/', '', paths), 
@@ -104,28 +106,34 @@ names(fragments_list) <- input$sample
 print("path df made")
 
 # create arrow files
+addArchRThreads(threads = 1) 
 ArrowFiles <- createArrowFiles(
   inputFiles = fragments_list,
   sampleNames = names(fragments_list),
   geneAnnotation = geneAnnotation,
   genomeAnnotation = genomeAnnotation,
-  filterTSS = 2, #Dont set this too high because you can always increase later
-  filterFrags = 500, 
   addTileMat = TRUE,
-  addGeneScoreMat = TRUE
+  addGeneScoreMat = TRUE,
+  logFile = createLogFile(paste0(plot_path, "createArrows"))
 )
 print("Arrow files:")
 ArrowFiles
 
+############################## Create ArchR Project #######################################
 
-# create ArchR Project
 ArchR <- ArchRProject(
-  ArrowFiles = ArrowFiles, 
-  outputDirectory = "ArchR",
-  copyArrows = TRUE #This is recommened so that if you modify the Arrow files you have an original copy for later usage.
+  ArrowFiles = ArrowFiles,
+  geneAnnotation = geneAnnotation,
+  genomeAnnotation = genomeAnnotation,
+  outputDirectory = paste0(plot_path, "ArchR"),
+  copyArrows = FALSE #This is recommened so that if you modify the Arrow files you have an original copy for later usage.
 )
 print("ArchR Project:")
 ArchR
+getAvailableMatrices(ArchR)
+
+# check how much memory
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 # save ArchR project
-saveArchRProject(ArchRProj = ArchR, outputDirectory = "Save-ArchR", load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
