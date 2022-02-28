@@ -9,3 +9,7 @@ RUN   R -e "devtools::install_github('GreenleafLab/ArchR', ref='master', repos =
 RUN   R -e "BiocManager::install('GenomicFeatures')"
 # Install ArchR dependencies
 RUN   R -e "ArchR::installExtraPackages()"
+# Install OrgDb
+RUN   R -e "if (!requireNamespace('org.Gg.eg.db', quietly = TRUE)){BiocManager::install('org.Gg.eg.db')}"
+# Install UCSC genome (will have to change to ENSEMBL later)
+RUN   R -e "if (!requireNamespace('BSgenome.Ggallus.UCSC.galGal6', quietly = TRUE)){BiocManager::install('BSgenome.Ggallus.UCSC.galGal6')}"

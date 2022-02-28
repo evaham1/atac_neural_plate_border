@@ -74,9 +74,9 @@ txdb <- makeTxDbFromGFF(paste0(ref_path, "temp.gtf"))
 print("txdb made")
 genes(txdb)
 # download OrgDb for chick from Bioconductor (how do I know this is right?)
-if (!requireNamespace("org.Gg.eg.db", quietly = TRUE)){
-  BiocManager::install("org.Gg.eg.db")
-}
+# if (!requireNamespace("org.Gg.eg.db", quietly = TRUE)){
+#   BiocManager::install("org.Gg.eg.db")
+# }
 library(org.Gg.eg.db)
 # combine TxDB and OrgDB to make gene annotation
 geneAnnotation <- createGeneAnnotation(TxDb = txdb, OrgDb = org.Gg.eg.db)
@@ -84,9 +84,9 @@ print("gene annotation:")
 geneAnnotation
 
 ###   Make genome annotation - THIS IS USING UCSC GENOME WILL NEED TO CHANGE
-if (!requireNamespace("BSgenome.Ggallus.UCSC.galGal6", quietly = TRUE)){
-  BiocManager::install("BSgenome.Ggallus.UCSC.galGal6")
-}
+# if (!requireNamespace("BSgenome.Ggallus.UCSC.galGal6", quietly = TRUE)){
+#   BiocManager::install("BSgenome.Ggallus.UCSC.galGal6")
+# }
 library(BSgenome.Ggallus.UCSC.galGal6)
 genomeAnnotation <- createGenomeAnnotation(genome = BSgenome.Ggallus.UCSC.galGal6)
 
