@@ -155,7 +155,7 @@ ggAlignPlots(p1, p2, type = "h")
 graphics.off()
 
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = full_data, outputDirectory = paste0(rds_path, "full_data"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "full_data"), load = FALSE)
 
 ############################## Run on separate stages and save RDS files #################################
 stage_ArchR <- split_ArchR_by_stage(ArchR)
