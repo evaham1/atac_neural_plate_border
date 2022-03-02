@@ -278,7 +278,7 @@ for (i in 1:length(markerList)){
   table <- table %>% top_n(5, Log2FC) %>% mutate(cluster = i)
   top_markers <- rbind(top_markers, table)
 }
-png(paste0(plot_path, 'top_genes.png'), height = 40, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path, 'top_genes.png'), height = 100, width = 30, units = 'cm', res = 400)
 grid.arrange(tableGrob(top_markers))
 dev.off()
 
@@ -286,8 +286,7 @@ markerGenes <- top_markers$name
 heatmap <- markerHeatmap(
   seMarker = markers, 
   cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
-  transpose = TRUE,
-  labelMarkers = markerGenes
+  transpose = TRUE
 )
 png(paste0(plot_path, 'heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
 ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
@@ -316,8 +315,7 @@ markerGenes <- top_markers$name
 heatmap <- markerHeatmap(
   seMarker = markers, 
   cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
-  transpose = TRUE,
-  labelMarkers = markerGenes
+  transpose = TRUE
 )
 png(paste0(plot_path, 'ss8_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
 ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
@@ -346,8 +344,7 @@ markerGenes <- top_markers$name
 heatmap <- markerHeatmap(
   seMarker = markers, 
   cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
-  transpose = TRUE,
-  labelMarkers = markerGenes
+  transpose = TRUE
 )
 png(paste0(plot_path, 'ss4_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
 ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
@@ -376,8 +373,7 @@ markerGenes <- top_markers$name
 heatmap <- markerHeatmap(
   seMarker = markers, 
   cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
-  transpose = TRUE,
-  labelMarkers = markerGenes
+  transpose = TRUE
 )
 png(paste0(plot_path, 'HH7_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
 ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
@@ -406,8 +402,7 @@ markerGenes <- top_markers$name
 heatmap <- markerHeatmap(
   seMarker = markers, 
   cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
-  transpose = TRUE,
-  labelMarkers = markerGenes
+  transpose = TRUE
 )
 png(paste0(plot_path, 'HH6_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
 ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
@@ -436,8 +431,7 @@ markerGenes <- top_markers$name
 heatmap <- markerHeatmap(
   seMarker = markers, 
   cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
-  transpose = TRUE,
-  labelMarkers = markerGenes
+  transpose = TRUE
 )
 png(paste0(plot_path, 'HH5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
 ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
