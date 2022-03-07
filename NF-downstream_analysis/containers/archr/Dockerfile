@@ -13,3 +13,5 @@ RUN   R -e "ArchR::installExtraPackages()"
 RUN   R -e "if (!requireNamespace('org.Gg.eg.db', quietly = TRUE)){BiocManager::install('org.Gg.eg.db')}"
 # Install UCSC genome (will have to change to ENSEMBL later)
 RUN   R -e "if (!requireNamespace('BSgenome.Ggallus.UCSC.galGal6', quietly = TRUE)){BiocManager::install('BSgenome.Ggallus.UCSC.galGal6')}"
+# ArchR bug means need to install hexbin to make feature plots
+RUN   R -e "install.packages('hexbin')"
