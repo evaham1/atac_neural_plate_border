@@ -105,7 +105,7 @@ fragments_list <- input$fragments_path
 names(fragments_list) <- input$sample
 print("path df made")
 
-# create arrow files
+# create arrow files - keep thresholds as unrestrictive as possible at this point
 addArchRThreads(threads = 1) 
 ArrowFiles <- createArrowFiles(
   inputFiles = fragments_list,
@@ -114,19 +114,22 @@ ArrowFiles <- createArrowFiles(
   genomeAnnotation = genomeAnnotation,
   addTileMat = TRUE,
   addGeneScoreMat = TRUE,
-  logFile = paste0(plot_path, "createArrows")
+  logFile = paste0(plot_path, "createArrows",
+  minTSS = 4,
+  minFrags = 1000,
+  maxFrags = 2e+05)
 )
 print("Arrow files:")
 ArrowFiles
 
-############################## Create ArchR Project #######################################
+############################## Create ArchR Project and save #######################################
 
 ArchR <- ArchRProject(
   ArrowFiles = ArrowFiles,
   geneAnnotation = geneAnnotation,
   genomeAnnotation = genomeAnnotation,
   outputDirectory = paste0(plot_path, "ArchR"),
-  copyArrows = FALSE #This is recommened so that if you modify the Arrow files you have an original copy for later usage.
+  copyArrows = FALSE
 )
 print("ArchR Project:")
 ArchR
@@ -134,6 +137,10 @@ getAvailableMatrices(ArchR)
 
 # check how much memory
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+
+# add stage to metadata
+stage <- substr(ArchR$Sample, 1, 3)
+ArchR$stage <- stage
 
 # save ArchR project
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
