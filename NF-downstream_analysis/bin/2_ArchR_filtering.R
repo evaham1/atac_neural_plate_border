@@ -62,11 +62,12 @@ opt = getopt(spec)
 }
 
 
-############################## Read in ArchR project and update output dir #######################################
+############################## Read in ArchR project #######################################
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 
+
 ############################## Add doublet scores #######################################
-ArchR_doubScores <- addDoubletScores(
+ArchR <- addDoubletScores(
   input = ArchR,
   k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
   knnMethod = "UMAP", #Refers to the embedding to use for nearest neighbor search with doublet projection.
@@ -75,24 +76,17 @@ ArchR_doubScores <- addDoubletScores(
   logFile = paste0(plot_path, "addDoubletScores"),
   force = TRUE
 )
+print("added doublet scores")
 
-paste0("Memory Size = ", round(object.size(ArchR_doubScores) / 10^6, 3), " MB")
+# check how much memory
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
-##########    Look at the ArchR project   ##############
-colnames(getCellColData(ArchR))
-colnames(getCellColData(ArchR_doubScores))
-
-head(ArchR_doubScores$cellNames)
-head(ArchR_doubScores$Sample)
-
-# add stage to metadata
-stage <- substr(ArchR_doubScores$Sample, 1, 3)
-ArchR_doubScores$stage <- stage
-colnames(getCellColData(ArchR_doubScores))
+############################## QC plots across samples #######################################
+##############################################################################################
 
 ############################## Plot TSS Enrichment #######################################
 p1 <- plotGroups(
-  ArchRProj = ArchR_doubScores, 
+  ArchRProj = ArchR, 
   groupBy = "stage", 
   colorBy = "cellColData", 
   name = "TSSEnrichment",
@@ -103,7 +97,7 @@ print(p1)
 graphics.off()
 
 p2 <- plotGroups(
-  ArchRProj = ArchR_doubScores, 
+  ArchRProj = ArchR, 
   groupBy = "stage", 
   colorBy = "cellColData", 
   name = "TSSEnrichment",
@@ -115,14 +109,14 @@ png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units 
 print(p2)
 graphics.off()
 
-p2 <- plotTSSEnrichment(ArchRProj = ArchR_doubScores)
+p2 <- plotTSSEnrichment(ArchRProj = ArchR)
 png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
 graphics.off()
 
 ############################## Plot log10(Unique Fragments) #######################################
 p3 <- plotGroups(
-  ArchRProj = ArchR_doubScores, 
+  ArchRProj = ArchR, 
   groupBy = "stage", 
   colorBy = "cellColData", 
   name = "log10(nFrags)",
@@ -133,7 +127,7 @@ print(p3)
 graphics.off()
 
 p4 <- plotGroups(
-  ArchRProj = ArchR_doubScores, 
+  ArchRProj = ArchR, 
   groupBy = "stage", 
   colorBy = "cellColData", 
   name = "log10(nFrags)",
@@ -147,14 +141,13 @@ graphics.off()
 
 ############################## Plot nucleosome banding #######################################
 
-p1 <- plotFragmentSizes(ArchRProj = ArchR_doubScores)
+p1 <- plotFragmentSizes(ArchRProj = ArchR)
 png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p1)
 graphics.off()
 
-
 ############# Plot log10(Unique Fragments) vs TSS enrichment score #######################
-df <- getCellColData(ArchR_doubScores, select = c("log10(nFrags)", "TSSEnrichment"))
+df <- getCellColData(ArchR, select = c("log10(nFrags)", "TSSEnrichment"))
 p <- ggPoint(
   x = df[,1], 
   y = df[,2], 
@@ -170,39 +163,21 @@ png(paste0(plot_path, 'fragments_vs_TSS.png'), height = 25, width = 25, units = 
 print(p)
 graphics.off()
 
-############# Plot log10(Unique Fragments) vs Nucleosome Ratio #######################
-df <- getCellColData(ArchR_doubScores, select = c("log10(nFrags)", "NucleosomeRatio"))
-p <- ggPoint(
-  x = df[,1], 
-  y = df[,2], 
-  colorDensity = TRUE,
-  continuousSet = "sambaNight",
-  xlabel = "Log10 Unique Fragments",
-  ylabel = "Nucleosome Ratio",
-  xlim = c(log10(500), quantile(df[,1], probs = 0.99)),
-  ylim = c(0, quantile(df[,2], probs = 0.99))
-) + geom_hline(yintercept = 4, lty = "dashed") + geom_vline(xintercept = 3, lty = "dashed")
 
-png(paste0(plot_path, 'fragments_vs_nucleosome.png'), height = 25, width = 25, units = 'cm', res = 400)
-print(p)
-graphics.off()
+############################## FILTERING #######################################
+################################################################################
 
-############# Plot TSS enrichment vs Nucleosome Ratio #######################
-df <- getCellColData(ArchR_doubScores, select = c("TSSEnrichment", "NucleosomeRatio"))
-p <- ggPoint(
-  x = df[,1], 
-  y = df[,2], 
-  colorDensity = TRUE,
-  continuousSet = "sambaNight",
-  xlabel = "TSS Enrichment",
-  ylabel = "Nucleosome Ratio",
-  xlim = c(log10(500), quantile(df[,1], probs = 0.99)),
-  ylim = c(0, quantile(df[,2], probs = 0.99))
-) + geom_hline(yintercept = 4, lty = "dashed") + geom_vline(xintercept = 3, lty = "dashed")
+test <- filterDoublets(ArchR, filterRatio = 1)
+print("filter ratio = 1")
+test
+test <- filterDoublets(ArchR, filterRatio = 2)
+print("filter ratio = 2")
+test
+test <- filterDoublets(ArchR, filterRatio = 0.5)
+print("filter ratio = 0.5")
+test
 
-png(paste0(plot_path, 'TSS_vs_nucleosome.png'), height = 25, width = 25, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# add something here to filter different samples to different thresholds?
 
 # save ArchR project
-saveArchRProject(ArchRProj = ArchR_doubScores, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
