@@ -18,6 +18,7 @@ library(GenomicFeatures)
 library(parallel)
 library(ArchR)
 library(GenomicFeatures)
+library(hexbin)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -144,12 +145,14 @@ graphics.off()
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
 
 # highlight outlier clusters on UMAP
-idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-cellsSample <- ArchR$cellNames[idxSample]
-p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
-png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
+if (is.null(outliers) == FALSE){
+  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+  cellsSample <- ArchR$cellNames[idxSample]
+  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
+  png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+  print(p)
+  graphics.off()
+}
 
 ############################## Nucleosome signal #######################################
 p <- plotGroups(
@@ -181,13 +184,14 @@ graphics.off()
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
 
 # highlight outlier clusters on UMAP
-idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-cellsSample <- ArchR$cellNames[idxSample]
-p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
-png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
-
+if (is.null(outliers) == FALSE){
+  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+  cellsSample <- ArchR$cellNames[idxSample]
+  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
+  png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+  print(p)
+  graphics.off()
+}
 
 ##########################################################################################################################
 ############################## Filter on TSSEnrichment + NucleosomeRatio intersect #######################################
