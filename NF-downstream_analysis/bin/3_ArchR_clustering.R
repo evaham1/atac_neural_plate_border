@@ -18,6 +18,7 @@ library(GenomicFeatures)
 library(parallel)
 library(ArchR)
 library(GenomicFeatures)
+library(hexbin)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -121,7 +122,7 @@ ArchR <- addUMAP(
 print("UMAP added")
 
 p1 <- plotEmbedding(ArchRProj = ArchR, colorBy = "cellColData", name = "stage", embedding = "UMAP")
-p2 <- plotEmbedding(ArchRProj = ArchR, colorBy = "cellColData", name = "Clusters", embedding = "UMAP")
+p2 <- plotEmbedding(ArchRProj = ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP")
 
 png(paste0(plot_path, "UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
