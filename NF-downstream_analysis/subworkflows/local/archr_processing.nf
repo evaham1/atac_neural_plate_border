@@ -4,7 +4,8 @@ nextflow.enable.dsl = 2
 include {EDIT_GTF} from "$baseDir/modules/local/edit_gtf/main"
 include {R as ARCHR_PREPROCESSING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1_ArchR_preprocessing.R", checkIfExists: true) )
 include {R as ARCHR_FILTERING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/2_ArchR_filtering.R", checkIfExists: true) )
-include {R as ARCHR_CLUSTERING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_ArchR_clustering.R", checkIfExists: true) )
+include {R as ARCHR_CLUSTERING_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_ArchR_clustering.R", checkIfExists: true) )
+include {R as ARCHR_CLUSTERING_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_ArchR_clustering.R", checkIfExists: true) )
 include {R as ARCHR_FILTER_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_ArchR_filter_clusters.R", checkIfExists: true) )
 
 workflow ARCHR_PROCESSING {
@@ -24,9 +25,9 @@ workflow ARCHR_PROCESSING {
 
     ARCHR_PREPROCESSING( ch_input_modified )
     ARCHR_FILTERING( ARCHR_PREPROCESSING.out )
-    ARCHR_CLUSTERING( ARCHR_FILTERING.out )
-    ARCHR_FILTER_CLUSTERS( ARCHR_CLUSTERING.out )
-    ARCHR_CLUSTERING( ARCHR_FILTER_CLUSTERS.out )
+    ARCHR_CLUSTERING_PREFILTER( ARCHR_FILTERING.out )
+    ARCHR_FILTER_CLUSTERS( ARCHR_CLUSTERING_PREFILTER.out )
+    ARCHR_CLUSTERING_POSTFILTER( ARCHR_FILTER_CLUSTERS.out )
 
     //emit:
     //signac_predicted_gex = GEX_FILTERING.out
