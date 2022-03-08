@@ -62,7 +62,7 @@ opt = getopt(spec)
 
 addArchRThreads(threads = 16) 
 
-############################## Function to split samples #################################
+############################## Function to split samples ################################
 
 ## need to make this generic (not just split by stage) need to overcome passing variable to $ issue
 split_ArchR_by_stage <- function(ArchR_project){
@@ -76,7 +76,7 @@ split_ArchR_by_stage <- function(ArchR_project){
   return(split_ArchR)
 }
 
-############################## Read in ArchR project #######################################
+############################## Read in ArchR project #####################################
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
