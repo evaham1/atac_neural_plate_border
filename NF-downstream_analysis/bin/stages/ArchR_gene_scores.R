@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("5_ArchR_gene_scores")
+print("ArchR_gene_scores")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -36,8 +36,8 @@ opt = getopt(spec)
     ncores = 8
     
     #plot_path = "../output/NF-downstream_analysis/ArchR_gene_scores/plots/"
-    #rds_path = "../output/NF-downstream_analysis/ArchR_gene_scores/rds_files/"
     #data_path = "../output/NF-downstream_analysis/3_ArchR_clustering/"
+    #rds_path = "../output/NF-downstream_analysis/ArchR_gene_scores/rds_files/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -77,7 +77,7 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 markers <- getMarkerFeatures(
   ArchRProj = ArchR, 
   useMatrix = "GeneScoreMatrix", 
-  groupBy = "clusters",
+  groupBy = "Clusters",
   bias = c("TSSEnrichment", "log10(nFrags)"),
   testMethod = "wilcoxon"
 )
