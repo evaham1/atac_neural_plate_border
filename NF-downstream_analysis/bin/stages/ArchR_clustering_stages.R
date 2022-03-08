@@ -61,7 +61,7 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-addArchRThreads(threads = 16) 
+addArchRThreads(threads = 8) 
 
 ############################## Read in ArchR project #######################################
 # Retrieve object label

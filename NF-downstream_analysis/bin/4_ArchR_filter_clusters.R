@@ -61,7 +61,7 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-addArchRThreads(threads = 16) 
+addArchRThreads(threads = 8) 
 
 ############################### FUNCTIONS #################################################
 ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, intersect_metrics = TRUE, quantiles){
