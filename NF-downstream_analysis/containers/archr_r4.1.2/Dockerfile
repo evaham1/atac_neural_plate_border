@@ -11,7 +11,7 @@ RUN   R -e "ArchR::installExtraPackages()"
 # ArchR bug means need to install hexbin to make feature plots
 RUN   R -e "install.packages('hexbin')"
 
-## For Annotation:
+## For Annotation: 
 # Install GenomicFeatures
 RUN   R -e "BiocManager::install('GenomicFeatures')"
 # Install OrgDb 
