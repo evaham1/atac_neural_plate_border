@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 
 include {R as ARCHR_SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/stages/ArchR_split_stages.R", checkIfExists: true) )
 include {R as ARCHR_CLUSTERING_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/stages/ArchR_clustering_stages.R", checkIfExists: true) )
-include {R as ARCHR_GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/stages/ArchR_gene_scores.R", checkIfExists: true) )
+include {R as ARCHR_GENE_SCORES_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/stages/ArchR_gene_scores_stages.R", checkIfExists: true) )
 
 
 workflow ARCHR_STAGE_PROCESSING {
@@ -28,7 +28,7 @@ workflow ARCHR_STAGE_PROCESSING {
     ARCHR_CLUSTERING_STAGES( ch_split_stage )
     // cluster individual stages
 
-    ARCHR_GENE_SCORES( ARCHR_CLUSTERING_STAGES.out )
+    ARCHR_GENE_SCORES_STAGES( ARCHR_CLUSTERING_STAGES.out )
     // gene score plots for individual stages
 
     //emit full filtered and clustered dataset:
