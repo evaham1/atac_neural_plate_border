@@ -37,5 +37,6 @@ workflow ARCHR_PROCESSING {
     // add a script here that makes some plots with gene scores for full dataset
 
     //emit full filtered and clustered dataset:
+    emit:
     archr_filtered_full = ARCHR_FILTER_CLUSTERS.out
 }
