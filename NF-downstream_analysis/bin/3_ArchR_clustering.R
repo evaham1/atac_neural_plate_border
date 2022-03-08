@@ -80,7 +80,9 @@ ArchR <- addIterativeLSI(
     n.start = 10
   ), 
   varFeatures = 25000, 
-  dimsToUse = 1:30
+  dimsToUse = 1:30,
+  seed = 1,
+  force = TRUE
 )
 print("iterative LSI ran")
 
@@ -90,7 +92,8 @@ ArchR <- addClusters(
   reducedDims = "IterativeLSI",
   method = "Seurat",
   name = "clusters",
-  resolution = 2
+  resolution = 2,
+  force = TRUE
 )
 print("clustering ran")
 print(table(ArchR$clusters))
@@ -117,7 +120,8 @@ ArchR <- addUMAP(
   name = "UMAP", 
   nNeighbors = 30, 
   minDist = 0.5, 
-  metric = "cosine"
+  metric = "cosine",
+  force = TRUE
 )
 print("UMAP added")
 

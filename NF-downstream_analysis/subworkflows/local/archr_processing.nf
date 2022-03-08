@@ -24,11 +24,18 @@ workflow ARCHR_PROCESSING {
         .set {ch_input_modified} // ch_metadata: [[meta], [cellranger_output, gtf]]
 
     ARCHR_PREPROCESSING( ch_input_modified )
+    // creates arrow files and ArchR project filtered with generous thresholds
     ARCHR_FILTERING( ARCHR_PREPROCESSING.out )
+    // filters whole data globally (+ on a per sample basis?)
     ARCHR_CLUSTERING_PREFILTER( ARCHR_FILTERING.out )
+    // iterative LSI, cluster - non deterministic!
     ARCHR_FILTER_CLUSTERS( ARCHR_CLUSTERING_PREFILTER.out )
+    // filters poor quality clusters from whole dataset
     ARCHR_CLUSTERING_POSTFILTER( ARCHR_FILTER_CLUSTERS.out )
+    // iterative LSI, cluster - non deterministic!
 
-    //emit:
-    //signac_predicted_gex = GEX_FILTERING.out
+    // add a script here that makes some plots with gene scores for full dataset
+
+    //emit full filtered and clustered dataset:
+    archr_filtered_full = ARCHR_FILTER_CLUSTERS.out
 }
