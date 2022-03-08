@@ -16,7 +16,7 @@ RUN   R -e "install.packages('hexbin')"
 ## For Annotation:
 # Install GenomicFeatures
 RUN   R -e "BiocManager::install('GenomicFeatures')"
-# Install OrgDb
+# Install OrgDb 
 RUN   R -e "if (!requireNamespace('org.Gg.eg.db', quietly = TRUE)){BiocManager::install('org.Gg.eg.db')}"
 # Install UCSC genome (will have to change to ENSEMBL later)
 RUN   R -e "if (!requireNamespace('BSgenome.Ggallus.UCSC.galGal6', quietly = TRUE)){BiocManager::install('BSgenome.Ggallus.UCSC.galGal6')}"
