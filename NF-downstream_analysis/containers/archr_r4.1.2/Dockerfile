@@ -6,8 +6,6 @@ LABEL authors="eva.hamrud@crick.ac.uk" \
 ## For ArchR:
 # Install ArchR
 RUN   R -e "devtools::install_github('GreenleafLab/ArchR', ref='master', repos = BiocManager::repositories())"
-# Load ArchR
-RUN   R -e "library(ArchR)"
 # Install ArchR dependencies
 RUN   R -e "ArchR::installExtraPackages()"
 # ArchR bug means need to install hexbin to make feature plots
