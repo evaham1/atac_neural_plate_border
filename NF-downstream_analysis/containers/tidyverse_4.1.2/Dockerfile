@@ -15,7 +15,8 @@ RUN apt-get update \
       libfontconfig1-dev \
       libfribidi-dev \
       libgsl0-dev \
-      libbz2-dev
+      libbz2-dev \
+      liblzma-dev
 
 # Add conda to $PATH
 ENV PATH /opt/conda/bin:$PATH
