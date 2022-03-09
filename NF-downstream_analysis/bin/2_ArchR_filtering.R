@@ -10,6 +10,7 @@ library(tidyverse)
 library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
+library(parallel)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
