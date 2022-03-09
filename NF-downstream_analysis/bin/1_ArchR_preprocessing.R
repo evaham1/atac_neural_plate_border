@@ -9,6 +9,7 @@ library(ArchR)
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
+library(GenomicFeatures)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
