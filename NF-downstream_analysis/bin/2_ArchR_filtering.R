@@ -38,6 +38,8 @@ opt = getopt(spec)
     plot_path = "../output/NF-downstream_analysis/2_ArchR_filtering/plots/"
     rds_path = "../output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
     data_path = "../output/NF-downstream_analysis/1_ArchR_preprocessing/"
+
+    addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')

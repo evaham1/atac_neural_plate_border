@@ -39,6 +39,8 @@ opt = getopt(spec)
     rds_path = "../output/NF-downstream_analysis/1_ArchR_preprocessing/rds_files/"
     data_path = "../output/NF-luslab_sc_multiomic/test/cellranger_atac_output/"
     ref_path = "../output/NF-luslab_sc_multiomic/reference/"
+
+    addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -62,6 +64,7 @@ opt = getopt(spec)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
+ 
 
 ############################## Set up Annotation files - will need to revisit #######################################
 
@@ -106,7 +109,6 @@ names(fragments_list) <- input$sample
 print("path df made")
 
 # create arrow files - keep thresholds as unrestrictive as possible at this point
-addArchRThreads(threads = 1) 
 ArrowFiles <- createArrowFiles(
   inputFiles = fragments_list,
   sampleNames = names(fragments_list),

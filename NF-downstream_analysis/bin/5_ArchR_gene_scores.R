@@ -38,6 +38,8 @@ opt = getopt(spec)
     #plot_path = "../output/NF-downstream_analysis/ArchR_gene_scores/plots/"
     #rds_path = "../output/NF-downstream_analysis/ArchR_gene_scores/rds_files/"
     #data_path = "../output/NF-downstream_analysis/3_ArchR_clustering/"
+
+    addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -60,8 +62,6 @@ opt = getopt(spec)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
-
-addArchRThreads(threads = 1) 
 
 ############################### FUNCTIONS ####################################
 # add a function here to extract top differentially expressed genes per cluster
