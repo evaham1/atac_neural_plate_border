@@ -11,6 +11,8 @@ library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
 library(parallel)
+library(gridExtra)
+library(grid)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -165,6 +167,7 @@ graphics.off()
 ############################## FILTERING #######################################
 ################################################################################
 
+## look at how filtering doublets might affect cell counts
 test <- filterDoublets(ArchR, filterRatio = 1)
 print("filter ratio = 1")
 test
@@ -175,7 +178,20 @@ test <- filterDoublets(ArchR, filterRatio = 0.5)
 print("filter ratio = 0.5")
 test
 
-# add something here to filter different samples to different thresholds?
+## add something here to filter different samples to different thresholds? or more stringent global thresholds?
+ArchR_filtered <- ArchR
 
 # save ArchR project
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+
+############################ POST-FILTERING ####################################
+################################################################################
+
+unfiltered <- table(ArchR$stage)
+filtered <- table(ArchR_fitered$stage)
+cell_counts <- rbind(unfiltered, filtered)
+
+png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
