@@ -5,19 +5,10 @@ print("2_filtering_ArchR")
 
 ############################## Load libraries #######################################
 library(getopt)
-library(future)
+library(ArchR)
 library(tidyverse)
-library(grid)
-library(gridExtra)
-library(clustree)
-library(GenomeInfoDb)
 library(ggplot2)
 library(dplyr)
-library(rtracklayer)
-library(GenomicRanges)
-library(GenomicFeatures)
-library(parallel)
-library(ArchR)
 library(GenomicFeatures)
 
 ############################## Set up script options #######################################
