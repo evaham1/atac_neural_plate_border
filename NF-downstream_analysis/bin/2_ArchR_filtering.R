@@ -44,8 +44,8 @@ opt = getopt(spec)
     ncores = opt$cores
     
     # Multi-core when running from command line
-    plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 55* 1024^3)
+    #plan("multicore", workers = ncores)
+    #options(future.globals.maxSize = 55* 1024^3)
     addArchRThreads(threads = ncores) 
     
   } else {
