@@ -57,7 +57,7 @@ opt = getopt(spec)
  # temporary measure as seems to fail when multithreaded
  addArchRThreads(threads = 1) 
  #
- 
+
 ############################## Read in ArchR project #######################################
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
@@ -97,9 +97,19 @@ ArchR <- addClusters(
 print("clustering ran")
 print(table(ArchR$clusters))
 
-#
-# add a barchart here of cell numbers in each cluster
-#
+# Plot number of cells in each cluster
+cluster_cell_counts <- as.data.frame(table(ArchR$clusters))
+colnames(cluster_cell_counts) <- c("Cluster ID", "Cell Count")
+
+png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+p<-ggplot(data=cluster_cell_counts, aes(x=`Cluster ID`, y=`Cell Count`)) +
+  geom_bar(stat="identity")
+png(paste0(plot_path, 'cell_counts_barchart.png'), height = 10, width = 10, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
 # Plot contribution of each stage to each cluster
 if (length(unique(ArchR$stage)) > 1){
