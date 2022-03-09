@@ -117,7 +117,7 @@ ArrowFiles <- createArrowFiles(
   logFile = paste0(plot_path, "createArrows",
   minTSS = 4,
   minFrags = 1000,
-  maxFrags = 2e+05)
+  maxFrags = 1e+06)
 )
 print("Arrow files:")
 ArrowFiles
