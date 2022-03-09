@@ -5,20 +5,10 @@ print("1_preprocessing_ArchR")
 
 ############################## Load libraries #######################################
 library(getopt)
-library(future)
+library(ArchR)
 library(tidyverse)
-library(grid)
-library(gridExtra)
-library(clustree)
-library(GenomeInfoDb)
 library(ggplot2)
 library(dplyr)
-library(rtracklayer)
-library(GenomicRanges)
-library(GenomicFeatures)
-library(parallel)
-library(ArchR)
-library(GenomicFeatures)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -121,6 +111,7 @@ ArrowFiles <- createArrowFiles(
   minFrags = 1000,
   maxFrags = 1e+06)
 )
+print("arrow files made")
 print("Arrow files:")
 ArrowFiles
 
