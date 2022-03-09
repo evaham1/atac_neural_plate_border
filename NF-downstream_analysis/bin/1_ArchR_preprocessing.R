@@ -56,6 +56,9 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
  
+ # temporary measure as seems to fail when multithreaded
+ addArchRThreads(threads = 1) 
+ #
 
 ############################## Set up Annotation files - will need to revisit #######################################
 
@@ -100,8 +103,6 @@ names(fragments_list) <- input$sample
 print("path df made")
 
 # create arrow files - keep thresholds as unrestrictive as possible at this point
-addArchRThreads(threads = 1) 
-
 ArrowFiles <- createArrowFiles(
   inputFiles = fragments_list,
   sampleNames = names(fragments_list),

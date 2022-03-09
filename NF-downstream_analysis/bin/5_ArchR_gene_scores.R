@@ -63,6 +63,10 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
+ # temporary measure as seems to fail when multithreaded
+ addArchRThreads(threads = 1) 
+ #
+
 ############################### FUNCTIONS ####################################
 # add a function here to extract top differentially expressed genes per cluster
 # add a default function to run FeaturePlots and just input list of genes to plot?

@@ -55,13 +55,16 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
+ # temporary measure as seems to fail when multithreaded
+ addArchRThreads(threads = 1) 
+ #
+
 
 ############################## Read in ArchR project #######################################
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 
 ############################## Add doublet scores #######################################
-addArchRThreads(threads = 1) 
 ArchR <- addDoubletScores(
   input = ArchR,
   k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
@@ -78,8 +81,6 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ############################## QC plots across samples #######################################
 ##############################################################################################
-
-addArchRThreads(threads = ncores) 
 
 ############################## Plot TSS Enrichment #######################################
 p1 <- plotGroups(

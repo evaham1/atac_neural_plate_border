@@ -54,6 +54,10 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
+ # temporary measure as seems to fail when multithreaded
+ addArchRThreads(threads = 1) 
+ #
+
 ############################### FUNCTIONS #################################################
 ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, intersect_metrics = TRUE, quantiles){
   outlier <- list()
