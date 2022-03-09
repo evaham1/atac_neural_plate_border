@@ -100,99 +100,6 @@ ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), fo
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 
-############################## nFrags #######################################
-p1 <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "clusters", 
-  colorBy = "cellColData", 
-  name = "nFrags",
-  plotAs = "Violin"
-)
-png(paste0(plot_path, "VlnPlot_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
-p1
-graphics.off()
-
-# for now will not filter on this metric
-
-
-############################## TSS Enrichment #######################################
-p <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "clusters", 
-  colorBy = "cellColData", 
-  name = "TSSEnrichment",
-  plotAs = "violin",
-  alpha = 0.4,
-  addBoxPlot = TRUE
-)
-
-png(paste0(plot_path, "VlnPlot_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
-
-# violin with quantiles overlaid
-metrics = "TSSEnrichment"
-quantiles = c(0.2, 0.8)
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
-                   color = "red")
-png(paste0(plot_path, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
-
-# automatically identify outlier clusters using adapted scHelper function
-outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
-
-# highlight outlier clusters on UMAP
-if (is.null(outliers) == FALSE){
-  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-  cellsSample <- ArchR$cellNames[idxSample]
-  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
-  png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(p)
-  graphics.off()
-}
-
-############################## Nucleosome signal #######################################
-p <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "clusters", 
-  colorBy = "cellColData", 
-  name = "NucleosomeRatio",
-  plotAs = "violin",
-  alpha = 0.4,
-  addBoxPlot = TRUE
-)
-
-png(paste0(plot_path, "VlnPlot_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
-
-# violin with quantiles overlaid
-metrics = "NucleosomeRatio"
-quantiles = c(0.2, 0.8)
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
-                   color = "red")
-png(paste0(plot_path, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
-
-# automatically identify outlier clusters using adapted scHelper function
-outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
-
-# highlight outlier clusters on UMAP
-if (is.null(outliers) == FALSE){
-  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-  cellsSample <- ArchR$cellNames[idxSample]
-  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
-  png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(p)
-  graphics.off()
-}
-
 ##########################################################################################################################
 ############################## Filter on TSSEnrichment + NucleosomeRatio intersect #######################################
 metrics = c("TSSEnrichment", "NucleosomeRatio")
@@ -219,3 +126,7 @@ if (is.null(outliers) == FALSE){
 }
 
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+
+#
+# add table of cell counts before and after filtering
+#
