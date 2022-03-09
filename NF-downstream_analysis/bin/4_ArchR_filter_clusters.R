@@ -28,7 +28,7 @@ opt = getopt(spec)
     
     plot_path = "../output/NF-downstream_analysis/4_ArchR_filter_clusters/plots/"
     rds_path = "../output/NF-downstream_analysis/4_ArchR_filter_clusters/rds_files/"
-    data_path = "../output/NF-downstream_analysis/3_ArchR_clustering/"
+    data_path = "../output/NF-downstream_analysis/3_ArchR_clustering_prefiltering/"
 
     addArchRThreads(threads = 1) 
     
@@ -117,11 +117,20 @@ if (is.null(outliers) == FALSE){
                             cells = cellsSample, name = "quality", force = TRUE)
   idxPass <- which(is.na(ArchR$quality) == TRUE)
   cellsPass <- ArchR$cellNames[idxPass]
-  ArchR <- ArchR[cellsPass, ]
+  ArchR_filtered <- ArchR[cellsPass, ]
+} else { 
+  ArchR_filtered <- ArchR
 }
 
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+# save filtered ArchR project
+saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
 
-#
-# add table of cell counts before and after filtering
-#
+# plot cell counts before and after filtering
+unfiltered <- table(ArchR$stage)
+filtered <- table(ArchR_fitered$stage)
+cell_counts <- rbind(unfiltered, filtered)
+
+png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
