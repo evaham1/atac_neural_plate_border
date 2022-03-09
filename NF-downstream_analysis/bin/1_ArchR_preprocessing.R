@@ -100,6 +100,8 @@ names(fragments_list) <- input$sample
 print("path df made")
 
 # create arrow files - keep thresholds as unrestrictive as possible at this point
+addArchRThreads(threads = 1) 
+
 ArrowFiles <- createArrowFiles(
   inputFiles = fragments_list,
   sampleNames = names(fragments_list),
