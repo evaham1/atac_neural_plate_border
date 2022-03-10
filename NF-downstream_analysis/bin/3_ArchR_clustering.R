@@ -10,6 +10,7 @@ library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
 library(hexbin)
+library(pheatmap)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
