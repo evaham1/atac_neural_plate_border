@@ -61,6 +61,38 @@ opt = getopt(spec)
  addArchRThreads(threads = 1) 
  #
 
+ ############################### FUNCTIONS #################################################
+ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, intersect_metrics = TRUE, quantiles){
+  outlier <- list()
+  if(!length(quantiles) == 2){
+    stop('quantiles must be an array of length == 2')
+  }
+  for(metric in metrics){
+    min = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1])
+    max = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2])
+    
+    outlier[[metric]] <- as.tibble(getCellColData(ArchR)) %>%
+      group_by((!!as.symbol(group_by))) %>%
+      summarise(median = median((!!as.symbol(metric)))) %>%
+      filter(median > max | median < min) %>%
+      pull(!!as.symbol(group_by))
+  }
+  
+  if(intersect_metrics){
+    if(length(Reduce(intersect, outlier)) == 0){
+      cat('No outliers detected!')
+    } else {
+      return(Reduce(intersect, outlier))
+    }
+  } else{
+    if(length(as.character(unique(unlist(outlier)))) == 0){
+      cat('No outliers detected!')
+    } else {
+      return(as.character(unique(unlist(outlier))))
+    }
+  }
+}
+
 ############################## Read in ArchR project #######################################
 # Retrieve object label
 label <- sub('_.*', '', list.files(data_path))
