@@ -6,4 +6,5 @@ LABEL authors="eva.hamrud@crick.ac.uk" \
 RUN   R -e "install.packages('gridExtra')" && \
       R -e "install.packages('getopt')" && \
       R -e "install.packages('optparse')" && \
+      R -e "install.packages('pheatmap')" && \
       R -e "install.packages('patchwork')"
