@@ -4,21 +4,15 @@ print("ArchR_clustering_stages")
 
 ############################## Load libraries #######################################
 library(getopt)
-library(future)
+library(ArchR)
 library(tidyverse)
-library(grid)
-library(gridExtra)
-library(clustree)
-library(GenomeInfoDb)
 library(ggplot2)
 library(dplyr)
-library(rtracklayer)
-library(GenomicRanges)
-library(GenomicFeatures)
-library(parallel)
-library(ArchR)
 library(GenomicFeatures)
 library(hexbin)
+library(pheatmap)
+library(gridExtra)
+library(grid)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -72,7 +66,10 @@ print(label)
 ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
-############################## Iterative LSI Dimensionality Reduction #################################
+#################################################################################
+############################## PROCESSING #######################################
+
+############## Iterative LSI Dimensionality Reduction ###########################
 # need to look at setting seed for this
 ArchR <- addIterativeLSI(
   ArchRProj = ArchR,
@@ -91,7 +88,7 @@ ArchR <- addIterativeLSI(
 )
 print("iterative LSI ran")
 
-############################## Seurat graph-based clustering #################################
+################## Seurat graph-based clustering #################################
 ArchR <- addClusters(
   input = ArchR,
   reducedDims = "IterativeLSI",
@@ -102,9 +99,22 @@ ArchR <- addClusters(
 )
 print("clustering ran")
 print(table(ArchR$clusters))
-# add a barchart here of cell numbers in each cluster?
 
-############################## Which stage in which clusters (if have more than one stage) #################################
+# Plot number of cells in each cluster
+cluster_cell_counts <- as.data.frame(table(ArchR$clusters))
+colnames(cluster_cell_counts) <- c("Cluster ID", "Cell Count")
+
+png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+p<-ggplot(data=cluster_cell_counts, aes(x=`Cluster ID`, y=`Cell Count`)) +
+  geom_bar(stat="identity")
+png(paste0(plot_path, 'cell_counts_barchart.png'), height = 10, width = 10, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+# Plot contribution of each stage to each cluster
 if (length(unique(ArchR$stage)) > 1){
   cM <- confusionMatrix(paste0(ArchR$clusters), paste0(ArchR$stage))
   cM <- cM / Matrix::rowSums(cM)
@@ -140,7 +150,10 @@ graphics.off()
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
 
-############################## Plot QC metrics on UMAP #################################
+#################################################################################
+############################### QC PLOTS ########################################
+
+############################ Plot QC metrics on UMAP #############################
 
 p <- plotEmbedding(
   ArchRProj = ArchR, 
@@ -181,3 +194,83 @@ p <- plotEmbedding(
 png(paste0(plot_path, "UMAP_TSSEnrichment.png"), width=20, height=20, units = 'cm', res = 200)
 print(p)
 graphics.off()
+
+######################## QC Vioin Plots #######################################
+
+quantiles = c(0.2, 0.8)
+
+##### nFrags
+p1 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "clusters", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "Violin"
+)
+png(paste0(plot_path, "VlnPlot_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
+p1
+graphics.off()
+
+#### TSS Enrichment
+p <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "clusters", 
+  colorBy = "cellColData", 
+  name = "TSSEnrichment",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE
+)
+metrics = "TSSEnrichment"
+p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
+                   color = "red")
+p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
+                   color = "red")
+png(paste0(plot_path, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
+print(p)
+graphics.off()
+
+# automatically identify outlier clusters using adapted scHelper function
+outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+
+# highlight outlier clusters on UMAP
+if (is.null(outliers) == FALSE){
+  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+  cellsSample <- ArchR$cellNames[idxSample]
+  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
+  png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+  print(p)
+  graphics.off()
+}
+
+#### Nucleosome signal
+p <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "clusters", 
+  colorBy = "cellColData", 
+  name = "NucleosomeRatio",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE
+)
+metrics = "NucleosomeRatio"
+p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
+                   color = "red")
+p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
+                   color = "red")
+png(paste0(plot_path, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
+print(p)
+graphics.off()
+
+# automatically identify outlier clusters using adapted scHelper function
+outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+
+# highlight outlier clusters on UMAP
+if (is.null(outliers) == FALSE){
+  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+  cellsSample <- ArchR$cellNames[idxSample]
+  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
+  png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+  print(p)
+  graphics.off()
+}

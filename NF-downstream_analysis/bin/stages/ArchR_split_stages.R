@@ -5,19 +5,8 @@ print("ArchR split stages")
 ############################## Load libraries #######################################
 library(getopt)
 library(future)
-library(tidyverse)
-library(grid)
-library(gridExtra)
-library(clustree)
-library(GenomeInfoDb)
-library(ggplot2)
-library(dplyr)
-library(rtracklayer)
-library(GenomicRanges)
-library(GenomicFeatures)
 library(parallel)
 library(ArchR)
-library(GenomicFeatures)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
