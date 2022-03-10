@@ -26,6 +26,8 @@ opt = getopt(spec)
     plot_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/plots/"
     rds_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/rds_files/"
     data_path = "../output/NF-downstream_analysis/6_ArchR_stage_split/"
+
+    addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -36,8 +38,8 @@ opt = getopt(spec)
     ncores = opt$cores
     
     # Multi-core when running from command line
-    plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 155* 1024^3)
+    #plan("multicore", workers = ncores)
+    #options(future.globals.maxSize = 155* 1024^3)
     addArchRThreads(threads = ncores) 
     
   } else {
@@ -49,7 +51,9 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-addArchRThreads(threads = 8) 
+ # temporary measure as seems to fail when multithreaded
+ addArchRThreads(threads = 1) 
+ #
 
 ############################## Function to split samples ################################
 

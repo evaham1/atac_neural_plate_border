@@ -32,6 +32,8 @@ opt = getopt(spec)
     #plot_path = "../output/NF-downstream_analysis/ArchR_gene_scores/plots/"
     #data_path = "../output/NF-downstream_analysis/3_ArchR_clustering/"
     #rds_path = "../output/NF-downstream_analysis/ArchR_gene_scores/rds_files/"
+
+    addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -42,8 +44,8 @@ opt = getopt(spec)
     ncores = opt$cores
     
     # Multi-core when running from command line
-    plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 155* 1024^3)
+    #plan("multicore", workers = ncores)
+    #options(future.globals.maxSize = 155* 1024^3)
     addArchRThreads(threads = ncores) 
     
   } else {
@@ -55,7 +57,9 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-addArchRThreads(threads = 1) 
+ # temporary measure as seems to fail when multithreaded
+ addArchRThreads(threads = 1) 
+ #
 
 ############################### FUNCTIONS ####################################
 # add a function here to extract top differentially expressed genes per cluster
