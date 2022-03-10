@@ -11,6 +11,8 @@ library(dplyr)
 library(GenomicFeatures)
 library(hexbin)
 library(pheatmap)
+library(gridExtra)
+library(grid)
 
 ############################## Set up script options #######################################
 spec = matrix(c(

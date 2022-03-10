@@ -10,6 +10,8 @@ library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
 library(hexbin)
+library(gridExtra)
+library(grid)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
