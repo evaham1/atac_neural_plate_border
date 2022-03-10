@@ -75,7 +75,7 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 markers <- getMarkerFeatures(
   ArchRProj = ArchR, 
   useMatrix = "GeneScoreMatrix", 
-  groupBy = "Clusters",
+  groupBy = "clusters",
   bias = c("TSSEnrichment", "log10(nFrags)"),
   testMethod = "wilcoxon"
 )
