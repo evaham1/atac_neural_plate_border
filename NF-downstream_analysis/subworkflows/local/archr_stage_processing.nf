@@ -28,7 +28,7 @@ workflow ARCHR_STAGE_PROCESSING {
     ARCHR_CLUSTERING_STAGES( ch_split_stage )
     // cluster individual stages
 
-    //ARCHR_GENE_SCORES_STAGES( ARCHR_CLUSTERING_STAGES.out )
+    ARCHR_GENE_SCORES_STAGES( ARCHR_CLUSTERING_STAGES.out )
     // gene score plots for individual stages
 
     //emit full filtered and clustered dataset:

@@ -36,7 +36,7 @@ workflow ARCHR_PROCESSING {
     // filters poor quality clusters from whole dataset
     ARCHR_CLUSTERING_POSTFILTER( ARCHR_FILTER_CLUSTERS.out )
     // iterative LSI, cluster - non deterministic!
-    //ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
+    ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
     // plots using gene scores
 
     //emit full filtered and clustered dataset:
