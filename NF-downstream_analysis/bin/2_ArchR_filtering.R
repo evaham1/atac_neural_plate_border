@@ -182,13 +182,13 @@ test
 ArchR_filtered <- ArchR
 
 # save ArchR project
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
 
 ############################ POST-FILTERING ####################################
 ################################################################################
 
 unfiltered <- table(ArchR$stage)
-filtered <- table(ArchR_fitered$stage)
+filtered <- table(ArchR_filtered$stage)
 cell_counts <- rbind(unfiltered, filtered)
 
 png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
