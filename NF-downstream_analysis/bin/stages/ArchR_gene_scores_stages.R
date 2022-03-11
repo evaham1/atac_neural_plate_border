@@ -13,6 +13,7 @@ library(hexbin)
 library(pheatmap)
 library(gridExtra)
 library(grid)
+library(parallel)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -43,9 +44,6 @@ opt = getopt(spec)
     data_path = "./input/"
     ncores = opt$cores
     
-    # Multi-core when running from command line
-    #plan("multicore", workers = ncores)
-    #options(future.globals.maxSize = 155* 1024^3)
     addArchRThreads(threads = ncores) 
     
   } else {
@@ -56,10 +54,6 @@ opt = getopt(spec)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
-
- # temporary measure as seems to fail when multithreaded
- addArchRThreads(threads = 1) 
- #
 
 ############################### FUNCTIONS ####################################
 # add a function here to extract top differentially expressed genes per cluster

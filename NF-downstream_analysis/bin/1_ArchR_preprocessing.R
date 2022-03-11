@@ -10,8 +10,6 @@ library(tidyverse)
 library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
-library(future)
-library(future.apply)
 library(parallel)
 
 ############################## Set up script options #######################################
