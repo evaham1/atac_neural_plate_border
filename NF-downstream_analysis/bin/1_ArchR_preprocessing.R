@@ -12,6 +12,7 @@ library(dplyr)
 library(GenomicFeatures)
 library(future)
 library(future.apply)
+library(parallel)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -43,11 +44,8 @@ opt = getopt(spec)
     data_path = "./input/cellranger_atac_output/"
     ref_path = "./input/"
     ncores = opt$cores
-    
-    # Multi-core when running from command line
-    plan("multicore", workers = ncores)
-    options(future.globals.maxSize = 155* 1024^3)
-    addArchRThreads(threads = 1) 
+
+    addArchRThreads(threads = ncores)
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -57,37 +55,6 @@ opt = getopt(spec)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
-
-############# Get parallel computing to work
-# library(datasets)
-
-# # without parallel 
-# x <- iris[which(iris[,5] != "setosa"), c(1,5)]
-# trials <- 10000
-# res <- data.frame()
-# system.time({
-#   trial <- 1
-#   while(trial <= trials) {
-#     ind <- sample(100, 100, replace=TRUE)
-#     result1 <- glm(x[ind,2]~x[ind,1], family=binomial(logit))
-#     r <- coefficients(result1)
-#     res <- rbind(res, r)
-#     trial <- trial + 1
-#   }
-# })
-
-# # with parallel 
-# x <- iris[which(iris[,5] != "setosa"), c(1,5)]
-# trials <- seq(1, 10000)
-# boot_fx <- function(trial) {
-#   ind <- sample(100, 100, replace=TRUE)
-#   result1 <- glm(x[ind,2]~x[ind,1], family=binomial(logit))
-#   r <- coefficients(result1)
-#   res <- rbind(data.frame(), r)
-# }
-# system.time({
-#   results <- lapply(trials, boot_fx)
-# })
 
 ############################## Set up Annotation files - will need to revisit #######################################
 
@@ -132,24 +99,6 @@ names(fragments_list) <- input$sample
 print("path df made")
 
 print(fragments_list)
-
-## try creating Arrow files in parallel
-CreateOneArrowFile <- function(data){
-  createArrowFiles(
-    inputFiles = data,
-    sampleNames = "ArrowFile",
-    geneAnnotation = geneAnnotation,
-    genomeAnnotation = genomeAnnotation,
-    addTileMat = TRUE,
-    addGeneScoreMat = TRUE,
-    logFile = paste0(plot_path, "createArrows",
-    minTSS = 4,
-    minFrags = 1000,
-    maxFrags = 1e+06))
-}
-
-system.time({ArrowFiles <- future_lapply(setNames(fragments_list, fragments_list), CreateOneArrowFile)})
-
 
 # create arrow files - keep thresholds as unrestrictive as possible at this point
 system.time({ArrowFiles <- createArrowFiles(
