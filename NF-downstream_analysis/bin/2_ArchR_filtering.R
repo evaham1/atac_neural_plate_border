@@ -82,17 +82,6 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 ##############################################################################################
 
 ############################## Plot TSS Enrichment #######################################
-p1 <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "stage", 
-  colorBy = "cellColData", 
-  name = "TSSEnrichment",
-  plotAs = "ridges"
-)
-png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 15, width = 21, units = 'cm', res = 400)
-print(p1)
-graphics.off()
-
 p2 <- plotGroups(
   ArchRProj = ArchR, 
   groupBy = "stage", 
