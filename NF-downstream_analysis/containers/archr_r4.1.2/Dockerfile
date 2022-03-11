@@ -19,3 +19,10 @@ RUN   R -e "BiocManager::install('GenomicFeatures')"
 RUN   R -e "if (!requireNamespace('org.Gg.eg.db', quietly = TRUE)){BiocManager::install('org.Gg.eg.db')}"
 # Install UCSC genome (will have to change to ENSEMBL later)
 RUN   R -e "if (!requireNamespace('BSgenome.Ggallus.UCSC.galGal6', quietly = TRUE)){BiocManager::install('BSgenome.Ggallus.UCSC.galGal6')}"
+# Install other packages that are needed
+RUN   R -e "install.packages('gridExtra')" && \
+      R -e "install.packages('getopt')" && \
+      R -e "install.packages('optparse')" && \
+      R -e "install.packages('pheatmap')" && \
+      R -e "install.packages('patchwork')" && \
+      R -e "install.packages('future')"
