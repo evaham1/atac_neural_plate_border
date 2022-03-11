@@ -76,7 +76,7 @@ markers <- getMarkerFeatures(
   testMethod = "wilcoxon"
 )
 
-markerList <- getMarkers(markers, cutOff = "Log2FC >= 0.5") # could make more stringent in future
+markerList <- getMarkers(markers) # could make more stringent in future
 top_markers <- tibble()
 for (i in 1:length(markerList)){
   table <- as.tibble(markerList[[i]]) 
@@ -84,20 +84,24 @@ for (i in 1:length(markerList)){
   table <- table %>% top_n(5, Log2FC) %>% mutate(cluster = i)
   top_markers <- rbind(top_markers, table)
 }
-print(top_markers)
-png(paste0(plot_path, 'top_genes.png'), height = 100, width = 30, units = 'cm', res = 400)
-grid.arrange(tableGrob(top_markers))
-dev.off()
-
-markerGenes <- top_markers$name
-heatmap <- markerHeatmap(
-  seMarker = markers, 
-  cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
-  transpose = TRUE
-)
-png(paste0(plot_path, 'heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
-ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-graphics.off()
+if(nrow(top_markers) != 0){
+  print("significant markers found")
+  
+  png(paste0(plot_path, 'top_genes.png'), height = 100, width = 30, units = 'cm', res = 400)
+  grid.arrange(tableGrob(top_markers))
+  dev.off()
+  
+  markerGenes <- top_markers$name
+  heatmap <- markerHeatmap(
+    seMarker = markers, 
+    cutOff = "FDR <= 0.01 & Log2FC >= 1.25", 
+    transpose = TRUE
+  )
+  png(paste0(plot_path, 'heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+  ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+  graphics.off()
+  
+} else { print("No markers found that passed thresholds")}
 
 
 ############################## Feature plots of known marker genes #################################
