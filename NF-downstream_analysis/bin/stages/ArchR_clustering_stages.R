@@ -30,9 +30,9 @@ opt = getopt(spec)
     setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    #plot_path = "../output/NF-downstream_analysis/3_ArchR_clustering/plots/"
-    #data_path = "../output/NF-downstream_analysis/2_ArchR_filtering/"
-    #rds_path = "../output/NF-downstream_analysis/3_ArchR_clustering/rds_files/"
+    data_path = "../output/NF-downstream_analysis/ArchR_split_stages/"
+    plot_path = "../output/NF-downstream_analysis/ArchR_split_stages_clustering/plots/"
+    rds_path = "../output/NF-downstream_analysis/ArchR_split_stages_clustering/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -178,7 +178,7 @@ ggAlignPlots(p1, p2, type = "h")
 graphics.off()
 
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
 #################################################################################
 ############################### QC PLOTS ########################################
