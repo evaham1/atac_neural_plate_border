@@ -14,6 +14,7 @@ library(pheatmap)
 library(gridExtra)
 library(grid)
 library(parallel)
+library(presto)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -30,9 +31,9 @@ opt = getopt(spec)
     setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    #plot_path = "../output/NF-downstream_analysis/ArchR_gene_scores/plots/"
-    #rds_path = "../output/NF-downstream_analysis/ArchR_gene_scores/rds_files/"
-    #data_path = "../output/NF-downstream_analysis/3_ArchR_clustering/"
+    plot_path = "../output/NF-downstream_analysis/5_ArchR_gene_scores/plots/"
+    rds_path = "../output/NF-downstream_analysis/5_ArchR_gene_scores/rds_files/"
+    data_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/"
 
     addArchRThreads(threads = 1) 
     
@@ -63,6 +64,7 @@ opt = getopt(spec)
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
+#data_path = "./work/e2/ebc39ad7feb46d16450be3e268ec15/"
 
 ############################## Calculate top gene markers and plot #################################
 
@@ -73,13 +75,16 @@ markers <- getMarkerFeatures(
   bias = c("TSSEnrichment", "log10(nFrags)"),
   testMethod = "wilcoxon"
 )
-markerList <- getMarkers(markers, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
+
+markerList <- getMarkers(markers, cutOff = "Log2FC >= 0.5") # could make more stringent in future
 top_markers <- tibble()
 for (i in 1:length(markerList)){
   table <- as.tibble(markerList[[i]]) 
+  print(table)
   table <- table %>% top_n(5, Log2FC) %>% mutate(cluster = i)
   top_markers <- rbind(top_markers, table)
 }
+print(top_markers)
 png(paste0(plot_path, 'top_genes.png'), height = 100, width = 30, units = 'cm', res = 400)
 grid.arrange(tableGrob(top_markers))
 dev.off()

@@ -14,6 +14,7 @@ library(pheatmap)
 library(gridExtra)
 library(grid)
 library(parallel)
+library(presto)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -73,7 +74,7 @@ markers <- getMarkerFeatures(
   bias = c("TSSEnrichment", "log10(nFrags)"),
   testMethod = "wilcoxon"
 )
-markerList <- getMarkers(markers, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
+markerList <- getMarkers(markers, cutOff = "Log2FC >= 0.5") # could make more stringent in future
 top_markers <- tibble()
 for (i in 1:length(markerList)){
   table <- as.tibble(markerList[[i]]) 
