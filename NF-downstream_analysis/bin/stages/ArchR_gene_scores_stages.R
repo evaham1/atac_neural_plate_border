@@ -31,9 +31,9 @@ opt = getopt(spec)
     setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    #plot_path = "../output/NF-downstream_analysis/ArchR_gene_scores/plots/"
-    #data_path = "../output/NF-downstream_analysis/3_ArchR_clustering/"
-    #rds_path = "../output/NF-downstream_analysis/ArchR_gene_scores/rds_files/"
+    plot_path = "../output/NF-downstream_analysis/ArchR_split_stages_gene_scores/plots/"
+    rds_path = "../output/NF-downstream_analysis/ArchR_split_stages_gene_scores/rds_files/"
+    data_path = "../output/NF-downstream_analysis/ArchR_split_stages_clustering/"
 
     addArchRThreads(threads = 1) 
     
@@ -64,6 +64,7 @@ opt = getopt(spec)
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
+#data_path = "./work/77/d57378441f7edc2ccab98f84a709da/"
 
 ############################## Calculate top gene markers and plot #################################
 
