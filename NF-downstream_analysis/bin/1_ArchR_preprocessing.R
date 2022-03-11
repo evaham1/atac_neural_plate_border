@@ -11,6 +11,7 @@ library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
 library(future)
+library(future.apply)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -44,8 +45,8 @@ opt = getopt(spec)
     ncores = opt$cores
     
     # Multi-core when running from command line
-    #plan("multicore", workers = ncores)
-    #options(future.globals.maxSize = 155* 1024^3)
+    plan("multicore", workers = ncores)
+    options(future.globals.maxSize = 155* 1024^3)
     addArchRThreads(threads = 1) 
     
   } else {
@@ -147,11 +148,11 @@ CreateOneArrowFile <- function(data){
     maxFrags = 1e+06))
 }
 
-ArrowFiles <- lapply(setNames(fragments_list, fragments_list), CreateOneArrowFile)
+system.time({ArrowFiles <- future_lapply(setNames(fragments_list, fragments_list), CreateOneArrowFile)})
 
 
 # create arrow files - keep thresholds as unrestrictive as possible at this point
-ArrowFiles <- createArrowFiles(
+system.time({ArrowFiles <- createArrowFiles(
   inputFiles = fragments_list,
   sampleNames = names(fragments_list),
   geneAnnotation = geneAnnotation,
@@ -162,7 +163,7 @@ ArrowFiles <- createArrowFiles(
   minTSS = 4,
   minFrags = 1000,
   maxFrags = 1e+06)
-)
+)})
 print("arrow files made")
 print("Arrow files:")
 ArrowFiles
