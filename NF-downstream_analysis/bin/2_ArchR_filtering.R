@@ -54,8 +54,8 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
- # temporary measure as seems to fail when multithreaded
- #addArchRThreads(threads = 1) 
+ #temporary measure as seems to fail when multithreaded
+ addArchRThreads(threads = 5) 
  #
 
 
@@ -64,19 +64,19 @@ ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), fo
 
 
 ############################## Add doublet scores #######################################
-ArchR <- addDoubletScores(
-  input = ArchR,
-  k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
-  knnMethod = "UMAP", #Refers to the embedding to use for nearest neighbor search with doublet projection.
-  LSIMethod = 1,
-  outDir = plot_path, # output is a pdf with some plots and an rds with summary
-  logFile = paste0(plot_path, "addDoubletScores"),
-  force = TRUE
-)
-print("added doublet scores")
+# ArchR <- addDoubletScores(
+#   input = ArchR,
+#   k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
+#   knnMethod = "UMAP", #Refers to the embedding to use for nearest neighbor search with doublet projection.
+#   LSIMethod = 1,
+#   outDir = plot_path, # output is a pdf with some plots and an rds with summary
+#   logFile = paste0(plot_path, "addDoubletScores"),
+#   force = TRUE
+# )
+# print("added doublet scores")
 
-# check how much memory
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+# # check how much memory
+# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ############################## QC plots across samples #######################################
 ##############################################################################################
@@ -95,7 +95,11 @@ png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units 
 print(p2)
 graphics.off()
 
-p2 <- plotTSSEnrichment(ArchRProj = ArchR)
+p2 <- plotTSSEnrichment(ArchRProj = ArchR) # !! This has issues with multithreading (threads = ncores)
+# Error: Error in .safelapply(seq_along(uniqGroups), function(x) { : 
+#Error Found Iteration 1 : 
+#	[1] "Error in H5Fopen(file) : HDF5. File accessibility. Unable to open file.\n"
+#	<simpleError in H5Fopen(file): HDF5. File accessibility. Unable to open file.>
 png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
 graphics.off()
