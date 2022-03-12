@@ -43,7 +43,7 @@ opt = getopt(spec)
     data_path = "./input/"
     ncores = opt$cores
     
-    addArchRThreads(threads = ncores) 
+    addArchRThreads(threads = 5) # if set to ncores the TSSEnrichmentPlot fails
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -54,29 +54,25 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
- #temporary measure as seems to fail when multithreaded
- addArchRThreads(threads = 5) 
- #
-
 
 ############################## Read in ArchR project #######################################
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 
 ############################## Add doublet scores #######################################
-# ArchR <- addDoubletScores(
-#   input = ArchR,
-#   k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
-#   knnMethod = "UMAP", #Refers to the embedding to use for nearest neighbor search with doublet projection.
-#   LSIMethod = 1,
-#   outDir = plot_path, # output is a pdf with some plots and an rds with summary
-#   logFile = paste0(plot_path, "addDoubletScores"),
-#   force = TRUE
-# )
-# print("added doublet scores")
+ArchR <- addDoubletScores(
+  input = ArchR,
+  k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
+  knnMethod = "UMAP", #Refers to the embedding to use for nearest neighbor search with doublet projection.
+  LSIMethod = 1,
+  outDir = plot_path, # output is a pdf with some plots and an rds with summary
+  logFile = paste0(plot_path, "addDoubletScores"),
+  force = TRUE
+)
+print("added doublet scores")
 
-# # check how much memory
-# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+# check how much memory
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ############################## QC plots across samples #######################################
 ##############################################################################################
