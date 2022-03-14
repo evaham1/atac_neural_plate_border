@@ -48,5 +48,5 @@ workflow ARCHR_PROCESSING {
 
     //emit full filtered and clustered dataset:
     emit:
-    archr_filtered_full = ARCHR_FILTER_CLUSTERS.out
+    archr_filtered_full = ARCHR_CLUSTERING_POSTFILTER_TWICE.out
 }
