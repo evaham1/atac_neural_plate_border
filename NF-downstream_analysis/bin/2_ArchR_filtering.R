@@ -58,22 +58,6 @@ opt = getopt(spec)
 ############################## Read in ArchR project #######################################
 ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 
-
-############################## Add doublet scores #######################################
-ArchR <- addDoubletScores(
-  input = ArchR,
-  k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
-  knnMethod = "UMAP", #Refers to the embedding to use for nearest neighbor search with doublet projection.
-  LSIMethod = 1,
-  outDir = plot_path, # output is a pdf with some plots and an rds with summary
-  logFile = paste0(plot_path, "addDoubletScores"),
-  force = TRUE
-)
-print("added doublet scores")
-
-# check how much memory
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-
 ############################## QC plots across samples #######################################
 ##############################################################################################
 
@@ -153,17 +137,6 @@ graphics.off()
 
 ############################## FILTERING #######################################
 ################################################################################
-
-## look at how filtering doublets might affect cell counts
-test <- filterDoublets(ArchR, filterRatio = 1)
-print("filter ratio = 1")
-test
-test <- filterDoublets(ArchR, filterRatio = 2)
-print("filter ratio = 2")
-test
-test <- filterDoublets(ArchR, filterRatio = 0.5)
-print("filter ratio = 0.5")
-test
 
 ## add something here to filter different samples to different thresholds? or more stringent global thresholds?
 ArchR_filtered <- ArchR

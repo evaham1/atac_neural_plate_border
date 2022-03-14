@@ -4,6 +4,7 @@ nextflow.enable.dsl = 2
 include {EDIT_GTF} from "$baseDir/modules/local/edit_gtf/main"
 
 include {R as ARCHR_PREPROCESSING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1_ArchR_preprocessing.R", checkIfExists: true) )
+include {R as ARCHR_DOUBLETS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1.5_ArchR_doublets.R", checkIfExists: true) )
 include {R as ARCHR_FILTERING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/2_ArchR_filtering.R", checkIfExists: true) )
 include {R as ARCHR_CLUSTERING_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_ArchR_clustering.R", checkIfExists: true) )
 include {R as ARCHR_FILTER_CLUSTERS_1} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_ArchR_filter_clusters.R", checkIfExists: true) )
@@ -32,8 +33,10 @@ workflow ARCHR_PROCESSING {
 
     // creates arrow files and ArchR project filtered with generous thresholds
     ARCHR_PREPROCESSING( ch_input_modified )
-    // filters whole data globally (+ on a per sample basis?)
-    ARCHR_FILTERING( ARCHR_PREPROCESSING.out )
+    // calculated doublet scores (+ add filtering?)
+    ARCHR_DOUBLETS( ARCHR_PREPROCESSING.out )
+    // plots whole sample QC metrics (+ add filtering?)
+    ARCHR_FILTERING( ARCHR_DOUBLETS.out )
 
     // iterative clustering and filtering poor quality clusters
     ARCHR_CLUSTERING_PREFILTER( ARCHR_FILTERING.out )
