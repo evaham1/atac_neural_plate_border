@@ -91,9 +91,8 @@ png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units 
 print(p2)
 graphics.off()
 
-addArchRThreads(threads = 1)
-
-p2 <- plotTSSEnrichment(ArchRProj = ArchR) # !! This has issues with multithreading (threads = ncores)
+p2 <- plotTSSEnrichment(ArchRProj = ArchR, threads = 1) 
+# !! This has issues with multithreading (threads = ncores)
 # Error: Error in .safelapply(seq_along(uniqGroups), function(x) { : 
 #Error Found Iteration 1 : 
 #	[1] "Error in H5Fopen(file) : HDF5. File accessibility. Unable to open file.\n"
@@ -129,7 +128,7 @@ graphics.off()
 
 ############################## Plot nucleosome banding #######################################
 
-p1 <- plotFragmentSizes(ArchRProj = ArchR)
+p1 <- plotFragmentSizes(ArchRProj = ArchR, threads = 1)
 png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p1)
 graphics.off()
