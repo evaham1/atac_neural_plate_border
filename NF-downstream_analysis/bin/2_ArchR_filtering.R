@@ -43,7 +43,7 @@ opt = getopt(spec)
     data_path = "./input/"
     ncores = opt$cores
     
-    addArchRThreads(threads = 5) # if set to ncores the TSSEnrichmentPlot fails
+    addArchRThreads(threads = ncores) # if set to ncores the TSSEnrichmentPlot fails
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -90,6 +90,8 @@ p2 <- plotGroups(
 png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
 graphics.off()
+
+addArchRThreads(threads = 1)
 
 p2 <- plotTSSEnrichment(ArchRProj = ArchR) # !! This has issues with multithreading (threads = ncores)
 # Error: Error in .safelapply(seq_along(uniqGroups), function(x) { : 
