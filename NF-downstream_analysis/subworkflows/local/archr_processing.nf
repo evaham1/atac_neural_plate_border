@@ -11,7 +11,7 @@ include {R as ARCHR_FILTER_CLUSTERS_1} from "$baseDir/modules/local/r/main"     
 include {R as ARCHR_CLUSTERING_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_ArchR_clustering.R", checkIfExists: true) )
 include {R as ARCHR_FILTER_CLUSTERS_2} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/4_ArchR_filter_clusters.R", checkIfExists: true) )
 include {R as ARCHR_CLUSTERING_POSTFILTER_TWICE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_ArchR_clustering.R", checkIfExists: true) )
-
+include {R as ARCHR_DOUBLETS_FILTERED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/1.5_ArchR_doublets.R", checkIfExists: true) )
 
 include {R as ARCHR_GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/5_ArchR_gene_scores.R", checkIfExists: true) )
 
@@ -44,6 +44,7 @@ workflow ARCHR_PROCESSING {
     ARCHR_CLUSTERING_POSTFILTER( ARCHR_FILTER_CLUSTERS_1.out )
     ARCHR_FILTER_CLUSTERS_2( ARCHR_CLUSTERING_POSTFILTER.out ) // filtering round 2
     ARCHR_CLUSTERING_POSTFILTER_TWICE( ARCHR_FILTER_CLUSTERS_2.out )
+    ARCHR_DOUBLETS_FILTERED( ARCHR_FILTER_CLUSTERS_2.out ) // see iff adding doublet scores after filtering any better
 
     // plots using gene scores
     ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
