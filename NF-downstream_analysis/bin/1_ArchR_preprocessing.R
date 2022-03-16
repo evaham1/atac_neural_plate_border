@@ -106,7 +106,7 @@ system.time({ArrowFiles <- createArrowFiles(
   genomeAnnotation = genomeAnnotation,
   addTileMat = TRUE,
   addGeneScoreMat = TRUE,
-  logFile = paste0(plot_path, "createArrows",
+  logFile = createLogFile("ArchRLogs/createArrows"),
   minTSS = 4,
   minFrags = 1000,
   maxFrags = 1000000),
