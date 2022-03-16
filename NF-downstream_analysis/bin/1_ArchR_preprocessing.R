@@ -109,7 +109,8 @@ system.time({ArrowFiles <- createArrowFiles(
   logFile = paste0(plot_path, "createArrows",
   minTSS = 4,
   minFrags = 1000,
-  maxFrags = 1e+06)
+  maxFrags = 1000000),
+  QCDir = "plots/QualityControl"
 )})
 print("arrow files made")
 print("Arrow files:")
@@ -134,6 +135,11 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 # add stage to metadata
 stage <- substr(ArchR$Sample, 1, 3)
 ArchR$stage <- stage
+
+# check whether the createArrowFiles thresholds applied correctly
+print(min(ArchR$nFrags))
+print(max(ArchR$nFrags))
+print(min(ArchR$TSSEnrichment))
 
 # save ArchR project
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
