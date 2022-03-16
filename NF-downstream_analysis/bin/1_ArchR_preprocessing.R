@@ -106,10 +106,10 @@ system.time({ArrowFiles <- createArrowFiles(
   genomeAnnotation = genomeAnnotation,
   addTileMat = TRUE,
   addGeneScoreMat = TRUE,
-  logFile = createLogFile("ArchRLogs/createArrows"),
+  logFile = createLogFile("ArchRLogs_createArrows"),
   minTSS = 4,
   minFrags = 1000,
-  maxFrags = 1000000),
+  maxFrags = 1000000,
   QCDir = "plots/QualityControl"
 )})
 print("arrow files made")
