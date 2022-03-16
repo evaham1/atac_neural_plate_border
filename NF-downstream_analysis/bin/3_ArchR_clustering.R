@@ -127,16 +127,20 @@ print("clustering ran")
 print(table(ArchR$clusters))
 
 # Plot number of cells in each cluster
-cluster_cell_counts <- as.data.frame(table(ArchR$clusters))
-colnames(cluster_cell_counts) <- c("Cluster ID", "Cell Count")
+cluster_cell_counts <- as.data.frame(table(substr(ArchR$clusters, 2, nchar(ArchR$clusters))))
+cluster_cell_counts <- cluster_cell_counts %>% 
+  rename(Cell_count = Freq, Cluster_number = Var1) %>%
+  mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
+  arrange(Cluster_number)
 
-png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_table.png'), height = 30, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-p<-ggplot(data=cluster_cell_counts, aes(x=`Cluster ID`, y=`Cell Count`)) +
-  geom_bar(stat="identity")
-png(paste0(plot_path, 'cell_counts_barchart.png'), height = 10, width = 10, units = 'cm', res = 400)
+p<-ggplot(data=cluster_cell_counts, aes(x=`Cluster_number`, y=`Cell_count`)) +
+  geom_bar(stat="identity") +
+  scale_x_continuous(breaks = round(seq(min(cluster_cell_counts$Cluster_number), max(cluster_cell_counts$Cluster_number), by = 1),1))
+png(paste0(plot_path, 'cell_counts_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
 print(p)
 graphics.off()
 
