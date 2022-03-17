@@ -61,6 +61,7 @@ workflow NFCORE_DOWNSTREAM {
         .set { ch_state_classification }    //Channel: [[meta], [rds_file, csv]]
 
     STATE_CLASSIFICATION( ch_state_classification )
+    STATE_CLASSIFICATION.out.view()
 
     // Collect rds files from all stages
     ch_combined = STATE_CLASSIFICATION.out
@@ -68,6 +69,7 @@ workflow NFCORE_DOWNSTREAM {
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
         .collect()
         .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        .view()
 
     // Transfer labels from stage subsets to full data
     TRANSFER_LABELS( ch_combined )
