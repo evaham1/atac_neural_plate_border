@@ -22,6 +22,7 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include {R as SPLIT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/split_seurat.R", checkIfExists: true) )
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cluster.R", checkIfExists: true) )
 include {R as STATE_CLASSIFICATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/state_classification_contam.R", checkIfExists: true) )
+include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/transfer_labels.R", checkIfExists: true) )
 
 
 //
@@ -58,6 +59,18 @@ workflow NFCORE_DOWNSTREAM {
         .set { ch_state_classification }    //Channel: [[meta], [rds_file, csv]]
 
     STATE_CLASSIFICATION( ch_state_classification )
+
+    // Collect rds files from all stages
+    ch_combined = STATE_CLASSIFICATION.out
+        .concat( METADATA.out )
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        .collect()
+        .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+
+    // Transfer labels from stage subsets to full data
+    TRANSFER_LABELS( ch_combined )
+
+    // will need to add process here to renormalise/scale/etc + remove HH4 cells
 }
 
 
