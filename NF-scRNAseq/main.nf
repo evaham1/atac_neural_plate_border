@@ -77,14 +77,9 @@ workflow NFCORE_DOWNSTREAM {
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
         .collect()
         .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-        .combine( METADATA.out ) //[[meta], [rds1, rds2, rds3, ...], [meta], [full.rds]]]
+        .combine( METADATA.out ) //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5], [sample_id:NF-scRNA-input], [cell_cycle_data.RDS]]
         .map{[it[0], it[1] + it[3]]}
-        .view()
-
-//[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5], [sample_id:NF-scRNA-input], [cell_cycle_data.RDS]]
-
-//[[sample_id:all_stages], [[HH7, ss8, HH6, ss4, HH4, HH5], cell_cycle_data.RDS]]
-
+        .view() //[[sample_id:all_stages], [HH6, HH4, ss8, ss4, HH7, HH5, cell_cycle_data.RDS]]
 
     // Transfer labels from stage subsets to full data
     TRANSFER_LABELS( ch_combined )
