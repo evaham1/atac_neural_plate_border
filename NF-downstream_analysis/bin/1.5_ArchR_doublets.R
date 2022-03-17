@@ -56,7 +56,13 @@ opt = getopt(spec)
 
 
 ############################## Read in ArchR project #######################################
-ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
+# Retrieve object label
+label <- sub('_.*', '', list.files(data_path))
+print(label)
+
+# load ArchR object using its retrieved name
+ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ############################## Add doublet scores #######################################
 ArchR <- addDoubletScores(
@@ -91,7 +97,7 @@ test
 ArchR_filtered <- ArchR
 
 # save ArchR project
-saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
 ############################ POST-FILTERING ####################################
 ################################################################################

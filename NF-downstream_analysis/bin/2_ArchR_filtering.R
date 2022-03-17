@@ -26,12 +26,11 @@ opt = getopt(spec)
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-    setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    plot_path = "../output/NF-downstream_analysis/2_ArchR_filtering/plots/"
-    rds_path = "../output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
-    data_path = "../output/NF-downstream_analysis/1_ArchR_preprocessing/"
+    plot_path = "./output/NF-downstream_analysis/2_ArchR_filtering/plots/"
+    rds_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/1_ArchR_preprocessing/"
 
     addArchRThreads(threads = 1) 
     
@@ -43,7 +42,7 @@ opt = getopt(spec)
     data_path = "./input/"
     ncores = opt$cores
     
-    addArchRThreads(threads = ncores) # if set to ncores the TSSEnrichmentPlot fails
+    addArchRThreads(threads = ncores)
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -62,53 +61,48 @@ ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), fo
 ##############################################################################################
 
 ############################## Plot TSS Enrichment #######################################
-# p2 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "TSSEnrichment",
-#   plotAs = "violin",
-#   alpha = 0.4,
-#   addBoxPlot = TRUE
-# )
-# png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p2)
-# graphics.off()
+p2 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "TSSEnrichment",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE
+)
+png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p2)
+graphics.off()
 
-# p2 <- plotTSSEnrichment(ArchRProj = ArchR) 
-# png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p2)
-# graphics.off()
+p2 <- plotTSSEnrichment(ArchRProj = ArchR) 
+png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p2)
+graphics.off()
 
-# # p2 <- plotTSSEnrichment(ArchRProj = ArchR, threads = 1) 
-# # png(paste0(plot_path, 'TSS_enrichment_plot_1_thread.png'), height = 25, width = 25, units = 'cm', res = 400)
-# # print(p2)
-# # graphics.off()
+############################## Plot log10(Unique Fragments) #######################################
+p3 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "log10(nFrags)",
+  plotAs = "ridges"
+)
+png(paste0(plot_path, 'fragment_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
+graphics.off()
 
-# ############################## Plot log10(Unique Fragments) #######################################
-# p3 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "log10(nFrags)",
-#   plotAs = "ridges"
-# )
-# png(paste0(plot_path, 'fragment_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
-# print(p3)
-# graphics.off()
-
-# p4 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "log10(nFrags)",
-#   plotAs = "violin",
-#   alpha = 0.4,
-#   addBoxPlot = TRUE
-# )
-# png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p4)
-# graphics.off()
+p4 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "log10(nFrags)",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE
+)
+png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p4)
+graphics.off()
 
 ############################## Plot nucleosome banding #######################################
 
@@ -142,7 +136,7 @@ graphics.off()
 ArchR_filtered <- ArchR
 
 # save ArchR project
-saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
 
 ############################ POST-FILTERING ####################################
 ################################################################################
