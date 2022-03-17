@@ -23,7 +23,7 @@ opt = getopt(spec)
     setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    plot_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/plots/"
+    plot_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/plots/" 
     rds_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/rds_files/"
     data_path = "../output/NF-downstream_analysis/6_ArchR_stage_split/"
 
