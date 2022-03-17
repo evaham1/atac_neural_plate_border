@@ -45,9 +45,9 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-    plot_path = "./test/state_classification/plots/"
-    rds_path = "./test/state_classification/rds_files/"
-    data_path = "./output/NF-downstream_analysis_stacas/seurat_filtering/6_contamination_filt/rds_files/"
+    plot_path = "../output/NF-scRNAseq/ss8_splitstage_data/state_classification/plots/"
+    rds_path = "../output/NF-scRNAseq/ss8_splitstage_data/state_classification/rds_files/"
+    data_path = "../output/NF-scRNAseq/ss8_splitstage_data/clustering/rds_files/"
     
     ncores = 8
     
@@ -87,8 +87,8 @@ seurat_data <- readRDS(list.files(data_path, full.names = TRUE, pattern = '*.RDS
 #                                      Cell state classification                                    #
 #######################################################################################
 # Convert knowledge matrix to gene list
-# cell_state_markers <- read.csv('./NF-downstream_analysis/binary_knowledge_matrix.csv', row.names = 1) %>% select(!c(evidence, PPR, NP, NPB, iNP))
-cell_state_markers <- read.csv(list.files(data_path, full.names = TRUE, pattern = '*.csv'), row.names = 1) %>% select(!c(evidence))
+cell_state_markers <- read.csv(paste0(data_path, "binary_knowledge_matrix_contam.csv"), row.names = 1) %>% select(!c(evidence))
+#cell_state_markers <- read.csv("binary_knowledge_matrix_contam.csv", row.names = 1) %>% select(!c(evidence))
 
 cell_state_markers <- apply(cell_state_markers, 2, function(x) rownames(cell_state_markers)[x > 0])
 
@@ -143,7 +143,7 @@ seurat_data <- FindClusters(seurat_data, resolution = cluster_res)
 # Set RNA to default assay for plotting expression data
 DefaultAssay(seurat_data) <- "RNA"
 
-cell_type_df <- lapply(cell_state_markers, function(x) t(GetAssayData(object = seurat_data, assay = 'RNA', slot = 'scale.data'))[,x] %>% rowSums(.)) %>%
+cell_type_df <- lapply(cell_state_markers, function(x) t(GetAssayData(object = seurat_data, assay = 'RNA', slot = 'scale.data'))[,x] %>% as.data.frame(.) %>% rowSums(.)) %>%
   do.call('cbind', .) %>%
   merge(., seurat_data@meta.data[,'seurat_clusters', drop=FALSE], by=0, all=TRUE)
 
