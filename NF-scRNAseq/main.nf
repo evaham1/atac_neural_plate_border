@@ -23,6 +23,8 @@ include {R as SPLIT} from "$baseDir/modules/local/r/main"               addParam
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cluster.R", checkIfExists: true) )
 include {R as STATE_CLASSIFICATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/state_classification_contam.R", checkIfExists: true) )
 include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/transfer_labels.R", checkIfExists: true) )
+include {R as SUBSET} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cells.R", checkIfExists: true) )
+include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cluster.R", checkIfExists: true) )
 
 
 //
@@ -70,7 +72,11 @@ workflow NFCORE_DOWNSTREAM {
     // Transfer labels from stage subsets to full data
     TRANSFER_LABELS( ch_combined )
 
-    // will need to add process here to renormalise/scale/etc + remove HH4 cells
+    // Subset data to remove HH4
+    SUBSET( TRANSFER_LABELS.out )
+
+    // Recluster data
+    CLUSTER_FULL( SUBSET.out )
 }
 
 
