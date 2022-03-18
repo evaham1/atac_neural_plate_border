@@ -2,9 +2,9 @@
 nextflow.enable.dsl = 2
 
 
-include {R as ARCHR_SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_split_stages.R", checkIfExists: true) )
-include {R as ARCHR_CLUSTERING_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/3_ArchR_clustering.R", checkIfExists: true) )
-include {R as ARCHR_GENE_SCORES_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/5_ArchR_gene_scores.R", checkIfExists: true) )
+include {R as ARCHR_SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_split_stages.R", checkIfExists: true) )
+include {R as ARCHR_CLUSTERING_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as ARCHR_GENE_SCORES_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
 
 
 workflow ARCHR_STAGE_PROCESSING {

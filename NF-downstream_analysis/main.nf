@@ -51,10 +51,10 @@ workflow NFCORE_DOWNSTREAM {
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
 
     // ARCHR: run processing + clustering + filtering + gene scores on full data
-    ARCHR_PROCESSING ( ch_metadata )
+    ARCHR_PROCESSING ( ch_metadata ) //output = archr_filtered_full
 
     // ARCHR: run clustering + gene scores on individual stages
-    ARCHR_STAGE_PROCESSING ( ARCHR_PROCESSING.out.archr_filtered_full )
+    ARCHR_STAGE_PROCESSING ( ARCHR_PROCESSING.out.archr_filtered_full ) //output = archr_filtered_stages
 }
 
 
