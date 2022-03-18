@@ -35,10 +35,8 @@ workflow ARCHR_PROCESSING {
 
     // creates arrow files and ArchR project filtered with generous thresholds
     ARCHR_PREPROCESSING( ch_input_modified )
-    // calculated doublet scores (+ add filtering?)
-    ARCHR_DOUBLETS( ARCHR_PREPROCESSING.out )
     // plots whole sample QC metrics (+ add filtering?)
-    ARCHR_FILTERING( ARCHR_DOUBLETS.out )
+    ARCHR_FILTERING( ARCHR_PREPROCESSING.out )
 
     // iterative clustering and filtering poor quality clusters
     ARCHR_CLUSTERING_PREFILTER( ARCHR_FILTERING.out )
