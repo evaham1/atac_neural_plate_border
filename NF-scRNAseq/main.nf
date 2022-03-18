@@ -79,7 +79,7 @@ workflow NFCORE_DOWNSTREAM {
         .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
         .combine( METADATA.out ) //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5], [sample_id:NF-scRNA-input], [cell_cycle_data.RDS]]
         .map{[it[0], it[1] + it[3]]}
-        .view() //[[sample_id:all_stages], [HH6, HH4, ss8, ss4, HH7, HH5, cell_cycle_data.RDS]]
+        //.view() //[[sample_id:all_stages], [HH6, HH4, ss8, ss4, HH7, HH5, cell_cycle_data.RDS]]
 
     // Transfer labels from stage subsets to full data
     TRANSFER_LABELS( ch_combined )
@@ -87,8 +87,15 @@ workflow NFCORE_DOWNSTREAM {
     // Subset data to remove HH4
     SUBSET( TRANSFER_LABELS.out )
 
+    SUBSET.out
+        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
+        .flatMap {it[1][0].listFiles()}
+        .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
+        .view()
+        .set { ch_subset }
+
     // Recluster data
-    CLUSTER_FULL( SUBSET.out )
+    CLUSTER_FULL( ch_subset )
 }
 
 
