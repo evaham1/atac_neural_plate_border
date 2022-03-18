@@ -46,13 +46,16 @@ workflow NFCORE_DOWNSTREAM {
     //METADATA.out:
     //[[sample_id:NF-scRNA-input], [/camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/output/NF-scRNAseq/input/cell_cycle_data.RDS]]
 
+    // split the cell_cycle_data object into individual stages
     SPLIT( METADATA.out )
 
+    // filter out the HH4 stage and split remaining stages into individual channels
     SPLIT.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
+        .view()
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
-        .set { ch_split_run }                                                           //Channel: [[meta], rds_file]
+        .set { ch_split_run }
 
     CLUSTER( ch_split_run )
 
@@ -72,6 +75,10 @@ workflow NFCORE_DOWNSTREAM {
     //[[sample_id:HH4_splitstage_data], [/camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/a7/201ecf787e4305b5508f95de3d6e54/plots, /camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/a7/201ecf787e4305b5508f95de3d6e54/rds_files]]
     //[[sample_id:ss4_splitstage_data], [/camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/c7/f0483ca9abe305b375f48da0cb9a46/plots, /camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/c7/f0483ca9abe305b375f48da0cb9a46/rds_files]]
 
+// filter out HH4 object here, and then merge the remaining stages together and input that below in place of METADATA.out
+    // group the remaining stages
+    //CLUSTER_FULL( ch_subset )
+
     // Collect rds files from all stages
     ch_combined = STATE_CLASSIFICATION.out
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
@@ -83,19 +90,7 @@ workflow NFCORE_DOWNSTREAM {
 
     // Transfer labels from stage subsets to full data
     TRANSFER_LABELS( ch_combined )
-
-    // Subset data to remove HH4
-    SUBSET( TRANSFER_LABELS.out )
-
-    SUBSET.out
-        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
-        .flatMap {it[1][0].listFiles()}
-        .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
-        .view()
-        .set { ch_subset }
-
-    // Recluster data
-    CLUSTER_FULL( ch_subset )
+    
 }
 
 
