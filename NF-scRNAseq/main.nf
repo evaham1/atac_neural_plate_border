@@ -52,8 +52,9 @@ workflow NFCORE_DOWNSTREAM {
     // filter out the HH4 stage and split remaining stages into individual channels
     SPLIT.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
-        .view()
         .flatMap {it[1][0].listFiles()}
+        .view()
+        .filter(!'HH4')
         .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
         .set { ch_split_run }
 
