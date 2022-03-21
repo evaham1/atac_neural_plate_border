@@ -54,7 +54,7 @@ workflow NFCORE_DOWNSTREAM {
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
         //.view()
-        .filter( it =~ (?!/HH4/) )
+        .filter { it =~(?!(/HH4/) }
         .view()
         .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
         .set { ch_split_run }
@@ -92,7 +92,6 @@ workflow NFCORE_DOWNSTREAM {
 
     // Transfer labels from stage subsets to full data
     TRANSFER_LABELS( ch_combined )
-    
 }
 
 
