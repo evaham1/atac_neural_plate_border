@@ -32,7 +32,7 @@ opt = getopt(spec)
     
     plot_path = "./output/NF-downstream_analysis/8_ArchR_gene_scores/plots/"
     rds_path = "./output/NF-downstream_analysis/8_ArchR_gene_scores/rds_files/"
-    data_path = "./output/NF-downstream_analysis/7_ArchR_clustering_postfiltering_twice/"
+    data_path = "./output/NF-downstream_analysis/7_ArchR_clustering_postfiltering_twice/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -41,7 +41,7 @@ opt = getopt(spec)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/"
+    data_path = "./input/rds_files/"
     ncores = opt$cores
 
     addArchRThreads(threads = ncores) 
