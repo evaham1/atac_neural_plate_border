@@ -49,12 +49,20 @@ workflow NFCORE_DOWNSTREAM {
     // split the cell_cycle_data object into individual stages
     SPLIT( METADATA.out )
 
+    //trying to filter HH4:
+    //.filter{ it =~ (/?!HH4/) }
+    //.filter{ it =~ (?!/HH4/) }
+    //.filter{ it =~ (?!(/HH4/)) }
+    //.filter{ it =~ ?!/HH4/ }
+    //.filter( it =~ (?!/HH4/) )
+    //.filter { it =~(?!(/HH4/) }
+
     // filter out the HH4 stage and split remaining stages into individual channels
     SPLIT.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
         //.view()
-        .filter { it =~(?!(/HH4/) }
+        .filter { it =~ /HH4/ }
         .view()
         .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
         .set { ch_split_run }
