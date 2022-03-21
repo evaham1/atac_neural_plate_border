@@ -201,16 +201,6 @@ graphics.off()
 p <- plotEmbedding(
   ArchRProj = ArchR, 
   colorBy = "cellColData", 
-  name = "DoubletScore", 
-  embedding = "UMAP"
-)
-png(paste0(plot_path, "UMAP_DoubletScore.png"), width=20, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
-
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "cellColData", 
   name = "NucleosomeRatio", 
   embedding = "UMAP"
 )

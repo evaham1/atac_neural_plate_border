@@ -79,6 +79,17 @@ print("added doublet scores")
 # check how much memory
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
+############################## Plots #######################################
+p <- plotEmbedding(
+  ArchRProj = ArchR, 
+  colorBy = "cellColData", 
+  name = "DoubletScore", 
+  embedding = "UMAP"
+)
+png(paste0(plot_path, "UMAP_DoubletScore.png"), width=20, height=20, units = 'cm', res = 200)
+print(p)
+graphics.off()
+
 ############################## FILTERING #######################################
 ################################################################################
 
