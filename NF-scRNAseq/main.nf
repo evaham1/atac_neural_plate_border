@@ -22,10 +22,10 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include {R as SPLIT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/split_seurat.R", checkIfExists: true) )
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cluster.R", checkIfExists: true) )
 include {R as STATE_CLASSIFICATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/state_classification_contam.R", checkIfExists: true) )
-include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/transfer_labels.R", checkIfExists: true) )
-include {R as SUBSET} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cells.R", checkIfExists: true) )
-include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cluster.R", checkIfExists: true) )
 
+include {R as MERGE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/merge.R", checkIfExists: true) )
+include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/subset_cluster.R", checkIfExists: true) )
+include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/transfer_labels.R", checkIfExists: true) )
 
 //
 // SET CHANNELS
@@ -49,32 +49,22 @@ workflow NFCORE_DOWNSTREAM {
     // split the cell_cycle_data object into individual stages
     SPLIT( METADATA.out )
 
-    //trying to filter HH4:
-    //.filter{ it =~ (/?!HH4/) }
-    //.filter{ it =~ (?!/HH4/) }
-    //.filter{ it =~ (?!(/HH4/)) }
-    //.filter{ it =~ ?!/HH4/ }
-    //.filter( it =~ (?!/HH4/) )
-    //.filter { it =~(?!(/HH4/) }
-
     // filter out the HH4 stage and split remaining stages into individual channels
     SPLIT.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
-        //.view()
         .filter{!(it =~ /HH4/)}
         .view()
         .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
         .set { ch_split_run }
 
+    // for each stage cluster and classify cell states using BNM that includes contaminating populations
     CLUSTER( ch_split_run )
-
     CLUSTER.out
         .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]}
         .combine(ch_binary_knowledge_matrix) // Combine with binary knowledge matrix
         .map{ row -> [row[0], [row[1], row[2]]]}
         .set { ch_state_classification }    //Channel: [[meta], [rds_file, csv]]
-
     STATE_CLASSIFICATION( ch_state_classification )
 
     //STATE_CLASSIFICATION output:
@@ -85,21 +75,26 @@ workflow NFCORE_DOWNSTREAM {
     //[[sample_id:HH4_splitstage_data], [/camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/a7/201ecf787e4305b5508f95de3d6e54/plots, /camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/a7/201ecf787e4305b5508f95de3d6e54/rds_files]]
     //[[sample_id:ss4_splitstage_data], [/camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/c7/f0483ca9abe305b375f48da0cb9a46/plots, /camp/svc/scratch/luscomben/hamrude/atac_neural_plate_border/NF-scRNAseq/work/c7/f0483ca9abe305b375f48da0cb9a46/rds_files]]
 
-// filter out HH4 object here, and then merge the remaining stages together and input that below in place of METADATA.out
-    // group the remaining stages
-    //CLUSTER_FULL( ch_subset )
-
-    // Collect rds files from all stages
+    // Collect rds files from all stages and merge into one combined object
     ch_combined = STATE_CLASSIFICATION.out
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
         .collect()
         .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-        .combine( METADATA.out ) //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5], [sample_id:NF-scRNA-input], [cell_cycle_data.RDS]]
+        .view() //[[sample_id:all_stages], [HH6, HH4, ss8, ss4, HH7, HH5, cell_cycle_data.RDS]]
+    MERGE( ch_combined )
+
+    // run clustering on merged data
+    CLUSTER_FULL( MERGE.out )
+
+    // Transfer labels from individual stages to merged data
+    ch_labels = STATE_CLASSIFICATION.out
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        .collect()
+        .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        .combine( CLUSTER_FULL.out ) //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5], [sample_id:NF-scRNA-input], [full_data.RDS]]
         .map{[it[0], it[1] + it[3]]}
         //.view() //[[sample_id:all_stages], [HH6, HH4, ss8, ss4, HH7, HH5, cell_cycle_data.RDS]]
-
-    // Transfer labels from stage subsets to full data
-    TRANSFER_LABELS( ch_combined )
+    TRANSFER_LABELS( ch_labels )
 }
 
 
