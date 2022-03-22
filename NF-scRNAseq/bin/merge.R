@@ -48,6 +48,8 @@ opt = getopt(spec)
 }
 
 # Make dataframe with stage and replicate info extracted from path
+print(list.files(data_path, recursive = FALSE, full.names = TRUE))
+
 input <- list.files(data_path, recursive = FALSE, full.names = TRUE)
 input <- data.frame(sample = sub('.*/', '', input), path = input)
 print(input)
