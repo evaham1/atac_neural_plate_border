@@ -51,8 +51,7 @@ workflow INTEGRATE_SPLIT_PROCESS {
     ch_atac_out
         .view()
         .combine(ch_rna_out, by:0)
-        .combine(ch_cellranger)
-        .map{[[it[0]], [it[1], it[2], it[3]]]}
+        .map{[[it[0]], [it[1], it[2]]]}
         .set { ch_integrate_input } 
 
     ch_integrate_input.view()
