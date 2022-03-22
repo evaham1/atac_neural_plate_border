@@ -48,8 +48,6 @@ opt = getopt(spec)
 }
 
 # Make dataframe with stage and replicate info extracted from path
-print(list.files(data_path, recursive = FALSE, full.names = TRUE))
-
 input <- list.files(data_path, recursive = FALSE, full.names = TRUE)
 input <- data.frame(sample = sub('.*/', '', input), path = input)
 print(input)
@@ -58,6 +56,8 @@ print(input)
 seurat_list <- apply(input, 1, function(x) readRDS(file = x[["path"]]))
 names(seurat_list) <- substr(input$sample, 1, 3)
 seurat_all <- merge(x = seurat_list[[1]], y=seurat_list[-1], add.cell.ids = names(seurat_list), project = "chick.10x")
+
+print(seurat_all)
 
 # Save RDS output
 saveRDS(seurat_all, paste0(rds_path, "merged_seurat.RDS"), compress = FALSE)

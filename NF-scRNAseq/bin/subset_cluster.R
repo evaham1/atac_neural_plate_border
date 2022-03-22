@@ -42,6 +42,8 @@ dir.create(rds_path, recursive = T)
 
 # Retrieve seurat object label
 label <- sub('_.*', '', list.files(data_path))
+print(label)
+print(list.files(data_path))
 
 # Load seurat data
 seurat_data <- readRDS(list.files(data_path, full.names = TRUE))
