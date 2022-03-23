@@ -71,6 +71,8 @@ DefaultAssay(seurat_data) <- "integrated"
 # Rescale data on integrated assay
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 
+seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+
 ############################## Dimensionality reduction #######################################
 
 # PCA
