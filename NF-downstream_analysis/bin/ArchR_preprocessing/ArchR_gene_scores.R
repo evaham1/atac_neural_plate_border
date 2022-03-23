@@ -77,9 +77,11 @@ markers <- getMarkerFeatures(
   bias = c("TSSEnrichment", "log10(nFrags)"),
   testMethod = "wilcoxon"
 )
+print("marker genes calculated")
 
 markerList <- getMarkers(markers) # could make more stringent in future
 top_markers <- tibble()
+print(top_markers)
 for (i in 1:length(markerList)){
   table <- as.tibble(markerList[[i]]) 
   print(table)
