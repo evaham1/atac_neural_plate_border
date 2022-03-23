@@ -61,9 +61,13 @@ DefaultAssay(seurat_data) <- "RNA"
 ############################## Scaling #######################################
 
 # Re-run findvariablefeatures and scaling
-seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000)
 print("variable features calculated")
 
+print("RNA variable features:")
+seurat_data@assays$RNA@var.features
+
+print("RNA integrated features:")
 seurat_data@assays$RNA@var.features
 
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
@@ -75,9 +79,6 @@ DefaultAssay(seurat_data) <- "integrated"
 # Rescale data on integrated assay
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 print("integrated assay scaled")
-
-seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000, assay = 'integrated')
-print("variable features calculated on integrated assay")
 
 ############################## Dimensionality reduction #######################################
 
