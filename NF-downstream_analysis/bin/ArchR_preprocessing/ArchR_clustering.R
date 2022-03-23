@@ -126,14 +126,24 @@ ArchR <- addIterativeLSI(
 print("iterative LSI ran")
 
 ################## Seurat graph-based clustering #################################
-ArchR <- addClusters(
+if (unique(ArchR$stage) == 1{
+  ArchR <- addClusters(
+  input = ArchR,
+  reducedDims = "IterativeLSI",
+  method = "Seurat",
+  name = "clusters",
+  resolution = 1.5,
+  force = TRUE)
+} else {
+  ArchR <- addClusters(
   input = ArchR,
   reducedDims = "IterativeLSI",
   method = "Seurat",
   name = "clusters",
   resolution = 2,
-  force = TRUE
-)
+  force = TRUE)
+}
+
 print("clustering ran")
 print(table(ArchR$clusters))
 

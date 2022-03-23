@@ -75,8 +75,7 @@ markers <- getMarkerFeatures(
   useMatrix = "GeneScoreMatrix", 
   groupBy = "clusters",
   bias = c("TSSEnrichment", "log10(nFrags)"),
-  testMethod = "wilcoxon",
-  threads = 1
+  testMethod = "wilcoxon"
 )
 print("marker genes calculated")
 
