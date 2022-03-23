@@ -59,19 +59,19 @@ workflow NFCORE_DOWNSTREAM {
     ARCHR_STAGE_PROCESSING ( ARCHR_PROCESSING.out.archr_filtered_full ) //output = archr_filtered_stages
 
     // add full ATAC data to list of ATAC stage data
-    ARCHR_PROCESSING.out.archr_filtered_full
-        .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]}
-        .view()
-        .set { ch_atac_full }
+    // ARCHR_PROCESSING.out.archr_filtered_full
+    //     .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]}
+    //     .view()
+    //     .set { ch_atac_full }
 
-    ARCHR_STAGE_PROCESSING.out.atac_stage_merged
-        .combine(ch_atac_full) // Combine with full dataset
-        .map{ row -> [row[0], [row[1], row[2]]]}
-        .view()
-        .set { ch_atac_integrate } 
+    // ARCHR_STAGE_PROCESSING.out.atac_stage_merged
+    //     .combine(ch_atac_full) // Combine with full dataset
+    //     .map{ row -> [row[0], [row[1], row[2]]]}
+    //     .view()
+    //     .set { ch_atac_integrate } 
 
-    // read into integration 
-    ARCHR_INTEGRATE( ch_atac_integrate )
+    // // read into integration 
+    // ARCHR_INTEGRATE( ch_atac_integrate )
 }
 
 
