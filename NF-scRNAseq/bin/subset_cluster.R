@@ -83,7 +83,7 @@ print("integrated assay scaled")
 ############################## Dimensionality reduction #######################################
 
 # PCA
-seurat_data <- RunPCA(object = seurat_data, verbose = FALSE)
+seurat_data <- RunPCA(object = seurat_data, features = rownames(seurat_data), verbose = FALSE)
 print("PCA ran")
 
 png(paste0(plot_path, "dimHM.png"), width=30, height=50, units = 'cm', res = 200)
