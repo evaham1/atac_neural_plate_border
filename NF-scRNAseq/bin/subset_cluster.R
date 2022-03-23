@@ -62,21 +62,25 @@ DefaultAssay(seurat_data) <- "RNA"
 
 # Re-run findvariablefeatures and scaling
 seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+print("variable features calculated")
+
+seurat_data@assays$RNA@var.features
 
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+print("RNA assay scaled")
 
 # Set Integrated to default assay
 DefaultAssay(seurat_data) <- "integrated"
 
 # Rescale data on integrated assay
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
-
-seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+print("integrated assay scaled")
 
 ############################## Dimensionality reduction #######################################
 
 # PCA
 seurat_data <- RunPCA(object = seurat_data, verbose = FALSE)
+print("PCA ran")
 
 png(paste0(plot_path, "dimHM.png"), width=30, height=50, units = 'cm', res = 200)
 DimHeatmap(seurat_data, dims = 1:30, balanced = TRUE, cells = 500)
