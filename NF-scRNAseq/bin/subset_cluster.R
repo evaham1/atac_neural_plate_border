@@ -30,7 +30,7 @@ ncores = opt$cores
 
 # Multi-core when running from command line
 plan("multiprocess", workers = ncores)
-options(future.globals.maxSize = 16* 1024^3) # 32gb
+options(future.globals.maxSize = 32* 1024^3) # 32gb
 
 # Set paths and load data
 plot_path = "./plots/"
@@ -75,6 +75,9 @@ DefaultAssay(seurat_data) <- "integrated"
 # Rescale data on integrated assay
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 print("integrated assay scaled")
+
+seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000, assay = 'integrated')
+print("variable features calculated on integrated assay")
 
 ############################## Dimensionality reduction #######################################
 
