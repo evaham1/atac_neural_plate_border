@@ -16,7 +16,7 @@ jobs:
       matrix:
         tag: ["base"]
         docker-file: ["Dockerfile"]
-        module-name: ["archr_extra", "archr"]
+        module-name: ["archr_extra"]
 
     steps:
       -
