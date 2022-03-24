@@ -58,7 +58,7 @@ workflow ARCHR_PROCESSING {
         .view()
         //should look like:
         //[[meta:'full'], full_atac.rds]
-        .set(output_ch)
+        .set {output_ch}
     
 
     //emit full filtered and clustered dataset:

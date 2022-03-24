@@ -41,7 +41,7 @@ workflow ARCHR_STAGE_PROCESSING {
         //should look like:
         //[[meta:'HH5'], HH5_atac.rds],
         //[[meta:'HH6'], HH6_atac.rds]
-        .set(output_ch)
+        .set {output_ch}
 
     //emit full filtered and clustered dataset:
     emit:
