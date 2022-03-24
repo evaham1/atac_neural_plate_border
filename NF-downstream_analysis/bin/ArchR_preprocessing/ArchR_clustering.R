@@ -168,7 +168,7 @@ print("UMAP added")
 ################## Seurat graph-based clustering #################################
 
 # Try different clustering resolutions
-png(paste0(plot_path, "clustree_", run, ".png"), width=70, height=35, units = 'cm', res = 200)
+png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
 print(ArchR_ClustRes(ArchR, by = 0.2))
 graphics.off()
 
