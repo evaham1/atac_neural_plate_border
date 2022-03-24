@@ -44,8 +44,8 @@ opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 if(opt$verbose) print(opt)
 
-print(paste0("full_data option: ", opt$full_data)
-print(paste0("group_by option: ", opt$group_by)
+print(paste0("full_data option: ", opt$full_data))
+print(paste0("group_by option: ", opt$group_by))
 
 # Set paths
 plot_path = "./plots/"
