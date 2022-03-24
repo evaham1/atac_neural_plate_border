@@ -168,10 +168,14 @@ print("UMAP added")
 
 ################## Seurat graph-based clustering #################################
 
-# Try different clustering resolutions
-png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-print(ArchR_ClustRes(ArchR, by = 0.2))
-graphics.off()
+# Try different clustering resolutions if looking at individual stages (otherwise takes too long)
+if (length(unique(ArchR$stage)) == 1){
+  print("only one stage detected, running clustree plot...")
+  png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+  print(ArchR_ClustRes(ArchR, by = 0.2))
+  graphics.off()
+  print("clustree plot ran")
+}
 
 # Set clustering res = 1 for stages and 2 for full data
 if (length(unique(ArchR$stage)) == 1){
