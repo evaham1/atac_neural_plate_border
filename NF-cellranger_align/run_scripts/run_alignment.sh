@@ -19,8 +19,8 @@ nextflow pull luslab/cheshic-nf-multi-omic
 
 nextflow run luslab/cheshic-nf-multi-omic \
     -r cellranger \
-    -c ./NF-cellranger_align/conf/crick_params.config \
-    --sample_sheet ./NF-cellranger_align/samplesheet.csv \
-    --outdir ./output/NF-cellranger_align \
+    -c ./conf/crick_params.config \
+    --sample_sheet ./samplesheet.csv \
+    --outdir ../output/NF-cellranger_align \
     --email eva.hamrud@crick.ac.uk \
     -resume
