@@ -64,12 +64,12 @@ stage_data <- grep(opt$full_data, files, invert = T, value = TRUE)
 full_data <- list.files(paste0(data_path, "rds_files/"), full.names = TRUE)
 
 cell_states <- lapply(stage_data, readRDS) %>% lapply(., function(x) x@meta.data[opt$group_by]) %>% do.call('rbind', .)
-cell_states
 seurat_data <- readRDS(full_data)
-seurat_data
 print("data read in")
+unique(seurat_data@meta.data$stage)
 
 seurat_data@meta.data[[opt$group_by]] <- cell_states[match(rownames(seurat_data@meta.data), rownames(cell_states)), ]
+unique(seurat_data@meta.data[[opt$group_by]])
 
 # Plot QC for each cluster
 png(paste0(plot_path, "scHelper_celltype_umap2.png"), width=20, height=20, units = 'cm', res = 200)
