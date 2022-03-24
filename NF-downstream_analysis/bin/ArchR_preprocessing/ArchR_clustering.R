@@ -29,9 +29,9 @@ opt = getopt(spec)
     
     ncores = 8
     
-    plot_path = "./output/NF-downstream_analysis/3_ArchR_clustering/plots/"
-    rds_path = "./output/NF-downstream_analysis/3_ArchR_clustering/rds_files/"
-    data_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/plots/"
+    rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ArchR_split/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -54,7 +54,7 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-############################### FUNCTIONS #################################################
+############################### FUNCTIONS - adapted from scHelper #################################################
 ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, intersect_metrics = TRUE, quantiles){
   outlier <- list()
   if(!length(quantiles) == 2){
@@ -86,11 +86,39 @@ ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, inters
   }
 }
 
+ArchR_ClustRes <- function(ArchR, by = 0.1, starting_res = 0){
+  plots <- list()
+  resolutions <- c(seq(starting_res, starting_res+9*by, by=by))
+  cluster_df <- data.frame(ArchR$cellNames)
+  
+  if(length(ArchR@reducedDims) == 0){stop("Carry out dimensionality reduction before clustering")}
+  
+  for(res in resolutions[2:length(resolutions)]){
+    ArchR_clustered <- addClusters(input = ArchR, name = "clusters", force = TRUE, resolution = res)
+    plots[[paste(res)]] <- plotEmbedding(ArchR_clustered, name = "clusters") +
+      ggtitle(paste("resolution = ", res))
+    title <- paste0("clustering_res_", res)
+    cluster_df <- cluster_df %>% mutate(!!title := ArchR_clustered@cellColData$clusters)
+  }
+  
+  plots[["clustree"]] <- clustree(cluster_df, prefix = "clustering_res_")
+  lay <- rbind(c(1,1,1,2,3,4),
+             c(1,1,1,5,6,7),
+             c(1,1,1,8,9,10))
+  lay <- rbind(c(10,10,10,1,2,3),
+               c(10,10,10,4,5,6),
+               c(10,10,10,7,8,9))
+  plots2 <- gridExtra::arrangeGrob(grobs = plots, layout_matrix = lay)
+  return(gridExtra::grid.arrange(plots2))
+}
+
+
 ############################## Read in ArchR project #######################################
 
 # If files are not in rds_files subdirectory look in input dir
 label <- sub('_.*', '', list.files(data_path))
 print(label)
+#label = "ss8"
 
 if (length(label) == 0){
   data_path = "./input/"
@@ -125,8 +153,27 @@ ArchR <- addIterativeLSI(
 )
 print("iterative LSI ran")
 
+############################## Run UMAP #################################
+ArchR <- addUMAP(
+  ArchRProj = ArchR, 
+  reducedDims = "IterativeLSI", 
+  name = "UMAP", 
+  nNeighbors = 30, 
+  minDist = 0.5, 
+  metric = "cosine",
+  force = TRUE
+)
+print("UMAP added")
+
 ################## Seurat graph-based clustering #################################
-if (length(unique(ArchR$stage)) == 1){
+
+# Try different clustering resolutions
+png(paste0(plot_path, "clustree_", run, ".png"), width=70, height=35, units = 'cm', res = 200)
+print(ArchR_ClustRes(ArchR, by = 0.2))
+graphics.off()
+
+# Set clustering res = 0.5 for stages and 2 for full data
+if (length(unique(ArchR$stage)) == 0.5){
   ArchR <- addClusters(
   input = ArchR,
   reducedDims = "IterativeLSI",
@@ -179,17 +226,7 @@ if (length(unique(ArchR$stage)) > 1){
   graphics.off()
 }
 
-############################## Run and plot UMAP #################################
-ArchR <- addUMAP(
-  ArchRProj = ArchR, 
-  reducedDims = "IterativeLSI", 
-  name = "UMAP", 
-  nNeighbors = 30, 
-  minDist = 0.5, 
-  metric = "cosine",
-  force = TRUE
-)
-print("UMAP added")
+############################ UMAP plots + save data #############################
 
 p1 <- plotEmbedding(ArchRProj = ArchR, colorBy = "cellColData", name = "stage", embedding = "UMAP")
 p2 <- plotEmbedding(ArchRProj = ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP")
@@ -200,6 +237,7 @@ graphics.off()
 
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+
 
 #################################################################################
 ############################### QC PLOTS ########################################
