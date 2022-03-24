@@ -73,7 +73,10 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ############################## Split ArchR project #######################################
 split_ArchR <- split_ArchR_by_stage(ArchR)
+print("ArcR object split")
+
 names(split_ArchR) <- unique(ArchR$stage)
+print(names(split_ArchR))
 
 # save RDS object for each stage/run
 for(split in names(split_ArchR)){
