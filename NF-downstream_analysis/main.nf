@@ -22,6 +22,7 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_PROCESSING } from "$baseDir/subworkflows/local/archr_processing"
 include { ARCHR_STAGE_PROCESSING } from "$baseDir/subworkflows/local/archr_stage_processing"
 
+include { METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_INTEGRATE } from "$baseDir/subworkflows/local/archr_integration"
 
 //
@@ -32,11 +33,6 @@ include { ARCHR_INTEGRATE } from "$baseDir/subworkflows/local/archr_integration"
 Channel
     .value(params.reference)
     .set{ch_reference}
-
-// set channel to rna RDS object - will need to adjust this so has contaminating clusters
-Channel
-    .value(params.seurat_RNA)
-    .set{ch_rna} //ch_rna: seurat.RDS
 
 
 //
@@ -58,20 +54,28 @@ workflow NFCORE_DOWNSTREAM {
     // ARCHR: run clustering + gene scores on individual stages
     ARCHR_STAGE_PROCESSING ( ARCHR_PROCESSING.out.archr_filtered_full ) //output = archr_filtered_stages
 
-    // add full ATAC data to list of ATAC stage data
-    // ARCHR_PROCESSING.out.archr_filtered_full
-    //     .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]}
-    //     .view()
-    //     .set { ch_atac_full }
+    // ATAC: combine stage data and full data
+    ARCHR_STAGE_PROCESSING.out.output
+        .combine(ARCHR_PROCESSING.out.output)
+        .view()
+        .set {ch_atac}
 
-    // ARCHR_STAGE_PROCESSING.out.atac_stage_merged
-    //     .combine(ch_atac_full) // Combine with full dataset
-    //     .map{ row -> [row[0], [row[1], row[2]]]}
-    //     .view()
-    //     .set { ch_atac_integrate } 
+    // RNA: read in data??
+    //.set ch_rna
+    METADATA_RNA( params.rna_sample_sheet )
+        .set {ch_rna}
+        .view()
+   
+    // combine ATAC and RNA data
+    ch_atac
+        .concat(ch_rna)
+        .groupTuple(by:0)
+        .view()
+        .set {ch_integrate}
 
-    // // read into integration 
-    // ARCHR_INTEGRATE( ch_atac_integrate )
+    // ARCHR: Integrate
+    ARCHR_INTEGRATE(ch_integrate)
+ )
 }
 
 

@@ -29,15 +29,21 @@ workflow ARCHR_STAGE_PROCESSING {
     
     // gene score plots for individual stages
     ARCHR_GENE_SCORES_STAGES( ARCHR_CLUSTERING_STAGES.out )
-    
-    // combine all rds objects into a list in a single channel
+
+    // extract rds objects
     ARCHR_CLUSTERING_STAGES.out
-        .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]}
+        .view() 
+        //should look like: 
+        //[[meta:'HH5'], [rds_files], [plots]],
+        //[[meta:'HH6'], [rds_files], [plots]]
+        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .view()
-        .set { ch_atac_stages }
+        //should look like:
+        //[[meta:'HH5'], HH5_atac.rds],
+        //[[meta:'HH6'], HH6_atac.rds]
+        .set(output_ch)
 
     //emit full filtered and clustered dataset:
     emit:
-    atac_stages_separate = ARCHR_CLUSTERING_STAGES.out
-    atac_stage_merged = ch_atac_stages
+    output = output_ch
 }

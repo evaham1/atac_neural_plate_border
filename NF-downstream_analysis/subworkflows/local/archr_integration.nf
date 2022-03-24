@@ -5,17 +5,10 @@ include {R as ARCHR_INTEGRATE} from "$baseDir/modules/local/r/main"             
 
 workflow ARCHR_INTEGRATION {
     take:
-    ATAC_list_data //Channel: [[meta], [HH5, rds_dir]]
-    RNA_list_data //Channel: [[meta], [plot_dir, rds_dir]]
+    input_ch
 
     main:
-    // need to add here adding full datasets to both ATAC and RNA lists
-
-    // combine ATAC list with RNA list one by one
-    ATAC_list_data
-        .view()
-
-    ARCHR_INTEGRATE ( ATAC_list_data )
+    ARCHR_INTEGRATE ( input_ch )
     
     // script to integrate datasets, run on full data and on subsets
 

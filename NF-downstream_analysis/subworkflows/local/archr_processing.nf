@@ -48,9 +48,20 @@ workflow ARCHR_PROCESSING {
 
     // plots using gene scores
     ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
+
+    // extract rds objects
+    ARCHR_CLUSTERING_POSTFILTER_TWICE.out
+        .view() 
+        //should look like: 
+        //[[meta:'full'], [rds_files], [plots]],
+        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
+        .view()
+        //should look like:
+        //[[meta:'full'], full_atac.rds]
+        .set(output_ch)
     
 
     //emit full filtered and clustered dataset:
     emit:
-    archr_filtered_full = ARCHR_CLUSTERING_POSTFILTER_TWICE.out
+    output = output_ch
 }
