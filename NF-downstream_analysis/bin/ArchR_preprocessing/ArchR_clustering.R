@@ -14,6 +14,7 @@ library(pheatmap)
 library(gridExtra)
 library(grid)
 library(parallel)
+library(clustree)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -172,14 +173,14 @@ png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 
 print(ArchR_ClustRes(ArchR, by = 0.2))
 graphics.off()
 
-# Set clustering res = 0.5 for stages and 2 for full data
-if (length(unique(ArchR$stage)) == 0.5){
+# Set clustering res = 1 for stages and 2 for full data
+if (length(unique(ArchR$stage)) == 1){
   ArchR <- addClusters(
   input = ArchR,
   reducedDims = "IterativeLSI",
   method = "Seurat",
   name = "clusters",
-  resolution = 1.5,
+  resolution = 1,
   force = TRUE)
 } else {
   ArchR <- addClusters(
