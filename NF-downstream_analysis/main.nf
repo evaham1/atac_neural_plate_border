@@ -64,7 +64,7 @@ workflow NFCORE_DOWNSTREAM {
     //.set ch_rna
     METADATA_RNA( params.rna_sample_sheet )
         .set {ch_rna}
-        .view() - NULL??
+        .view()
    
     // combine ATAC and RNA data
     ch_atac
