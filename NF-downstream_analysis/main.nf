@@ -52,7 +52,7 @@ workflow NFCORE_DOWNSTREAM {
     ARCHR_PROCESSING ( ch_metadata ) //output = archr_filtered_full
 
     // ARCHR: run clustering + gene scores on individual stages
-    ARCHR_STAGE_PROCESSING ( ARCHR_PROCESSING.out.archr_filtered_full ) //output = archr_filtered_stages
+    ARCHR_STAGE_PROCESSING ( ARCHR_PROCESSING.out.output )
 
     // ATAC: combine stage data and full data
     ARCHR_STAGE_PROCESSING.out.output
