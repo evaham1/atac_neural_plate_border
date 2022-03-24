@@ -22,7 +22,7 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_PROCESSING } from "$baseDir/subworkflows/local/archr_processing"
 include { ARCHR_STAGE_PROCESSING } from "$baseDir/subworkflows/local/archr_stage_processing"
 
-include { METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_INTEGRATE } from "$baseDir/subworkflows/local/archr_integration"
 
 //
