@@ -53,6 +53,7 @@ workflow ARCHR_PROCESSING {
     ARCHR_CLUSTERING_POSTFILTER_TWICE.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]} //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
         .flatMap {it[1][0].listFiles()}
+        .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
         .view()
         //should look like:
         //[[meta:'full'], full_atac.rds]
