@@ -44,7 +44,10 @@ opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 if(opt$verbose) print(opt)
 
-# Set paths and load data
+print(paste0("full_data option: ", opt$full_data)
+print(paste0("group_by option: ", opt$group_by)
+
+# Set paths
 plot_path = "./plots/"
 rds_path = "./rds_files/"
 data_path = "./input/"
@@ -54,14 +57,17 @@ cat(paste0("script ran with ", ncores, " cores\n"))
 dir.create(plot_path, recursive = T)
 dir.create(rds_path, recursive = T)
 
+# Load data
 files <- list.files(data_path, full.names = TRUE, pattern = '*.RDS')
 stage_data <- grep(opt$full_data, files, invert = T, value = TRUE)
 #full_data <- grep(opt$full_data, files, invert = F, value = TRUE)
 full_data <- list.files(paste0(data_path, "rds_files/"), full.names = TRUE)
 
 cell_states <- lapply(stage_data, readRDS) %>% lapply(., function(x) x@meta.data[opt$group_by]) %>% do.call('rbind', .)
-
+cell_states
 seurat_data <- readRDS(full_data)
+seurat_data
+print("data read in")
 
 seurat_data@meta.data[[opt$group_by]] <- cell_states[match(rownames(seurat_data@meta.data), rownames(cell_states)), ]
 
