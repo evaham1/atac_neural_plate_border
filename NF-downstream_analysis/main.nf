@@ -75,7 +75,6 @@ workflow NFCORE_DOWNSTREAM {
 
     // ARCHR: Integrate
     ARCHR_INTEGRATE(ch_integrate)
- )
 }
 
 
