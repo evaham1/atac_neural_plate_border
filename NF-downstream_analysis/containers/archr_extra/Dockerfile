@@ -1,6 +1,6 @@
-FROM  evahamrud/sc_multi_omic-archr_r4.1.2:latest
+FROM  evahamrud/sc_multi_omic-archr:latest
 
 LABEL authors="eva.hamrud@crick.ac.uk" \
-      description="Docker image with R4.1.2 and ArchR plus extras"
+      description="Docker image with extras"
 
-RUN   R -e "install.packages('future.apply')" 
+RUN   R -e "install.packages('clustree')" 
