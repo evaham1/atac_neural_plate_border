@@ -44,22 +44,19 @@ workflow ARCHR_PROCESSING {
     ARCHR_CLUSTERING_POSTFILTER( ARCHR_FILTER_CLUSTERS_1.out )
     ARCHR_FILTER_CLUSTERS_2( ARCHR_CLUSTERING_POSTFILTER.out ) // filtering round 2
     ARCHR_CLUSTERING_POSTFILTER_TWICE( ARCHR_FILTER_CLUSTERS_2.out )
-    ARCHR_DOUBLETS_FILTERED( ARCHR_FILTER_CLUSTERS_2.out ) // see if adding doublet scores after filtering any better
+    //ARCHR_DOUBLETS_FILTERED( ARCHR_FILTER_CLUSTERS_2.out ) // see if adding doublet scores after filtering any better
 
     // plots using gene scores
-    ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
+    //ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
 
     // extract rds objects
-    ARCHR_CLUSTERING_POSTFILTER_TWICE.out
-        .view() 
-        //should look like: 
-        //[[meta:'full'], [rds_files], [plots]],
-        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
+    ARCHR_CLUSTERING_POSTFILTER_TWICE.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
+        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]} //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
+        .flatMap {it[1][0].listFiles()}
         .view()
         //should look like:
         //[[meta:'full'], full_atac.rds]
         .set {output_ch}
-    
 
     //emit full filtered and clustered dataset:
     emit:
