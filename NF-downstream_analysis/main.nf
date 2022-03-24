@@ -64,13 +64,13 @@ workflow NFCORE_DOWNSTREAM {
     //.set ch_rna
     METADATA_RNA( params.rna_sample_sheet )
         .set {ch_rna}
-        .view()
+        .view() - NULL??
    
     // combine ATAC and RNA data
     ch_atac
         .concat(ch_rna)
         .groupTuple(by:0)
-        .view()
+        //.view()
         .set {ch_integrate}
 
     // ARCHR: Integrate
