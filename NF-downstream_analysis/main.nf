@@ -57,14 +57,14 @@ workflow NFCORE_DOWNSTREAM {
     // ATAC: combine stage data and full data
     ARCHR_STAGE_PROCESSING.out.output
         .combine(ARCHR_PROCESSING.out.output)
-        .view()
+        //.view()
         .set {ch_atac}
 
     // RNA: read in data??
     //.set ch_rna
     METADATA_RNA( params.rna_sample_sheet )
         .set {ch_rna}
-        .view()
+        //.view()
    
     // combine ATAC and RNA data
     ch_atac
