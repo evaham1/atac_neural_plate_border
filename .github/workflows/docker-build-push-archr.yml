@@ -16,7 +16,7 @@ jobs:
       matrix:
         tag: ["base"]
         docker-file: ["Dockerfile"]
-        module-name: ["r_signac"]
+        module-name: ["archr"]
 
     steps:
       -
