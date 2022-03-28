@@ -80,11 +80,8 @@ workflow NFCORE_DOWNSTREAM {
         .view()
     MERGE( ch_combined )
 
-    // run check - without filtering HH4 this should be identical as plots in input check
-    OUTPUT_CHECK( MERGE.out )
-
-    // // run clustering on merged data
-    // CLUSTER_FULL( MERGE.out )
+    // run clustering on merged data
+    CLUSTER_FULL( MERGE.out )
 
     // // Transfer labels from individual stages to merged data
     // ch_labels = STATE_CLASSIFICATION.out
