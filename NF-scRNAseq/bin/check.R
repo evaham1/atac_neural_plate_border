@@ -3,6 +3,17 @@
 # Load packages
 library(getopt)
 library(Seurat)
+library(optparse) 
+library(Seurat)
+library(future)
+library(cowplot)
+library(clustree)
+library(gridExtra)
+library(grid)
+library(pheatmap)
+library(RColorBrewer)
+library(tidyverse)
+library(scHelper)
 
 spec = matrix(c(
   'runtype', 'l', 2, "character",
