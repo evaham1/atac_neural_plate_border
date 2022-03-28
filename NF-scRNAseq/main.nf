@@ -59,7 +59,7 @@ workflow NFCORE_DOWNSTREAM {
     SPLIT.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
-        .filter{!(it =~ /HH4/)}
+        //.filter{!(it =~ /HH4/)}
         .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
         .set { ch_split_run }
 
