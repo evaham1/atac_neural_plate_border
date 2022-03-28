@@ -37,6 +37,12 @@ plot_path = "./plots/"
 rds_path = "./rds_files/"
 data_path = "./input/rds_files/"
 
+# Set interactive paths for output of split process
+#plot_path = "./output/NF-scRNAseq/TEST/plots/"
+#rds_path = "./output/NF-scRNAseq/TEST/rds_files/"
+#data_path = "./output/NF-scRNAseq/split_stages/rds_files/HH6_splitstage_data.RDS"
+#seurat_data <- readRDS(data_path)
+
 dir.create(plot_path, recursive = T)
 dir.create(rds_path, recursive = T)
 
@@ -44,7 +50,6 @@ dir.create(rds_path, recursive = T)
 
 ## look both in input/rds_files/ and in input/
 label <- sub('_.*', '', list.files(data_path))
-print(label)
 
 if (length(label) == 0){
   data_path = "./input/"
@@ -68,7 +73,7 @@ print("RNA variable features:")
 seurat_data@assays$RNA@var.features
 
 print("RNA integrated features:")
-seurat_data@assays$RNA@var.features
+seurat_data@assays$integrated@var.features
 
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 print("RNA assay scaled")
@@ -96,9 +101,10 @@ graphics.off()
 
 # automatically determine elbow
 pc_cutoff <- ElbowCutoff(seurat_data)
+print(pc_cutoff)
 
 # if pc_cutoff is smaller than 7 then don't run with pc_cutoff-5 as too small to run UMAP
-cutoffs = ifelse(pc_cutoff < 7, c(pc_cutoff, pc_cutoff+5, pc_cutoff+10, pc_cutoff+15), c(pc_cutoff-5, pc_cutoff, pc_cutoff+5, pc_cutoff+10))
+if(pc_cutoff < 7){cutoffs =  c(pc_cutoff, pc_cutoff+5, pc_cutoff+10, pc_cutoff+15)} else{cutoffs = c(pc_cutoff-5, pc_cutoff, pc_cutoff+5, pc_cutoff+10)}
 png(paste0(plot_path, "UMAP_PCA_comparison.png"), width=40, height=30, units = 'cm', res = 200)
 PCALevelComparison(seurat_data, PCA_levels = cutoffs, cluster_res = opt$clustres)
 graphics.off()
@@ -114,6 +120,7 @@ ClustRes(seurat_object = seurat_data, by = 0.2, prefix = "integrated_snn_res.")
 graphics.off()
 
 # Cluster data
+opt$clustres = 1.4
 seurat_data <- FindClusters(seurat_data, resolution = opt$clustres)
 
 ############################## UMAPs #######################################
@@ -183,5 +190,3 @@ unlink(paste0(plot_path, 'feature_plots/'), recursive=TRUE, force=TRUE)
 
 ############################## Save Data #######################################
 saveRDS(seurat_data, paste0(rds_path, label, "_clustered_data.RDS"), compress = FALSE)
-
-
