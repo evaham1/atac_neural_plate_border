@@ -28,4 +28,5 @@ RUN   R -e "install.packages('gridExtra')" && \
       R -e "install.packages('pheatmap')" && \
       R -e "install.packages('patchwork')" && \
       R -e "install.packages('future')" && \
-      R -e "install.packages('future.apply')"
+      R -e "install.packages('future.apply')" && \
+      R -e "install.packages('clustree')"
