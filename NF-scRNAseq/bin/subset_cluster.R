@@ -61,9 +61,6 @@ if (length(label) == 0){
   seurat_data <- readRDS(list.files(data_path, full.names = TRUE))
 }
 
-# Set RNA to default assay
-DefaultAssay(seurat_data) <- "RNA"
-
 ############################## Scaling #######################################
 
 print("RNA variable features before doing anything:")
