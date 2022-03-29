@@ -63,26 +63,40 @@ if (length(label) == 0){
 
 ############################## Scaling #######################################
 
-print("RNA variable features before doing anything:")
-seurat_data@assays$RNA@var.features
-print("Integrated variable features before doing anything:")
-seurat_data@assays$integrated@var.features
+# Set RNA to default assay
+DefaultAssay(seurat_data) <- "RNA"
+
+# Re-run findvariablefeatures and scaling
+seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+
+seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 
 # Set Integrated to default assay
 DefaultAssay(seurat_data) <- "integrated"
 
-# Recalculate variable features
-seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000)
-print("Integrated variable features calculated")
-
-print("RNA variable features after finding variable features on integrated assay:")
-seurat_data@assays$RNA@var.features
-print("Integrated variable features after finding variable features on integrated assay:")
-seurat_data@assays$integrated@var.features
-
 # Rescale data on integrated assay
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
-print("integrated assay scaled")
+
+# print("RNA variable features before doing anything:")
+# seurat_data@assays$RNA@var.features
+# print("Integrated variable features before doing anything:")
+# seurat_data@assays$integrated@var.features
+
+# # Set Integrated to default assay
+# DefaultAssay(seurat_data) <- "integrated"
+
+# # Recalculate variable features
+# seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000)
+# print("Integrated variable features calculated")
+
+# print("RNA variable features after finding variable features on integrated assay:")
+# seurat_data@assays$RNA@var.features
+# print("Integrated variable features after finding variable features on integrated assay:")
+# seurat_data@assays$integrated@var.features
+
+# # Rescale data on integrated assay
+# seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+# print("integrated assay scaled")
 
 ############################## Dimensionality reduction #######################################
 
