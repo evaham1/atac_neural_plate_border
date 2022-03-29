@@ -133,7 +133,6 @@ ClustRes(seurat_object = seurat_data, by = 0.2, prefix = "integrated_snn_res.")
 graphics.off()
 
 # Cluster data
-opt$clustres = 1.4
 seurat_data <- FindClusters(seurat_data, resolution = opt$clustres)
 
 ############################## UMAPs #######################################
