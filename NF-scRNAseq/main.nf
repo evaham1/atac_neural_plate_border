@@ -83,9 +83,6 @@ workflow NFCORE_DOWNSTREAM {
     // run clustering on merged data
     CLUSTER_FULL( MERGE.out )
 
-    // run clustering using the cell cycle script to check
-    CLUSTER_CHECK( MERGE.out )
-
     // // Transfer labels from individual stages to merged data
     // ch_labels = STATE_CLASSIFICATION.out
     //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
