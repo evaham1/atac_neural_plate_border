@@ -72,26 +72,19 @@ workflow NFCORE_DOWNSTREAM {
         .set { ch_state_classification }    //Channel: [[meta], [rds_file, csv]]
     STATE_CLASSIFICATION( ch_state_classification )
 
-    // Collect rds files from all stages and merge into one combined object
-    ch_combined = STATE_CLASSIFICATION.out
+    // Subset the input data to remove HH4
+    SUBSET( METADATA.out )
+    CLUSTER_FULL( SUBSET.out )
+
+    // Transfer labels from individual stages to merged data
+    ch_labels = STATE_CLASSIFICATION.out
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
         .collect()
         .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-        .view()
-    MERGE( ch_combined )
-
-    // run clustering on merged data
-    CLUSTER_FULL( MERGE.out )
-
-    // // Transfer labels from individual stages to merged data
-    // ch_labels = STATE_CLASSIFICATION.out
-    //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-    //     .collect()
-    //     .map { [[sample_id:'all_stages'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-    //     .combine( CLUSTER_FULL.out ) //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5], [sample_id:NF-scRNA-input], [rds_files, plots]]
-    //     .map{[it[0], it[1] + it[3]]} //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5, rds_files, plots]
-    //     //.view() //[[sample_id:all_stages], [HH6, HH4, ss8, ss4, HH7, HH5, cell_cycle_data.RDS]]
-    // TRANSFER_LABELS( ch_labels )
+        .combine( CLUSTER_FULL.out ) //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5], [sample_id:NF-scRNA-input], [rds_files, plots]]
+        .map{[it[0], it[1] + it[3]]} //[[sample_id:all_stages], [HH7, ss8, HH6, ss4, HH4, HH5, rds_files, plots]
+        //.view() //[[sample_id:all_stages], [HH6, HH4, ss8, ss4, HH7, HH5, cell_cycle_data.RDS]]
+    TRANSFER_LABELS( ch_labels )
 }
 
 
