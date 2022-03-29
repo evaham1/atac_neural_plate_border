@@ -152,41 +152,41 @@ png(paste0(plot_path, "QCPlot.png"), width=40, height=28, units = 'cm', res = 20
 QCPlot(seurat_data)
 graphics.off()
 
-############################## Differentially expressed genes #######################################
+# ############################## Differentially expressed genes #######################################
 
-# Find differentially expressed genes and plot heatmap of top DE genes for each cluster
-markers <- FindAllMarkers(seurat_data, only.pos = T, logfc.threshold = 0.25, assay = "RNA")
-# get automated cluster order based on percentage of cells in adjacent stages
-cluster_order = OrderCellClusters(seurat_object = seurat_data, col_to_sort = opt$meta_col, sort_by = 'stage')
-# Re-order genes in top15 based on desired cluster order in subsequent plot - this orders them in the heatmap in the correct order
-top15 <- markers %>% group_by(cluster) %>% top_n(n = 15, wt = avg_log2FC) %>% arrange(factor(cluster, levels = cluster_order))
+# # Find differentially expressed genes and plot heatmap of top DE genes for each cluster
+# markers <- FindAllMarkers(seurat_data, only.pos = T, logfc.threshold = 0.25, assay = "RNA")
+# # get automated cluster order based on percentage of cells in adjacent stages
+# cluster_order = OrderCellClusters(seurat_object = seurat_data, col_to_sort = opt$meta_col, sort_by = 'stage')
+# # Re-order genes in top15 based on desired cluster order in subsequent plot - this orders them in the heatmap in the correct order
+# top15 <- markers %>% group_by(cluster) %>% top_n(n = 15, wt = avg_log2FC) %>% arrange(factor(cluster, levels = cluster_order))
 
-png(paste0(plot_path, 'HM.top15.DE.seurat_data.png'), height = 75, width = 100, units = 'cm', res = 500)
-TenxPheatmap(data = seurat_data, metadata = c(opt$meta_col, "stage"), custom_order_column = opt$meta_col,
-             custom_order = cluster_order, selected_genes = unique(top15$gene), gaps_col = opt$meta_col, assay = 'RNA')
-graphics.off()
+# png(paste0(plot_path, 'HM.top15.DE.seurat_data.png'), height = 75, width = 100, units = 'cm', res = 500)
+# TenxPheatmap(data = seurat_data, metadata = c(opt$meta_col, "stage"), custom_order_column = opt$meta_col,
+#              custom_order = cluster_order, selected_genes = unique(top15$gene), gaps_col = opt$meta_col, assay = 'RNA')
+# graphics.off()
 
-############################## Feature Plots #######################################
+# ############################## Feature Plots #######################################
 
-# Plot feature plots for all variable genes
-# Set RNA to default assay
-DefaultAssay(seurat_data) <- "RNA"
+# # Plot feature plots for all variable genes
+# # Set RNA to default assay
+# DefaultAssay(seurat_data) <- "RNA"
 
-dir.create(paste0(plot_path, 'feature_plots/'))
-for(i in seurat_data@assays$RNA@var.features){
-    png(paste0(plot_path, 'feature_plots/', i, '.png'), height = 12, width = 12, units = 'cm', res = 100)
-    print(
-        FeaturePlot(seurat_data, features = i, pt.size = 1.4) +
-            theme_void() +
-            theme(plot.title = element_blank(),
-                legend.text = element_text(size=16),
-                legend.key.size = unit(1, 'cm'))
-        )
-    graphics.off()
-}
+# dir.create(paste0(plot_path, 'feature_plots/'))
+# for(i in seurat_data@assays$RNA@var.features){
+#     png(paste0(plot_path, 'feature_plots/', i, '.png'), height = 12, width = 12, units = 'cm', res = 100)
+#     print(
+#         FeaturePlot(seurat_data, features = i, pt.size = 1.4) +
+#             theme_void() +
+#             theme(plot.title = element_blank(),
+#                 legend.text = element_text(size=16),
+#                 legend.key.size = unit(1, 'cm'))
+#         )
+#     graphics.off()
+# }
 
-system(paste0("zip -rj ", plot_path, "feature_plots.zip ", paste0(plot_path, 'feature_plots/')))
-unlink(paste0(plot_path, 'feature_plots/'), recursive=TRUE, force=TRUE)
+# system(paste0("zip -rj ", plot_path, "feature_plots.zip ", paste0(plot_path, 'feature_plots/')))
+# unlink(paste0(plot_path, 'feature_plots/'), recursive=TRUE, force=TRUE)
 
 ############################## Save Data #######################################
 saveRDS(seurat_data, paste0(rds_path, label, "_clustered_data.RDS"), compress = FALSE)
