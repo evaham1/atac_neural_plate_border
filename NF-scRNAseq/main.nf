@@ -28,7 +28,7 @@ include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               a
 include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/transfer_labels.R", checkIfExists: true) )
 
 include {R as INPUT_CHECK} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/check.R", checkIfExists: true) )
-include {R as OUTPUT_CHECK} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/check.R", checkIfExists: true) )
+include {R as CLUSTER_CHECK} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/5_cell_cycle.R", checkIfExists: true) )
 
 //
 // SET CHANNELS
@@ -82,6 +82,9 @@ workflow NFCORE_DOWNSTREAM {
 
     // run clustering on merged data
     CLUSTER_FULL( MERGE.out )
+
+    // run clustering using the cell cycle script to check
+    CLUSTER_CHECK( MERGE.out )
 
     // // Transfer labels from individual stages to merged data
     // ch_labels = STATE_CLASSIFICATION.out
