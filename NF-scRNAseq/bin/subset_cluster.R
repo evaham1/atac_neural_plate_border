@@ -50,6 +50,7 @@ dir.create(rds_path, recursive = T)
 
 ## look both in input/rds_files/ and in input/
 label <- sub('_.*', '', list.files(data_path))
+print(label)
 
 if (length(label) == 0){
   data_path = "./input/"
@@ -65,21 +66,22 @@ DefaultAssay(seurat_data) <- "RNA"
 
 ############################## Scaling #######################################
 
-# Re-run findvariablefeatures and scaling
-seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000)
-print("variable features calculated")
-
-print("RNA variable features:")
+print("RNA variable features before doing anything:")
 seurat_data@assays$RNA@var.features
-
-print("RNA integrated features:")
+print("Integrated variable features before doing anything:")
 seurat_data@assays$integrated@var.features
-
-seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
-print("RNA assay scaled")
 
 # Set Integrated to default assay
 DefaultAssay(seurat_data) <- "integrated"
+
+# Recalculate variable features
+seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000)
+print("Integrated variable features calculated")
+
+print("RNA variable features after finding variable features on integrated assay:")
+seurat_data@assays$RNA@var.features
+print("Integrated variable features after finding variable features on integrated assay:")
+seurat_data@assays$integrated@var.features
 
 # Rescale data on integrated assay
 seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
@@ -87,8 +89,8 @@ print("integrated assay scaled")
 
 ############################## Dimensionality reduction #######################################
 
-# PCA
-seurat_data <- RunPCA(object = seurat_data, features = rownames(seurat_data), verbose = FALSE)
+# PCA - this will use variable features in this assay
+seurat_data <- RunPCA(object = seurat_data, verbose = FALSE)
 print("PCA ran")
 
 png(paste0(plot_path, "dimHM.png"), width=30, height=50, units = 'cm', res = 200)
@@ -101,7 +103,7 @@ graphics.off()
 
 # automatically determine elbow
 pc_cutoff <- ElbowCutoff(seurat_data)
-print(pc_cutoff)
+print(paste0("pc_cutoff:", pc_cutoff))
 
 # if pc_cutoff is smaller than 7 then don't run with pc_cutoff-5 as too small to run UMAP
 if(pc_cutoff < 7){cutoffs =  c(pc_cutoff, pc_cutoff+5, pc_cutoff+10, pc_cutoff+15)} else{cutoffs = c(pc_cutoff-5, pc_cutoff, pc_cutoff+5, pc_cutoff+10)}
@@ -153,6 +155,19 @@ QCPlot(seurat_data)
 graphics.off()
 
 # ############################## Differentially expressed genes #######################################
+# ############################## switch to RNA assay #######################################
+
+# # Re-run findvariablefeatures and scaling on RNA assay
+# seurat_data <- FindVariableFeatures(seurat_data, selection.method = "vst", nfeatures = 2000)
+# print("RNA variable features calculated")
+
+# print("RNA variable features after finding variable features on RNA assay:")
+# seurat_data@assays$RNA@var.features
+# print("Integrated variable features after finding variable features on RNA assay:")
+# seurat_data@assays$integrated@var.features
+
+# seurat_data <- ScaleData(seurat_data, features = rownames(seurat_data), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+# print("RNA assay scaled")
 
 # # Find differentially expressed genes and plot heatmap of top DE genes for each cluster
 # markers <- FindAllMarkers(seurat_data, only.pos = T, logfc.threshold = 0.25, assay = "RNA")
