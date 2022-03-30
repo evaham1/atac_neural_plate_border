@@ -21,7 +21,7 @@ RUN   R -e "if (!requireNamespace('org.Gg.eg.db', quietly = TRUE)){BiocManager::
 RUN   R -e "if (!requireNamespace('BSgenome.Ggallus.UCSC.galGal6', quietly = TRUE)){BiocManager::install('BSgenome.Ggallus.UCSC.galGal6')}"
 
 ## Other packages:
-# Install other packages that are needed
+# Install other packages that are needed 
 RUN   R -e "install.packages('gridExtra')" && \
       R -e "install.packages('getopt')" && \
       R -e "install.packages('optparse')" && \
