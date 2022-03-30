@@ -29,8 +29,8 @@ opt = getopt(spec)
     
     plot_path = "../output/NF-downstream_analysis/1_ArchR_preprocessing/plots/"
     rds_path = "../output/NF-downstream_analysis/1_ArchR_preprocessing/rds_files/"
-    data_path = "../output/NF-luslab_sc_multiomic/test/cellranger_atac_output/"
-    ref_path = "../output/NF-luslab_sc_multiomic/reference/"
+    data_path = "../output/NF-cellranger_align/test/cellranger_atac_output/"
+    #ref_path = "../output/NF-luslab_sc_multiomic/reference/"
 
     addArchRThreads(threads = 1) 
     
