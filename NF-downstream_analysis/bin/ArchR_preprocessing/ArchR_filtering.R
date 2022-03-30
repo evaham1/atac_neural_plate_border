@@ -79,6 +79,9 @@ png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units
 print(p2)
 graphics.off()
 
+print(paste0("Minimum TSS Enrichment score:", min(ArchR$TSSEnrichment)))
+print(paste0("Maximum TSS Enrichment score:", max(ArchR$TSSEnrichment)))
+
 ############################## Plot log10(Unique Fragments) #######################################
 p3 <- plotGroups(
   ArchRProj = ArchR, 
@@ -103,6 +106,9 @@ p4 <- plotGroups(
 png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p4)
 graphics.off()
+
+print(paste0("Minimum number of fragments", min(ArchR$nFrags)))
+print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
 
 ############################## Plot nucleosome banding #######################################
 
