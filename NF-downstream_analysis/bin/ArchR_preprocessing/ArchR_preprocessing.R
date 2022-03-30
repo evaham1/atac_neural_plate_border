@@ -133,8 +133,9 @@ getAvailableMatrices(ArchR)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 # add stage to metadata
-stage <- substr(ArchR$Sample, 1, 3)
+stage <- substr(ArchR$Sample, 8, 10)
 ArchR$stage <- stage
+print(unique(stage))
 
 # check whether the createArrowFiles thresholds applied correctly
 print(min(ArchR$nFrags))
