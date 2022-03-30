@@ -19,6 +19,8 @@ nextflow.enable.dsl = 2
 
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 
+include {R as CONTAMINATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/contamination_identify.R", checkIfExists: true) )
+
 include {R as SPLIT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/split_seurat.R", checkIfExists: true) )
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/cluster.R", checkIfExists: true) )
 include {R as STATE_CLASSIFICATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/state_classification_contam.R", checkIfExists: true) )
@@ -51,8 +53,11 @@ workflow NFCORE_DOWNSTREAM {
     // make some plots to check the input is exactly as expected (cell_cycle_data.RDS)
     INPUT_CHECK( METADATA.out )
 
+    // run a modified contamination_filt script to identify contaminating cell IDs and add them to metadata
+    CONTAMINATION( METADATA.out )
+
     // split the cell_cycle_data object into individual stages
-    SPLIT( METADATA.out )
+    SPLIT( CONTAMINATION.out )
 
     // filter out the HH4 stage and split remaining stages into individual channels
     SPLIT.out
