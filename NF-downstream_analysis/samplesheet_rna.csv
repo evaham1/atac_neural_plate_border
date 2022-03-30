@@ -4,4 +4,4 @@ HH6,../output/NF-scRNAseq/HH6_splitstage_data/state_classification/rds_files/HH6
 HH7,../output/NF-scRNAseq/HH7_splitstage_data/state_classification/rds_files/HH7_cell_state_classification.RDS
 ss4,../output/NF-scRNAseq/ss4_splitstage_data/state_classification/rds_files/ss4_cell_state_classification.RDS
 ss8,../output/NF-scRNAseq/ss8_splitstage_data/state_classification/rds_files/ss8_cell_state_classification.RDS
-full,../output/NF-scRNAseq/transfer_labels/rds_files/seurat_label_transfer.RDS
+full,../output/NF-scRNAseq/minus_HH4/transfer_labels/rds_files/seurat_label_transfer.RDS
