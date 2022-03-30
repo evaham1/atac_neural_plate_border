@@ -60,7 +60,7 @@ workflow NFCORE_DOWNSTREAM {
         //.view()
         .set {ch_atac}
 
-    // RNA: read in data??
+    // RNA: read in data
     //.set ch_rna
     METADATA_RNA( params.rna_sample_sheet )
         .set {ch_rna}
@@ -70,7 +70,7 @@ workflow NFCORE_DOWNSTREAM {
     ch_atac
         .concat(ch_rna)
         .groupTuple(by:0)
-        //.view()
+        .view()
         .set {ch_integrate}
 
     // ARCHR: Integrate

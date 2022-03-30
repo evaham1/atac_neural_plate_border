@@ -18,7 +18,7 @@ workflow ARCHR_STAGE_PROCESSING {
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         //.view() //[[meta], [rds_files]]
         .flatMap {it[1][0].listFiles()}
-        .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
+        .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
         .set { ch_split_stage }     
     
     //ch_split_stage
@@ -32,15 +32,8 @@ workflow ARCHR_STAGE_PROCESSING {
 
     // extract rds objects
     ARCHR_CLUSTERING_STAGES.out
-        .view() 
-        //should look like: 
-        //[[meta:'HH5'], [rds_files], [plots]],
-        //[[meta:'HH6'], [rds_files], [plots]]
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
-        .view()
-        //should look like:
-        //[[meta:'HH5'], HH5_atac.rds],
-        //[[meta:'HH6'], HH6_atac.rds]
+        .view() //[[sample_id:HH6_Save-ArchR], [rds_files]]
         .set {output_ch}
 
     //emit full filtered and clustered dataset:
