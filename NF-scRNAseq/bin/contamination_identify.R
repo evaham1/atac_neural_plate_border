@@ -79,17 +79,6 @@ BI_clusters <- IdentifyOutliers(seurat_obj = seurat_data, metrics = 'Blood islan
 Mesoderm_clusters <- IdentifyOutliers(seurat_obj = seurat_data, metrics = 'Mesoderm module', quantiles = c(0.1, 0.90), intersect_metrics = FALSE)
 Endoderm_clusters <- IdentifyOutliers(seurat_obj = seurat_data, metrics = 'Endoderm module', quantiles = c(0.1, 0.90), intersect_metrics = FALSE)
 
-rownames(filter(seurat_data@meta.data, seurat_clusters %in% PGC_clusters))
-
-which(rownames(seurat_data) %in% )
-
-seurat_data@meta.data$seurat_clusters %in% BI_clusters
-
-seurat_data@meta.data$old_cell_states <- 
-  
-seurat_data@meta.data %>% mutate(old_cell_states = 
-                              )
-
 seurat_data@meta.data <- seurat_data@meta.data %>%
   mutate(old_cell_states = case_when(seurat_clusters %in% PGC_clusters ~ "Contam: PGC",
          seurat_clusters %in% BI_clusters ~ "Contam: BI",
@@ -102,7 +91,6 @@ unique(seurat_data@meta.data$old_cell_states)
 png(paste0(plot_path, "IdentifiedContam_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
 DimPlot(seurat_data, group.by = "old_cell_states")
 graphics.off()
-
 
 saveRDS(seurat_data, paste0(rds_path, "contamination_identified.RDS"), compress = FALSE)
 
