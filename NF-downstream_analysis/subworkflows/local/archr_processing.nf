@@ -50,7 +50,7 @@ workflow ARCHR_PROCESSING {
     //ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
 
     // extract rds objects
-    ARCHR_CLUSTERING_POSTFILTER.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
+    ARCHR_FILTER_CLUSTERS_1.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]} //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
