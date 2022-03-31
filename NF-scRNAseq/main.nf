@@ -46,27 +46,22 @@ Channel
 //
 workflow NFCORE_DOWNSTREAM {
 
-    // extract labels from transfer_labels object
-    //EXTRACT(transfer_labels)
-
     METADATA( params.sample_sheet )
     //METADATA.out:
     //[[sample_id:NF-scRNA-input], [./cell_cycle_data.RDS]]
 
-    // make some plots to check the input is exactly as expected (cell_cycle_data.RDS)
-    INPUT_CHECK( METADATA.out )
-
-    // run a modified contamination_filt script to identify contaminating cell IDs and add them to metadata
-    CONTAMINATION( METADATA.out )
+    //
+    // IDENTIFYING NEW CELL STATE LABELS:
+    //
 
     // split the cell_cycle_data object into individual stages
-    SPLIT( CONTAMINATION.out )
+    SPLIT( METADATA.out )
 
     // filter out the HH4 stage and split remaining stages into individual channels
     SPLIT.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
-        //.filter{!(it =~ /HH4/)}
+        .filter{!(it =~ /HH4/)}
         .map { row -> [[sample_id:row.name.replaceFirst(~/\.[^\.]+$/, '')], row] }
         .set { ch_split_run }
 
@@ -79,9 +74,24 @@ workflow NFCORE_DOWNSTREAM {
         .set { ch_state_classification }    //Channel: [[meta], [rds_file, csv]]
     STATE_CLASSIFICATION( ch_state_classification )
 
+    //
+    // TRANSFER OVER OLD CELL STATE LABELS:
+    //
+
+    // run a modified contamination_filt script to identify contaminating cell IDs and add them to metadata
+    CONTAMINATION( METADATA.out )
+
+    // use an edited transfer labels process to transfer labels of transfer_labels object into 'old' column of data
+    //channel operation similar to the one below to read in both CONTAMINATION.out and TRANSFER LABELS object
+    //TRANSFER_OLD_LABELS(transfer_labels)
+
     // Subset the input data to remove HH4
-    SUBSET( METADATA.out )
+    SUBSET( TRANSFER_OLD_LABELS.out )
     CLUSTER_FULL( SUBSET.out )
+
+    //
+    // COMBINE OLD AND NEW LABELS:
+    //
 
     // Transfer labels from individual stages to merged data
     ch_labels = STATE_CLASSIFICATION.out
