@@ -112,7 +112,7 @@ if (is.null(outliers) == FALSE){
   graphics.off()
 }
 
-# filter ArchR object
+# filter ArchR object (only if outliers have been detected)
 if (is.null(outliers) == FALSE){
   ArchR <- addCellColData(ArchRProj = ArchR, data = rep("poor_quality", length(cellsSample)),
                             cells = cellsSample, name = "quality", force = TRUE)
@@ -124,8 +124,8 @@ if (is.null(outliers) == FALSE){
 }
 
 # save filtered ArchR project
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+paste0("Memory Size = ", round(object.size(ArchR_filtered) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
 # plot cell counts before and after filtering
 unfiltered <- table(ArchR$stage)
