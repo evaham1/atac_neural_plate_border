@@ -126,3 +126,14 @@ graphics.off()
 png(paste0(plot_path, "dotplot_GOI.png"), width = 30, height = 12, units = "cm", res = 200)
 DotPlot(seurat_data, features = unique(unlist(genes)))
 graphics.off()
+
+
+
+# ######## add cell ids that were extracted from transfer_labels object
+
+# old_cell_ids <- read_csv("TEST.csv")
+# old_cell_ids
+
+# seurat_data@meta.data$old_cell_states <- old_cell_ids$scHelper_cell_types
+
+# DimPlot(seurat_data, group.by = "old_cell_states")

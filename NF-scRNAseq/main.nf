@@ -46,6 +46,9 @@ Channel
 //
 workflow NFCORE_DOWNSTREAM {
 
+    // extract labels from transfer_labels object
+    //EXTRACT(transfer_labels)
+
     METADATA( params.sample_sheet )
     //METADATA.out:
     //[[sample_id:NF-scRNA-input], [./cell_cycle_data.RDS]]
