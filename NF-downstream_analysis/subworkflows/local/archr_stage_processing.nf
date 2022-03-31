@@ -33,7 +33,8 @@ workflow ARCHR_STAGE_PROCESSING {
     // extract rds objects
     ARCHR_CLUSTERING_STAGES.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
-        //.view() //[[sample_id:HH6], [rds_files]]
+        .flatMap {it[1][0].listFiles()}
+        .view() //[[sample_id:HH6], [rds_files]] -> [[sample_id:HH6], [HH6-Save_ArchR]]
         .set {output_ch}
 
     //emit full filtered and clustered dataset:
