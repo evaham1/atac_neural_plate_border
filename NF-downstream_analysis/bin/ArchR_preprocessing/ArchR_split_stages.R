@@ -48,7 +48,7 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-############################## Function to split samples ################################
+############################## Function to split samples ################################ 
 
 ## need to make this generic (not just split by stage) need to overcome passing variable to $ issue
 split_ArchR_by_stage <- function(ArchR_project){
