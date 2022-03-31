@@ -43,14 +43,14 @@ workflow ARCHR_PROCESSING {
     ARCHR_FILTER_CLUSTERS_1( ARCHR_CLUSTERING_PREFILTER.out ) // filtering round 1
     ARCHR_CLUSTERING_POSTFILTER( ARCHR_FILTER_CLUSTERS_1.out )
     ARCHR_FILTER_CLUSTERS_2( ARCHR_CLUSTERING_POSTFILTER.out ) // filtering round 2
-    //ARCHR_CLUSTERING_POSTFILTER_TWICE( ARCHR_FILTER_CLUSTERS_2.out )
+    ARCHR_CLUSTERING_POSTFILTER_TWICE( ARCHR_FILTER_CLUSTERS_2.out )
     //ARCHR_DOUBLETS_FILTERED( ARCHR_FILTER_CLUSTERS_2.out ) // see if adding doublet scores after filtering any better
 
     // plots using gene scores
     //ARCHR_GENE_SCORES( ARCHR_CLUSTERING_POSTFILTER.out )
 
     // extract rds objects
-    ARCHR_FILTER_CLUSTERS_1.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
+      ARCHR_CLUSTERING_POSTFILTER_TWICE.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]} //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
