@@ -54,9 +54,7 @@ workflow ARCHR_PROCESSING {
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]} //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-        .view() //[[sample_id:FullData_Save-ArchR], /rds_files/FullData_Save-ArchR]
-        //should look like:
-        //[[meta:'full'], full_atac.rds]
+        //.view() //[[sample_id:FullData], /rds_files/FullData_Save-ArchR]
         .set {output_ch}
 
     //emit full filtered and clustered dataset:

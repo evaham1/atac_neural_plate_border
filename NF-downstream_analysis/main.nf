@@ -57,7 +57,7 @@ workflow NFCORE_DOWNSTREAM {
     // ATAC: combine stage data and full data
     ARCHR_STAGE_PROCESSING.out.output
         .combine(ARCHR_PROCESSING.out.output)
-        //.view()
+        .view()
         .set {ch_atac}
 
     // RNA: read in data
@@ -77,6 +77,12 @@ workflow NFCORE_DOWNSTREAM {
     ARCHR_INTEGRATE(ch_integrate)
 }
 
+//[[sample_id:ss8], [[rds_files], [ss8_cell_state_classification.RDS]], [[sample_id:FullData]], [FullData_Save-ArchR]]
+//[[sample_id:ss4], [[rds_files], [ss4_cell_state_classification.RDS]], [[sample_id:FullData]], [FullData_Save-ArchR]]
+//[[sample_id:HH5], [[rds_files], [HH5_cell_state_classification.RDS]], [[sample_id:FullData]], [FullData_Save-ArchR]]
+//[[sample_id:HH7], [[rds_files], [HH7_cell_state_classification.RDS]], [[sample_id:FullData]], [FullData_Save-ArchR]]
+//[[sample_id:HH6], [[rds_files], [HH6_cell_state_classification.RDS]], [[sample_id:FullData]], [FullData_Save-ArchR]]
+//[[sample_id:full], [[seurat_label_transfer.RDS]]]
 
 /*
 ========================================================================================
