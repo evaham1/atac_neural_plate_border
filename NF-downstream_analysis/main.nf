@@ -62,17 +62,14 @@ workflow NFCORE_DOWNSTREAM {
 
     // RNA: read in data
     METADATA_RNA( params.rna_sample_sheet )
-    
-    METADATA_RNA.out
-        .map{it[0], it[1][0]}
-        .view()
    
     // combine ATAC and RNA data
     ch_atac
         .mix(METADATA_RNA.out.metadata})
         .groupTuple(by:0)
         .map{[it[0], it[[1]] + it[2]]}
-        // .view()
+        .map{ [ it[0], it[1][0][0], it[1][1]] ] }
+        .view()
         .set {ch_integrate}
 
     // ARCHR: Integrate
