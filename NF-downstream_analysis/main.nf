@@ -65,10 +65,10 @@ workflow NFCORE_DOWNSTREAM {
    
     // combine ATAC and RNA data
     ch_atac
-        .concat(METADATA_RNA.out.metadata)
-        .groupTuple(by:0)
+        .concat( METADATA_RNA.out.metadata )
+        .groupTuple( by:0 )
         // .map{[it[0], it[[1]] + it[2]]}
-        .map{ [ it[0], it[1][0][0], it[1][1]] ] }
+        .map{ [ it[0], [it[1][0][0], it[1][1]] ] }
         .view()
         .set {ch_integrate}
 
