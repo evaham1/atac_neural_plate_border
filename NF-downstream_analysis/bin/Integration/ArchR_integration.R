@@ -33,8 +33,8 @@ opt = getopt(spec)
     
     plot_path = "./output/NF-downstream_analysis/ArchR_integration/plots/"
     rds_path = "./output/NF-downstream_analysis/ArchR_integration/rds_files/"
-    data_path_atac = "./output/NF-downstream_analysis/ArchR_clustering_postfiltering_twice/rds_files/"
-    data_path_rna = "./output/NF-scRNAseq/minus_HH4_clustered/rds_files/"
+    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering//rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -65,7 +65,7 @@ label <- sub('_.*', '', list.files(data_path))
 print(label)
 
 # load ArchR object using its retrieved name
-ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, label[1], "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 # load seurat object by reading in any rds object
@@ -77,7 +77,20 @@ seurat <- readRDS(rna_path)
 umap_rna <- DimPlot(seurat, group.by = "scHelper_cell_type")
 umap_atac <- plotEmbedding(ArchR, embedding = "UMAP", colorBy = "cellColData", name = "clusters")
 
-png(paste0(plot_path, 'UMAPs_before_integration.png'), height = 30, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAPs_before_integration_new_scHelper_cell_states.png'), height = 30, width = 20, units = 'cm', res = 400)
+print(umap_rna + umap_atac)
+graphics.off()
+
+#### want to combine the contamination and scHelper_cell_type original columns but cant seem to do it without overwriting them!!
+unique(seurat@meta.data$contamination)
+head(seurat@meta.data$scHelper_cell_type_original)
+umap_rna <- DimPlot(seurat, group.by = "scHelper_cell_type_original")
+png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), height = 30, width = 20, units = 'cm', res = 400)
+print(umap_rna + umap_atac)
+graphics.off()
+
+umap_rna <- DimPlot(seurat, group.by = "contamination")
+png(paste0(plot_path, 'UMAPs_before_integration_contamination.png'), height = 30, width = 20, units = 'cm', res = 400)
 print(umap_rna + umap_atac)
 graphics.off()
 
@@ -206,9 +219,10 @@ p2c <- lapply(p2, function(x){
     )
 })
 
+png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 20, units = 'cm', res = 400)
 do.call(cowplot::plot_grid, c(list(ncol = 3), p1c))
+graphics.off()
+
+png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 20, units = 'cm', res = 400)
 do.call(cowplot::plot_grid, c(list(ncol = 3), p2c))
-
-
-
-
+graphics.off()
