@@ -61,23 +61,16 @@ opt = getopt(spec)
 ### SORT OUT INPUTS - in pairs RNA and ATAC objects
 
 # Retrieve object label
-label <- sub('_.*', '', list.files(data_path_atac))
+label <- sub('_.*', '', list.files(data_path))
 print(label)
-### adjust depending on input - names should match??
 
 # load ArchR object using its retrieved name
-ArchR <- loadArchRProject(path = paste0(data_path_atac, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
-#data_path_atac = "./output/NF-downstream_analysis/7_ArchR_clustering_postfiltering_twice/rds_files/"
-#ArchR <- loadArchRProject(path = paste0(data_path_atac, "Save-ArchR"), force = FALSE, showLogo = TRUE)
-
-# load seurat object
-seurat <- readRDS(paste0(data_path_rna, "minus_clustered_data.RDS"))
-
-### TEST OUT WITH SS8 FIRST - WILL SORT OUT INPUTS LATER
-seurat <- readRDS("./output/NF-scRNAseq/ss8_splitstage_data/state_classification/rds_files/ss8_cell_state_classification.RDS")
-ArchR <- loadArchRProject("./output/NF-downstream_analysis/ss8_Save-ArchR/ArchR_clustering/rds_files/ss8_Save-ArchR")
+# load seurat object by reading in any rds object
+rna_path <- list.files(path = data_path, pattern = "*.RDS", full.names = TRUE)
+seurat <- readRDS(rna_path)
 
 ############################## UMAPs before integration #######################################
 # UMAPs of RNA and ATAC data, with RNA coloured by cell state and ATAC by clusters
