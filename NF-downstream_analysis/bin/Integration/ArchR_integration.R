@@ -152,7 +152,8 @@ ArchR <- addGeneIntegrationMatrix(
   nameCell = "predictedCell_Un",
   nameGroup = "predictedGroup_Un",
   nameScore = "predictedScore_Un",
-  force = TRUE
+  force = TRUE,
+  threads = 1
 )
 print("integration completed")
 
