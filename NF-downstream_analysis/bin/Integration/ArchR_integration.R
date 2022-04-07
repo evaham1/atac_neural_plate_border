@@ -77,7 +77,7 @@ seurat <- readRDS(rna_path)
 umap_rna <- DimPlot(seurat, group.by = "scHelper_cell_type")
 umap_atac <- plotEmbedding(ArchR, embedding = "UMAP", colorBy = "cellColData", name = "clusters")
 
-png(paste0(plot_path, 'UMAPs_before_integration_new_scHelper_cell_states.png'), height = 30, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAPs_before_integration_new_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
 print(umap_rna + umap_atac)
 graphics.off()
 
@@ -85,12 +85,12 @@ graphics.off()
 unique(seurat@meta.data$contamination)
 head(seurat@meta.data$scHelper_cell_type_original)
 umap_rna <- DimPlot(seurat, group.by = "scHelper_cell_type_original")
-png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), height = 30, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
 print(umap_rna + umap_atac)
 graphics.off()
 
 umap_rna <- DimPlot(seurat, group.by = "contamination")
-png(paste0(plot_path, 'UMAPs_before_integration_contamination.png'), height = 30, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAPs_before_integration_contamination.png'), height = 20, width = 40, units = 'cm', res = 400)
 print(umap_rna + umap_atac)
 graphics.off()
 
@@ -110,6 +110,12 @@ ArchR <- addGeneIntegrationMatrix(
 )
 print("integration completed")
 
+# save integrated ArchR project
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+
+
+############################## Unconstrained integration outputs #######################################
 png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type.png'), height = 20, width = 20, units = 'cm', res = 400)
 print(plotEmbedding(ArchR, 
   colorBy = "cellColData", 
@@ -126,7 +132,7 @@ cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$predictedGroup_Un))
 scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
 cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
 
-png(paste0(plot_path, 'cluster_labels_table.png'), height = 30, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cluster_labels_table.png'), height = 20, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
@@ -219,10 +225,10 @@ p2c <- lapply(p2, function(x){
     )
 })
 
-png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
 do.call(cowplot::plot_grid, c(list(ncol = 3), p1c))
 graphics.off()
 
-png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
 do.call(cowplot::plot_grid, c(list(ncol = 3), p2c))
 graphics.off()
