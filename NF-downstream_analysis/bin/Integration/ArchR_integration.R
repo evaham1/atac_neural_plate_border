@@ -146,7 +146,7 @@ ArchR <- addGeneIntegrationMatrix(
   useMatrix = "GeneScoreMatrix",
   matrixName = "GeneIntegrationMatrix",
   reducedDims = "IterativeLSI",
-  seRNA = seurat,
+  seRNA = seurat_data,
   addToArrow = TRUE,
   groupRNA = "scHelper_cell_type",
   nameCell = "predictedCell_Un",
