@@ -121,12 +121,8 @@ contaminating_markers <- c(
   'SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6' #endoderm
 )
 
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "GeneScoreMatrix", 
-  name = contaminating_markers, 
-  embedding = "UMAP"
-)
+p <- plotEmbedding(ArchRProj = ArchR, colorBy = "GeneScoreMatrix", name = contaminating_markers, 
+              plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 10)
 p2 <- lapply(p, function(x){
   x + guides(color = FALSE, fill = FALSE) + 
     theme_ArchR(baseSize = 6.5) +
@@ -150,12 +146,8 @@ late_markers <- c(
   "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
   "SOX2", "SOX21" # neural
   )
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "GeneScoreMatrix", 
-  name = late_markers, 
-  embedding = "UMAP"
-)
+p <- plotEmbedding(ArchRProj = ArchR, colorBy = "GeneScoreMatrix", name = late_markers, 
+              plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 10)
 p2 <- lapply(p, function(x){
   x + guides(color = FALSE, fill = FALSE) + 
     theme_ArchR(baseSize = 6.5) +
@@ -175,12 +167,8 @@ graphics.off()
 ap_markers <- c(
   "PAX2", "WNT4", "SIX3", "SHH" # no GBX2 in matrix
 )
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "GeneScoreMatrix", 
-  name = ap_markers, 
-  embedding = "UMAP"
-)
+p <- plotEmbedding(ArchRProj = ArchR, colorBy = "GeneScoreMatrix", name = ap_markers, 
+              plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 10)
 p2 <- lapply(p, function(x){
   x + guides(color = FALSE, fill = FALSE) + 
     theme_ArchR(baseSize = 6.5) +
@@ -199,13 +187,8 @@ graphics.off()
 # look for early markers
 early_markers <- c(
   "EPAS1", "BMP4", "YEATS4", "SOX3", "HOXB1", "ADMP", "EOMES")
-
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "GeneScoreMatrix", 
-  name = early_markers, 
-  embedding = "UMAP"
-)
+p <- plotEmbedding(ArchRProj = ArchR, colorBy = "GeneScoreMatrix", name = early_markers, 
+              plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 10)
 p2 <- lapply(p, function(x){
   x + guides(color = FALSE, fill = FALSE) + 
     theme_ArchR(baseSize = 6.5) +
