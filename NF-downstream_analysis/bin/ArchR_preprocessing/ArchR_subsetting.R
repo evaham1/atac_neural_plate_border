@@ -74,6 +74,11 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+#### TEMPORARY: just remove contamination
+opt$meta_col1 = "scHelper_cell_type_old"
+opt$groups1 = "NC"
+
+
 # Set up options
 if(!is.null(opt$groups1)){
   opt$groups1 = strsplit(opt$groups1, ',')[[1]]}
