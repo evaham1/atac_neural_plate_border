@@ -72,7 +72,10 @@ rna_path <- list.files(path = data_path, pattern = "*.RDS", full.names = TRUE)
 seurat_data <- readRDS(rna_path)
 
 
-############################## Prepare RNA labels and colours #######################################
+############################################################################################
+############################## Pre-Integration Plots #######################################
+
+#### Prepare RNA labels and colours #######
 
 #### combine contamination and old scHelper_cell_state labels
 contam <- seurat_data@meta.data$contamination
@@ -140,7 +143,10 @@ png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), 
 print(umap_rna_old + umap_atac)
 graphics.off()
 
+
+################################################################################################
 ############################## Unconstrained integration #######################################
+
 ArchR <- addGeneIntegrationMatrix(
   ArchRProj = ArchR, 
   useMatrix = "GeneScoreMatrix",
@@ -157,14 +163,18 @@ ArchR <- addGeneIntegrationMatrix(
 )
 print("integration completed")
 
-# save integrated ArchR project
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
-
 # use matched RNA cells to add new and old labels to ATAC cells
 extracted_rna_labels <- seurat_data@meta.data[ArchR$predictedCell_Un, c("scHelper_cell_type", "old_labels")]
 ArchR$scHelper_cell_type_new <- extracted_rna_labels[, "scHelper_cell_type"]
 ArchR$scHelper_cell_type_old <- extracted_rna_labels[, "old_labels"]
+
+# save integrated ArchR project
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
+
+
+#############################################################################################
+############################## Post-Integration Plots #######################################
 
 # set colour palettes for UMAPs
 atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
