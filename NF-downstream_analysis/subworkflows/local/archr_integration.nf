@@ -20,5 +20,5 @@ workflow ARCHR_INTEGRATION {
 
     //emit integrated ArchR objects:
     emit:
-    archr_integrated_full = ARCHR_INTEGRATE.out
+    archr_integrated_full = ARCHR_INTEGRATE_CLUSTER.out
 }
