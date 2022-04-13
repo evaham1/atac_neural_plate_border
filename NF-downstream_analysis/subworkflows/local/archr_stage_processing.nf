@@ -35,7 +35,7 @@ workflow ARCHR_STAGE_PROCESSING {
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-        .view() //CHECK THIS!
+        //.view() //CHECK THIS!
         .set {output_ch}
 
     //emit full filtered and clustered dataset:

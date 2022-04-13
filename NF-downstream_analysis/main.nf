@@ -56,7 +56,7 @@ workflow NFCORE_DOWNSTREAM {
 
     // ATAC: add together stage data and full data
     ARCHR_STAGE_PROCESSING.out.output
-        .mix(ARCHR_PROCESSING.out.output)
+        .concat(ARCHR_PROCESSING.out.output)
         //.view()
         .set {ch_atac}
 
@@ -69,7 +69,7 @@ workflow NFCORE_DOWNSTREAM {
         .groupTuple( by:0 )
         // .map{[it[0], it[[1]] + it[2]]}
         .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
-        .view()
+        //.view()
         .set {ch_integrate}
 
     // ARCHR: Integrate

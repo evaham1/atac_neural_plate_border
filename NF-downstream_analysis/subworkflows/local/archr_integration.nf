@@ -13,6 +13,8 @@ workflow ARCHR_INTEGRATION {
     main:
     // Integrate full data and split stage data
     ARCHR_INTEGRATE ( input_ch )
+
+    ARCHR_INTEGRATE.out.view()
     
     // Filter contaminating cells from all channels and re-cluster all channels
     //ARCHR_INTEGRATE_SUBSET ( ARCHR_INTEGRATE.out )
