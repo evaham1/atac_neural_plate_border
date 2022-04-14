@@ -17,8 +17,8 @@ workflow ARCHR_INTEGRATION {
     ARCHR_INTEGRATE.out.view()
     
     // Filter contaminating cells from all channels and re-cluster all channels
-    //ARCHR_INTEGRATE_SUBSET ( ARCHR_INTEGRATE.out )
-    ARCHR_INTEGRATE_CLUSTER ( ARCHR_INTEGRATE.out )
+    ARCHR_INTEGRATE_SUBSET ( ARCHR_INTEGRATE.out )
+    ARCHR_INTEGRATE_CLUSTER ( ARCHR_INTEGRATE_SUBSET.out )
 
     //emit integrated ArchR objects:
     emit:
