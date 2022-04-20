@@ -187,6 +187,11 @@ plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
 graphics.off()
 
+png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type_new_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_new_cols)
+graphics.off()
+
 cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_new))
 scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
 cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
@@ -198,6 +203,11 @@ graphics.off()
 png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type_old.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
+
+png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type_old_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
 graphics.off()
 
 cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_old))
