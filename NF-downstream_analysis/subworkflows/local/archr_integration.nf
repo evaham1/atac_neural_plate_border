@@ -6,7 +6,7 @@ include {R as ARCHR_INTEGRATE_SUBSET} from "$baseDir/modules/local/r/main"      
 include {R as ARCHR_INTEGRATE_CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 
 
-workflow ARCHR_INTEGRATION {
+workflow WF_ARCHR_INTEGRATION {
     take:
     input_ch
 

@@ -18,7 +18,7 @@ include {R as ARCHR_FILTER_CLUSTERS_2} from "$baseDir/modules/local/r/main"     
 include {R as ARCHR_GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
 
 
-workflow ARCHR_PROCESSING {
+workflow WF_ARCHR_PROCESSING {
     take:
     input
 

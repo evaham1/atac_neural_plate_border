@@ -17,13 +17,13 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
-include { METADATA } from "$baseDir/subworkflows/local/metadata"
+include { WF_METADATA } from "$baseDir/subworkflows/local/metadata"
 
-include { ARCHR_PROCESSING } from "$baseDir/subworkflows/local/archr_processing"
-include { ARCHR_STAGE_PROCESSING } from "$baseDir/subworkflows/local/archr_stage_processing"
+include { WF_ARCHR_PROCESSING } from "$baseDir/subworkflows/local/archr_processing"
+include { WF_ARCHR_STAGE_PROCESSING } from "$baseDir/subworkflows/local/archr_stage_processing"
 
-include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
-include { ARCHR_INTEGRATE } from "$baseDir/subworkflows/local/archr_integration"
+include { WF_METADATA as WF_METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
+include { WF_ARCHR_INTEGRATION } from "$baseDir/subworkflows/local/archr_integration"
 
 //
 // SET CHANNELS
@@ -40,32 +40,38 @@ Channel
 //
 workflow NFCORE_DOWNSTREAM {
 
-    METADATA( params.sample_sheet )
+    ///////////////////// PROCESSING //////////////////////////////
+    ///////////////////////////////////////////////////////////////
+    
+    WF_METADATA( params.sample_sheet )
 
     // add gtf to cellranger output so can add annotations
-    METADATA.out // METADATA.out: [[meta], [cellranger_output]]
+    WF_METADATA.out // METADATA.out: [[meta], [cellranger_output]]
         .combine(ch_reference)
         .map{[it[0], it[1] + it[2]]}
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
 
     // ARCHR: run processing + clustering + filtering + gene scores on full data
-    ARCHR_PROCESSING ( ch_metadata ) //output = archr_filtered_full
+    WF_ARCHR_PROCESSING ( ch_metadata ) //output = archr_filtered_full
 
     // ARCHR: run clustering + gene scores on individual stages
-    ARCHR_STAGE_PROCESSING ( ARCHR_PROCESSING.out.output )
+    WF_ARCHR_STAGE_PROCESSING ( WF_ARCHR_PROCESSING.out.output )
 
     // ATAC: add together stage data and full data
-    ARCHR_STAGE_PROCESSING.out.output
-        .concat(ARCHR_PROCESSING.out.output)
+    WF_ARCHR_STAGE_PROCESSING.out.output
+        .concat( WF_ARCHR_PROCESSING.out.output )
         //.view()
         .set {ch_atac}
 
+    ///////////////////// INTEGRATING //////////////////////////////
+    ///////////////////////////////////////////////////////////////
+
     // RNA: read in data
-    METADATA_RNA( params.rna_sample_sheet )
+    WF_METADATA_RNA( params.rna_sample_sheet )
    
     // combine ATAC and RNA data
     ch_atac
-        .concat( METADATA_RNA.out.metadata )
+        .concat( WF_METADATA_RNA.out.metadata )
         .groupTuple( by:0 )
         // .map{[it[0], it[[1]] + it[2]]}
         .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
@@ -73,7 +79,8 @@ workflow NFCORE_DOWNSTREAM {
         .set {ch_integrate}
 
     // ARCHR: Integrate
-    ARCHR_INTEGRATE(ch_integrate)
+    WF_ARCHR_INTEGRATION( ch_integrate )
+    
 }
 
 /*
