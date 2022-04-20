@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 // Import groovy libs
 import groovy.transform.Synchronized
 
-workflow WF_METADATA {
+workflow METADATA_WF {
     take: file_path
     main:
         Channel
