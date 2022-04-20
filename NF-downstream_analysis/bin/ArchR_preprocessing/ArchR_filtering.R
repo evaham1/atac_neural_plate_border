@@ -82,7 +82,6 @@ print(p2)
 graphics.off()
 
 p2 <- plotTSSEnrichment(ArchRProj = ArchR, 
-                        baseSize = 20, 
                         pal = stage_colours) 
 png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
@@ -127,7 +126,6 @@ print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
 
 p1 <- plotFragmentSizes(ArchRProj = ArchR, 
                         threads = 1,
-                        baseSize = 20,
                         pal = stage_colours)
 png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p1)
