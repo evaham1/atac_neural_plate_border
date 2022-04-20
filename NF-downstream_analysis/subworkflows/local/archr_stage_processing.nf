@@ -7,7 +7,7 @@ include {R as ARCHR_CLUSTERING_STAGES} from "$baseDir/modules/local/r/main"     
 include {R as ARCHR_GENE_SCORES_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
 
 
-workflow STAGE_PROCESSING_ARCHR_WF {
+workflow STAGE_PROCESSING {
     take:
     input
 
