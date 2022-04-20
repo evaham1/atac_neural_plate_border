@@ -80,6 +80,8 @@ workflow NFCORE_DOWNSTREAM {
 
     // ARCHR: Integrate
     WF_ARCHR_INTEGRATION( ch_integrate )
+
+    WF_ARCHR_INTEGRATION.out.archr_integrated_full.view()
     
 }
 
