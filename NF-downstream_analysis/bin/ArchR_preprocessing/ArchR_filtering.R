@@ -28,9 +28,9 @@ opt = getopt(spec)
     
     ncores = 8
     
-    plot_path = "./output/NF-downstream_analysis/2_ArchR_filtering/plots/"
-    rds_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
-    data_path = "./output/NF-downstream_analysis/1_ArchR_preprocessing/"
+    plot_path = "./output/ArchR_preprocessing/NF-downstream_analysis/2_ArchR_filtering/plots/"
+    rds_path = "./output/ArchR_preprocessing/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
+    data_path = "./output/ArchR_preprocessing/NF-downstream_analysis/1_ArchR_preprocessing/"
 
     addArchRThreads(threads = 1) 
     
@@ -55,7 +55,12 @@ opt = getopt(spec)
 
 
 ############################## Read in ArchR project #######################################
-ArchR <- loadArchRProject(path = paste0(data_path, "./rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = TRUE, showLogo = TRUE)
+
+###### stage colours
+stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
 
 ############################## QC plots across samples #######################################
 ##############################################################################################
@@ -68,13 +73,17 @@ p2 <- plotGroups(
   name = "TSSEnrichment",
   plotAs = "violin",
   alpha = 0.4,
-  addBoxPlot = TRUE
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
 )
 png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
 graphics.off()
 
-p2 <- plotTSSEnrichment(ArchRProj = ArchR) 
+p2 <- plotTSSEnrichment(ArchRProj = ArchR, 
+                        baseSize = 20, 
+                        pal = stage_colours) 
 png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
 graphics.off()
@@ -88,7 +97,9 @@ p3 <- plotGroups(
   groupBy = "stage", 
   colorBy = "cellColData", 
   name = "log10(nFrags)",
-  plotAs = "ridges"
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
 )
 png(paste0(plot_path, 'fragment_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
 print(p3)
@@ -101,7 +112,9 @@ p4 <- plotGroups(
   name = "log10(nFrags)",
   plotAs = "violin",
   alpha = 0.4,
-  addBoxPlot = TRUE
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
 )
 png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p4)
@@ -112,7 +125,10 @@ print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
 
 ############################## Plot nucleosome banding #######################################
 
-p1 <- plotFragmentSizes(ArchRProj = ArchR, threads = 1)
+p1 <- plotFragmentSizes(ArchRProj = ArchR, 
+                        threads = 1,
+                        baseSize = 20,
+                        pal = stage_colours)
 png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p1)
 graphics.off()
