@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("3_clustering_ArchR")
+print("clustering_ArchR")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -132,6 +132,11 @@ if (length(label) == 0){
   paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 }
 
+###### stage colours
+stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
+
 #################################################################################
 ############################## PROCESSING #######################################
 
@@ -233,8 +238,15 @@ if (length(unique(ArchR$stage)) > 1){
 
 ############################ UMAP plots + save data #############################
 
-p1 <- plotEmbedding(ArchRProj = ArchR, colorBy = "cellColData", name = "stage", embedding = "UMAP")
-p2 <- plotEmbedding(ArchRProj = ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP")
+p1 <- plotEmbedding(ArchR, 
+                    name = "stage",
+                    plotAs = "points", size = 1.8,
+                    baseSize = 0, labelSize = 0, legendSize = 0, 
+                    pal = stage_colours)
+p2 <- plotEmbedding(ArchR, 
+                    name = "clusters",
+                    plotAs = "points", size = 1.8,
+                    baseSize = 0, labelSize = 0, legendSize = 0)
 
 png(paste0(plot_path, "UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
@@ -243,40 +255,32 @@ graphics.off()
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
+png(paste0(plot_path, 'Clusters_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 20, legendSize = 0)
+graphics.off()
 
 #################################################################################
 ############################### QC PLOTS ########################################
 
 ############################ Plot QC metrics on UMAP #############################
 
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "cellColData", 
-  name = "nFrags", 
-  embedding = "UMAP"
-)
 png(paste0(plot_path, "UMAP_nFrags.png"), width=20, height=20, units = 'cm', res = 200)
-print(p)
+plotEmbedding(ArchR, name = "nFrags",
+              plotAs = "points", size = 1.8,
+              baseSize = 0, labelSize = 0, legendSize = 0)
 graphics.off()
 
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "cellColData", 
-  name = "NucleosomeRatio", 
-  embedding = "UMAP"
-)
 png(paste0(plot_path, "UMAP_NucleosomeRatio.png"), width=20, height=20, units = 'cm', res = 200)
-print(p)
+plotEmbedding(ArchR, name = "NucleosomeRatio",
+              plotAs = "points", size = 1.8,
+              baseSize = 0, labelSize = 0, legendSize = 0)
 graphics.off()
 
-p <- plotEmbedding(
-  ArchRProj = ArchR, 
-  colorBy = "cellColData", 
-  name = "TSSEnrichment", 
-  embedding = "UMAP"
-)
 png(paste0(plot_path, "UMAP_TSSEnrichment.png"), width=20, height=20, units = 'cm', res = 200)
-print(p)
+plotEmbedding(ArchR, name = "TSSEnrichment",
+              plotAs = "points", size = 1.8,
+              baseSize = 0, labelSize = 0, legendSize = 0)
 graphics.off()
 
 ######################## QC Vioin Plots #######################################
@@ -284,27 +288,16 @@ graphics.off()
 quantiles = c(0.2, 0.8)
 
 ##### nFrags
-p1 <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "clusters", 
-  colorBy = "cellColData", 
-  name = "nFrags",
-  plotAs = "Violin"
-)
 png(paste0(plot_path, "VlnPlot_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
-p1
+plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+  name = "nFrags", plotAs = "Violin")
 graphics.off()
 
 #### TSS Enrichment
-p <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "clusters", 
-  colorBy = "cellColData", 
-  name = "TSSEnrichment",
-  plotAs = "violin",
-  alpha = 0.4,
-  addBoxPlot = TRUE
-)
+p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+  name = "TSSEnrichment",plotAs = "violin",
+  alpha = 0.4, addBoxPlot = TRUE)
+
 metrics = "TSSEnrichment"
 p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
                    color = "red")
@@ -321,22 +314,18 @@ outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metri
 if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
-  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
   png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(p)
+  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample)
   graphics.off()
 }
 
 #### Nucleosome signal
-p <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "clusters", 
-  colorBy = "cellColData", 
-  name = "NucleosomeRatio",
-  plotAs = "violin",
-  alpha = 0.4,
-  addBoxPlot = TRUE
+p <- plotGroups(ArchR, 
+  groupBy = "clusters", colorBy = "cellColData", 
+  name = "NucleosomeRatio", plotAs = "violin",
+  alpha = 0.4, addBoxPlot = TRUE
 )
+
 metrics = "NucleosomeRatio"
 p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
                    color = "red")
@@ -353,8 +342,7 @@ outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metri
 if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
-  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
   png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(p)
+  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample)
   graphics.off()
 }
