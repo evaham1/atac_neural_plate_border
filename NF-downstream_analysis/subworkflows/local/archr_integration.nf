@@ -1,9 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-include {R as ARCHR_INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_integration.R", checkIfExists: true) )
-include {R as ARCHR_INTEGRATE_SUBSET} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_subsetting.R", checkIfExists: true) )
-include {R as ARCHR_INTEGRATE_CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_integration.R", checkIfExists: true) )
+include {R as SUBSET_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_subsetting.R", checkIfExists: true) )
+include {R as CLUSTER_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 
 
 workflow INTEGRATING {
@@ -12,15 +12,13 @@ workflow INTEGRATING {
 
     main:
     // Integrate full data and split stage data
-    ARCHR_INTEGRATE ( input_ch )
-
-    ARCHR_INTEGRATE.out.view()
+    INTEGRATE ( input_ch )
     
     // Filter contaminating cells from all channels and re-cluster all channels
-    ARCHR_INTEGRATE_SUBSET ( ARCHR_INTEGRATE.out )
-    ARCHR_INTEGRATE_CLUSTER ( ARCHR_INTEGRATE_SUBSET.out )
+    SUBSET_INTEGRATION ( INTEGRATE.out )
+    CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
 
     //emit integrated ArchR objects:
     emit:
-    archr_integrated_full = ARCHR_INTEGRATE_CLUSTER.out
+    archr_integrated_full = CLUSTER_INTEGRATION.out
 }
