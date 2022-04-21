@@ -106,9 +106,10 @@ outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metri
 if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
-  p <- plotEmbedding(ArchR, colorBy = "cellColData", name = "clusters", embedding = "UMAP", highlightCells = cellsSample)
   png(paste0(plot_path, "UMAP_intersect_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(p)
+  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
   graphics.off()
 }
 
