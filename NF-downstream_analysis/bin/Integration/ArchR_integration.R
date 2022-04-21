@@ -173,6 +173,9 @@ scHelper_new_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@me
 scHelper_old_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$old_labels))]
 
 ###### UMAPs
+plot_path = "./plots/before_integration/"
+dir.create(plot_path, recursive = T)
+
 umap_rna_new <- DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE, 
                     label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
                     label.box = TRUE, repel = TRUE,
@@ -190,7 +193,7 @@ umap_rna_old <- DimPlot(seurat_data, group.by = 'old_labels', label = TRUE,
   ggplot2::theme(legend.position = "none", 
                  plot.title = element_blank())
 
-png(paste0(plot_path, 'UMAPs_old_new_rna.png'), height = 20, width = 40, units = 'cm', res = 400)
+png(paste0(plot_path, 'RNA_UMAPs_old_vs_new.png'), height = 20, width = 40, units = 'cm', res = 400)
 print(umap_rna_new + umap_rna_old)
 graphics.off()
 
@@ -246,23 +249,29 @@ atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_
 ############################## RNA cell labels on ATAC data #######################################
 
 ### New labels
-png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type_new.png'), height = 20, width = 20, units = 'cm', res = 400)
+plot_path = "./plots/after_integration/new_labels/"
+dir.create(plot_path, recursive = T)
+
+png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
 graphics.off()
 
-png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type_new_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 0, legendSize = 0, pal = atac_scHelper_new_cols)
 graphics.off()
 
-### Old labels 
-png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type_old.png'), height = 20, width = 20, units = 'cm', res = 400)
+### Old labels
+plot_path = "./plots/after_integration/old_labels/"
+dir.create(plot_path, recursive = T)
+
+png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
 graphics.off()
 
-png(paste0(plot_path, 'UMAP_unconInt_scHelper_cell_type_old_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
 graphics.off()
@@ -270,13 +279,14 @@ graphics.off()
 ############################## Assign cluster labels to ATAC data #######################################
 
 ########### New labels
+plot_path = "./plots/after_integration_new_labels/"
 
 # visualise distribution across clusters
-png(paste0(plot_path, 'new_labels_cell_counts_by_cluster_table.png'), height = 25, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'counts_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
 cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters")
 graphics.off()
 
-png(paste0(plot_path, "Cluster_new_labels_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
 cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters")
 graphics.off()
 
@@ -285,7 +295,7 @@ cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_new))
 scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
 cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
 
-png(paste0(plot_path, 'scHelper_cell_type_new_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
@@ -293,19 +303,20 @@ new_labels <- cluster_idents[,1]
 names(new_labels) <- cluster_idents[,2]
 ArchR$cluster_integrated_old_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
 
-png(paste0(plot_path, 'UMAP_scHelper_cell_type_new_cluster_labels.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "cluster_integrated_old_labels", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
 graphics.off()
 
 ########### Old labels
+plot_path = "./plots/after_integration_new_labels/"
 
 # visualise distribution across clusters
-png(paste0(plot_path, 'old_labels_cell_counts_by_cluster_table.png'), height = 25, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'counts_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
 cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
 graphics.off()
 
-png(paste0(plot_path, "Cluster_old_labels_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
 cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
 graphics.off()
 
@@ -314,7 +325,7 @@ cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_old))
 scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
 cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
 
-png(paste0(plot_path, 'scHelper_cell_type_old_cluster_labels_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
@@ -322,19 +333,21 @@ new_labels <- cluster_idents[,1]
 names(new_labels) <- cluster_idents[,2]
 ArchR$cluster_integrated_old_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
 
-png(paste0(plot_path, 'UMAP_scHelper_cell_type_new_cluster_labels.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "cluster_integrated_old_labels", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
 graphics.off()
 
 ############################## Integration scores plots #######################################
 
-png(paste0(plot_path, 'UMAP_unconInt_Scores.png'), height = 20, width = 20, units = 'cm', res = 400)
+plot_path = "./plots/after_integration/"
+
+png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
               legendSize = 10)
 graphics.off()
 
-png(paste0(plot_path, "VlnPlot_unconInt_Scores.png"), width=50, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
   name = "predictedScore_Un", plotAs = "Violin")
 graphics.off()
