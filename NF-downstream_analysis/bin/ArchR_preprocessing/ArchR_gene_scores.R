@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("5_ArchR_gene_scores")
+print("ArchR_gene_scores")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -122,6 +122,99 @@ print(label)
 ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
+############################## Read in marker genes #################################
+
+# Contaminating markers
+contaminating_markers <- c(
+  'DAZL', #PGC
+  'CDH5', 'TAL1', 'HBZ', # Blood island
+  'CDX2', 'GATA6', 'ALX1', 'PITX2', 'TWIST1', 'TBXT', 'MESP1', #mesoderm
+  'SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6' #endoderm
+)
+
+# Late marker genes
+late_markers <- c(
+  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
+  "MSX1", "TFAP2A", "TFAP2B", #mix
+  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
+  "SOX2", "SOX21" # neural
+)
+
+# look for ap marker genes
+ap_markers <- c(
+  "PAX2", "WNT4", "SIX3", "SHH" # no GBX2 in matrix
+)
+
+# look for early markers
+early_markers <- c(
+  "EPAS1", "BMP4", "YEATS4", "SOX3", "HOXB1", "ADMP", "EOMES"
+)
+
+dotplot_1_genes <- c("EPAS1", "GATA3", "SIX1", "EYA2",
+                  "DLX5", "BMP4", "MSX1", "TFAP2A", "TFAP2B",
+                  "PAX3", "PAX7", "SOX2", "OTX2", "YEATS4",
+                  "SOX11", "SOX3", "SOX21", "HOXB1", "GBX2",
+                  "SIX3", "ADMP", "EOMES")
+
+dotplot_2_genes <- c("GATA3", "DLX5", "SIX1", "EYA2",
+                  "MSX1", "TFAP2A", "TFAP2B", "PAX3",
+                  "PAX7", "CSRNP1", "SNAI2", "SOX10",
+                  "SOX2", "SOX21", "GBX2", "PAX2",
+                  "WNT4", "SIX3", "SHH")
+
+feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
+           "SOX21", "SOX2", "BMP4", "HOXB1")
+
+############################## Dot Plots #################################
+png(paste0(plot_path, 'Contaminating_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+bubble_plot(ArchR, gene_list = contaminating_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Late_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+bubble_plot(ArchR, gene_list = late_markers)
+graphics.off()
+
+png(paste0(plot_path, 'AP_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+bubble_plot(ArchR, gene_list = ap_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Early_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+bubble_plot(ArchR, gene_list = early_markers)
+graphics.off()
+
+png(paste0(plot_path, 'DotPlot_1.png'), height = 15, width = 15, units = 'cm', res = 400)
+bubble_plot(ArchR, gene_list = dotplot_1_genes)
+graphics.off()
+
+png(paste0(plot_path, 'DotPlot_2.png'), height = 15, width = 15, units = 'cm', res = 400)
+bubble_plot(ArchR, gene_list = dotplot_2_genes)
+graphics.off()
+
+############################## Feature Plots #################################
+# impute weights using MAGIC to plot better feature plots
+ArchR <- addImputeWeights(ArchR)
+
+png(paste0(plot_path, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = contaminating_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = late_markers)
+graphics.off()
+
+png(paste0(plot_path, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = ap_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = early_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = feature_plot_genes)
+graphics.off()
+
+
 ############################## Calculate top gene markers and plot heatmap #################################
 
 markers <- getMarkerFeatures(
@@ -135,7 +228,7 @@ print("marker genes calculated")
 
 markerList <- getMarkers(markers) # could make more stringent in future
 top_markers <- tibble()
-print(top_markers)
+
 for (i in 1:length(markerList)){
   table <- as.tibble(markerList[[i]]) 
   print(table)
@@ -160,96 +253,3 @@ if(nrow(top_markers) != 0){
   graphics.off()
   
 } else { print("No markers found that passed thresholds")}
-
-
-############################## Dot plots and Feature plots of marker genes #################################
-
-# impute weights using MAGIC to plot better feature plots
-ArchR <- addImputeWeights(ArchR)
-
-# Contaminating markers
-contaminating_markers <- c(
-  'DAZL', #PGC
-  'CDH5', 'TAL1', 'HBZ', # Blood island
-  'CDX2', 'GATA6', 'ALX1', 'PITX2', 'TWIST1', 'TBXT', 'MESP1', #mesoderm
-  'SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6' #endoderm
-)
-
-png(paste0(plot_path, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = contaminating_markers)
-graphics.off()
-
-png(paste0(plot_path, 'Contaminating_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = contaminating_markers)
-graphics.off()
-
-# Late marker genes
-late_markers <- c(
-  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
-  "MSX1", "TFAP2A", "TFAP2B", #mix
-  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
-  "SOX2", "SOX21" # neural
-  )
-
-png(paste0(plot_path, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = late_markers)
-graphics.off()
-
-png(paste0(plot_path, 'Late_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = late_markers)
-graphics.off()
-
-# look for ap marker genes
-ap_markers <- c(
-  "PAX2", "WNT4", "SIX3", "SHH" # no GBX2 in matrix
-)
-
-png(paste0(plot_path, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = ap_markers)
-graphics.off()
-
-png(paste0(plot_path, 'AP_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = ap_markers)
-graphics.off()
-
-# look for early markers
-early_markers <- c(
-  "EPAS1", "BMP4", "YEATS4", "SOX3", "HOXB1", "ADMP", "EOMES"
-)
-
-png(paste0(plot_path, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = early_markers)
-graphics.off()
-
-png(paste0(plot_path, 'Early_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = early_markers)
-graphics.off()
-
-############################## Dot plots from RNAseq paper #################################
-
-plot_1_genes <- c("EPAS1", "GATA3", "SIX1", "EYA2",
-                  "DLX5", "BMP4", "MSX1", "TFAP2A", "TFAP2B",
-                  "PAX3", "PAX7", "SOX2", "OTX2", "YEATS4",
-                  "SOX11", "SOX3", "SOX21", "HOXB1", "GBX2",
-                  "SIX3", "ADMP", "EOMES")
-png(paste0(plot_path, 'DotPlot_1.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = plot_1_genes)
-graphics.off()
-
-plot_2_genes <- c("GATA3", "DLX5", "SIX1", "EYA2",
-                  "MSX1", "TFAP2A", "TFAP2B", "PAX3",
-                  "PAX7", "CSRNP1", "SNAI2", "SOX10",
-                  "SOX2", "SOX21", "GBX2", "PAX2",
-                  "WNT4", "SIX3", "SHH")
-png(paste0(plot_path, 'DotPlot_2.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = plot_2_genes)
-graphics.off()
-
-############################## More informative Feature Plots #################################
-
-genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
-           "SOX21", "SOX2", "BMP4", "HOXB1")
-
-png(paste0(plot_path, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = genes)
-graphics.off()
