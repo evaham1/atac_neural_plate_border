@@ -59,26 +59,41 @@ opt = getopt(spec)
 }
 
 ############################### FUNCTIONS ####################################
-cluster_counts <- function(ArchR = ArchR) {
-  cluster_cell_counts <- as.data.frame(table(ArchR$clusters))
-  colnames(cluster_cell_counts) <- c("Cluster_ID", "Total_count")
+cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
+  group1_data <- getCellColData(ArchR, select = group1)[,1]
+  group1_cell_counts <- as.data.frame(table(group1_data))
+  colnames(group1_cell_counts) <- c("ID", "Total_count")
   
-  cluster_cell_counts_samples <- data.frame()
-  for (i in unique(ArchR$clusters)) {
-    cells_in_cluster <- ArchR$cellNames[BiocGenerics::which(ArchR$clusters == i)]
-    ArchR_cluster <- ArchR[cells_in_cluster, ]
-    sample_cell_counts <- as.data.frame(table(ArchR_cluster$Sample)) %>%
-      pivot_wider(names_from = Var1, values_from = Freq) %>% 
-      add_column(Cluster_ID = !!i)
-    cluster_cell_counts_samples <- rbind.fill(cluster_cell_counts_samples, sample_cell_counts)
+  group2_cell_counts <- data.frame()
+  group2_data <- getCellColData(ArchR, select = group2)[,1]
+  for (i in unique(group1_data)) {
+    data_group1 <- getCellColData(ArchR, select = group1)[,1]
+    cells <- ArchR$cellNames[BiocGenerics::which(data_group1 == i)]
+    ArchR_subset <- ArchR[cells, ]
+    data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
+    group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
+      pivot_wider(names_from = data_group2, values_from = Freq) %>% 
+      add_column(ID = !!i)
+    group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
   }
   
-  cluster_cell_counts <- merge(cluster_cell_counts, cluster_cell_counts_samples)
-  cluster_cell_counts <- cluster_cell_counts %>% 
-    mutate(Cluster_ID = as.numeric(gsub('^.', '', Cluster_ID))) %>%
-    arrange(Cluster_ID)
+  cell_counts <- merge(group1_cell_counts, group2_cell_counts)
   
-  grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
+  
+  ## Ordering rows and columns to better visualise
+  if (group1 == "clusters"){
+    cell_counts <- cell_counts %>% 
+      mutate(ID = as.numeric(gsub('^.', '', ID))) %>%
+      arrange(ID)
+    }
+  
+  if (group2 == "clusters"){
+    new_names <- as.numeric(gsub('^.', '', colnames(cell_counts)[3:length(colnames(cell_counts))]))
+    colnames(cell_counts)[3:length(colnames(cell_counts))] <- new_names
+    cell_counts <- cell_counts[, c("ID", "Total_count", 1:max(new_names))]
+  }
+  
+  grid.arrange(tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 }
 
 
@@ -133,7 +148,7 @@ if (length(label) == 0){
 
 # Plot number of cells in each cluster that come from each sample
 png(paste0(plot_path, 'cell_counts_by_sample_table.png'), height = 25, width = 10, units = 'cm', res = 400)
-cluster_counts(ArchR)
+cell_counts(ArchR = ArchR, group1 = "clusters", group2 = "Sample")
 graphics.off()
 
 # Make pseudo replicates and see which samples these cells come from

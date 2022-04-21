@@ -25,6 +25,8 @@ include { STAGE_PROCESSING } from "$baseDir/subworkflows/local/archr_stage_proce
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
 
+include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
+
 //
 // SET CHANNELS
 //
@@ -82,6 +84,11 @@ workflow A {
     INTEGRATING( ch_integrate )
 
     INTEGRATING.out.archr_integrated_full.view()
+    
+    ///////////////////// PEAK CALLING ////////////////////////////
+    ///////////////////////////////////////////////////////////////
+    
+    PEAK_CALLING( INTEGRATING.out.archr_integrated_full )
     
 }
 
