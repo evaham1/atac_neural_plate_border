@@ -166,6 +166,9 @@ feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
            "SOX21", "SOX2", "BMP4", "HOXB1")
 
 ############################## Dot Plots #################################
+
+addArchRThreads(threads = 1) 
+
 png(paste0(plot_path, 'Contaminating_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
 bubble_plot(ArchR, gene_list = contaminating_markers)
 graphics.off()
@@ -191,6 +194,9 @@ bubble_plot(ArchR, gene_list = dotplot_2_genes)
 graphics.off()
 
 ############################## Feature Plots #################################
+
+addArchRThreads(threads = ncores) 
+
 # impute weights using MAGIC to plot better feature plots
 ArchR <- addImputeWeights(ArchR)
 
