@@ -80,7 +80,7 @@ feature_plot_grid <- function(ArchRProj = ArchR, matrix = "GeneScoreMatrix", gen
 bubble_plot <- function(ArchRProj = ArchR, matrix = "GeneScoreMatrix", gene_list) {
   
   extracted_matrix <- getMatrixFromProject(ArchRProj, useMatrix = matrix)
-  data <- as.data.frame(t(as.data.frame(assay(extracted_matrix)))) # extract expression matrix
+  data <- as.data.frame(as.matrix(t(assay(extracted_matrix)))) # extract expression matrix
   colnames(data) <- rowData(extracted_matrix)[,5] # add gene names
   for(i in rownames(data)){ data[i,"clusters"] = ArchRProj$clusters[which(ArchRProj$cellNames==i)] } # add cluster IDs
   data$clusters <- as.numeric(gsub('^.', '', data$clusters)) # remove the Cs so clustered are ordered
