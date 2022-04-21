@@ -36,9 +36,11 @@ opt = getopt(spec)
     rds_path = "./output/NF-downstream_analysis/ArchR_integration/rds_files/"
     #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering//rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/HH5/ArchR_clustering//rds_files/"
     
     # already integrated
     data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -72,15 +74,17 @@ cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
   
   group2_cell_counts <- data.frame()
   group2_data <- getCellColData(ArchR, select = group2)[,1]
+  data_group1 <- getCellColData(ArchR, select = group1)[,1]
   for (i in unique(group1_data)) {
-    data_group1 <- getCellColData(ArchR, select = group1)[,1]
     cells <- ArchR$cellNames[BiocGenerics::which(data_group1 == i)]
-    ArchR_subset <- ArchR[cells, ]
-    data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
-    group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
-      pivot_wider(names_from = data_group2, values_from = Freq) %>% 
-      add_column(ID = !!i)
-    group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
+    if (length(cells) > 1){
+      ArchR_subset <- ArchR[cells, ]
+      data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
+      group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
+        pivot_wider(names_from = data_group2, values_from = Freq) %>% 
+        add_column(ID = !!i)
+      group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
+    }
   }
   
   cell_counts <- merge(group1_cell_counts, group2_cell_counts)
