@@ -28,7 +28,8 @@ option_list <- list(
     #make_option(c("", "--groups2"), action = "store", type = "character", help = "Classifications of cells (within meta_col2) to subset from dataset.", default = NULL),
     #make_option(c("-i", "--invert1"), action = "store", type = "logical", help = "Boolean for whether to invert groups1 selection", default = FALSE),
     #make_option(c("", "--invert2"), action = "store", type = "logical", help = "Boolean for whether to invert groups2 selection", default = FALSE),
-    make_option(c("", "--verbose"), action = "store_true", type = "logical", help = "Verbose", default = FALSE))
+    make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)),
+    make_option(c("", "--invert"), action = "store", type = "logical", help = "Invert subset", default = FALSE))
 
 opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
@@ -87,8 +88,13 @@ if(is.null(opt$groups1)){
 
 
 ############################## Function to subset ArchR project #######################################
-subset_ArchR <- function(ArchR_object, meta_col, groups){
-  idxPass <- which(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups)
+subset_ArchR <- function(ArchR_object, meta_col, groups, invert = FALSE){
+  if (invert == FALSE){
+    idxPass <- which(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups)
+  }
+  else {
+    idxPass <- which(!(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups))
+  }
   cellsPass <- ArchR$cellNames[idxPass]
   ArchR_filtered <- ArchR[cellsPass, ]
   return(ArchR_filtered)
@@ -108,7 +114,7 @@ print(colnames(ArchR@cellColData))
 
 ############################## Subset ArchR object #######################################
 ### will need to add extra functionality here 
-ArchR_subset <- subset_ArchR(ArchR, meta_col = opt$meta_col1, groups = opt$groups1)
+ArchR_subset <- subset_ArchR(ArchR, meta_col = opt$meta_col1, groups = opt$groups1, invert = opt$invert)
 
 # plot cell counts before and after subsetting per stage
 unfiltered <- table(ArchR$stage)
