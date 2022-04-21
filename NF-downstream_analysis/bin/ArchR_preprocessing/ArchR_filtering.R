@@ -58,8 +58,8 @@ opt = getopt(spec)
 ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = TRUE, showLogo = TRUE)
 
 ###### stage colours
-stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
-stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
 ############################## QC plots across samples #######################################
