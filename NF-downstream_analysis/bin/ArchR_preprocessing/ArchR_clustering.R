@@ -133,8 +133,8 @@ if (length(label) == 0){
 }
 
 ###### stage colours
-stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
-stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
 #################################################################################
@@ -211,7 +211,7 @@ cluster_cell_counts <- cluster_cell_counts %>%
   mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
   arrange(Cluster_number)
 
-png(paste0(plot_path, 'cell_counts_table.png'), height = 30, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_table.png'), height = 25, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
@@ -224,7 +224,7 @@ graphics.off()
 
 # Plot contribution of each stage to each cluster
 if (length(unique(ArchR$stage)) > 1){
-  cM <- confusionMatrix(paste0(ArchR$clusters), paste0(ArchR$stage))
+  cM <- confusionMatrix(substr(ArchR$clusters, 2, nchar(ArchR$clusters)), paste0(ArchR$stage))
   cM <- cM / Matrix::rowSums(cM)
   p <- pheatmap::pheatmap(
   mat = as.matrix(cM), 
@@ -240,13 +240,14 @@ if (length(unique(ArchR$stage)) > 1){
 
 p1 <- plotEmbedding(ArchR, 
                     name = "stage",
-                    plotAs = "points", size = 1.8,
+                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0, 
-                    pal = stage_colours)
+                    pal = stage_colours, randomize = TRUE)
 p2 <- plotEmbedding(ArchR, 
                     name = "clusters",
-                    plotAs = "points", size = 1.8,
-                    baseSize = 0, labelSize = 0, legendSize = 0)
+                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0,
+                    randomize = TRUE)
 
 png(paste0(plot_path, "UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
@@ -256,8 +257,8 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
 png(paste0(plot_path, 'Clusters_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 20, legendSize = 0)
+plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1), baseSize = 0, 
+              labelSize = 10, legendSize = 0, randomize = TRUE)
 graphics.off()
 
 #################################################################################
@@ -267,20 +268,20 @@ graphics.off()
 
 png(paste0(plot_path, "UMAP_nFrags.png"), width=20, height=20, units = 'cm', res = 200)
 plotEmbedding(ArchR, name = "nFrags",
-              plotAs = "points", size = 1.8,
-              baseSize = 0, labelSize = 0, legendSize = 0)
+              plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+              baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
 graphics.off()
 
 png(paste0(plot_path, "UMAP_NucleosomeRatio.png"), width=20, height=20, units = 'cm', res = 200)
 plotEmbedding(ArchR, name = "NucleosomeRatio",
-              plotAs = "points", size = 1.8,
-              baseSize = 0, labelSize = 0, legendSize = 0)
+              plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+              baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
 graphics.off()
 
 png(paste0(plot_path, "UMAP_TSSEnrichment.png"), width=20, height=20, units = 'cm', res = 200)
 plotEmbedding(ArchR, name = "TSSEnrichment",
-              plotAs = "points", size = 1.8,
-              baseSize = 0, labelSize = 0, legendSize = 0)
+              plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+              baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
 graphics.off()
 
 ######################## QC Vioin Plots #######################################
@@ -290,13 +291,13 @@ quantiles = c(0.2, 0.8)
 ##### nFrags
 png(paste0(plot_path, "VlnPlot_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-  name = "nFrags", plotAs = "Violin")
+  name = "nFrags", plotAs = "Violin", baseSize = 12)
 graphics.off()
 
 #### TSS Enrichment
 p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
   name = "TSSEnrichment",plotAs = "violin",
-  alpha = 0.4, addBoxPlot = TRUE)
+  alpha = 0.4, addBoxPlot = TRUE, baseSize = 12)
 
 metrics = "TSSEnrichment"
 p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
@@ -315,7 +316,9 @@ if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
   png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample)
+  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
   graphics.off()
 }
 
@@ -323,7 +326,7 @@ if (is.null(outliers) == FALSE){
 p <- plotGroups(ArchR, 
   groupBy = "clusters", colorBy = "cellColData", 
   name = "NucleosomeRatio", plotAs = "violin",
-  alpha = 0.4, addBoxPlot = TRUE
+  alpha = 0.4, addBoxPlot = TRUE, baseSize = 12
 )
 
 metrics = "NucleosomeRatio"
@@ -343,6 +346,8 @@ if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
   png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample)
+  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
   graphics.off()
 }
