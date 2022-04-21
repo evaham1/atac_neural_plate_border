@@ -64,62 +64,6 @@ opt = getopt(spec)
 }
 
 
-############################### FUNCTIONS ####################################
-
-# function to count how many cells from each cluster/sample are assigned the same label/cluster
-cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
-  group1_data <- getCellColData(ArchR, select = group1)[,1]
-  group1_cell_counts <- as.data.frame(table(group1_data))
-  colnames(group1_cell_counts) <- c("ID", "Total_count")
-  
-  group2_cell_counts <- data.frame()
-  group2_data <- getCellColData(ArchR, select = group2)[,1]
-  data_group1 <- getCellColData(ArchR, select = group1)[,1]
-  for (i in unique(group1_data)) {
-    cells <- ArchR$cellNames[BiocGenerics::which(data_group1 == i)]
-    if (length(cells) > 1){
-      ArchR_subset <- ArchR[cells, ]
-      data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
-      group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
-        pivot_wider(names_from = data_group2, values_from = Freq) %>% 
-        add_column(ID = !!i)
-      group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
-    }
-  }
-  
-  cell_counts <- merge(group1_cell_counts, group2_cell_counts)
-  
-  
-  # Ordering rows and columns to better visualise
-  if (group1 == "clusters"){
-    cell_counts <- cell_counts %>% 
-      mutate(ID = as.numeric(gsub('^.', '', ID))) %>%
-      arrange(ID)
-    }
-  
-  if (group2 == "clusters"){
-    new_names <- as.numeric(gsub('^.', '', colnames(cell_counts)[3:length(colnames(cell_counts))]))
-    colnames(cell_counts)[3:length(colnames(cell_counts))] <- new_names
-    cell_counts <- cell_counts[, c("ID", "Total_count", 1:max(new_names))]
-  }
-  
-  grid.arrange(tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-}
-
-# function to make heatmap showing contribution of cell groups to other cell groups
-cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters") {
-  group1_data <- getCellColData(ArchR, select = group1)[,1]
-  group2_data <- getCellColData(ArchR, select = group2)[,1]
-  cM <- confusionMatrix(paste0(group2_data), paste0(group1_data))
-  cM <- cM / Matrix::rowSums(cM)
-  
-  p <- pheatmap::pheatmap(
-    mat = cM,
-    color = paletteContinuous("whiteBlue"), 
-    border_color = "black"
-  )
-}
-
 ############################## Read in ArchR project and seurat object #######################################
 
 # Retrieve object label
@@ -274,68 +218,6 @@ graphics.off()
 png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
-graphics.off()
-
-############################## Assign cluster labels to ATAC data #######################################
-
-########### New labels
-plot_path = "./plots/after_integration_new_labels/"
-
-# visualise distribution across clusters
-png(paste0(plot_path, 'counts_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters")
-graphics.off()
-
-png(paste0(plot_path, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters")
-graphics.off()
-
-# assign cluster labels
-cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_new))
-scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
-cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
-
-png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
-grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-new_labels <- cluster_idents[,1]
-names(new_labels) <- cluster_idents[,2]
-ArchR$cluster_integrated_old_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
-
-png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "cluster_integrated_old_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
-graphics.off()
-
-########### Old labels
-plot_path = "./plots/after_integration_new_labels/"
-
-# visualise distribution across clusters
-png(paste0(plot_path, 'counts_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
-graphics.off()
-
-png(paste0(plot_path, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
-graphics.off()
-
-# assign cluster labels
-cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_old))
-scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
-cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
-
-png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
-grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-new_labels <- cluster_idents[,1]
-names(new_labels) <- cluster_idents[,2]
-ArchR$cluster_integrated_old_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
-
-png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "cluster_integrated_old_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
 graphics.off()
 
 ############################## Integration scores plots #######################################
