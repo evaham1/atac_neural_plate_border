@@ -110,5 +110,25 @@ print(colnames(ArchR@cellColData))
 ### will need to add extra functionality here 
 ArchR_subset <- subset_ArchR(ArchR, meta_col = opt$meta_col1, groups = opt$groups1)
 
+# plot cell counts before and after subsetting per stage
+unfiltered <- table(ArchR$stage)
+filtered <- table(ArchR_subset$stage)
+cell_counts <- rbind(unfiltered, filtered)
+
+png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# plot cell counts before and after subsetting per stage
+unfiltered <- table(ArchR$clusters)
+filtered <- table(ArchR_subset$clusters)
+cell_counts <- rbind(unfiltered, filtered)
+
+png(paste0(plot_path, 'cell_counts_table_clusters.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
 ############################## Save new ArchR object #######################################
 saveArchRProject(ArchRProj = ArchR_subset, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
