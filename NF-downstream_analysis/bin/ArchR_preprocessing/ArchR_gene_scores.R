@@ -193,6 +193,8 @@ addArchRThreads(threads = 1)
 # bubble_plot(ArchR, gene_list = dotplot_2_genes)
 # graphics.off()
 
+# print("Dotplots done")
+
 ############################## Feature Plots #################################
 
 addArchRThreads(threads = ncores) 
@@ -220,6 +222,7 @@ png(paste0(plot_path, 'Useful_FeaturePlots.png'), height = 25, width = 25, units
 feature_plot_grid(ArchR, gene_list = feature_plot_genes)
 graphics.off()
 
+print("Feature plots done")
 
 ############################## Calculate top gene markers and plot heatmap #################################
 
@@ -228,7 +231,8 @@ markers <- getMarkerFeatures(
   useMatrix = "GeneScoreMatrix", 
   groupBy = "clusters",
   bias = c("TSSEnrichment", "log10(nFrags)"),
-  testMethod = "wilcoxon"
+  testMethod = "wilcoxon",
+  threads = 1
 )
 print("marker genes calculated")
 
