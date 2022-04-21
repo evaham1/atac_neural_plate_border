@@ -169,29 +169,29 @@ feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
 
 addArchRThreads(threads = 1) 
 
-png(paste0(plot_path, 'Contaminating_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = contaminating_markers)
-graphics.off()
+# png(paste0(plot_path, 'Contaminating_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+# bubble_plot(ArchR, gene_list = contaminating_markers)
+# graphics.off()
 
-png(paste0(plot_path, 'Late_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = late_markers)
-graphics.off()
+# png(paste0(plot_path, 'Late_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+# bubble_plot(ArchR, gene_list = late_markers)
+# graphics.off()
 
-png(paste0(plot_path, 'AP_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = ap_markers)
-graphics.off()
+# png(paste0(plot_path, 'AP_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+# bubble_plot(ArchR, gene_list = ap_markers)
+# graphics.off()
 
-png(paste0(plot_path, 'Early_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = early_markers)
-graphics.off()
+# png(paste0(plot_path, 'Early_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
+# bubble_plot(ArchR, gene_list = early_markers)
+# graphics.off()
 
-png(paste0(plot_path, 'DotPlot_1.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = dotplot_1_genes)
-graphics.off()
+# png(paste0(plot_path, 'DotPlot_1.png'), height = 15, width = 15, units = 'cm', res = 400)
+# bubble_plot(ArchR, gene_list = dotplot_1_genes)
+# graphics.off()
 
-png(paste0(plot_path, 'DotPlot_2.png'), height = 15, width = 15, units = 'cm', res = 400)
-bubble_plot(ArchR, gene_list = dotplot_2_genes)
-graphics.off()
+# png(paste0(plot_path, 'DotPlot_2.png'), height = 15, width = 15, units = 'cm', res = 400)
+# bubble_plot(ArchR, gene_list = dotplot_2_genes)
+# graphics.off()
 
 ############################## Feature Plots #################################
 
