@@ -122,7 +122,7 @@ unfiltered <- table(ArchR$stage)
 filtered <- table(ArchR_subset$stage)
 cell_counts <- rbind(unfiltered, filtered)
 
-png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 10, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 20, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
@@ -132,7 +132,7 @@ unfiltered <- table(ArchR$clusters)
 filtered <- table(ArchR_subset$clusters)
 cell_counts <- rbind(unfiltered, filtered)
 
-png(paste0(plot_path, 'cell_counts_table_clusters.png'), height = 10, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_table_clusters.png'), height = 30, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
