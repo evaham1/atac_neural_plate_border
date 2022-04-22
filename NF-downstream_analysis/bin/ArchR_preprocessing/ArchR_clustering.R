@@ -379,3 +379,20 @@ if (is.null(outliers) == FALSE){
       baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
   graphics.off()
 }
+
+
+#################################################################################
+############################ CELL LABEL PLOTS ###################################
+
+if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
+  
+  png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
+  plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+  graphics.off()
+
+  png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+  plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+  graphics.off()
+}
