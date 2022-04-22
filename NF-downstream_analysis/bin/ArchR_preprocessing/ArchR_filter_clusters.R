@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("4_filter_clusters_ArchR")
+print("Filter_clusters_ArchR")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -26,12 +26,9 @@ opt = getopt(spec)
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-    setwd("~/NF-downstream_analysis")
-    ncores = 8
-    
-    plot_path = "../output/NF-downstream_analysis/4_ArchR_filter_clusters/plots/"
-    rds_path = "../output/NF-downstream_analysis/4_ArchR_filter_clusters/rds_files/"
-    data_path = "../output/NF-downstream_analysis/3_ArchR_clustering_prefiltering/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/4_ArchR_filter_clusters_1/plots/"
+    rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/4_ArchR_filter_clusters_1/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/3_ArchR_clustering_prefiltering/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -102,19 +99,9 @@ metrics = c("TSSEnrichment", "NucleosomeRatio")
 quantiles = c(0.2, 0.8)
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = TRUE, quantiles = quantiles)
 
-# highlight intersect outlier clusters on UMAP
-# if (is.null(outliers) == FALSE){
-#   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-#   cellsSample <- ArchR$cellNames[idxSample]
-#   png(paste0(plot_path, "UMAP_intersect_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-#   plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
-#       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-#       baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
-#   graphics.off()
-# }
-
 # filter ArchR object (only if outliers have been detected)
 if (is.null(outliers) == FALSE){
+  print("outliers detected!")
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
   ArchR <- addCellColData(ArchRProj = ArchR, data = rep("poor_quality", length(cellsSample)),
@@ -123,10 +110,12 @@ if (is.null(outliers) == FALSE){
   cellsPass <- ArchR$cellNames[idxPass]
   ArchR_filtered <- ArchR[cellsPass, ]
 
+  colours <- c("grey", "red")
+  names(colours) <- c("NA", "poor_quality")
   png(paste0(plot_path, "UMAP_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "quality",
+  print(plotEmbedding(ArchR, name = "quality",
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE, pal = colours))
   graphics.off()
 
 } else { 
