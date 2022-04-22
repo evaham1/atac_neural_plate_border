@@ -3,8 +3,8 @@ nextflow.enable.dsl = 2
 
 
 include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_split_stages.R", checkIfExists: true) )
-include {R as CLUSTER_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
-include {R as GENE_SCORES_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
+include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
 
 
 workflow STAGE_PROCESSING {
@@ -25,13 +25,13 @@ workflow STAGE_PROCESSING {
     //    .view() //[[meta], Save-ArchR file]
 
     // cluster individual stages
-    CLUSTER_STAGES( ch_split_stage )
+    CLUSTER( ch_split_stage )
     
     // gene score plots for individual stages
-    GENE_SCORES_STAGES( CLUSTER_STAGES.out )
+    GENE_SCORES( CLUSTER.out )
 
     // extract rds objects
-    CLUSTER_STAGES.out
+    CLUSTER.out
         .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
