@@ -103,15 +103,15 @@ quantiles = c(0.2, 0.8)
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = TRUE, quantiles = quantiles)
 
 # highlight intersect outlier clusters on UMAP
-if (is.null(outliers) == FALSE){
-  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-  cellsSample <- ArchR$cellNames[idxSample]
-  png(paste0(plot_path, "UMAP_intersect_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
-      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
-  graphics.off()
-}
+# if (is.null(outliers) == FALSE){
+#   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+#   cellsSample <- ArchR$cellNames[idxSample]
+#   png(paste0(plot_path, "UMAP_intersect_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+#   plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+#       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+#       baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+#   graphics.off()
+# }
 
 # filter ArchR object (only if outliers have been detected)
 if (is.null(outliers) == FALSE){
@@ -120,6 +120,13 @@ if (is.null(outliers) == FALSE){
   idxPass <- which(is.na(ArchR$quality) == TRUE)
   cellsPass <- ArchR$cellNames[idxPass]
   ArchR_filtered <- ArchR[cellsPass, ]
+
+  png(paste0(plot_path, "UMAP_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+  plotEmbedding(ArchR, name = "quality",
+      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+  graphics.off()
+
 } else { 
   ArchR_filtered <- ArchR
 }
