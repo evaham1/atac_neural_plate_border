@@ -22,8 +22,8 @@ library(clustree)
 option_list <- list(
     make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
     make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-    make_option(c("", "--stage_clust_res"), action = "store", type = "character", help = "clustering resolution for stage data", default = 1),
-    make_option(c("", "--full_clust_res"), action = "store", type = "character", help = "clustering resolution for full data", default = 2),
+    make_option(c("", "--stage_clust_res"), action = "store", type = "integer", help = "clustering resolution for stage data", default = 1),
+    make_option(c("", "--full_clust_res"), action = "store", type = "integer", help = "clustering resolution for full data", default = 2),
     make_option(c("", "--clustree"), action = "store", type = "logical", help = "whether to run clustree plot", default = TRUE),
     make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
     )
