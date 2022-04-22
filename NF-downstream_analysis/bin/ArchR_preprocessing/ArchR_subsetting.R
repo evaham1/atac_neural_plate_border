@@ -124,12 +124,11 @@ saveArchRProject(ArchRProj = ArchR_subset, outputDirectory = paste0(rds_path, la
 ############################## Visualisations #######################################
 
 ### Plot removed cells on UMAP
-if (opt$invert == FALSE){
+if (opt$invert == FALSE) {
     idxPass <- which(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups)
-  }
-  else {
+} else {
     idxPass <- which(!(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups))
-  }
+}
 cells <- ArchR$cellNames[idxPass]
 
 png(paste0(plot_path, "UMAP_cells_to_remove.png"), width=20, height=20, units = 'cm', res = 200)
