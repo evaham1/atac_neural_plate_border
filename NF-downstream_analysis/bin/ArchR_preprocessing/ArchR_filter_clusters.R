@@ -126,12 +126,22 @@ if (is.null(outliers) == FALSE){
 paste0("Memory Size = ", round(object.size(ArchR_filtered) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
-# plot cell counts before and after filtering
+# plot cell counts per stage before and after filtering
 unfiltered <- table(ArchR$stage)
 filtered <- table(ArchR_filtered$stage)
 cell_counts <- rbind(unfiltered, filtered)
 
-png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'stage_cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# plot cell counts per cluster before and after filtering
+unfiltered <- table(ArchR$clusters)
+filtered <- table(ArchR_filtered$clusters)
+cell_counts <- rbind(unfiltered, filtered)
+
+png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 10, width = 25, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
