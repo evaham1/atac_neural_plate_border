@@ -115,6 +115,8 @@ outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metri
 
 # filter ArchR object (only if outliers have been detected)
 if (is.null(outliers) == FALSE){
+  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+  cellsSample <- ArchR$cellNames[idxSample]
   ArchR <- addCellColData(ArchRProj = ArchR, data = rep("poor_quality", length(cellsSample)),
                             cells = cellsSample, name = "quality", force = TRUE)
   idxPass <- which(is.na(ArchR$quality) == TRUE)

@@ -68,7 +68,7 @@ if(opt$verbose) print(opt)
 }
 
 ############################### FUNCTIONS - adapted from scHelper #################################################
-ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, intersect_metrics = TRUE, quantiles){
+ArchR_IdentifyOutliers <- function(ArchR, group_by = 'clusters', metrics, intersect_metrics = TRUE, quantiles){
   outlier <- list()
   if(!length(quantiles) == 2){
     stop('quantiles must be an array of length == 2')
