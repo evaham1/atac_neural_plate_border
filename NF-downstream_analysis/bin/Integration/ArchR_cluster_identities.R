@@ -120,7 +120,7 @@ cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new"
   )
 }
 
-############################## Read in ArchR project and seurat object #######################################
+############################## Read in ArchR project  #######################################
 
 # Retrieve object label
 label <- sub('_.*', '', list.files(data_path))
@@ -138,7 +138,6 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
-stage_cols <- stage_colours[levels(droplevels(seurat_data@meta.data$stage))]
 
 ###### schelper cell type colours
 scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
