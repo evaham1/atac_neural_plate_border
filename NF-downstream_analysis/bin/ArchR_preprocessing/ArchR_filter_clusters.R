@@ -98,6 +98,7 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 metrics = c("TSSEnrichment", "NucleosomeRatio")
 quantiles = c(0.2, 0.8)
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = TRUE, quantiles = quantiles)
+print(outliers)
 
 # filter ArchR object (only if outliers have been detected)
 if (is.null(outliers) == FALSE){
@@ -137,11 +138,16 @@ grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface 
 graphics.off()
 
 # plot cell counts per cluster before and after filtering
-unfiltered <- table(ArchR$clusters)
-filtered <- table(ArchR_filtered$clusters)
-cell_counts <- rbind(unfiltered, filtered)
+unfiltered <- as.data.frame(table(ArchR$clusters))
+colnames(unfiltered) <- c("Cluster_ID", "Unfiltered_cell_count")
+unfiltered <- unfiltered %>% mutate(Cluster_ID = as.numeric(gsub('^.', '', Cluster_ID))) %>%
+  arrange(Cluster_ID)
+filtered <- as.data.frame(table(ArchR_filtered$clusters)) %>% 
+  mutate(Var1 = as.numeric(gsub('^.', '', Var1)))
+cell_counts <- merge(unfiltered, filtered, by.x = "Cluster_ID", by.y = "Var1", all = TRUE)
+cell_counts[is.na(cell_counts)] <- 0
 
-png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 10, width = 25, units = 'cm', res = 400)
+png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 30, width = 15, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
