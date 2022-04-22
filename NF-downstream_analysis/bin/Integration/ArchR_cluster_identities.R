@@ -49,7 +49,7 @@ opt = getopt(spec)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/"
+    data_path = "./input/rds_files/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores) 
@@ -125,16 +125,6 @@ cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new"
 # Retrieve object label
 label <- sub('_.*', '', list.files(data_path))
 print(label)
-
-# load ArchR object using its retrieved name
-if (length(label) == 0){
-  data_path = "./input/"
-  label <- sub('_.*', '', list.files(data_path))
-  print(label)
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-} else {
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-}
 
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
