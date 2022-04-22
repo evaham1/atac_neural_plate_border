@@ -344,9 +344,9 @@ if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
   png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+  print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE))
   graphics.off()
 }
 
@@ -374,9 +374,9 @@ if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
   png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+  print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE))
   graphics.off()
 }
 
