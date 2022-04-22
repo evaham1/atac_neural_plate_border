@@ -147,14 +147,14 @@ if (length(label) == 0){
 ############################## Generating pseudo-replicates ##################################
 
 # Plot number of cells in each cluster that come from each sample
-png(paste0(plot_path, 'cell_counts_by_sample_table.png'), height = 25, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
 cell_counts(ArchR = ArchR, group1 = "clusters", group2 = "Sample")
 graphics.off()
 
 # Make pseudo replicates and see which samples these cells come from
 pseudo_replicates <- addGroupCoverages(ArchR, groupBy = "clusters", returnGroups = TRUE)
 
-png(paste0(plot_path, 'cell_counts_by_pseudoreplicate_table.png'), height = 50, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_by_pseudoreplicate_table.png'), height = 90, width = 100, units = 'cm', res = 400)
 pseudoreplicate_counts(ArchR, pseudo_replicates)
 graphics.off()
 
@@ -166,9 +166,9 @@ print("pseudo replicates created")
 ##############################################################################################
 ############################## Call peaks on pseudo-replicates ###############################
 
-idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C14", "C15"))
-cellsSample <- ArchR$cellNames[idxSample]
-ArchR <- ArchR[cellsSample, ]
+# idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C14", "C15"))
+# cellsSample <- ArchR$cellNames[idxSample]
+# ArchR <- ArchR[cellsSample, ]
 
 #pathToMacs2 <- findMacs2()
 
