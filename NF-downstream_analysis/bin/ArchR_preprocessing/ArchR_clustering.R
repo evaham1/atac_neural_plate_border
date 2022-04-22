@@ -4,6 +4,7 @@ print("clustering_ArchR")
 
 ############################## Load libraries #######################################
 library(getopt)
+library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
@@ -17,11 +18,19 @@ library(parallel)
 library(clustree)
 
 ############################## Set up script options #######################################
-spec = matrix(c(
-  'runtype', 'l', 2, "character",
-  'cores'   , 'c', 2, "integer"
-), byrow=TRUE, ncol=4)
-opt = getopt(spec)
+# Read in command line opts
+option_list <- list(
+    make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+    make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+    make_option(c("", "--stage_clust_res"), action = "store", type = "character", help = "clustering resolution for stage data", default = 1),
+    make_option(c("", "--full_clust_res"), action = "store", type = "character", help = "clustering resolution for full data", default = 2),
+    make_option(c("", "--clustree"), action = "store", type = "logical", help = "whether to run clustree plot", default = TRUE),
+    make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+    )
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
 # Set paths and load data
 {
@@ -33,6 +42,9 @@ opt = getopt(spec)
     plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/plots/"
     rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ArchR_split/rds_files/"
+
+    # already clustered
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -113,6 +125,19 @@ ArchR_ClustRes <- function(ArchR, by = 0.1, starting_res = 0){
   return(gridExtra::grid.arrange(plots2))
 }
 
+# function to make heatmap showing contribution of cell groups to other cell groups
+cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters") {
+  group1_data <- getCellColData(ArchR, select = group1)[,1]
+  group2_data <- getCellColData(ArchR, select = group2)[,1]
+  cM <- confusionMatrix(paste0(group2_data), paste0(group1_data))
+  cM <- cM / Matrix::rowSums(cM)
+  
+  p <- pheatmap::pheatmap(
+    mat = cM,
+    color = paletteContinuous("whiteBlue"), 
+    border_color = "black"
+  )
+}
 
 ############################## Read in ArchR project #######################################
 
@@ -174,10 +199,14 @@ print("UMAP added")
 ################## Seurat graph-based clustering #################################
 
 # Try different clustering resolutions if looking at individual stages (otherwise takes too long)
-if (length(unique(ArchR$stage)) == 1){
-  print("only one stage detected, running clustree plot...")
+if (isTRUE(opt$clustree)) {
+  print("running clustree plot...")
+
+  if (length(unique(ArchR$stage)) == 1) {
+    by = 0.1 } else { by = 0.2 }
+
   png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-  print(ArchR_ClustRes(ArchR, by = 0.2))
+  print(ArchR_ClustRes(ArchR, by = by, starting_res = -by))
   graphics.off()
   print("clustree plot ran")
 }
@@ -189,7 +218,7 @@ if (length(unique(ArchR$stage)) == 1){
   reducedDims = "IterativeLSI",
   method = "Seurat",
   name = "clusters",
-  resolution = 1,
+  resolution = opt$stage_clust_res,
   force = TRUE)
 } else {
   ArchR <- addClusters(
@@ -197,12 +226,19 @@ if (length(unique(ArchR$stage)) == 1){
   reducedDims = "IterativeLSI",
   method = "Seurat",
   name = "clusters",
-  resolution = 2,
+  resolution = opt$full_clust_res,
   force = TRUE)
 }
 
 print("clustering ran")
 print(table(ArchR$clusters))
+
+################## Save clustered ArchR project #################################
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+
+#######################################################################################
+############################ CELL COUNTS PER CLUSTER ##################################
 
 # Plot number of cells in each cluster
 cluster_cell_counts <- as.data.frame(table(substr(ArchR$clusters, 2, nchar(ArchR$clusters))))
@@ -218,25 +254,20 @@ graphics.off()
 p<-ggplot(data=cluster_cell_counts, aes(x=`Cluster_number`, y=`Cell_count`)) +
   geom_bar(stat="identity") +
   scale_x_continuous(breaks = round(seq(min(cluster_cell_counts$Cluster_number), max(cluster_cell_counts$Cluster_number), by = 1),1))
+
 png(paste0(plot_path, 'cell_counts_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
 print(p)
 graphics.off()
 
 # Plot contribution of each stage to each cluster
 if (length(unique(ArchR$stage)) > 1){
-  cM <- confusionMatrix(substr(ArchR$clusters, 2, nchar(ArchR$clusters)), paste0(ArchR$stage))
-  cM <- cM / Matrix::rowSums(cM)
-  p <- pheatmap::pheatmap(
-  mat = as.matrix(cM), 
-  color = paletteContinuous("whiteBlue"), 
-  border_color = "black"
-  )
-  png(paste0(plot_path, "Cluster_stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-  print(p)
+  png(paste0(plot_path, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+  cell_counts_heatmap(ArchR = ArchR, group1 = "clusters", group2 = "stage")
   graphics.off()
 }
 
-############################ UMAP plots + save data #############################
+#######################################################################################
+################################### UMAPS #############################################
 
 p1 <- plotEmbedding(ArchR, 
                     name = "stage",
@@ -253,10 +284,7 @@ png(paste0(plot_path, "UMAPs.png"), width=60, height=40, units = 'cm', res = 200
 ggAlignPlots(p1, p2, type = "h")
 graphics.off()
 
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
-
-png(paste0(plot_path, 'Clusters_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAP_clusters.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1), baseSize = 0, 
               labelSize = 10, legendSize = 0, randomize = TRUE)
 graphics.off()
