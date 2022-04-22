@@ -113,29 +113,46 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 # see all available metadata cols which could be used to subset
 print(colnames(ArchR@cellColData))
 
+#####################################################################################
 ############################## Subset ArchR object #######################################
 ### will need to add extra functionality here 
 ArchR_subset <- subset_ArchR(ArchR, meta_col = opt$meta_col1, groups = opt$groups1, invert = opt$invert)
 
-# plot cell counts before and after subsetting per stage
+saveArchRProject(ArchRProj = ArchR_subset, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+
+#####################################################################################
+############################## Visualisations #######################################
+
+### Plot removed cells on UMAP
+if (opt$invert == FALSE){
+    idxPass <- which(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups)
+  }
+  else {
+    idxPass <- which(!(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups))
+  }
+cells <- ArchR$cellNames[idxPass]
+
+png(paste0(plot_path, "UMAP_cells_to_remove.png"), width=20, height=20, units = 'cm', res = 200)
+plotEmbedding(ArchR, name = "clusters", highlightCells = cells,
+    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+    baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+
+### Plot cell counts before and after subsetting per stage
 unfiltered <- table(ArchR$stage)
 filtered <- table(ArchR_subset$stage)
 cell_counts <- rbind(unfiltered, filtered)
 
-png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 20, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 10, width = 20, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-# plot cell counts before and after subsetting per stage
+### Plot cell counts before and after subsetting per stage
 unfiltered <- table(ArchR$clusters)
 filtered <- table(ArchR_subset$clusters)
 cell_counts <- rbind(unfiltered, filtered)
 
-png(paste0(plot_path, 'cell_counts_table_clusters.png'), height = 30, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cell_counts_table_clusters.png'), height = 10, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
-
-############################## Save new ArchR object #######################################
-saveArchRProject(ArchRProj = ArchR_subset, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
