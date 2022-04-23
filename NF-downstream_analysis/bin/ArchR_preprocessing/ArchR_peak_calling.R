@@ -31,8 +31,8 @@ opt = getopt(spec)
     
     ncores = 8
     
-    #plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/plots/"
-    #rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/plots/"
+    rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/rds_files/"
     
     #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
@@ -78,7 +78,7 @@ cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
   }
   
   cell_counts <- merge(group1_cell_counts, group2_cell_counts)
-  
+  cell_counts[is.na(cell_counts)] <- 0
   
   ## Ordering rows and columns to better visualise
   if (group1 == "clusters"){
@@ -114,8 +114,12 @@ pseudoreplicate_counts <- function(ArchR = ArchR, pseudo_replicates) {
   pseudoreplicate_cell_counts_samples <- pseudoreplicate_cell_counts_samples %>%
     mutate(Cluster_ID = gsub("\\..*","", pseudo_replicate_ID)) %>%
     mutate(Cluster_ID = as.numeric(parse_number(Cluster_ID))) %>%
-    arrange(Cluster_ID)
-
+    arrange(Cluster_ID) %>% 
+    mutate(sum_contributing_samples = rowSums(is.na(pseudoreplicate_cell_counts_samples[-which(names(pseudoreplicate_cell_counts_samples) %in% c("Cluster_ID", "pseudo_replicate_ID"))]) == FALSE))
+  
+  pseudoreplicate_cell_counts_samples <- pseudoreplicate_cell_counts_samples[,order(colnames(pseudoreplicate_cell_counts_samples))]
+  pseudoreplicate_cell_counts_samples[is.na(pseudoreplicate_cell_counts_samples)] <- 0
+  
   grid.arrange(tableGrob(pseudoreplicate_cell_counts_samples, rows=NULL, theme = ttheme_minimal()))
 }
 
@@ -146,18 +150,23 @@ if (length(label) == 0){
 ##############################################################################################
 ############################## Generating pseudo-replicates ##################################
 
+plot_path_1 <- paste0(plot_path, "pseudoreplicates/")
+dir.create(plot_path_1, recursive = T)
+
 # Plot number of cells in each cluster that come from each sample
-png(paste0(plot_path, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path_1, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
 cell_counts(ArchR = ArchR, group1 = "clusters", group2 = "Sample")
 graphics.off()
 
 # Make pseudo replicates and see which samples these cells come from
 pseudo_replicates <- addGroupCoverages(ArchR, groupBy = "clusters", returnGroups = TRUE)
 
-png(paste0(plot_path, 'cell_counts_by_pseudoreplicate_table.png'), height = 90, width = 100, units = 'cm', res = 400)
+png(paste0(plot_path_1, 'cell_counts_by_pseudoreplicate_table.png'), height = 80, width = 30, units = 'cm', res = 400)
 pseudoreplicate_counts(ArchR, pseudo_replicates)
 graphics.off()
 
+
+#####  Make actual pseudo-replicates for peak calling:
 # merge cells within each designated cell group for the generation of pseudo-bulk replicates 
 # and then merge these replicates into a single insertion coverage file.
 ArchR_pseudo_replicates <- addGroupCoverages(ArchR, groupBy = "clusters", threads = 1, returnGroups = FALSE)
