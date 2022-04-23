@@ -318,9 +318,32 @@ quantiles = c(0.2, 0.8)
 
 ##### nFrags
 png(paste0(plot_path, "VlnPlot_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
-plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
   name = "nFrags", plotAs = "Violin", baseSize = 12)
 graphics.off()
+
+metrics = "nFrags"
+p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
+                   color = "red")
+p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
+                   color = "red")
+png(paste0(plot_path, "VlnPlot_thresholds_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
+print(p)
+graphics.off()
+
+# automatically identify outlier clusters using adapted scHelper function
+outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+
+# highlight outlier clusters on UMAP
+if (is.null(outliers) == FALSE){
+  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+  cellsSample <- ArchR$cellNames[idxSample]
+  png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+  print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+                      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE))
+  graphics.off()
+}
 
 #### TSS Enrichment
 p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
@@ -346,7 +369,7 @@ if (is.null(outliers) == FALSE){
   png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE))
+      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE))
   graphics.off()
 }
 
@@ -376,7 +399,7 @@ if (is.null(outliers) == FALSE){
   png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE))
+      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE))
   graphics.off()
 }
 
