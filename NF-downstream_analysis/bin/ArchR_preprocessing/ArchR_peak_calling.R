@@ -31,11 +31,13 @@ opt = getopt(spec)
     
     ncores = 8
     
-    plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/plots/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/rds_files/"
+    #plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/plots/"
+    #rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/rds_files/"
+    rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/plots/"
     
-    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
+    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -165,34 +167,85 @@ png(paste0(plot_path_1, 'cell_counts_by_pseudoreplicate_table.png'), height = 80
 pseudoreplicate_counts(ArchR, pseudo_replicates)
 graphics.off()
 
-
 #####  Make actual pseudo-replicates for peak calling:
 # merge cells within each designated cell group for the generation of pseudo-bulk replicates 
 # and then merge these replicates into a single insertion coverage file.
-ArchR_pseudo_replicates <- addGroupCoverages(ArchR, groupBy = "clusters", threads = 1, returnGroups = FALSE)
+ArchR <- addGroupCoverages(ArchR, groupBy = "clusters", threads = 1, returnGroups = FALSE, force = TRUE)
 print("pseudo replicates created")
 
 ##############################################################################################
 ############################## Call peaks on pseudo-replicates ###############################
 
-# idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C14", "C15"))
+# idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C6", "C7"))
 # cellsSample <- ArchR$cellNames[idxSample]
 # ArchR <- ArchR[cellsSample, ]
 
 #pathToMacs2 <- findMacs2()
 
-#ArchR_pseudo_replicates <- addReproduciblePeakSet(
-#  ArchRProj = ArchR_pseudo_replicates, 
-#  groupBy = "clusters", 
-#  pathToMacs2 = pathToMacs2
-#)
-#print("peaks called using Macs2")
-#getPeakSet(ArchR_pseudo_replicates)
+ArchR <- addReproduciblePeakSet(
+ ArchRProj = ArchR,
+ groupBy = "clusters",
+ pathToMacs2 = "/opt/conda/bin/macs2",
+ force = TRUE,
+ genomeSize = 1230258557, # copied from Grace's paper, need to check this
+ threads = 1
+)
+print("peaks called using Macs2")
 
-#ArchR <- addReproduciblePeakSet(
-#  ArchRProj = ArchR_pseudo_replicates, 
-#  groupBy = "clusters",
-#  peakMethod = "Tiles",
-#  method = "p",
-#  threads = 1
-#)
+getPeakSet(ArchR)
+getAvailableMatrices(ArchR)
+
+ArchR_peaks <- addPeakMatrix(ArchR)
+getPeakSet(ArchR_peaks)
+getAvailableMatrices(ArchR_peaks)
+
+#################################################################################
+############################## Save ArchR project ###############################
+saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+
+
+##############################################################################
+############################## Visualise peaks ###############################
+
+## Create df of peaks
+peaks_granges <- getPeakSet(ArchR_peaks)
+cluster_ids <- names(peaks_granges@ranges)
+names(peaks_granges@ranges) <- c(1:length(peaks_granges))
+
+peaks_df <- as.data.frame(peaks_granges)
+peaks_df <- peaks_df %>% mutate(Cluster_ID = cluster_ids)
+
+## How many peaks found per cluster
+counts <- as.data.frame(table(peaks_df$Cluster_ID))
+colnames(counts) <- c("Cluster_ID", "Number of peaks")
+
+png(paste0(plot_path, 'peak_counts_per_cluster.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Peak Counts per cluster", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+counts <- counts %>% 
+  mutate(Cluster_ID = substr(counts$Cluster_ID, 2, nchar(as.character(counts$Cluster_ID)))) %>%
+  mutate(Cluster_ID = as.numeric(as.character(Cluster_ID))) %>%
+  arrange(Cluster_ID)
+
+png(paste0(plot_path, 'peak_counts_per_cluster_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
+ggplot(data=counts, aes(x=`Cluster_ID`, y=`Number of peaks`)) +
+  geom_bar(stat="identity") +
+  scale_x_continuous(breaks = round(seq(min(counts$Cluster_ID), max(counts$Cluster_ID), by = 1),1))
+graphics.off()
+
+## What are these peaks annotated too
+counts <- as.data.frame(table(peaks_df$peakType))
+colnames(counts) <- c("Peak Annotation", "Number of peaks")
+
+png(paste0(plot_path, 'peak_counts_per_type.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Peak Counts per type", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+png(paste0(plot_path, 'peak_counts_per_type_piechart.png'), height = 10, width = 20, units = 'cm', res = 400)
+ggplot(counts, aes(x="", y=`Number of peaks`, fill=`Peak Annotation`)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  theme_void()
