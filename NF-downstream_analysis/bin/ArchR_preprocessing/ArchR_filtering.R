@@ -81,8 +81,7 @@ png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units 
 print(p2)
 graphics.off()
 
-p2 <- plotTSSEnrichment(ArchRProj = ArchR, 
-                        pal = stage_colours) 
+p2 <- plotTSSEnrichment(ArchRProj = ArchR) # removed custom colours as they came out all grey
 png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
 graphics.off()
@@ -151,9 +150,23 @@ graphics.off()
 
 ############################## Plot nucleosome banding #######################################
 
+p2 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "NucleosomeRatio",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'Nucleosome_ratio_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p2)
+graphics.off()
+
 p1 <- plotFragmentSizes(ArchRProj = ArchR, 
-                        threads = 1,
-                        pal = stage_colours)
+                        threads = 1) # removed custom colours as made it all grey
 png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p1)
 graphics.off()
@@ -174,7 +187,6 @@ p <- ggPoint(
 png(paste0(plot_path, 'fragments_vs_TSS.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p)
 graphics.off()
-
 
 ############################## FILTERING #######################################
 ################################################################################
