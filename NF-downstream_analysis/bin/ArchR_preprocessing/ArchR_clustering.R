@@ -317,10 +317,8 @@ graphics.off()
 quantiles = c(0.2, 0.8)
 
 ##### nFrags
-png(paste0(plot_path, "VlnPlot_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
 p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
   name = "nFrags", plotAs = "Violin", baseSize = 12)
-graphics.off()
 
 metrics = "nFrags"
 p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
@@ -338,7 +336,7 @@ outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metri
 if (is.null(outliers) == FALSE){
   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
   cellsSample <- ArchR$cellNames[idxSample]
-  png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+  png(paste0(plot_path, "UMAP_nFrags_outliers.png"), width=20, height=20, units = 'cm', res = 200)
   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
                       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
                       baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE))
