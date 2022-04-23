@@ -90,7 +90,7 @@ graphics.off()
 print(paste0("Minimum TSS Enrichment score:", min(ArchR$TSSEnrichment)))
 print(paste0("Maximum TSS Enrichment score:", max(ArchR$TSSEnrichment)))
 
-############################## Plot log10(Unique Fragments) #######################################
+############################## Plot Unique Fragments #######################################
 p3 <- plotGroups(
   ArchRProj = ArchR, 
   groupBy = "stage", 
@@ -100,7 +100,7 @@ p3 <- plotGroups(
   baseSize = 20,
   pal = stage_colours
 )
-png(paste0(plot_path, 'fragment_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+png(paste0(plot_path, 'fragment_log10_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
 print(p3)
 graphics.off()
 
@@ -115,12 +115,39 @@ p4 <- plotGroups(
   baseSize = 20,
   pal = stage_colours
 )
+png(paste0(plot_path, 'fragment_log10_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p4)
+graphics.off()
+
+p4 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
+)
 png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p4)
 graphics.off()
 
 print(paste0("Minimum number of fragments", min(ArchR$nFrags)))
 print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
+
+p <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours)
+png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
+p + geom_vline(xintercept = 70000, linetype = "dashed", color = "red")
+graphics.off()
 
 ############################## Plot nucleosome banding #######################################
 
@@ -152,8 +179,14 @@ graphics.off()
 ############################## FILTERING #######################################
 ################################################################################
 
-## add something here to filter different samples to different thresholds? or more stringent global thresholds?
-ArchR_filtered <- ArchR
+## filter to remove cells with very high number of reads to remove HH7 bias
+idxSample <- BiocGenerics::which(ArchR$nFrags > 70000)
+cellsSample <- ArchR$cellNames[idxSample]
+ArchR <- addCellColData(ArchRProj = ArchR, data = rep("highly_sequenced", length(cellsSample)),
+                        cells = cellsSample, name = "high", force = TRUE)
+idxPass <- which(is.na(ArchR$high) == TRUE)
+cellsPass <- ArchR$cellNames[idxPass]
+ArchR_filtered <- ArchR[cellsPass, ]
 
 # save ArchR project
 saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
