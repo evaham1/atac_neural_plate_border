@@ -45,16 +45,13 @@ if(opt$verbose) print(opt)
     
     #plot_path = "./output/NF-downstream_analysis/4_ArchR_filter_clusters/plots/"
     #rds_path = "./output/NF-downstream_analysis/4_ArchR_filter_clusters/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_integration/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_integration/ss8/1_unconstrained_integration/rds_files/"
 
     addArchRThreads(threads = 1)
     
-    opt$invert1 = FALSE
-    opt$invert2 = FALSE
-    opt$groups1 = NULL
-    opt$groups2 = NULL
-    opt$meta_col1 = NULL
-    opt$meta_col2 = NULL
+    opt$invert1 = TRUE
+    opt$groups1 = "BI,PGC,meso,endo"
+    opt$meta_col1 = "scHelper_cell_type_old"
   
     
   } else if (opt$runtype == "nextflow"){
@@ -117,6 +114,7 @@ print(colnames(ArchR@cellColData))
 ############################## Subset ArchR object #######################################
 ### will need to add extra functionality here 
 ArchR_subset <- subset_ArchR(ArchR, meta_col = opt$meta_col1, groups = opt$groups1, invert = opt$invert)
+print("ArchR object subsetted")
 
 saveArchRProject(ArchRProj = ArchR_subset, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
@@ -125,16 +123,17 @@ saveArchRProject(ArchRProj = ArchR_subset, outputDirectory = paste0(rds_path, la
 
 ### Plot removed cells on UMAP
 if (opt$invert == FALSE) {
-    idxPass <- which(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups)
+    idxPass <- which(ArchR@cellColData[,opt$meta_col] %in% opt$groups)
 } else {
-    idxPass <- which(!(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups))
+    idxPass <- which(!(ArchR@cellColData[,opt$meta_col] %in% opt$groups))
 }
 cells <- ArchR$cellNames[idxPass]
 
 png(paste0(plot_path, "UMAP_cells_to_remove.png"), width=20, height=20, units = 'cm', res = 200)
 plotEmbedding(ArchR, name = "clusters", highlightCells = cells,
     plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-    baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+    baseSize = 0, labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
+graphics.off()
 
 ### Plot cell counts before and after subsetting per stage
 unfiltered <- table(ArchR$stage)
