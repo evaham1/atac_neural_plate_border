@@ -81,7 +81,7 @@ png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units 
 print(p2)
 graphics.off()
 
-p2 <- plotTSSEnrichment(ArchRProj = ArchR) # removed custom colours as they came out all grey
+p2 <- plotTSSEnrichment(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours)
 png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
 graphics.off()
@@ -165,8 +165,8 @@ png(paste0(plot_path, 'Nucleosome_ratio_vln.png'), height = 25, width = 25, unit
 print(p2)
 graphics.off()
 
-p1 <- plotFragmentSizes(ArchRProj = ArchR, 
-                        threads = 1) # removed custom colours as made it all grey
+p1 <- plotFragmentSizes(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours,
+                        threads = 1)
 png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p1)
 graphics.off()
