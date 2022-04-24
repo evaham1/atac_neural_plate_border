@@ -286,7 +286,7 @@ graphics.off()
 
 png(paste0(plot_path, 'UMAP_clusters.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1), baseSize = 0, 
-              labelSize = 10, legendSize = 0, randomize = TRUE)
+              labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
 graphics.off()
 
 #################################################################################
@@ -339,7 +339,7 @@ if (is.null(outliers) == FALSE){
   png(paste0(plot_path, "UMAP_nFrags_outliers.png"), width=20, height=20, units = 'cm', res = 200)
   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
                       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-                      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE))
+                      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
   graphics.off()
 }
 
@@ -367,7 +367,7 @@ if (is.null(outliers) == FALSE){
   png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE))
+      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
   graphics.off()
 }
 
@@ -397,7 +397,7 @@ if (is.null(outliers) == FALSE){
   png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE))
+      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
   graphics.off()
 }
 
