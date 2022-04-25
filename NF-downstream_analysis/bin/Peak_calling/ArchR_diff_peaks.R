@@ -31,13 +31,9 @@ opt = getopt(spec)
     
     ncores = 8
     
-    #plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/plots/"
-    #rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/rds_files/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/plots/"
+    data_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/2_differential_peaks/plots/"
     
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
-    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -80,31 +76,108 @@ if (length(label) == 0){
   paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 }
 
-###### stage colours
-#stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
-#stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
-#names(stage_colours) <- stage_order
+getPeakSet(ArchR)
+getAvailableMatrices(ArchR)
+
+# ############################## Subset to speed up interactive work #######################################
+# ArchR_big <- ArchR
+# 
+# idxSample <- BiocGenerics::which(ArchR_big$scHelper_cell_type_old %in% c("NC", "dNC", "aPPR", "pPPR"))
+# cellsSample <- ArchR_big$cellNames[idxSample]
+# 
+# ArchR <- subsetArchRProject(ArchR_big, cellsSample, outputDirectory = "ArchRSubset",
+#   dropCells = TRUE, logFile = NULL, force = TRUE)
+# 
+# ArchR <- loadArchRProject(path = "./ArchRSubset", force = TRUE, showLogo = TRUE)
 
 
-############################## Gat Marker Peaks #######################################
+############################# CLUSTER Marker Peaks #######################################
 
-ArchR <- getMarkerFeatures(
+markersPeaks <- getMarkerFeatures(
     ArchRProj = ArchR, 
     useMatrix = "PeakMatrix", 
-    groupBy = "clusters",
-  bias = c("TSSEnrichment", "log10(nFrags)"),
-  testMethod = "wilcoxon"
-)
+    groupBy = "clusters")
+markersPeaks
+
 markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
 markerList
 
-
-############################## Heatmaps #######################################
-
-heatmapPeaks <- markerHeatmap(
+heatmapPeaks <- plotMarkerHeatmap(
   seMarker = markersPeaks, 
-  cutOff = "FDR <= 0.1 & Log2FC >= 0.5",
-  transpose = TRUE
-)
+  cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
+  transpose = TRUE)
 
+png(paste0(plot_path, 'clusters_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
 draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+graphics.off()
+
+############################# SC_HELPER_CELL_TYPE Marker Peaks #######################################
+
+ArchR$scHelper_cell_type_old <- as.character(ArchR$scHelper_cell_type_old)
+
+markersPeaks <- getMarkerFeatures(
+  ArchRProj = ArchR, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "scHelper_cell_type_old")
+markersPeaks
+
+markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
+markerList
+
+heatmapPeaks <- plotMarkerHeatmap(
+  seMarker = markersPeaks, 
+  cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
+  transpose = TRUE)
+
+  png(paste0(plot_path, 'stage_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+  print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
+  graphics.off()
+
+
+############################# STAGE Marker Peaks #######################################
+
+if (length(unique(ArchR$stage)) > 1) {
+  markersPeaks <- getMarkerFeatures(
+    ArchRProj = ArchR, 
+    useMatrix = "PeakMatrix", 
+    groupBy = "stage")
+  markersPeaks
+
+  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
+  markerList
+
+  heatmapPeaks <- plotMarkerHeatmap(
+    seMarker = markersPeaks, 
+    cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
+    transpose = TRUE)
+
+  png(paste0(plot_path, 'schelper_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+  print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
+  graphics.off()
+
+}
+
+# ############################## Individual group plots #######################################
+
+# ### make for loop so make MA/volcano plot for each group in group_by
+# for (i in )
+# pma <- plotMarkers(seMarker = markersPeaks, name = "aPPR", cutOff = "FDR <= 0.1 & Log2FC >= 1", plotAs = "MA")
+# pma
+
+# pv <- plotMarkers(seMarker = markersPeaks, name = "C6", cutOff = "FDR <= 0.1 & Log2FC >= 1", plotAs = "Volcano")
+# pv
+
+
+# ############################## Browser tracks #######################################
+
+# p <- plotBrowserTrack(
+#   ArchRProj = ArchR, 
+#   groupBy = "clusters", 
+#   geneSymbol = c("SIX1"),
+#   features =  getMarkers(markersPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 1", returnGR = TRUE)["C6"],
+#   upstream = 50000,
+#   downstream = 50000
+# )
+
+# grid::grid.newpage()
+# grid::grid.draw(p$SIX1)
