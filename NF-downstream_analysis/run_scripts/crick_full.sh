@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=atac-NPB
-#SBATCH -t 24:00:00
+#SBATCH -t 12:00:00
 #SBATCH --mail-type=ALL,ARRAY_TASKS
 #SBATCH --mail-user=eva.hamrud@crick.ac.uk
 
