@@ -72,7 +72,7 @@ split_ArchR_by_stage <- function(ArchR_project){
 # paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ## temp whilst debugging
-ArchR <- loadArchRProject(path = paste0(data_path, "Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 ############################## Split ArchR project #######################################
 split_ArchR <- split_ArchR_by_stage(ArchR)
