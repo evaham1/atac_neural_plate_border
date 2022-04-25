@@ -65,23 +65,23 @@ workflow A {
         //.view()
         .set {ch_atac}
 
-    // ///////////////////// INTEGRATING //////////////////////////////
-    // ///////////////////////////////////////////////////////////////
+    ///////////////////// INTEGRATING //////////////////////////////
+    ///////////////////////////////////////////////////////////////
 
-    // // RNA: read in data
-    // METADATA_RNA( params.rna_sample_sheet )
+    // RNA: read in data
+    METADATA_RNA( params.rna_sample_sheet )
    
-    // // combine ATAC and RNA data
-    // ch_atac
-    //     .concat( METADATA_RNA.out.metadata )
-    //     .groupTuple( by:0 )
-    //     // .map{[it[0], it[[1]] + it[2]]}
-    //     .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
-    //     //.view()
-    //     .set {ch_integrate}
+    // combine ATAC and RNA data
+    ch_atac
+        .concat( METADATA_RNA.out.metadata )
+        .groupTuple( by:0 )
+        // .map{[it[0], it[[1]] + it[2]]}
+        .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
+        //.view()
+        .set {ch_integrate}
 
-    // // ARCHR: Integrate
-    // INTEGRATING( ch_integrate )
+    // ARCHR: Integrate
+    INTEGRATING( ch_integrate )
 
     // INTEGRATING.out.archr_integrated_full.view()
     
