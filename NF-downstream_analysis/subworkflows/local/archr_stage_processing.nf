@@ -27,19 +27,18 @@ workflow STAGE_PROCESSING {
     // cluster individual stages
     CLUSTER( ch_split_stage )
     
-    // // gene score plots for individual stages
-    // GENE_SCORES( CLUSTER.out )
+    // gene score plots for individual stages
+    GENE_SCORES( CLUSTER.out )
 
-    // // extract rds objects
-    // CLUSTER.out
-    //     .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
-    //     .flatMap {it[1][0].listFiles()}
-    //     .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-    //     //.view() //CHECK THIS!
-    //     .set {output_ch}
+    // extract rds objects
+    CLUSTER.out
+        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
+        .flatMap {it[1][0].listFiles()}
+        .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+        //.view() //CHECK THIS!
+        .set {output_ch}
 
     //emit full filtered and clustered dataset:
     emit:
-    //output = output_ch
-    output = CLUSTER.out
+    output = output_ch
 }
