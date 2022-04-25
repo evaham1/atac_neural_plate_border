@@ -63,16 +63,14 @@ split_ArchR_by_stage <- function(ArchR_project){
 }
 
 ############################## Read in ArchR project #######################################
-# # Retrieve object label
-# label <- sub('_.*', '', list.files(data_path))
-# print(label)
+# Retrieve object label
+label <- sub('_.*', '', list.files(data_path))
+print(label)
 
-# # load ArchR object using its retrieved name
-# ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+# load ArchR object using its retrieved name
+ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
-## temp whilst debugging
-ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 ############################## Split ArchR project #######################################
 split_ArchR <- split_ArchR_by_stage(ArchR)
