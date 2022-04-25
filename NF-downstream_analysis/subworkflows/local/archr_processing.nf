@@ -35,28 +35,31 @@ workflow PROCESSING {
 
     // creates arrow files and ArchR project filtered with generous thresholds
     PREPROCESS( ch_input_modified )
-    // plots whole sample QC metrics (+ add filtering?)
-    FILTER( PREPROCESS.out )
+    // // plots whole sample QC metrics (+ add filtering?)
+    // FILTER( PREPROCESS.out )
 
-    // iterative clustering and filtering poor quality clusters
-    CLUSTER_PREFILTER( FILTER.out )
-    FILTER_CLUSTERS_1( CLUSTER_PREFILTER.out ) // filtering round 1
-    CLUSTER_POSTFILTER( FILTER_CLUSTERS_1.out )
-    FILTER_CLUSTERS_2( CLUSTER_POSTFILTER.out ) // filtering round 2
-    CLUSTER( FILTER_CLUSTERS_2.out )
-    
-    DOUBLETS_FILTERED( FILTER_CLUSTERS_2.out ) // see if adding doublet scores after filtering any better
-
-    // plots using gene scores
-    GENE_SCORES( CLUSTER.out )
-
-    // extract rds objects
-      CLUSTER.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
-        .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] } //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
-        .flatMap { it[1][0].listFiles() }
-        .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-        //.view() //[[sample_id:FullData], /rds_files/FullData_Save-ArchR]
+    PREPROCESS.out
         .set { output_ch }
+
+    // // iterative clustering and filtering poor quality clusters
+    // CLUSTER_PREFILTER( FILTER.out )
+    // FILTER_CLUSTERS_1( CLUSTER_PREFILTER.out ) // filtering round 1
+    // CLUSTER_POSTFILTER( FILTER_CLUSTERS_1.out )
+    // FILTER_CLUSTERS_2( CLUSTER_POSTFILTER.out ) // filtering round 2
+    // CLUSTER( FILTER_CLUSTERS_2.out )
+    
+    // DOUBLETS_FILTERED( FILTER_CLUSTERS_2.out ) // see if adding doublet scores after filtering any better
+
+    // // plots using gene scores
+    // GENE_SCORES( CLUSTER.out )
+
+    // // extract rds objects
+    //   CLUSTER.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
+    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] } //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
+    //     .flatMap { it[1][0].listFiles() }
+    //     .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+    //     //.view() //[[sample_id:FullData], /rds_files/FullData_Save-ArchR]
+    //     .set { output_ch }
 
     //emit full filtered and clustered dataset:
     emit:

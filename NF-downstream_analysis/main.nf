@@ -59,36 +59,36 @@ workflow A {
     // ARCHR: run clustering + gene scores on individual stages
     STAGE_PROCESSING ( PROCESSING.out.output )
 
-    // ATAC: add together stage data and full data
-    STAGE_PROCESSING.out.output
-        .concat( PROCESSING.out.output )
-        //.view()
-        .set {ch_atac}
+    // // ATAC: add together stage data and full data
+    // STAGE_PROCESSING.out.output
+    //     .concat( PROCESSING.out.output )
+    //     //.view()
+    //     .set {ch_atac}
 
-    ///////////////////// INTEGRATING //////////////////////////////
-    ///////////////////////////////////////////////////////////////
+    // ///////////////////// INTEGRATING //////////////////////////////
+    // ///////////////////////////////////////////////////////////////
 
-    // RNA: read in data
-    METADATA_RNA( params.rna_sample_sheet )
+    // // RNA: read in data
+    // METADATA_RNA( params.rna_sample_sheet )
    
-    // combine ATAC and RNA data
-    ch_atac
-        .concat( METADATA_RNA.out.metadata )
-        .groupTuple( by:0 )
-        // .map{[it[0], it[[1]] + it[2]]}
-        .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
-        //.view()
-        .set {ch_integrate}
+    // // combine ATAC and RNA data
+    // ch_atac
+    //     .concat( METADATA_RNA.out.metadata )
+    //     .groupTuple( by:0 )
+    //     // .map{[it[0], it[[1]] + it[2]]}
+    //     .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
+    //     //.view()
+    //     .set {ch_integrate}
 
-    // ARCHR: Integrate
-    INTEGRATING( ch_integrate )
+    // // ARCHR: Integrate
+    // INTEGRATING( ch_integrate )
 
-    INTEGRATING.out.archr_integrated_full.view()
+    // INTEGRATING.out.archr_integrated_full.view()
     
-    ///////////////////// PEAK CALLING ////////////////////////////
-    ///////////////////////////////////////////////////////////////
+    // ///////////////////// PEAK CALLING ////////////////////////////
+    // ///////////////////////////////////////////////////////////////
     
-    PEAK_CALLING( INTEGRATING.out.archr_integrated_full )
+    // PEAK_CALLING( INTEGRATING.out.archr_integrated_full )
     
 }
 
