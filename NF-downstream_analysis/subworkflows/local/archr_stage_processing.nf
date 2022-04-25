@@ -21,11 +21,11 @@ workflow STAGE_PROCESSING {
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
         .set { ch_split_stage }     
     
-    //ch_split_stage
-    //    .view() //[[meta], Save-ArchR file]
+    ch_split_stage
+       .view() //[[meta], Save-ArchR file]
 
     // cluster individual stages
-    // CLUSTER( ch_split_stage )
+    CLUSTER( ch_split_stage )
     
     // // gene score plots for individual stages
     // GENE_SCORES( CLUSTER.out )
@@ -41,5 +41,5 @@ workflow STAGE_PROCESSING {
     //emit full filtered and clustered dataset:
     emit:
     //output = output_ch
-    output = ch_split_stage
+    output = CLUSTER.out
 }
