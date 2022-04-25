@@ -59,11 +59,11 @@ workflow A {
     // ARCHR: run clustering + gene scores on individual stages
     STAGE_PROCESSING ( PROCESSING.out.output )
 
-    // // ATAC: add together stage data and full data
-    // STAGE_PROCESSING.out.output
-    //     .concat( PROCESSING.out.output )
-    //     //.view()
-    //     .set {ch_atac}
+    // ATAC: add together stage data and full data
+    STAGE_PROCESSING.out.output
+        .concat( PROCESSING.out.output )
+        //.view()
+        .set {ch_atac}
 
     // ///////////////////// INTEGRATING //////////////////////////////
     // ///////////////////////////////////////////////////////////////
