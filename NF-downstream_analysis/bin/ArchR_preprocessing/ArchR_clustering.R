@@ -247,7 +247,7 @@ cluster_cell_counts <- cluster_cell_counts %>%
   mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
   arrange(Cluster_number)
 
-png(paste0(plot_path, 'cell_counts_table.png'), height = 25, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 25, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
@@ -255,7 +255,7 @@ p<-ggplot(data=cluster_cell_counts, aes(x=`Cluster_number`, y=`Cell_count`)) +
   geom_bar(stat="identity") +
   scale_x_continuous(breaks = round(seq(min(cluster_cell_counts$Cluster_number), max(cluster_cell_counts$Cluster_number), by = 1),1))
 
-png(paste0(plot_path, 'cell_counts_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'cluster_cell_counts_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
 print(p)
 graphics.off()
 
@@ -290,7 +290,43 @@ plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = ifelse(length(
 graphics.off()
 
 #################################################################################
+############################ CELL LABEL PLOTS ###################################
+
+###### schelper cell type colours
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
+                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                       'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo')
+atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
+
+if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
+  
+  png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+  graphics.off()
+
+  png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+  graphics.off()
+}
+
+#################################################################################
 ############################### QC PLOTS ########################################
+
+plot_path <- paste0(plot_path, "QC_plots/")
+dir.create(plot_path, recursive = T)
 
 ############################ Plot QC metrics on UMAP #############################
 
@@ -398,39 +434,5 @@ if (is.null(outliers) == FALSE){
   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
       baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
-  graphics.off()
-}
-
-
-#################################################################################
-############################ CELL LABEL PLOTS ###################################
-
-###### schelper cell type colours
-scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
-                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
-                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
-                              'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo')
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
-names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
-                                       'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo')
-atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
-
-if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
-  
-  png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
-  plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
-  graphics.off()
-
-  png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-  plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
   graphics.off()
 }
