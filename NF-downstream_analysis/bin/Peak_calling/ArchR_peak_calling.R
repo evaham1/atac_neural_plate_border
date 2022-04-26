@@ -171,6 +171,8 @@ png(paste0(plot_path_1, 'cell_counts_by_pseudoreplicate_table.png'), height = 80
 pseudoreplicate_counts(ArchR, pseudo_replicates)
 graphics.off()
 
+addArchRThreads(threads = 1) # H5Fopen error
+
 #####  Make actual pseudo-replicates for peak calling:
 ArchR <- addGroupCoverages(ArchR, groupBy = opt$group_by, threads = 1, returnGroups = FALSE, force = TRUE)
 print("pseudo replicates created")
