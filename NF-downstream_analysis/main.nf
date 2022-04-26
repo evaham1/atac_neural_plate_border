@@ -20,12 +20,17 @@ nextflow.enable.dsl = 2
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 
 include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/1.1_archr_preprocessing"
-include { STAGE_PROCESSING } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 
-include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
-include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
+// try filtering at different thresholds:
+include { QC_LOW as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+//include { QC_MED as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+//include { QC_HIGH as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 
-include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
+
+// include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
+// include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
+
+// include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
 
 //
 // SET CHANNELS
@@ -57,13 +62,15 @@ workflow A {
     PREPROCESSING ( ch_metadata ) //output = archr_filtered_full
 
     // ARCHR: run clustering + gene scores on individual stages
-    STAGE_PROCESSING ( PREPROCESSING.out.output )
+    //STAGE_PROCESSING ( PREPROCESSING.out.output )
 
-    // ATAC: add together stage data and full data
-    STAGE_PROCESSING.out.output
-        .concat( PREPROCESSING.out.output )
-        //.view()
-        .set {ch_atac}
+    QC_LOW ( PREPROCESSING.out.output )
+
+    // // ATAC: add together stage data and full data
+    // STAGE_PROCESSING.out.output
+    //     .concat( PREPROCESSING.out.output )
+    //     //.view()
+    //     .set {ch_atac}
 
     ///////////////////// INTEGRATING //////////////////////////////
     ///////////////////////////////////////////////////////////////
