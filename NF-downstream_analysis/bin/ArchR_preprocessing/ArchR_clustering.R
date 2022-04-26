@@ -25,6 +25,7 @@ option_list <- list(
     make_option(c("", "--stage_clust_res"), action = "store", type = "double", help = "clustering resolution for stage data", default = 1),
     make_option(c("", "--full_clust_res"), action = "store", type = "double", help = "clustering resolution for full data", default = 2),
     make_option(c("", "--clustree"), action = "store", type = "logical", help = "whether to run clustree plot", default = TRUE),
+    make_option(c("", "--clustree_by"), action = "store", type = "double", help = "clustering res intervals for clustree", default = 0.1),
     make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
     )
 
@@ -202,11 +203,8 @@ print("UMAP added")
 if (isTRUE(opt$clustree)) {
   print("running clustree plot...")
 
-  if (length(unique(ArchR$stage)) == 1) {
-    by = 0.1 } else { by = 0.2 }
-
   png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-  print(ArchR_ClustRes(ArchR, by = by, starting_res = -by))
+  print(ArchR_ClustRes(ArchR, by = opt$clustree_by, starting_res = -opt$clustree_by))
   graphics.off()
   print("clustree plot ran")
 }
