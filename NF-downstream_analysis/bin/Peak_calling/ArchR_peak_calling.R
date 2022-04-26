@@ -1,9 +1,11 @@
 #!/usr/bin/env Rscript
 
 print("peak_calling_ArchR ")
+# creates pseudorepicates and calls peaks on user-defined groups of cells
 
 ############################## Load libraries #######################################
 library(getopt)
+library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
@@ -18,11 +20,17 @@ library(clustree)
 library(plyr)
 
 ############################## Set up script options #######################################
-spec = matrix(c(
-  'runtype', 'l', 2, "character",
-  'cores'   , 'c', 2, "integer"
-), byrow=TRUE, ncol=4)
-opt = getopt(spec)
+# Read in command line opts
+option_list <- list(
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-c", "--group_by"), action = "store", type = "character", help = "How to group cells to call peaks", default = "clusters",),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+)
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
 # Set paths and load data
 {
@@ -143,11 +151,7 @@ if (length(label) == 0){
   paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 }
 
-###### stage colours
-#stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
-#stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
-#names(stage_colours) <- stage_order
-
+print(paste0("Cells grouped by: ", opt$group_by))
 
 ##############################################################################################
 ############################## Generating pseudo-replicates ##################################
@@ -155,22 +159,20 @@ if (length(label) == 0){
 plot_path_1 <- paste0(plot_path, "pseudoreplicates/")
 dir.create(plot_path_1, recursive = T)
 
-# Plot number of cells in each cluster that come from each sample
+# Plot number of cells in each group that come from each sample
 png(paste0(plot_path_1, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
-cell_counts(ArchR = ArchR, group1 = "clusters", group2 = "Sample")
+cell_counts(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
 graphics.off()
 
 # Make pseudo replicates and see which samples these cells come from
-pseudo_replicates <- addGroupCoverages(ArchR, groupBy = "clusters", returnGroups = TRUE)
+pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE)
 
 png(paste0(plot_path_1, 'cell_counts_by_pseudoreplicate_table.png'), height = 80, width = 30, units = 'cm', res = 400)
 pseudoreplicate_counts(ArchR, pseudo_replicates)
 graphics.off()
 
 #####  Make actual pseudo-replicates for peak calling:
-# merge cells within each designated cell group for the generation of pseudo-bulk replicates 
-# and then merge these replicates into a single insertion coverage file.
-ArchR <- addGroupCoverages(ArchR, groupBy = "clusters", threads = 1, returnGroups = FALSE, force = TRUE)
+ArchR <- addGroupCoverages(ArchR, groupBy = opt$group_by, threads = 1, returnGroups = FALSE, force = TRUE)
 print("pseudo replicates created")
 
 ##############################################################################################
@@ -184,7 +186,7 @@ print("pseudo replicates created")
 
 ArchR <- addReproduciblePeakSet(
  ArchRProj = ArchR,
- groupBy = "clusters",
+ groupBy = opt$group_by,
  pathToMacs2 = "/opt/conda/bin/macs2",
  force = TRUE,
  genomeSize = 1230258557, # copied from Grace's paper, need to check this
@@ -205,11 +207,11 @@ saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = paste0(rds_path, lab
 
 
 ##############################################################################
-############################## Visualise peaks ###############################
+##################### How many peaks per cell group###########################
 
 ## Create df of peaks
 peaks_granges <- getPeakSet(ArchR_peaks)
-cluster_ids <- names(peaks_granges@ranges)
+ids <- names(peaks_granges@ranges)
 names(peaks_granges@ranges) <- c(1:length(peaks_granges))
 
 peaks_df <- as.data.frame(peaks_granges)
@@ -234,6 +236,9 @@ ggplot(data=counts, aes(x=`Cluster_ID`, y=`Number of peaks`)) +
   geom_bar(stat="identity") +
   scale_x_continuous(breaks = round(seq(min(counts$Cluster_ID), max(counts$Cluster_ID), by = 1),1))
 graphics.off()
+
+##############################################################################
+############################# Peak Annotations ###############################
 
 ## What are these peaks annotated too
 counts <- as.data.frame(table(peaks_df$peakType))
