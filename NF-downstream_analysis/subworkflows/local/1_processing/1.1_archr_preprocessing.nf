@@ -9,7 +9,7 @@ include {R as FILTER} from "$baseDir/modules/local/r/main"               addPara
 include {R as GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
 
 
-workflow PROCESSING {
+workflow PREPROCESSING {
     take:
     input
 
