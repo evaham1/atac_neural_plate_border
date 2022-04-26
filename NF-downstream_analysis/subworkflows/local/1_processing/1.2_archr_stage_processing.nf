@@ -5,6 +5,8 @@ nextflow.enable.dsl = 2
 include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_split_stages.R", checkIfExists: true) )
 
 include {R as CLUSTER_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as GENE_SCORES_POOR_QUALITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
+
 include {R as CLUSTER_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 
@@ -21,7 +23,7 @@ workflow STAGE_PROCESSING {
 
     main:
 
-    /// SPLIT STAGES ///
+    ///     SPLIT STAGES    ///
     SPLIT_STAGES( input )
 
     SPLIT_STAGES.out //[[meta], [plots, rds_files]]
@@ -33,16 +35,27 @@ workflow STAGE_PROCESSING {
     
     ch_split_stage
        .view() //[[meta], Save-ArchR file]
-    /////////////////////////
+    /////////////////////////////
 
-    /// ITERATIVELY CLUSTER AND FILTER STAGES ///
+    ///     CONFIRM IDENTITY OF LOW QUALITY CLUSTERS    ///
     CLUSTER_PREFILTER( ch_split_stage )
-    FILTER_CLUSTERS_1( CLUSTER_PREFILTER.out ) // filtering round 1
-    CLUSTER_POSTFILTER( FILTER_CLUSTERS_1.out )
-    FILTER_CLUSTERS_2( CLUSTER_POSTFILTER.out ) // filtering round 2
-    CLUSTER( FILTER_CLUSTERS_2.out )
-    /////////////////////////
+    GENE_SCORES_POOR_QUALITY( CLUSTER_PREFILTER.out )
+    // add peak calling here?
+
+
+    // /// ITERATIVELY CLUSTER AND FILTER STAGES ///
+    // CLUSTER_PREFILTER( ch_split_stage )
+    // FILTER_CLUSTERS_1( CLUSTER_PREFILTER.out ) // filtering round 1
+    // CLUSTER_POSTFILTER( FILTER_CLUSTERS_1.out )
+    // FILTER_CLUSTERS_2( CLUSTER_POSTFILTER.out ) // filtering round 2
+    // CLUSTER( FILTER_CLUSTERS_2.out )
+    // /////////////////////////
+
+
     
+
+
+
     /// PLOT GENE SCORES ///
     GENE_SCORES( CLUSTER.out )
     /////////////////////////
