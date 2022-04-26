@@ -9,6 +9,7 @@ library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
+library(plyr)
 library(dplyr)
 library(GenomicFeatures)
 library(hexbin)
@@ -17,15 +18,14 @@ library(gridExtra)
 library(grid)
 library(parallel)
 library(clustree)
-library(plyr)
 
 ############################## Set up script options #######################################
 # Read in command line opts
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-c", "--group_by"), action = "store", type = "character", help = "How to group cells to call peaks", default = "clusters",),
-  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+  make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How to group cells to call peaks", default = "clusters",),
+  make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
 opt_parser = OptionParser(option_list = option_list)
