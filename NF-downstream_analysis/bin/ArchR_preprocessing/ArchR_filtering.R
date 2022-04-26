@@ -223,7 +223,7 @@ plot_path <- paste0(plot_path, "filtering/")
 dir.create(plot_path, recursive = T)
 
 ## filtering params:
-max_frags = 60000
+max_frags = 50000
 
 ## filtering params overlaid on plots:
 p <- plotGroups(
@@ -263,6 +263,19 @@ p <- plotGroups(
   pal = stage_colours)
 png(paste0(plot_path, 'fragment_count_ridge_filtered.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p)
+graphics.off()
+
+p3 <- plotGroups(
+  ArchRProj = ArchR_filtered, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "log10(nFrags)",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'fragment_log10_count_ridge_filtered.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
 graphics.off()
 
 unfiltered <- table(ArchR$stage)
