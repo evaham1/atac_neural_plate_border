@@ -23,9 +23,8 @@ include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/1.1_arc
 
 // try filtering at different thresholds:
 include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-//include { QC_MED as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-//include { QC_HIGH as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-
+include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 
 // include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 // include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
@@ -64,7 +63,11 @@ workflow A {
     // ARCHR: run clustering + gene scores on individual stages
     //STAGE_PROCESSING ( PREPROCESSING.out.output )
 
+    // run filtering at different thresholds and look at outputs in individual stages
+    // outputs are clustering QC plots, gene scores and called peaks
     QC_LOW ( PREPROCESSING.out.output )
+    QC_MED ( PREPROCESSING.out.output )
+    QC_HIGH ( PREPROCESSING.out.output )
 
     // // ATAC: add together stage data and full data
     // STAGE_PROCESSING.out.output
