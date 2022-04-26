@@ -22,9 +22,9 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/1.1_archr_preprocessing"
 
 // try filtering at different thresholds:
-include { QC_STAGES as 2_QC_LOW } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-include { QC_STAGES as 2_QC_MED } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-include { QC_STAGES as 2_QC_HIGH } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 
 // include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 // include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
@@ -60,9 +60,9 @@ workflow A {
     PREPROCESSING ( ch_metadata )
 
     /////   Run filtering and QC with different filtering params    ///
-    2_QC_LOW ( PREPROCESSING.out.output )
-    2_QC_MED ( PREPROCESSING.out.output )
-    2_QC_HIGH ( PREPROCESSING.out.output )
+    QC_LOW ( PREPROCESSING.out.output )
+    QC_MED ( PREPROCESSING.out.output )
+    QC_HIGH ( PREPROCESSING.out.output )
 
     // here maybe add filter clusters workflow from the output of one of the filtering thresholds above
 
