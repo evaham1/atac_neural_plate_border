@@ -56,23 +56,24 @@ workflow STAGE_PROCESSING {
 
 
 
-    /// PLOT GENE SCORES ///
-    GENE_SCORES( CLUSTER.out )
-    /////////////////////////
+    // /// PLOT GENE SCORES ///
+    // GENE_SCORES( CLUSTER.out )
+    // /////////////////////////
 
-    /// IDENTIFY DOUBLETS ///
-    DOUBLETS( CLUSTER.out )
-    /////////////////////////
+    // /// IDENTIFY DOUBLETS ///
+    // DOUBLETS( CLUSTER.out )
+    // /////////////////////////
 
-    // extract rds objects
-    CLUSTER.out
-        .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
-        .flatMap {it[1][0].listFiles()}
-        .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-        //.view() //CHECK THIS!
-        .set {output_ch}
+    // // extract rds objects
+    // CLUSTER.out
+    //     .map {row -> [row[0], row[1].findAll { it =~ ".*rds_files" }]}
+    //     .flatMap {it[1][0].listFiles()}
+    //     .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+    //     //.view() //CHECK THIS!
+    //     .set {output_ch}
 
     //emit filtered and clustered stage objects:
     emit:
-    output = output_ch
+    //output = output_ch
+    output = CLUSTER_PREFILTER.out
 }
