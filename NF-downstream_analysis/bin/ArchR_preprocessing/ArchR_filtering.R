@@ -81,6 +81,19 @@ png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units 
 print(p2)
 graphics.off()
 
+p3 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "TSSEnrichment",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'TSS_enrichment_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
+graphics.off()
+
 p2 <- plotTSSEnrichment(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours)
 png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
@@ -89,20 +102,7 @@ graphics.off()
 print(paste0("Minimum TSS Enrichment score:", min(ArchR$TSSEnrichment)))
 print(paste0("Maximum TSS Enrichment score:", max(ArchR$TSSEnrichment)))
 
-############################## Plot Unique Fragments #######################################
-p3 <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "stage", 
-  colorBy = "cellColData", 
-  name = "log10(nFrags)",
-  plotAs = "ridges",
-  baseSize = 20,
-  pal = stage_colours
-)
-png(paste0(plot_path, 'fragment_log10_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
-print(p3)
-graphics.off()
-
+############################## Plot Unique Fragments - log 10 #######################################
 p4 <- plotGroups(
   ArchRProj = ArchR, 
   groupBy = "stage", 
@@ -118,6 +118,20 @@ png(paste0(plot_path, 'fragment_log10_count_vln.png'), height = 25, width = 25, 
 print(p4)
 graphics.off()
 
+p3 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "log10(nFrags)",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'fragment_log10_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
+graphics.off()
+
+############################## Plot Unique Fragments #######################################
 p4 <- plotGroups(
   ArchRProj = ArchR, 
   groupBy = "stage", 
@@ -133,9 +147,6 @@ png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units 
 print(p4)
 graphics.off()
 
-print(paste0("Minimum number of fragments", min(ArchR$nFrags)))
-print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
-
 p <- plotGroups(
   ArchRProj = ArchR, 
   groupBy = "stage", 
@@ -144,9 +155,12 @@ p <- plotGroups(
   plotAs = "ridges",
   baseSize = 20,
   pal = stage_colours)
-png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
-p + geom_vline(xintercept = 70000, linetype = "dashed", color = "red")
+png(paste0(plot_path, 'fragment_count_ridge.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p)
 graphics.off()
+
+print(paste0("Minimum number of fragments", min(ArchR$nFrags)))
+print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
 
 ############################## Plot nucleosome banding #######################################
 
@@ -163,6 +177,19 @@ p2 <- plotGroups(
 )
 png(paste0(plot_path, 'Nucleosome_ratio_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p2)
+graphics.off()
+
+p3 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "NucleosomeRatio",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'Nucleosome_ratio_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
 graphics.off()
 
 p1 <- plotFragmentSizes(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours,
@@ -190,9 +217,29 @@ graphics.off()
 
 ############################## FILTERING #######################################
 ################################################################################
+### we want the metrics to be normally distributed within each sample! ###
 
-## filter to remove cells with very high number of reads to remove HH7 bias
-idxSample <- BiocGenerics::which(ArchR$nFrags > 70000)
+plot_path <- paste0(plot_path, "filtering/")
+dir.create(plot_path, recursive = T)
+
+## filtering params:
+max_frags = 60000
+
+## filtering params overlaid on plots:
+p <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours)
+png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
+p + geom_vline(xintercept = max_frags, linetype = "dashed", color = "red")
+graphics.off()
+
+## filter:
+idxSample <- BiocGenerics::which(ArchR$nFrags > max_frags)
 cellsSample <- ArchR$cellNames[idxSample]
 ArchR <- addCellColData(ArchRProj = ArchR, data = rep("highly_sequenced", length(cellsSample)),
                         cells = cellsSample, name = "high", force = TRUE)
@@ -205,6 +252,18 @@ saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, 
 
 ############################ POST-FILTERING ####################################
 ################################################################################
+
+p <- plotGroups(
+  ArchRProj = ArchR_filtered, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours)
+png(paste0(plot_path, 'fragment_count_ridge_filtered.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
 unfiltered <- table(ArchR$stage)
 filtered <- table(ArchR_filtered$stage)
