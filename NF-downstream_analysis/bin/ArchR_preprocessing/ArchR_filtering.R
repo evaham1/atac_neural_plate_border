@@ -246,7 +246,7 @@ if (opt$filter == FALSE) {
     ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", 
     name = "nFrags", plotAs = "ridges", baseSize = 20, pal = stage_colours)
   png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
-  p + geom_vline(xintercept = c(opt$min_nFrags, opt$max_nFrags), linetype = "dashed", color = "red")
+  print(p + geom_vline(xintercept = c(opt$min_nFrags, opt$max_nFrags), linetype = "dashed", color = "red"))
   graphics.off()
 
   ## filter:
