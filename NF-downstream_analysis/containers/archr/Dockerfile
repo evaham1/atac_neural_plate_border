@@ -1,7 +1,11 @@
 FROM  evahamrud/sc_multi_omic-tidyverse_4.1.2:latest
 
 LABEL authors="eva.hamrud@crick.ac.uk" \
-      description="Docker image with R4.1.2 and ArchR"
+      description="Docker image with R4.1.2, MACS2 and ArchR"
+
+# Installing MACS2 peak calling:
+RUN   conda install -c anaconda pip && \
+      pip install MACS2
 
 ## For ArchR:
 # Install ArchR
