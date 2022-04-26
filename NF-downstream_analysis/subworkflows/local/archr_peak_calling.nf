@@ -13,9 +13,9 @@ workflow PEAK_CALLING {
     PEAK_CALL ( input_ch )
 
     // find differentially accessible peaks
-    PEAK_DIFF ( PEAK_CALL.out )
+    //PEAK_DIFF ( PEAK_CALL.out )
     
     emit:
     archr_peaks = PEAK_CALL.out
-    archr_diff_peaks = PEAK_DIFF.out
+    //archr_diff_peaks = PEAK_DIFF.out
 }

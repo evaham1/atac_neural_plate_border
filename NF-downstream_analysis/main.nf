@@ -83,12 +83,12 @@ workflow A {
     // ARCHR: Integrate
     INTEGRATING( ch_integrate )
 
-    // INTEGRATING.out.archr_integrated_full.view()
+    INTEGRATING.out.archr_integrated_full.view()
     
-    // ///////////////////// PEAK CALLING ////////////////////////////
-    // ///////////////////////////////////////////////////////////////
+    ///////////////////// PEAK CALLING ////////////////////////////
+    ///////////////////////////////////////////////////////////////
     
-    // PEAK_CALLING( INTEGRATING.out.archr_integrated_full )
+    PEAK_CALLING( INTEGRATING.out.archr_integrated_full )
     
 }
 
