@@ -22,9 +22,9 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/1.1_archr_preprocessing"
 
 // try filtering at different thresholds:
-include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as 2_QC_LOW } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as 2_QC_MED } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as 2_QC_HIGH } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 
 // include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 // include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
@@ -57,17 +57,14 @@ workflow A {
         .map{[it[0], it[1] + it[2]]}
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
 
-    // ARCHR: run processing + clustering + filtering + gene scores on full data
-    PREPROCESSING ( ch_metadata ) //output = archr_filtered_full
+    PREPROCESSING ( ch_metadata )
 
-    // ARCHR: run clustering + gene scores on individual stages
-    //STAGE_PROCESSING ( PREPROCESSING.out.output )
+    /////   Run filtering and QC with different filtering params    ///
+    2_QC_LOW ( PREPROCESSING.out.output )
+    2_QC_MED ( PREPROCESSING.out.output )
+    2_QC_HIGH ( PREPROCESSING.out.output )
 
-    // run filtering at different thresholds and look at outputs in individual stages
-    // outputs are clustering QC plots, gene scores and called peaks
-    QC_LOW ( PREPROCESSING.out.output )
-    QC_MED ( PREPROCESSING.out.output )
-    QC_HIGH ( PREPROCESSING.out.output )
+    // here maybe add filter clusters workflow from the output of one of the filtering thresholds above
 
     // // ATAC: add together stage data and full data
     // STAGE_PROCESSING.out.output
