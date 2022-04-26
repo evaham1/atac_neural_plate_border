@@ -2,9 +2,12 @@
 
 ### Script to preprocess in ArchR
 print("2_filtering_ArchR")
+# generates TSS enrichment, nucleosome score and number of fragment plots for each sample in dataset
+# optionally filters nFrags using user-defined parameters
 
 ############################## Load libraries #######################################
 library(getopt)
+library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
@@ -15,11 +18,19 @@ library(gridExtra)
 library(grid)
 
 ############################## Set up script options #######################################
-spec = matrix(c(
-  'runtype', 'l', 2, "character",
-  'cores'   , 'c', 2, "integer"
-), byrow=TRUE, ncol=4)
-opt = getopt(spec)
+# Read in command line opts
+option_list <- list(
+    make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+    make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+    make_option(c("", "--filter"), action = "store", type = "logical", help = "whether to filter data", default = FALSE),
+    make_option(c("", "--max_nFrags"), action = "store", type = "double", help = "max threshold for number of unique fragments per cell", default = 40000),
+    make_option(c("", "--min_nFrags"), action = "store", type = "double", help = "min threshold for number of unique fragments per cell", default = 400),
+    make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
+    )
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
 # Set paths and load data
 {
@@ -222,30 +233,32 @@ graphics.off()
 plot_path <- paste0(plot_path, "filtering/")
 dir.create(plot_path, recursive = T)
 
-## filtering params:
-max_frags = 50000
 
-## filtering params overlaid on plots:
-p <- plotGroups(
-  ArchRProj = ArchR, 
-  groupBy = "stage", 
-  colorBy = "cellColData", 
-  name = "nFrags",
-  plotAs = "ridges",
-  baseSize = 20,
-  pal = stage_colours)
-png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
-p + geom_vline(xintercept = max_frags, linetype = "dashed", color = "red")
-graphics.off()
+if (opt$filter == FALSE) {
+  
+  print("data not filtered")
+  ArchR_filtered <- ArchR
 
-## filter:
-idxSample <- BiocGenerics::which(ArchR$nFrags > max_frags)
-cellsSample <- ArchR$cellNames[idxSample]
-ArchR <- addCellColData(ArchRProj = ArchR, data = rep("highly_sequenced", length(cellsSample)),
+} else {
+
+  ## filtering params overlaid on plots:
+  p <- plotGroups(
+    ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", 
+    name = "nFrags", plotAs = "ridges", baseSize = 20, pal = stage_colours)
+  png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
+  p + geom_vline(xintercept = c(opt$min_nFrags, opt$max_nFrags), linetype = "dashed", color = "red")
+  graphics.off()
+
+  ## filter:
+  idxSample <- BiocGenerics::which(opt$min_nFrags < ArchR$nFrags > opt$max_nFrags)
+  cellsSample <- ArchR$cellNames[idxSample]
+  ArchR <- addCellColData(ArchRProj = ArchR, data = rep("highly_sequenced", length(cellsSample)),
                         cells = cellsSample, name = "high", force = TRUE)
-idxPass <- which(is.na(ArchR$high) == TRUE)
-cellsPass <- ArchR$cellNames[idxPass]
-ArchR_filtered <- ArchR[cellsPass, ]
+  idxPass <- which(is.na(ArchR$high) == TRUE)
+  cellsPass <- ArchR$cellNames[idxPass]
+  ArchR_filtered <- ArchR[cellsPass, ]
+
+}
 
 # save ArchR project
 saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
