@@ -22,7 +22,7 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/1.1_archr_preprocessing"
 
 // try filtering at different thresholds:
-include { QC_LOW as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 //include { QC_MED as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 //include { QC_HIGH as QC_STAGES } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 
