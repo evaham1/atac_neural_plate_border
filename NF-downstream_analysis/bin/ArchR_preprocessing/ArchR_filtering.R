@@ -250,7 +250,7 @@ if (opt$filter == FALSE) {
   graphics.off()
 
   ## filter:
-  idxSample <- BiocGenerics::which(opt$min_nFrags < ArchR$nFrags > opt$max_nFrags)
+  idxSample <- BiocGenerics::which((opt$min_nFrags < ArchR$nFrags) & (ArchR$nFrags > opt$max_nFrags))
   cellsSample <- ArchR$cellNames[idxSample]
   ArchR <- addCellColData(ArchRProj = ArchR, data = rep("highly_sequenced", length(cellsSample)),
                         cells = cellsSample, name = "high", force = TRUE)
