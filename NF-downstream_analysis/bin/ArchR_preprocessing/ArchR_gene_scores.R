@@ -200,7 +200,7 @@ feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
 
 ############################## Feature Plots #################################
 
-addArchRThreads(threads = ncores) 
+addArchRThreads(threads = 1) 
 
 # impute weights using MAGIC to plot better feature plots
 ArchR <- addImputeWeights(ArchR)
