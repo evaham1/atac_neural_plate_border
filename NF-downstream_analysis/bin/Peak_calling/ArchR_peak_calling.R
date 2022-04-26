@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("peak_calling_ArchR")
+print("peak_calling_ArchR ")
 
 ############################## Load libraries #######################################
 library(getopt)
