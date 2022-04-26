@@ -19,8 +19,8 @@ nextflow.enable.dsl = 2
 
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 
-include { PROCESSING } from "$baseDir/subworkflows/local/archr_processing"
-include { STAGE_PROCESSING } from "$baseDir/subworkflows/local/archr_stage_processing"
+include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/1.1_archr_preprocessing"
+include { STAGE_PROCESSING } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
 
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
@@ -54,14 +54,14 @@ workflow A {
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
 
     // ARCHR: run processing + clustering + filtering + gene scores on full data
-    PROCESSING ( ch_metadata ) //output = archr_filtered_full
+    PREPROCESSING ( ch_metadata ) //output = archr_filtered_full
 
     // ARCHR: run clustering + gene scores on individual stages
-    STAGE_PROCESSING ( PROCESSING.out.output )
+    STAGE_PROCESSING ( PREPROCESSING.out.output )
 
     // ATAC: add together stage data and full data
     STAGE_PROCESSING.out.output
-        .concat( PROCESSING.out.output )
+        .concat( PREPROCESSING.out.output )
         //.view()
         .set {ch_atac}
 
