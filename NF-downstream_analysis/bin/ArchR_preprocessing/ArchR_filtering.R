@@ -23,8 +23,8 @@ option_list <- list(
     make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
     make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
     make_option(c("-f", "--filter"), action = "store", type = "logical", help = "whether to filter data", default = FALSE),
-    make_option(c("-max", "--max_nFrags"), action = "store", type = "double", help = "max threshold for number of unique fragments per cell", default = 40000),
-    make_option(c("-min", "--min_nFrags"), action = "store", type = "double", help = "min threshold for number of unique fragments per cell", default = 400),
+    make_option(c("-m", "--max_nFrags"), action = "store", type = "double", help = "max threshold for number of unique fragments per cell", default = 40000),
+    make_option(c("-n", "--min_nFrags"), action = "store", type = "double", help = "min threshold for number of unique fragments per cell", default = 400),
     make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
     )
 
