@@ -245,8 +245,10 @@ if (opt$filter == FALSE) {
   p <- plotGroups(
     ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", 
     name = "nFrags", plotAs = "ridges", baseSize = 20, pal = stage_colours)
+    p1 <- p + geom_vline(xintercept = opt$min_nFrags, linetype = "dashed", color = "red")
+    p2 <- p1 + geom_vline(xintercept = opt$max_nFrags, linetype = "dashed", color = "red")
   png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
-  print(p + geom_vline(xintercept = c(opt$min_nFrags, opt$max_nFrags), linetype = "dashed", color = "red"))
+  print(p2)
   graphics.off()
 
   ## filter:
