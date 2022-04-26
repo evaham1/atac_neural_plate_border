@@ -1,9 +1,11 @@
 #!/usr/bin/env Rscript
 
 print("differential peaks ArchR")
+# calculates differential peaks between clusters, scHelper_cell_types_old and stage -> plots on heatmaps
 
 ############################## Load libraries #######################################
 library(getopt)
+library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
@@ -18,11 +20,16 @@ library(clustree)
 library(plyr)
 
 ############################## Set up script options #######################################
-spec = matrix(c(
-  'runtype', 'l', 2, "character",
-  'cores'   , 'c', 2, "integer"
-), byrow=TRUE, ncol=4)
-opt = getopt(spec)
+# Read in command line opts
+option_list <- list(
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+)
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
 # Set paths and load data
 {
@@ -33,7 +40,6 @@ opt = getopt(spec)
     
     data_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/rds_files/"
     plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/2_differential_peaks/plots/"
-    
     
     addArchRThreads(threads = 1) 
     
@@ -113,26 +119,27 @@ graphics.off()
 
 ############################# SC_HELPER_CELL_TYPE Marker Peaks #######################################
 
-ArchR$scHelper_cell_type_old <- as.character(ArchR$scHelper_cell_type_old)
+if (is.null(ArchR$scHelper_cell_type_old) == FALSE) {
+  ArchR$scHelper_cell_type_old <- as.character(ArchR$scHelper_cell_type_old)
 
-markersPeaks <- getMarkerFeatures(
-  ArchRProj = ArchR, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "scHelper_cell_type_old")
-markersPeaks
+  markersPeaks <- getMarkerFeatures(
+    ArchRProj = ArchR, 
+    useMatrix = "PeakMatrix", 
+    groupBy = "scHelper_cell_type_old")
+  markersPeaks
 
-markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
-markerList
+  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
+  markerList
 
-heatmapPeaks <- plotMarkerHeatmap(
-  seMarker = markersPeaks, 
-  cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
-  transpose = TRUE)
+  heatmapPeaks <- plotMarkerHeatmap(
+    seMarker = markersPeaks, 
+    cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
+    transpose = TRUE)
 
-  png(paste0(plot_path, 'stage_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
-  print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
-  graphics.off()
-
+    png(paste0(plot_path, 'scHelper_cell_type_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+    print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
+    graphics.off()
+}
 
 ############################# STAGE Marker Peaks #######################################
 
@@ -151,7 +158,7 @@ if (length(unique(ArchR$stage)) > 1) {
     cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
     transpose = TRUE)
 
-  png(paste0(plot_path, 'schelper_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+  png(paste0(plot_path, 'stage_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
   print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
   graphics.off()
 
