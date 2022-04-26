@@ -94,10 +94,10 @@ png(paste0(plot_path, 'TSS_enrichment_ridge.png'), height = 15, width = 21, unit
 print(p3)
 graphics.off()
 
-p2 <- plotTSSEnrichment(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours)
-png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
-print(p2)
-graphics.off()
+# p2 <- plotTSSEnrichment(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours)
+# png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
+# print(p2)
+# graphics.off()
 
 print(paste0("Minimum TSS Enrichment score:", min(ArchR$TSSEnrichment)))
 print(paste0("Maximum TSS Enrichment score:", max(ArchR$TSSEnrichment)))
@@ -192,11 +192,11 @@ png(paste0(plot_path, 'Nucleosome_ratio_ridge.png'), height = 15, width = 21, un
 print(p3)
 graphics.off()
 
-p1 <- plotFragmentSizes(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours,
-                        threads = 1)
-png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
-print(p1)
-graphics.off()
+# p1 <- plotFragmentSizes(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours,
+#                         threads = 1)
+# png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
+# print(p1)
+# graphics.off()
 
 ############# Plot log10(Unique Fragments) vs TSS enrichment score #######################
 df <- getCellColData(ArchR, select = c("log10(nFrags)", "TSSEnrichment"))
