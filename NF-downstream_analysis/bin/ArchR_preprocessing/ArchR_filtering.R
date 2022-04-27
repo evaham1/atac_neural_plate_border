@@ -39,9 +39,9 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    plot_path = "./output/ArchR_preprocessing/NF-downstream_analysis/2_ArchR_filtering/plots/"
-    rds_path = "./output/ArchR_preprocessing/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
-    data_path = "./output/ArchR_preprocessing/NF-downstream_analysis/1_ArchR_preprocessing/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/filter"
+    #rds_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/1_PREPROCESS/"
 
     addArchRThreads(threads = 1) 
     
@@ -252,13 +252,13 @@ if (opt$filter == FALSE) {
   graphics.off()
 
   ## filter:
-  idxSample <- BiocGenerics::which((opt$min_nFrags < ArchR$nFrags) & (ArchR$nFrags > opt$max_nFrags))
+  ## filter:
+  idxSample_min <- BiocGenerics::which( ArchR$nFrags > opt$min_nFrags )
+  idxSample_max <- BiocGenerics::which( ArchR$nFrags < opt$max_nFrags )
+  idxSample <- Reduce(intersect, list(idxSample_min, idxSample_max))
+  
   cellsSample <- ArchR$cellNames[idxSample]
-  ArchR <- addCellColData(ArchRProj = ArchR, data = rep("highly_sequenced", length(cellsSample)),
-                        cells = cellsSample, name = "high", force = TRUE)
-  idxPass <- which(is.na(ArchR$high) == TRUE)
-  cellsPass <- ArchR$cellNames[idxPass]
-  ArchR_filtered <- ArchR[cellsPass, ]
+  ArchR_filtered <- ArchR[cellsSample, ]
 
 }
 
