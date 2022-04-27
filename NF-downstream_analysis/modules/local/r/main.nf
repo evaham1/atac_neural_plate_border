@@ -18,6 +18,7 @@ process R {
     def args = task.ext.args ?: ''
     //def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    export HDF5_USE_FILE_LOCKING=FALSE
     Rscript ${params.script} --cores ${task.cpus} --runtype nextflow ${args}
     rm -r input
     """
