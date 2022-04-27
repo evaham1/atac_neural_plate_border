@@ -17,6 +17,8 @@ library(parallel)
 library(gridExtra)
 library(grid)
 
+print("libraries loaded")
+
 ############################## Set up script options #######################################
 # Read in command line opts
 option_list <- list(
@@ -64,6 +66,7 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+print("paths read in")
 
 ############################## Read in ArchR project #######################################
 ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = TRUE, showLogo = TRUE)
