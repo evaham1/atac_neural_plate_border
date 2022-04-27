@@ -52,7 +52,7 @@ opt = getopt(spec)
 }
 
 ############################### FUNCTIONS #################################################
-ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, intersect_metrics = TRUE, quantiles){
+ArchR_IdentifyOutliers <- function(ArchR, group_by = 'Clusters', metrics, intersect_metrics = FALSE, quantiles){
   outlier <- list()
   if(!length(quantiles) == 2){
     stop('quantiles must be an array of length == 2')
