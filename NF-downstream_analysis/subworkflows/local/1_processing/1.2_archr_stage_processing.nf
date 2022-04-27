@@ -23,7 +23,7 @@ workflow QC_STAGES {
     main:
 
     ///     FILTER nFRAGS    ///
-    FILTER( input )
+    //FILTER( input )
 
     ///     SPLIT STAGES    ///
     SPLIT_STAGES( FILTER.out )
