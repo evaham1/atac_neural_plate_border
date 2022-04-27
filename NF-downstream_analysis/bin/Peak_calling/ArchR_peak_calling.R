@@ -133,6 +133,11 @@ pseudoreplicate_counts <- function(ArchR = ArchR, pseudo_replicates) {
   grid.arrange(tableGrob(pseudoreplicate_cell_counts_samples, rows=NULL, theme = ttheme_minimal()))
 }
 
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo')
 
 ############################## Read in ArchR project #######################################
 
@@ -219,25 +224,32 @@ names(peaks_granges@ranges) <- c(1:length(peaks_granges))
 peaks_df <- as.data.frame(peaks_granges)
 peaks_df <- peaks_df %>% mutate(ID = ids)
 
-## How many peaks found per cluster
 counts <- as.data.frame(table(peaks_df$ID))
 colnames(counts) <- c("ID", "Number of peaks")
 
-png(paste0(plot_path, 'peak_counts_per_group.png'), height = 10, width = 10, units = 'cm', res = 400)
+# order rows by cluster number or scHelper cell state
+if (opt$group_by == "clusters") {
+  counts <- counts %>%
+    mutate(ID = substr(counts$ID, 2, nchar(as.character(counts$ID)))) %>%
+    mutate(ID = as.numeric(as.character(ID))) %>%
+    arrange(ID)
+}
+if (opt$group_by == "scHelper_cell_type_old") {
+  order <- intersect(scHelper_cell_type_order, counts$ID)
+  counts <- counts[match(order, counts$ID),]
+}
+
+## Plot how many peaks found per cluster
+png(paste0(plot_path, 'peak_counts_per_group.png'), height = 25, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Peak Counts per group", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-# counts <- counts %>% 
-#   mutate(ID = substr(counts$ID, 2, nchar(as.character(counts$Cluster_ID)))) %>%
-#   mutate(Cluster_ID = as.numeric(as.character(Cluster_ID))) %>%
-#   arrange(Cluster_ID)
-
-# png(paste0(plot_path, 'peak_counts_per_cluster_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
-# ggplot(data=counts, aes(x=`Cluster_ID`, y=`Number of peaks`)) +
-#   geom_bar(stat="identity") +
-#   scale_x_continuous(breaks = round(seq(min(counts$Cluster_ID), max(counts$Cluster_ID), by = 1),1))
-# graphics.off()
+png(paste0(plot_path, 'peak_counts_per_group_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
+ggplot(data=counts, aes(x=`ID`, y=`Number of peaks`)) +
+  geom_bar(stat="identity") +
+  scale_x_continuous(breaks = round(seq(min(counts$ID), max(counts$ID), by = 1),1))
+graphics.off()
 
 ##############################################################################
 ############################# Peak Annotations ###############################
