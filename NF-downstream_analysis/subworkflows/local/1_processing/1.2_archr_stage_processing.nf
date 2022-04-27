@@ -22,18 +22,16 @@ workflow QC_STAGES {
 
     main:
 
+    ///     FILTER nFRAGS    ///
     FILTER( input )
 
     ///     SPLIT STAGES    ///
     SPLIT_STAGES( FILTER.out )
-
     SPLIT_STAGES.out //[[meta], [plots, rds_files]]
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //.view() //[[meta], [rds_files]]
         .flatMap {it[1][0].listFiles()}
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
         .set { ch_split_stage }     
-    /////////////////////////////
 
     ///     CONFIRM IDENTITY OF LOW QUALITY CLUSTERS    ///
     CLUSTER_PREFILTER( ch_split_stage )
@@ -50,8 +48,7 @@ workflow QC_STAGES {
     PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
     PEAK_DIFF_POSTFILTER( PEAK_CALL.out )
 
-    //emit filtered and clustered stage objects:
+    // emit filtered and clustered stage objects:
     emit:
-    //output = output_ch
     output = PEAK_CALL.out
 }
