@@ -5,19 +5,16 @@ include {R as FILTER} from "$baseDir/modules/local/r/main"               addPara
 include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_split_stages.R", checkIfExists: true) )
 
 include {R as CLUSTER_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
-include {R as GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
-include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as PEAK_DIFF} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks.R", checkIfExists: true) )
+include {R as GENE_SCORES_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
+include {R as PEAK_CALL_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as PEAK_DIFF_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks.R", checkIfExists: true) )
 
-// include {R as CLUSTER_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
-// include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as FILTER_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_filter_clusters.R", checkIfExists: true) )
 
-// include {R as FILTER_CLUSTERS_1} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_filter_clusters.R", checkIfExists: true) )
-// include {R as FILTER_CLUSTERS_2} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_filter_clusters.R", checkIfExists: true) )
-
-// include {R as GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
-// include {R as DOUBLETS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_doublets.R", checkIfExists: true) )
-
+include {R as CLUSTER_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as GENE_SCORES_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
+include {R as PEAK_CALL_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as PEAK_DIFF_POSTFILTER} from "$baseDir/modules/local/r/main" 
 
 workflow QC_STAGES {
     take:
@@ -40,20 +37,21 @@ workflow QC_STAGES {
 
     ///     CONFIRM IDENTITY OF LOW QUALITY CLUSTERS    ///
     CLUSTER_PREFILTER( ch_split_stage )
-    GENE_SCORES( CLUSTER_PREFILTER.out )
-    PEAK_CALL( CLUSTER_PREFILTER.out )
-    PEAK_DIFF( PEAK_CALL.out )
+    GENE_SCORES_PREFILTER( CLUSTER_PREFILTER.out )
+    PEAK_CALL_PREFILTER( CLUSTER_PREFILTER.out )
+    PEAK_DIFF_PREFILTER( PEAK_CALL.out )
 
-    // /// ITERATIVELY CLUSTER AND FILTER STAGES ///
-    // CLUSTER_PREFILTER( ch_split_stage )
-    // FILTER_CLUSTERS_1( CLUSTER_PREFILTER.out ) // filtering round 1
-    // CLUSTER_POSTFILTER( FILTER_CLUSTERS_1.out )
-    // FILTER_CLUSTERS_2( CLUSTER_POSTFILTER.out ) // filtering round 2
-    // CLUSTER( FILTER_CLUSTERS_2.out )
-    // /////////////////////////
+    ///     FILTER CLUSTERS     ///
+    FILTER_CLUSTERS( CLUSTER_PREFILTER.out )
+
+    ///     PLOTS FOR FILTERED DATA    ///
+    CLUSTER_POSTFILTER( FILTER_CLUSTERS.out )
+    GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
+    PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
+    PEAK_DIFF_POSTFILTER( PEAK_CALL.out )
 
     //emit filtered and clustered stage objects:
     emit:
     //output = output_ch
-    output = CLUSTER_PREFILTER.out
+    output = PEAK_CALL.out
 }
