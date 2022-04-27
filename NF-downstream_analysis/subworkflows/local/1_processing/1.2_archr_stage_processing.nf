@@ -50,5 +50,5 @@ workflow QC_STAGES {
 
     // emit filtered and clustered stage objects:
     emit:
-    output = PEAK_CALL.out
+    output = PEAK_CALL_POSTFILTER.out
 }
