@@ -143,4 +143,4 @@ print(max(ArchR$nFrags))
 print(min(ArchR$TSSEnrichment))
 
 # save ArchR project
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)

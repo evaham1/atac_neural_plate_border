@@ -49,7 +49,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/"
+    data_path = "./input/rds_files/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores)
@@ -64,7 +64,11 @@ if(opt$verbose) print(opt)
 }
 
 ############################## Read in ArchR project #######################################
-ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = TRUE, showLogo = TRUE)
+label <- sub('_.*', '', list.files(data_path))
+print(label)
+
+ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ###### stage colours
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
