@@ -1,307 +1,306 @@
 #!/usr/bin/env Rscript
-print("TEST")
 
-# ### Script to preprocess in ArchR
-# print("2_filtering_ArchR")
-# # generates TSS enrichment, nucleosome score and number of fragment plots for each sample in dataset
-# # optionally filters nFrags using user-defined parameters
+### Script to preprocess in ArchR
+print("2_filtering_ArchR")
+# generates TSS enrichment, nucleosome score and number of fragment plots for each sample in dataset
+# optionally filters nFrags using user-defined parameters
 
-# ############################## Load libraries #######################################
-# library(getopt)
-# library(optparse)
-# library(tidyverse)
-# library(ggplot2)
-# library(dplyr)
-# #library(ArchR)
-# #library(GenomicFeatures)
-# library(parallel)
-# library(gridExtra)
-# library(grid)
+############################## Load libraries #######################################
+library(getopt)
+library(optparse)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(ArchR)
+library(GenomicFeatures)
+library(parallel)
+library(gridExtra)
+library(grid)
 
-# print("libraries loaded")
+print("libraries loaded")
 
-# ############################## Set up script options #######################################
-# # Read in command line opts
-# option_list <- list(
-#     make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
-#     make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-#     make_option(c("-f", "--filter"), action = "store", type = "logical", help = "whether to filter data", default = FALSE),
-#     make_option(c("-m", "--max_nFrags"), action = "store", type = "double", help = "max threshold for number of unique fragments per cell", default = 40000),
-#     make_option(c("-n", "--min_nFrags"), action = "store", type = "double", help = "min threshold for number of unique fragments per cell", default = 400),
-#     make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
-#     )
+############################## Set up script options #######################################
+# Read in command line opts
+option_list <- list(
+    make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+    make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+    make_option(c("-f", "--filter"), action = "store", type = "logical", help = "whether to filter data", default = FALSE),
+    make_option(c("-m", "--max_nFrags"), action = "store", type = "double", help = "max threshold for number of unique fragments per cell", default = 40000),
+    make_option(c("-n", "--min_nFrags"), action = "store", type = "double", help = "min threshold for number of unique fragments per cell", default = 400),
+    make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
+    )
 
-# opt_parser = OptionParser(option_list = option_list)
-# opt <- parse_args(opt_parser)
-# if(opt$verbose) print(opt)
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
-# # Set paths and load data
-# {
-#   if(length(commandArgs(trailingOnly = TRUE)) == 0){
-#     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
+# Set paths and load data
+{
+  if(length(commandArgs(trailingOnly = TRUE)) == 0){
+    cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-#     ncores = 8
+    ncores = 8
     
-#     plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/filter"
-#     #rds_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
-#     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/1_PREPROCESS/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/filter"
+    #rds_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/1_PREPROCESS/"
 
-#     addArchRThreads(threads = 1) 
+    addArchRThreads(threads = 1) 
     
-#   } else if (opt$runtype == "nextflow"){
-#     cat('pipeline running through Nextflow\n')
+  } else if (opt$runtype == "nextflow"){
+    cat('pipeline running through Nextflow\n')
     
-#     plot_path = "./plots/"
-#     rds_path = "./rds_files/"
-#     data_path = "./input/"
-#     ncores = opt$cores
+    plot_path = "./plots/"
+    rds_path = "./rds_files/"
+    data_path = "./input/"
+    ncores = opt$cores
     
-#     addArchRThreads(threads = ncores)
+    addArchRThreads(threads = ncores)
     
-#   } else {
-#     stop("--runtype must be set to 'nextflow'")
-#   }
+  } else {
+    stop("--runtype must be set to 'nextflow'")
+  }
   
-#   cat(paste0("script ran with ", ncores, " cores\n"))
-#   dir.create(plot_path, recursive = T)
-#   dir.create(rds_path, recursive = T)
-# }
+  cat(paste0("script ran with ", ncores, " cores\n"))
+  dir.create(plot_path, recursive = T)
+  dir.create(rds_path, recursive = T)
+}
 
-# print("paths read in")
+print("paths read in")
 
-# ############################## Read in ArchR project #######################################
-# ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = TRUE, showLogo = TRUE)
+############################## Read in ArchR project #######################################
+ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = TRUE, showLogo = TRUE)
 
-# ###### stage colours
-# stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
-# stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
-# names(stage_colours) <- stage_order
+###### stage colours
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
 
-# ############################## QC plots across samples #######################################
-# ##############################################################################################
+############################## QC plots across samples #######################################
+##############################################################################################
 
-# ############################## Plot TSS Enrichment #######################################
-# p2 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "TSSEnrichment",
-#   plotAs = "violin",
-#   alpha = 0.4,
-#   addBoxPlot = TRUE,
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+############################## Plot TSS Enrichment #######################################
+p2 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "TSSEnrichment",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p2)
+graphics.off()
+
+p3 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "TSSEnrichment",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'TSS_enrichment_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
+graphics.off()
+
+# p2 <- plotTSSEnrichment(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours)
+# png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
 # print(p2)
 # graphics.off()
 
-# p3 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "TSSEnrichment",
-#   plotAs = "ridges",
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'TSS_enrichment_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
-# print(p3)
+print(paste0("Minimum TSS Enrichment score:", min(ArchR$TSSEnrichment)))
+print(paste0("Maximum TSS Enrichment score:", max(ArchR$TSSEnrichment)))
+
+############################## Plot Unique Fragments - log 10 #######################################
+p4 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "log10(nFrags)",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'fragment_log10_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p4)
+graphics.off()
+
+p3 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "log10(nFrags)",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'fragment_log10_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
+graphics.off()
+
+############################## Plot Unique Fragments #######################################
+p4 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p4)
+graphics.off()
+
+p <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours)
+png(paste0(plot_path, 'fragment_count_ridge.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+print(paste0("Minimum number of fragments", min(ArchR$nFrags)))
+print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
+
+############################## Plot nucleosome banding #######################################
+
+p2 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "NucleosomeRatio",
+  plotAs = "violin",
+  alpha = 0.4,
+  addBoxPlot = TRUE,
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'Nucleosome_ratio_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p2)
+graphics.off()
+
+p3 <- plotGroups(
+  ArchRProj = ArchR, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "NucleosomeRatio",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'Nucleosome_ratio_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
+graphics.off()
+
+# p1 <- plotFragmentSizes(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours,
+#                         threads = 1)
+# png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
+# print(p1)
 # graphics.off()
 
-# # p2 <- plotTSSEnrichment(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours)
-# # png(paste0(plot_path, 'TSS_enrichment_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
-# # print(p2)
-# # graphics.off()
+############# Plot log10(Unique Fragments) vs TSS enrichment score #######################
+df <- getCellColData(ArchR, select = c("log10(nFrags)", "TSSEnrichment"))
+p <- ggPoint(
+  x = df[,1], 
+  y = df[,2], 
+  colorDensity = TRUE,
+  continuousSet = "sambaNight",
+  xlabel = "Log10 Unique Fragments",
+  ylabel = "TSS Enrichment",
+  xlim = c(log10(500), quantile(df[,1], probs = 0.99)),
+  ylim = c(0, quantile(df[,2], probs = 0.99))
+) + geom_hline(yintercept = 4, lty = "dashed") + geom_vline(xintercept = 3, lty = "dashed")
 
-# print(paste0("Minimum TSS Enrichment score:", min(ArchR$TSSEnrichment)))
-# print(paste0("Maximum TSS Enrichment score:", max(ArchR$TSSEnrichment)))
+png(paste0(plot_path, 'fragments_vs_TSS.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# ############################## Plot Unique Fragments - log 10 #######################################
-# p4 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "log10(nFrags)",
-#   plotAs = "violin",
-#   alpha = 0.4,
-#   addBoxPlot = TRUE,
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'fragment_log10_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p4)
-# graphics.off()
+############################## FILTERING #######################################
+################################################################################
+### we want the metrics to be normally distributed within each sample! ###
 
-# p3 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "log10(nFrags)",
-#   plotAs = "ridges",
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'fragment_log10_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
-# print(p3)
-# graphics.off()
-
-# ############################## Plot Unique Fragments #######################################
-# p4 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "nFrags",
-#   plotAs = "violin",
-#   alpha = 0.4,
-#   addBoxPlot = TRUE,
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p4)
-# graphics.off()
-
-# p <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "nFrags",
-#   plotAs = "ridges",
-#   baseSize = 20,
-#   pal = stage_colours)
-# png(paste0(plot_path, 'fragment_count_ridge.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
-
-# print(paste0("Minimum number of fragments", min(ArchR$nFrags)))
-# print(paste0("Maximum number of fragments:", max(ArchR$nFrags)))
-
-# ############################## Plot nucleosome banding #######################################
-
-# p2 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "NucleosomeRatio",
-#   plotAs = "violin",
-#   alpha = 0.4,
-#   addBoxPlot = TRUE,
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'Nucleosome_ratio_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p2)
-# graphics.off()
-
-# p3 <- plotGroups(
-#   ArchRProj = ArchR, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "NucleosomeRatio",
-#   plotAs = "ridges",
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'Nucleosome_ratio_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
-# print(p3)
-# graphics.off()
-
-# # p1 <- plotFragmentSizes(ArchRProj = ArchR, groupBy = "stage", pal = stage_colours,
-# #                         threads = 1)
-# # png(paste0(plot_path, 'nucleosome_banding_plot.png'), height = 25, width = 25, units = 'cm', res = 400)
-# # print(p1)
-# # graphics.off()
-
-# ############# Plot log10(Unique Fragments) vs TSS enrichment score #######################
-# df <- getCellColData(ArchR, select = c("log10(nFrags)", "TSSEnrichment"))
-# p <- ggPoint(
-#   x = df[,1], 
-#   y = df[,2], 
-#   colorDensity = TRUE,
-#   continuousSet = "sambaNight",
-#   xlabel = "Log10 Unique Fragments",
-#   ylabel = "TSS Enrichment",
-#   xlim = c(log10(500), quantile(df[,1], probs = 0.99)),
-#   ylim = c(0, quantile(df[,2], probs = 0.99))
-# ) + geom_hline(yintercept = 4, lty = "dashed") + geom_vline(xintercept = 3, lty = "dashed")
-
-# png(paste0(plot_path, 'fragments_vs_TSS.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
-
-# ############################## FILTERING #######################################
-# ################################################################################
-# ### we want the metrics to be normally distributed within each sample! ###
-
-# plot_path <- paste0(plot_path, "filtering/")
-# dir.create(plot_path, recursive = T)
+plot_path <- paste0(plot_path, "filtering/")
+dir.create(plot_path, recursive = T)
 
 
-# if (opt$filter == FALSE) {
+if (opt$filter == FALSE) {
   
-#   print("data not filtered")
-#   ArchR_filtered <- ArchR
+  print("data not filtered")
+  ArchR_filtered <- ArchR
 
-# } else {
+} else {
 
-#   ## filtering params overlaid on plots:
-#   p <- plotGroups(
-#     ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", 
-#     name = "nFrags", plotAs = "ridges", baseSize = 20, pal = stage_colours)
-#     p1 <- p + geom_vline(xintercept = opt$min_nFrags, linetype = "dashed", color = "red")
-#     p2 <- p1 + geom_vline(xintercept = opt$max_nFrags, linetype = "dashed", color = "red")
-#   png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
-#   print(p2)
-#   graphics.off()
+  ## filtering params overlaid on plots:
+  p <- plotGroups(
+    ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", 
+    name = "nFrags", plotAs = "ridges", baseSize = 20, pal = stage_colours)
+    p1 <- p + geom_vline(xintercept = opt$min_nFrags, linetype = "dashed", color = "red")
+    p2 <- p1 + geom_vline(xintercept = opt$max_nFrags, linetype = "dashed", color = "red")
+  png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
+  print(p2)
+  graphics.off()
 
-#   ## filter:
-#   ## filter:
-#   idxSample_min <- BiocGenerics::which( ArchR$nFrags > opt$min_nFrags )
-#   idxSample_max <- BiocGenerics::which( ArchR$nFrags < opt$max_nFrags )
-#   idxSample <- Reduce(intersect, list(idxSample_min, idxSample_max))
+  ## filter:
+  ## filter:
+  idxSample_min <- BiocGenerics::which( ArchR$nFrags > opt$min_nFrags )
+  idxSample_max <- BiocGenerics::which( ArchR$nFrags < opt$max_nFrags )
+  idxSample <- Reduce(intersect, list(idxSample_min, idxSample_max))
   
-#   cellsSample <- ArchR$cellNames[idxSample]
-#   ArchR_filtered <- ArchR[cellsSample, ]
+  cellsSample <- ArchR$cellNames[idxSample]
+  ArchR_filtered <- ArchR[cellsSample, ]
 
-# }
+}
 
-# # save ArchR project
-# saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
+# save ArchR project
+saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
 
-# ############################ POST-FILTERING ####################################
-# ################################################################################
+############################ POST-FILTERING ####################################
+################################################################################
 
-# p <- plotGroups(
-#   ArchRProj = ArchR_filtered, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "nFrags",
-#   plotAs = "ridges",
-#   baseSize = 20,
-#   pal = stage_colours)
-# png(paste0(plot_path, 'fragment_count_ridge_filtered.png'), height = 25, width = 25, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+p <- plotGroups(
+  ArchRProj = ArchR_filtered, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "nFrags",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours)
+png(paste0(plot_path, 'fragment_count_ridge_filtered.png'), height = 25, width = 25, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# p3 <- plotGroups(
-#   ArchRProj = ArchR_filtered, 
-#   groupBy = "stage", 
-#   colorBy = "cellColData", 
-#   name = "log10(nFrags)",
-#   plotAs = "ridges",
-#   baseSize = 20,
-#   pal = stage_colours
-# )
-# png(paste0(plot_path, 'fragment_log10_count_ridge_filtered.png'), height = 15, width = 21, units = 'cm', res = 400)
-# print(p3)
-# graphics.off()
+p3 <- plotGroups(
+  ArchRProj = ArchR_filtered, 
+  groupBy = "stage", 
+  colorBy = "cellColData", 
+  name = "log10(nFrags)",
+  plotAs = "ridges",
+  baseSize = 20,
+  pal = stage_colours
+)
+png(paste0(plot_path, 'fragment_log10_count_ridge_filtered.png'), height = 15, width = 21, units = 'cm', res = 400)
+print(p3)
+graphics.off()
 
-# unfiltered <- table(ArchR$stage)
-# filtered <- table(ArchR_filtered$stage)
-# cell_counts <- rbind(unfiltered, filtered)
+unfiltered <- table(ArchR$stage)
+filtered <- table(ArchR_filtered$stage)
+cell_counts <- rbind(unfiltered, filtered)
 
-# png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
+png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
