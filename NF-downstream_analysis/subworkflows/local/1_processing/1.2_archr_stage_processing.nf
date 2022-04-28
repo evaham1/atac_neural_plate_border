@@ -50,5 +50,10 @@ workflow QC_STAGES {
 
     // emit filtered and clustered stage objects:
     emit:
+    unfiltered_output = PEAK_CALL_PREFILTER.out
+    unfiltered_gex = GENE_SCORES_PREFILTER.out
+    unfiltered_differential_peaks = PEAK_DIFF_PREFILTER.out
     output = PEAK_CALL_POSTFILTER.out
+    gex = GENE_SCORES_POSTFILTER.out
+    differential_peaks = PEAK_DIFF_POSTFILTER.out
 }
