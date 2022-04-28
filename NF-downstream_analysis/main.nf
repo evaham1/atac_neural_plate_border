@@ -21,11 +21,15 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 
 include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/Preprocessing"
 
-// try filtering at different thresholds:
+// stage filtering at different thresholds:
 include { QC_STAGES as QC_NO_FITER } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
 include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
 include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
 include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
+
+// filter full data using filtered stage data cell ids:
+include { FILTER_FULL as FILTER_FULL } from "$baseDir/subworkflows/local/1_processing/Full_processing"
+
 
 // include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 // include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
@@ -67,7 +71,9 @@ workflow A {
     QC_MED ( PREPROCESSING.out.output )
     QC_HIGH ( PREPROCESSING.out.output )
 
-    // here maybe add filter clusters workflow from the output of one of the filtering thresholds above
+    /////   Filter full data    ////
+    // channel operation to collect all stages outputs from QC_MED and concat with full data from preprocessing
+    //FILTER_FULL ( INSERT SOME CHANNEL HERE )
 
     // // ATAC: add together stage data and full data
     // STAGE_PROCESSING.out.output
