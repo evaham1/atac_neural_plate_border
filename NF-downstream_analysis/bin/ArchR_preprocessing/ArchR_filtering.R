@@ -17,16 +17,13 @@ library(parallel)
 library(gridExtra)
 library(grid)
 
-print("libraries loaded")
-
 ############################## Set up script options #######################################
 # Read in command line opts
 option_list <- list(
     make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
     make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
     make_option(c("-f", "--filter"), action = "store", type = "logical", help = "whether to filter data", default = FALSE),
-    make_option(c("-m", "--max_nFrags"), action = "store", type = "double", help = "max threshold for number of unique fragments per cell", default = 40000),
-    make_option(c("-n", "--min_nFrags"), action = "store", type = "double", help = "min threshold for number of unique fragments per cell", default = 400),
+    make_option(c("-m", "--factor"), action = "store", type = "double", help = "how many times to multiply SD by to create upper limit", default = 1),
     make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
     )
 
@@ -65,8 +62,6 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
-
-print("paths read in")
 
 ############################## Read in ArchR project #######################################
 ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/Save-ArchR"), force = TRUE, showLogo = TRUE)
@@ -236,6 +231,13 @@ graphics.off()
 plot_path <- paste0(plot_path, "filtering/")
 dir.create(plot_path, recursive = T)
 
+### calculate max and min thresholds based on standard deviations per group
+df <- tibble(cell_ids = getCellNames(ArchR), stage = ArchR$stage, nFrags = as.numeric(ArchR$nFrags))
+df %>% group_by(stage)
+medians <- aggregate(df$nFrags, list(df$stage), median)
+sds <- aggregate(df$nFrags, list(df$stage), sd)
+limits_df <- tibble(stage = medians$Group.1, median = medians$x,
+                    upper_limit = medians$x + (sds$x * opt$factor))
 
 if (opt$filter == FALSE) {
   
@@ -244,24 +246,33 @@ if (opt$filter == FALSE) {
 
 } else {
 
-  ## filtering params overlaid on plots:
+  ## plot thresholds
   p <- plotGroups(
-    ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", 
-    name = "nFrags", plotAs = "ridges", baseSize = 20, pal = stage_colours)
-    p1 <- p + geom_vline(xintercept = opt$min_nFrags, linetype = "dashed", color = "red")
-    p2 <- p1 + geom_vline(xintercept = opt$max_nFrags, linetype = "dashed", color = "red")
-  png(paste0(plot_path, 'fragment_count_ridge_threshold.png'), height = 25, width = 25, units = 'cm', res = 400)
-  print(p2)
+    ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", alpha = 0.4,
+    name = "nFrags", plotAs = "violin", baseSize = 20, pal = stage_colours)
+  p1 <- p + 
+    geom_hline(yintercept = limits_df$upper_limit[1], linetype = "dashed", color = stage_colours[1]) +
+    geom_hline(yintercept = limits_df$upper_limit[2], linetype = "dashed", color = stage_colours[2]) +
+    geom_hline(yintercept = limits_df$upper_limit[3], linetype = "dashed", color = stage_colours[3]) +
+    geom_hline(yintercept = limits_df$upper_limit[4], linetype = "dashed", color = stage_colours[4]) +
+    geom_hline(yintercept = limits_df$upper_limit[5], linetype = "dashed", color = stage_colours[5])
+  png(paste0(plot_path, 'fragment_count_violin_thresholds.png'), height = 25, width = 25, units = 'cm', res = 400)
+  print(p1)
   graphics.off()
 
-  ## filter:
-  ## filter:
-  idxSample_min <- BiocGenerics::which( ArchR$nFrags > opt$min_nFrags )
-  idxSample_max <- BiocGenerics::which( ArchR$nFrags < opt$max_nFrags )
-  idxSample <- Reduce(intersect, list(idxSample_min, idxSample_max))
-  
-  cellsSample <- ArchR$cellNames[idxSample]
-  ArchR_filtered <- ArchR[cellsSample, ]
+  # filter cells using stage-specific upper threshold
+  cell_ids <- c()
+  for (i in c(1:5)) {
+    print(i)
+    stage <- limits_df$stage[i]
+    print(stage)
+    df_stage <- df[which(df$stage == stage), ]
+    print(length(df_stage$cell_ids))
+    df_stage <- df_stage[df_stage$nFrags < limits_df$upper_limit[i], ]
+    print(length(df_stage$cell_ids))
+    cell_ids <- c(cell_ids, df_stage$cell_ids)
+  }
+  ArchR_filtered <- ArchR[cell_ids, ]
 
 }
 
@@ -276,10 +287,11 @@ p <- plotGroups(
   groupBy = "stage", 
   colorBy = "cellColData", 
   name = "nFrags",
-  plotAs = "ridges",
+  plotAs = "violin",
   baseSize = 20,
-  pal = stage_colours)
-png(paste0(plot_path, 'fragment_count_ridge_filtered.png'), height = 25, width = 25, units = 'cm', res = 400)
+  pal = stage_colours,
+  alpha = 0.4)
+png(paste0(plot_path, 'fragment_count_violin_filtered.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p)
 graphics.off()
 
@@ -290,9 +302,8 @@ p3 <- plotGroups(
   name = "log10(nFrags)",
   plotAs = "ridges",
   baseSize = 20,
-  pal = stage_colours
-)
-png(paste0(plot_path, 'fragment_log10_count_ridge_filtered.png'), height = 15, width = 21, units = 'cm', res = 400)
+  pal = stage_colours)
+png(paste0(plot_path, 'fragment_log10_count_violin_filtered.png'), height = 15, width = 21, units = 'cm', res = 400)
 print(p3)
 graphics.off()
 
