@@ -32,7 +32,7 @@ opt = getopt(spec)
     
     #plot_path = "./output/NF-downstream_analysis/8_ArchR_gene_scores/plots/"
     #rds_path = "./output/NF-downstream_analysis/8_ArchR_gene_scores/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/ss8/cluster_prefilter/rds_files/"
     
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1_ArchR_clustering_prefiltering/rds_files/"
     plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1.5_ArchR_gene_scores_unfiltered/plots/"
@@ -114,6 +114,27 @@ bubble_plot <- function(ArchRProj = ArchR, matrix = "GeneScoreMatrix", gene_list
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black"))+
     theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust = 0))
+}
+
+### function to extract top n logFC for each group from summarized experiment object
+# returns a summarised experiment object with only the top n features per cell group
+extract_top_features <- function(markers, n = 10) {
+  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 1")
+  df <- data.frame()
+  for (i in 1:length(names(markerList))) {
+    print(i)
+    df_i <- as.data.frame(markerList[i])
+    df <- rbind(df, df_i)
+  }
+  df <- df %>%
+    group_by(group_name) %>%
+    top_n(n, Log2FC) %>%
+    dplyr::arrange(Log2FC, .by_group = TRUE)
+  top_markers <- df$idx # top 15 markers by logF2C between cell groups
+  top_markers <- unique(top_markers) # some of these markers are shared??
+  coords <-  rownames(markersPeaks)[rownames(markersPeaks) %in% top_markers]
+  top_markers_se <- markersPeaks[coords, ]
+  return(top_markers_se)
 }
 
 ############################## Read in ArchR project #######################################
@@ -229,12 +250,6 @@ print("Feature plots done")
 
 ############################## Calculate top gene markers and plot heatmap #################################
 
-### this keeps failing with Calls: getMarkerFeatures ... new_Rle -> h5read -> h5checktypeOrOpenLoc -> H5Fopen
-  #Execution halted
-#### even when threads = 1. commented out for now
-
-addArchRThreads(threads = 1) 
-
 markers <- getMarkerFeatures(
   ArchRProj = ArchR,
   useMatrix = "GeneScoreMatrix",
@@ -245,9 +260,30 @@ markers <- getMarkerFeatures(
 )
 print("marker genes calculated")
 
+## heatmap of all calculated markers that pass thresholds
+heatmap <- markerHeatmap(
+  seMarker = markers,
+  cutOff = "FDR <= 0.01 & Log2FC >= 1.25",
+  nLabel = 3
+)
+png(paste0(plot_path, 'cutoff_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+graphics.off()
+
+## heatmap of top 10  markers per cell group
+top_markers_se <- extract_top_features(markers, n = 10)
+heatmapPeaks <- plotMarkerHeatmap(
+  seMarker = top_markers_se, 
+  cutOff = "FDR <= 1",
+  nLabel = 3)
+
+png(paste0(plot_path, 'top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+graphics.off()
+
+## print top 5 markers per cell group
 markerList <- getMarkers(markers) # could make more stringent in future
 top_markers <- tibble()
-
 for (i in 1:length(markerList)){
   table <- as_tibble(markerList[[i]])
   print(table)
@@ -256,19 +292,7 @@ for (i in 1:length(markerList)){
 }
 if(nrow(top_markers) != 0){
   print("significant markers found")
-
-  png(paste0(plot_path, 'top_genes.png'), height = 100, width = 30, units = 'cm', res = 400)
+  png(paste0(plot_path, 'top_5_genes.png'), height = 100, width = 30, units = 'cm', res = 400)
   grid.arrange(tableGrob(top_markers))
   dev.off()
-
-  markerGenes <- top_markers$name
-  heatmap <- markerHeatmap(
-    seMarker = markers,
-    cutOff = "FDR <= 0.01 & Log2FC >= 1.25",
-    transpose = TRUE
-  )
-  png(paste0(plot_path, 'heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
-  ComplexHeatmap::draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-  graphics.off()
-
 } else { print("No markers found that passed thresholds")}

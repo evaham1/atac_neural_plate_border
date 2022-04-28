@@ -38,8 +38,8 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    data_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/2_differential_peaks/plots/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/ss8/prefiltering/peak_calling/rds_files/"
+    #plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/2_differential_peaks/plots/"
     
     addArchRThreads(threads = 1) 
     
@@ -63,7 +63,26 @@ if(opt$verbose) print(opt)
 }
 
 ############################### FUNCTIONS ####################################
-
+### function to extract top n logFC for each group from summarized experiment object
+# returns a summarised experiment object with only the top n features per cell group
+extract_top_features <- function(markers, n = 10) {
+  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 1")
+  df <- data.frame()
+  for (i in 1:length(names(markerList))) {
+    print(i)
+    df_i <- as.data.frame(markerList[i])
+    df <- rbind(df, df_i)
+  }
+  df <- df %>%
+    group_by(group_name) %>%
+    top_n(n, Log2FC) %>%
+    dplyr::arrange(Log2FC, .by_group = TRUE)
+  top_markers <- df$idx # top 15 markers by logF2C between cell groups
+  top_markers <- unique(top_markers) # some of these markers are shared??
+  coords <-  rownames(markersPeaks)[rownames(markersPeaks) %in% top_markers]
+  top_markers_se <- markersPeaks[coords, ]
+  return(top_markers_se)
+}
 
 ############################## Read in ArchR project #######################################
 
@@ -100,20 +119,28 @@ getAvailableMatrices(ArchR)
 ############################# CLUSTER Marker Peaks #######################################
 
 markersPeaks <- getMarkerFeatures(
-    ArchRProj = ArchR, 
-    useMatrix = "PeakMatrix", 
-    groupBy = "clusters")
+  ArchRProj = ArchR, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "clusters")
 markersPeaks
-
-markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
-markerList
 
 heatmapPeaks <- plotMarkerHeatmap(
   seMarker = markersPeaks, 
   cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
-  transpose = TRUE)
+  nLabel = 3)
 
-png(paste0(plot_path, 'clusters_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+png(paste0(plot_path, 'clusters_diff_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+graphics.off()
+
+top_markers_se <- extract_top_features(markersPeaks, n = 10)
+heatmapPeaks <- plotMarkerHeatmap(
+  seMarker = top_markers_se, 
+  cutOff = "FDR <= 1",
+  transpose = FALSE,
+  nLabel = 3)
+
+png(paste0(plot_path, 'clusters_diff_peak_top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
 draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 graphics.off()
 
@@ -121,47 +148,65 @@ graphics.off()
 
 if (is.null(ArchR$scHelper_cell_type_old) == FALSE) {
   ArchR$scHelper_cell_type_old <- as.character(ArchR$scHelper_cell_type_old)
-
+  
   markersPeaks <- getMarkerFeatures(
     ArchRProj = ArchR, 
     useMatrix = "PeakMatrix", 
     groupBy = "scHelper_cell_type_old")
   markersPeaks
-
-  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
-  markerList
-
+  
   heatmapPeaks <- plotMarkerHeatmap(
     seMarker = markersPeaks, 
     cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
-    transpose = TRUE)
-
-    png(paste0(plot_path, 'scHelper_cell_type_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
-    print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
-    graphics.off()
+    nLabel = 3)
+  
+  png(paste0(plot_path, 'scHelper_cell_type_diff_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+  print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
+  graphics.off()
+  
+  top_markers_se <- extract_top_features(markersPeaks, n = 10)
+  heatmapPeaks <- plotMarkerHeatmap(
+    seMarker = top_markers_se, 
+    cutOff = "FDR <= 1",
+    transpose = FALSE,
+    nLabel = 3)
+  
+  png(paste0(plot_path, 'scHelper_cell_type_diff_peak_top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+  draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+  graphics.off()
 }
 
 ############################# STAGE Marker Peaks #######################################
 
 if (length(unique(ArchR$stage)) > 1) {
+  
   markersPeaks <- getMarkerFeatures(
     ArchRProj = ArchR, 
     useMatrix = "PeakMatrix", 
     groupBy = "stage")
   markersPeaks
-
-  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
-  markerList
-
+  
   heatmapPeaks <- plotMarkerHeatmap(
     seMarker = markersPeaks, 
     cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
-    transpose = TRUE)
-
-  png(paste0(plot_path, 'stage_diff_peak_FDR<0.3_Log2FC>0.5_heatmap.png'), height = 30, width = 40, units = 'cm', res = 400)
+    nLabel = 3)
+  
+  png(paste0(plot_path, 'stage_diff_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
   print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
   graphics.off()
-
+  
+  top_markers_se <- extract_top_features(markersPeaks, n = 10)
+  heatmapPeaks <- plotMarkerHeatmap(
+    seMarker = top_markers_se, 
+    cutOff = "FDR <= 1",
+    transpose = FALSE,
+    nLabel = 3)
+  
+  png(paste0(plot_path, 'stage_diff_peak_top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+  draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+  graphics.off()
+  
+  
 }
 
 # ############################## Individual group plots #######################################
