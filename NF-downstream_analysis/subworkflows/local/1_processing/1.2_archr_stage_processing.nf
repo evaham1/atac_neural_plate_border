@@ -22,36 +22,33 @@ workflow QC_STAGES {
 
     main:
 
-    SPLIT_STAGES( input )
+    ///     FILTER nFRAGS    ///
+    FILTER( input )
 
-    // ///     FILTER nFRAGS    ///
-    // FILTER( input )
+    ///     SPLIT STAGES    ///
+    SPLIT_STAGES( FILTER.out )
+    SPLIT_STAGES.out //[[meta], [plots, rds_files]]
+        .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        .flatMap {it[1][0].listFiles()}
+        .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+        .set { ch_split_stage }     
 
-    // ///     SPLIT STAGES    ///
-    // SPLIT_STAGES( FILTER.out )
-    // SPLIT_STAGES.out //[[meta], [plots, rds_files]]
-    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-    //     .flatMap {it[1][0].listFiles()}
-    //     .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-    //     .set { ch_split_stage }     
+    ///     CONFIRM IDENTITY OF LOW QUALITY CLUSTERS    ///
+    CLUSTER_PREFILTER( ch_split_stage )
+    GENE_SCORES_PREFILTER( CLUSTER_PREFILTER.out )
+    PEAK_CALL_PREFILTER( CLUSTER_PREFILTER.out )
+    PEAK_DIFF_PREFILTER( PEAK_CALL_PREFILTER.out )
 
-    // ///     CONFIRM IDENTITY OF LOW QUALITY CLUSTERS    ///
-    // CLUSTER_PREFILTER( ch_split_stage )
-    // GENE_SCORES_PREFILTER( CLUSTER_PREFILTER.out )
-    // PEAK_CALL_PREFILTER( CLUSTER_PREFILTER.out )
-    // PEAK_DIFF_PREFILTER( PEAK_CALL_PREFILTER.out )
+    ///     FILTER CLUSTERS     ///
+    FILTER_CLUSTERS( CLUSTER_PREFILTER.out )
 
-    // ///     FILTER CLUSTERS     ///
-    // FILTER_CLUSTERS( CLUSTER_PREFILTER.out )
-
-    // ///     PLOTS FOR FILTERED DATA    ///
-    // CLUSTER_POSTFILTER( FILTER_CLUSTERS.out )
-    // GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
-    // PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
-    // PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
+    ///     PLOTS FOR FILTERED DATA    ///
+    CLUSTER_POSTFILTER( FILTER_CLUSTERS.out )
+    GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
+    PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
+    PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
 
     // emit filtered and clustered stage objects:
     emit:
-    //output = PEAK_CALL_POSTFILTER.out
-    output = SPLIT_STAGES.out
+    output = PEAK_CALL_POSTFILTER.out
 }
