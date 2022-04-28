@@ -66,7 +66,7 @@ if(opt$verbose) print(opt)
 ### function to extract top n logFC for each group from summarized experiment object
 # returns a summarised experiment object with only the top n features per cell group
 extract_top_features <- function(markers, n = 10) {
-  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 1")
+  markerList <- getMarkers(markers, cutOff = "FDR <= 1")
   df <- data.frame()
   for (i in 1:length(names(markerList))) {
     print(i)
@@ -79,8 +79,8 @@ extract_top_features <- function(markers, n = 10) {
     dplyr::arrange(Log2FC, .by_group = TRUE)
   top_markers <- df$idx # top 15 markers by logF2C between cell groups
   top_markers <- unique(top_markers) # some of these markers are shared??
-  coords <-  rownames(markersPeaks)[rownames(markersPeaks) %in% top_markers]
-  top_markers_se <- markersPeaks[coords, ]
+  coords <-  rownames(markers)[rownames(markers) %in% top_markers]
+  top_markers_se <- markers[coords, ]
   return(top_markers_se)
 }
 
