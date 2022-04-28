@@ -240,7 +240,7 @@ if (opt$group_by == "scHelper_cell_type_old") {
 }
 
 ## Plot how many peaks found per cluster
-png(paste0(plot_path, 'peak_counts_per_group.png'), height = 25, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'peak_counts_per_group.png'), height = 45, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Peak Counts per group", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
