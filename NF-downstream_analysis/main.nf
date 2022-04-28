@@ -19,12 +19,13 @@ nextflow.enable.dsl = 2
 
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 
-include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/1.1_archr_preprocessing"
+include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/Preprocessing"
 
 // try filtering at different thresholds:
-include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
-include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/1.2_archr_stage_processing"
+include { QC_STAGES as QC_NO_FITER } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
+include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
+include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
+include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
 
 // include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 // include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
@@ -57,9 +58,11 @@ workflow A {
         .map{[it[0], it[1] + it[2]]}
         .set {ch_metadata} // ch_metadata: [[meta], [cellranger_output, gtf]]
 
+    // create ArchR object
     PREPROCESSING ( ch_metadata )
 
     /////   Run filtering and QC with different filtering params    ///
+    QC_NO_FITER ( PREPROCESSING.out.output )
     QC_LOW ( PREPROCESSING.out.output )
     QC_MED ( PREPROCESSING.out.output )
     QC_HIGH ( PREPROCESSING.out.output )
