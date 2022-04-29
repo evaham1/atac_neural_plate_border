@@ -84,6 +84,8 @@ for (i in 1:5) {
 
 ArchR_filtered <- ArchR_full[all_cell_ids, ]
 
+# save filtered data
+saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
 #####################################################################################
 ############################## Visualisations #######################################
