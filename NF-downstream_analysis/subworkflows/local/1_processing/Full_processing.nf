@@ -24,14 +24,6 @@ workflow FULL_PROCESSING {
     PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
     PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
 
-    // // extract rds objects
-    // CLUSTER.out //[[sample_id:NF-scATACseq_alignment_out], [../ArchRLogs, ../Rplots.pdf, ../rds_files]]
-    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] } //[[sample_id:NF-scATACseq_alignment_out], [../rds_files]]
-    //     .flatMap { it[1][0].listFiles() }
-    //     .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-    //     //.view() //[[sample_id:FullData], /rds_files/FullData_Save-ArchR]
-    //     .set { output_ch }
-
     //emit filtered and clustered stage objects:
     emit:
     output = PEAK_CALL_POSTFILTER.out

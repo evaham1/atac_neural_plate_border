@@ -66,14 +66,24 @@ workflow A {
     PREPROCESSING ( ch_metadata )
 
     /////   Run filtering and QC with different filtering params    ///
-    QC_NO_FITER ( PREPROCESSING.out.output )
+    QC_NO_FILTER ( PREPROCESSING.out.output )
     QC_LOW ( PREPROCESSING.out.output )
     QC_MED ( PREPROCESSING.out.output )
     QC_HIGH ( PREPROCESSING.out.output )
 
     /////   Filter full data    ////
+    // Collect rds files from all stages
+    ch_combined = QC_MED.out.output
+        .concat(PREPROCESSING.out.output)
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        .collect()
+        .map { [[sample_id:'all_stages_filtered'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+
+    FILTER_FULL ( ch_combined )
+
+
     // channel operation to collect all stages outputs from QC_MED and concat with full data from preprocessing
-    //FILTER_FULL ( INSERT SOME CHANNEL HERE )
+    //
 
     // // ATAC: add together stage data and full data
     // STAGE_PROCESSING.out.output
