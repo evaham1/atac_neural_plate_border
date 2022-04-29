@@ -48,9 +48,9 @@ workflow QC_STAGES {
 
     ///     PLOTS FOR FILTERED DATA    ///
     CLUSTER_POSTFILTER( FILTER_CLUSTERS_2.out )
-    //GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
-    //PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
-    //PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
+    GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
+    PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
+    PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
 
     // emit filtered and clustered stage objects:
     emit:
@@ -58,8 +58,8 @@ workflow QC_STAGES {
     //unfiltered_output_peaks = PEAK_CALL_PREFILTER.out
     //unfiltered_gex = GENE_SCORES_PREFILTER.out
     //unfiltered_differential_peaks = PEAK_DIFF_PREFILTER.out
-    //output_peaks = PEAK_CALL_POSTFILTER.out
-    //gex = GENE_SCORES_POSTFILTER.out
-    //differential_peaks = PEAK_DIFF_POSTFILTER.out
+    output_peaks = PEAK_CALL_POSTFILTER.out
+    gex = GENE_SCORES_POSTFILTER.out
+    differential_peaks = PEAK_DIFF_POSTFILTER.out
     output = CLUSTER_POSTFILTER.out
 }
