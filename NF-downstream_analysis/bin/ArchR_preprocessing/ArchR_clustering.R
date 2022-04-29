@@ -57,7 +57,7 @@ if(opt$verbose) print(opt)
     data_path = "./input/rds_files/"
     ncores = opt$cores
     
-    addArchRThreads(threads = ncores) 
+    addArchRThreads(threads = ncores)
     
   } else {
     stop("--runtype must be set to 'nextflow'")

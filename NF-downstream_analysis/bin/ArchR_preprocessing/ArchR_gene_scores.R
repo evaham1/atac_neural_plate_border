@@ -47,7 +47,7 @@ opt = getopt(spec)
     data_path = "./input/rds_files/"
     ncores = opt$cores
 
-    addArchRThreads(threads = 1) 
+    addArchRThreads(threads = ncores) 
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -221,8 +221,6 @@ feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
 
 ############################## Feature Plots #################################
 
-addArchRThreads(threads = 1) 
-
 # impute weights using MAGIC to plot better feature plots
 ArchR <- addImputeWeights(ArchR)
 
@@ -255,8 +253,7 @@ markers <- getMarkerFeatures(
   useMatrix = "GeneScoreMatrix",
   groupBy = "clusters",
   bias = c("TSSEnrichment", "log10(nFrags)"),
-  testMethod = "wilcoxon",
-  threads = 1
+  testMethod = "wilcoxon"
 )
 print("marker genes calculated")
 

@@ -176,10 +176,8 @@ png(paste0(plot_path_1, 'cell_counts_by_pseudoreplicate_table.png'), height = 80
 pseudoreplicate_counts(ArchR, pseudo_replicates)
 graphics.off()
 
-addArchRThreads(threads = 1) # H5Fopen error
-
 #####  Make actual pseudo-replicates for peak calling:
-ArchR <- addGroupCoverages(ArchR, groupBy = opt$group_by, threads = 1, returnGroups = FALSE, force = TRUE)
+ArchR <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = FALSE, force = TRUE)
 print("pseudo replicates created")
 
 ##############################################################################################
@@ -197,7 +195,6 @@ ArchR <- addReproduciblePeakSet(
  pathToMacs2 = "/opt/conda/bin/macs2",
  force = TRUE,
  genomeSize = 1230258557, # copied from Grace's paper, need to check this
- threads = 1
 )
 print("peaks called using Macs2")
 
