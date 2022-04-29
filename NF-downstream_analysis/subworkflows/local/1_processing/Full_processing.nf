@@ -20,13 +20,13 @@ workflow FULL_PROCESSING {
 
     /// processing ///
     CLUSTER_POSTFILTER( FILTER_FULL.out )
-    GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
-    PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
-    PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
+    //GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
+    //PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
+    //PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
 
     //emit filtered and clustered stage objects:
     emit:
     output = PEAK_CALL_POSTFILTER.out
-    gex = GENE_SCORES_POSTFILTER.out
-    differential_peaks = PEAK_DIFF_POSTFILTER.out
+    //gex = GENE_SCORES_POSTFILTER.out
+    //differential_peaks = PEAK_DIFF_POSTFILTER.out
 }
