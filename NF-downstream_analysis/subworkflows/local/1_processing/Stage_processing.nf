@@ -9,7 +9,9 @@ include {R as GENE_SCORES_PREFILTER} from "$baseDir/modules/local/r/main"       
 include {R as PEAK_CALL_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as PEAK_DIFF_PREFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks.R", checkIfExists: true) )
 
-include {R as FILTER_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_filter_clusters.R", checkIfExists: true) )
+include {R as FILTER_CLUSTERS_1} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_filter_clusters.R", checkIfExists: true) )
+include {R as CLUSTER_PREFILTER_1} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as FILTER_CLUSTERS_2} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_filter_clusters.R", checkIfExists: true) )
 
 include {R as CLUSTER_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 include {R as GENE_SCORES_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
@@ -39,11 +41,13 @@ workflow QC_STAGES {
     PEAK_CALL_PREFILTER( CLUSTER_PREFILTER.out )
     PEAK_DIFF_PREFILTER( PEAK_CALL_PREFILTER.out )
 
-    ///     FILTER CLUSTERS     ///
-    FILTER_CLUSTERS( CLUSTER_PREFILTER.out )
+    ///     FILTER CLUSTERS TWICE     ///
+    FILTER_CLUSTERS_1( CLUSTER_PREFILTER.out )
+    CLUSTER_PREFILTER_1( FILTER_CLUSTERS_1 )
+    FILTER_CLUSTERS_2( CLUSTER_PREFILTER_1 )
 
     ///     PLOTS FOR FILTERED DATA    ///
-    CLUSTER_POSTFILTER( FILTER_CLUSTERS.out )
+    CLUSTER_POSTFILTER( FILTER_CLUSTERS_2.out )
     GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
     PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
     PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
