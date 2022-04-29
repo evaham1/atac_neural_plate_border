@@ -66,10 +66,10 @@ workflow A {
     PREPROCESSING ( ch_metadata )
 
     /////   Run filtering and QC with different filtering params    ///
-    QC_NO_FILTER ( PREPROCESSING.out.output )
-    QC_LOW ( PREPROCESSING.out.output )
+    //QC_NO_FILTER ( PREPROCESSING.out.output )
+    //QC_LOW ( PREPROCESSING.out.output )
     QC_MED ( PREPROCESSING.out.output )
-    QC_HIGH ( PREPROCESSING.out.output )
+    //QC_HIGH ( PREPROCESSING.out.output )
 
     /////   Filter full data    ////
     // Collect rds files from all stages
