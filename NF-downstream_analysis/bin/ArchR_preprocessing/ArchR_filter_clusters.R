@@ -26,9 +26,9 @@ opt = getopt(spec)
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/4_ArchR_filter_clusters_1/plots/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/4_ArchR_filter_clusters_1/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/3_ArchR_clustering_prefiltering/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/clustering/plots/"
+    rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/clustering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/prefiltering/clustering/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -95,9 +95,12 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 ##########################################################################################################################
 ############################## Filter on TSSEnrichment + NucleosomeRatio intersect #######################################
-metrics = c("TSSEnrichment", "NucleosomeRatio")
+
 quantiles = c(0.2, 0.8)
-outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = TRUE, quantiles = quantiles)
+outliers_TSS <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = "TSSEnrichment", intersect_metrics = FALSE, quantiles = quantiles)
+outliers_nucleosome <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = "NucleosomeRatio", intersect_metrics = FALSE, quantiles = quantiles)
+
+outliers <- as.character(unique(unlist(c(outliers_TSS, outliers_nucleosome))))
 print(outliers)
 
 # filter ArchR object (only if outliers have been detected)
