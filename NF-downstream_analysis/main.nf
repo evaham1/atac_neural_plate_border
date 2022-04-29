@@ -28,7 +28,7 @@ include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/S
 include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
 
 // filter full data using filtered stage data cell ids:
-include { FILTER_FULL as FILTER_FULL } from "$baseDir/subworkflows/local/1_processing/Full_processing"
+include { FULL_PROCESSING as FULL_PROCESSING } from "$baseDir/subworkflows/local/1_processing/Full_processing"
 
 
 // include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
@@ -79,7 +79,7 @@ workflow A {
         .collect()
         .map { [[sample_id:'all_stages_filtered'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-    FILTER_FULL ( ch_combined )
+    FULL_PROCESSING ( ch_combined )
 
 
     // channel operation to collect all stages outputs from QC_MED and concat with full data from preprocessing
