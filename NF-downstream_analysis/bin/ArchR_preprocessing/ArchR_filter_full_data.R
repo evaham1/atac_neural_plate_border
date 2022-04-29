@@ -46,7 +46,7 @@ opt = getopt(spec)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores) 
