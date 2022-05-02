@@ -145,7 +145,6 @@ cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new"
 # If files are not in rds_files subdirectory look in input dir
 label <- sub('_.*', '', list.files(data_path))
 print(label)
-#label = "ss8"
 
 if (length(label) == 0){
   data_path = "./input/"
