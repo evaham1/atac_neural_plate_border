@@ -30,12 +30,12 @@ opt = getopt(spec)
     
     ncores = 8
     
-    #plot_path = "./output/NF-downstream_analysis/8_ArchR_gene_scores/plots/"
-    #rds_path = "./output/NF-downstream_analysis/8_ArchR_gene_scores/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/ss8/cluster_prefilter/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/gene_scores/plots/"
+    rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/gene_scores/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/clustering/rds_files/"
     
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1_ArchR_clustering_prefiltering/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1.5_ArchR_gene_scores_unfiltered/plots/"
+    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1_ArchR_clustering_prefiltering/rds_files/"
+    #plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1.5_ArchR_gene_scores_unfiltered/plots/"
 
     addArchRThreads(threads = 1) 
     
@@ -293,3 +293,57 @@ if(nrow(top_markers) != 0){
   grid.arrange(tableGrob(top_markers))
   dev.off()
 } else { print("No markers found that passed thresholds")}
+
+
+################### WORK IN PROGRESS
+# marker_genes = getMarkerFeatures(
+#   ArchRProj = projFoxn1ko, 
+#   useMatrix = "GeneScoreMatrix", 
+#   groupBy = "Clusters_test_1.4_nFrags",
+#   bias = c("TSSEnrichment", "log10(nFrags)"),
+#   testMethod = "wilcoxon"
+# )
+marker_genes <- markers
+
+#handpicked_genes  <- read.csv("genes_to_label.csv", stringsAsFactors = F, header = F)[[1]]
+handpicked_genes <- c("SIX1", "EYA2", "PAX7", "SNAI2", "SOX10", "SIX3", "PAX2", "SOX2", "SOX21", "CSRNP1", "MESP1")
+
+add_name = function(X, c) {
+  if(nrow(X)==0) return(NULL)
+  X$cluster = c
+  X
+}
+marker_tables = marker_genes %>% getMarkers(cutOff = "FDR <= 0.5 & Log2FC >= 0.5")
+marker_tables = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) %>% Reduce(f = rbind)
+marker_tables 
+mixedrank = function(x) order(gtools::mixedorder(x))
+
+
+markers_top_table_S2 = marker_tables %>%  
+  as.data.frame() %>%
+  dplyr::group_by(cluster) %>%
+  dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
+  dplyr::top_n(Log2FC, n = 100) %>%
+  dplyr::arrange(mixedrank(cluster), desc(Log2FC))
+
+
+
+## subsetting markers to only include top 50 per cluster
+markers_include = markers_top %>% subset(rank<=50, select = "name", drop = T)
+marker_subset = marker_genes[rowData(marker_genes)$name %in% markers_include,]
+
+## genes to label
+markers_label   = markers_top %>% subset(rank<=2,  select = "name", drop = T) 
+
+
+
+
+## plot heatmap
+heatmapGS <- plotMarkerHeatmap(
+  seMarker = marker_subset, 
+  # cutOff = "FDR==FDR", #TRUE i.e. use all genes
+  labelMarkers = handpicked_genes %>% union(markers_label),
+  # transpose = TRUE,
+  clusterCols = FALSE,
+  pal = viridis::magma(30)
+)
