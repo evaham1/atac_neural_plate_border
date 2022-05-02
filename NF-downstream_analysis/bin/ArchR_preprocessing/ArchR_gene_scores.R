@@ -267,45 +267,10 @@ png(paste0(plot_path, 'cutoff_heatmap.png'), height = 30, width = 40, units = 'c
 draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 graphics.off()
 
-## heatmap of top 10  markers per cell group
-top_markers_se <- extract_top_features(markers, n = 10)
-heatmap <- plotMarkerHeatmap(
-  seMarker = top_markers_se, 
-  cutOff = "FDR <= 1",
-  nLabel = 3)
+## heatmap of top 50 differentially expressed genes per cluster
+# adapted from: https://github.com/maehrlab/pharyngeal_endoderm_development/blob/main/scATAC_qc_analysis/scATAC_analysis/scATAC_7_gene_score_and_peaks.ipynb
 
-png(paste0(plot_path, 'top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
-draw(heatmap, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-graphics.off()
-
-## print top 5 markers per cell group
-markerList <- getMarkers(markers) # could make more stringent in future
-top_markers <- tibble()
-for (i in 1:length(markerList)){
-  table <- as_tibble(markerList[[i]])
-  print(table)
-  table <- table %>% top_n(5, Log2FC) %>% mutate(cluster = i)
-  top_markers <- rbind(top_markers, table)
-}
-if(nrow(top_markers) != 0){
-  print("significant markers found")
-  png(paste0(plot_path, 'top_5_genes.png'), height = 100, width = 30, units = 'cm', res = 400)
-  grid.arrange(tableGrob(top_markers))
-  dev.off()
-} else { print("No markers found that passed thresholds")}
-
-
-################### WORK IN PROGRESS
-# marker_genes = getMarkerFeatures(
-#   ArchRProj = projFoxn1ko, 
-#   useMatrix = "GeneScoreMatrix", 
-#   groupBy = "Clusters_test_1.4_nFrags",
-#   bias = c("TSSEnrichment", "log10(nFrags)"),
-#   testMethod = "wilcoxon"
-# )
 marker_genes <- markers
-
-#handpicked_genes  <- read.csv("genes_to_label.csv", stringsAsFactors = F, header = F)[[1]]
 handpicked_genes <- c("SIX1", "EYA2", "PAX7", "SNAI2", "SOX10", "SIX3", "PAX2", "SOX2", "SOX21", "CSRNP1", "MESP1")
 
 add_name = function(X, c) {
@@ -316,9 +281,8 @@ add_name = function(X, c) {
 marker_tables = marker_genes %>% getMarkers(cutOff = "FDR <= 0.5 & Log2FC >= 0.5")
 marker_tables = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) %>% Reduce(f = rbind)
 marker_tables 
+
 mixedrank = function(x) order(gtools::mixedorder(x))
-
-
 markers_top_table_S2 = marker_tables %>%  
   as.data.frame() %>%
   dplyr::group_by(cluster) %>%
@@ -326,24 +290,22 @@ markers_top_table_S2 = marker_tables %>%
   dplyr::top_n(Log2FC, n = 100) %>%
   dplyr::arrange(mixedrank(cluster), desc(Log2FC))
 
-
-
-## subsetting markers to only include top 50 per cluster
-markers_include = markers_top %>% subset(rank<=50, select = "name", drop = T)
+# subsetting markers to only include top 50 per cluster
+markers_include = markers_top_table_S2 %>% subset(rank<=50, select = "name", drop = T)
 marker_subset = marker_genes[rowData(marker_genes)$name %in% markers_include,]
 
-## genes to label
-markers_label   = markers_top %>% subset(rank<=2,  select = "name", drop = T) 
+# genes to label
+markers_label = intersect(handpicked_genes, markers_include)
+if (length(markers_label) == 0){markers_label <- NULL}
 
-
-
-
-## plot heatmap
+# plot heatmap
 heatmapGS <- plotMarkerHeatmap(
   seMarker = marker_subset, 
-  # cutOff = "FDR==FDR", #TRUE i.e. use all genes
-  labelMarkers = handpicked_genes %>% union(markers_label),
-  # transpose = TRUE,
-  clusterCols = FALSE,
-  pal = viridis::magma(30)
+  labelMarkers = markers_label,
+  clusterCols = TRUE,
+  pal = viridis::magma(30),
+  nLabel = 3
 )
+png(paste0(plot_path, 'top50_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
+draw(heatmapGS, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+graphics.off()
