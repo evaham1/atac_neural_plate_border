@@ -189,6 +189,8 @@ dotplot_2_genes <- c("GATA3", "DLX5", "SIX1", "EYA2",
 feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
            "SOX21", "SOX2", "BMP4", "HOXB1")
 
+all_genes <- unique(c(contaminating_markers, late_markers, early_markers, ap_markers, dotplot_1_genes, dotplot_2_genes))
+
 ############################## Dot Plots #################################
 
 # addArchRThreads(threads = 1) 
@@ -271,7 +273,7 @@ graphics.off()
 # adapted from: https://github.com/maehrlab/pharyngeal_endoderm_development/blob/main/scATAC_qc_analysis/scATAC_analysis/scATAC_7_gene_score_and_peaks.ipynb
 
 marker_genes <- markers
-handpicked_genes <- c("SIX1", "EYA2", "PAX7", "SNAI2", "SOX10", "SIX3", "PAX2", "SOX2", "SOX21", "CSRNP1", "MESP1")
+handpicked_genes <- all_genes
 
 add_name = function(X, c) {
   if(nrow(X)==0) return(NULL)
