@@ -54,6 +54,7 @@ workflow A {
 
         ///////////////////// PROCESSING //////////////////////////////
         METADATA( params.sample_sheet )    
+        METADATA.out.view()
         METADATA.out // METADATA.out: [[meta], [cellranger_output]]
             .combine(ch_reference)
             .map{[it[0], it[1] + it[2]]}
