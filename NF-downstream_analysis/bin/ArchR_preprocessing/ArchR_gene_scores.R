@@ -277,10 +277,11 @@ handpicked_genes <- all_genes
 
 add_name = function(X, c) {
   if(nrow(X)==0) return(NULL)
-  X$cluster = c
+  X$clusters = c
   X
 }
 marker_tables = marker_genes %>% getMarkers(cutOff = "FDR <= 0.5 & Log2FC >= 0.5")
+print("A)")
 marker_tables = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) %>% Reduce(f = rbind)
 marker_tables 
 
