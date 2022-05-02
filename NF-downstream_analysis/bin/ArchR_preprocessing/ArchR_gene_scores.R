@@ -59,7 +59,6 @@ opt = getopt(spec)
 }
 
 ############################### FUNCTIONS ####################################
-# add a function here to extract top differentially expressed genes per cluster
 
 # Feature plot function to create grid of feature plots
 feature_plot_grid <- function(ArchRProj = ArchR, matrix = "GeneScoreMatrix", gene_list) {
@@ -281,9 +280,16 @@ add_name = function(X, c) {
   X
 }
 marker_tables = marker_genes %>% getMarkers(cutOff = "FDR <= 0.5 & Log2FC >= 0.5")
-print("A)")
-marker_tables = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) %>% Reduce(f = rbind)
-marker_tables 
+marker_tables = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) 
+marker_tables_clean <- c()
+for (i in 1:length(marker_tables)){
+  print(i)
+  if(!is.null(marker_tables[[i]])){
+    add <- marker_tables[[i]]
+    marker_tables_clean <- c(marker_tables_clean, add)
+  }
+}
+marker_tables <- marker_tables_clean %>% Reduce(f = rbind)
 
 mixedrank = function(x) order(gtools::mixedorder(x))
 markers_top_table_S2 = marker_tables %>%  
