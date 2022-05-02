@@ -142,7 +142,7 @@ cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new"
 
 ############################## Read in ArchR project #######################################
 
-# If files are not in rds_files subdirectory look in input dir
+# If files are not in rds_files subdirectory look in input dir 
 label <- sub('_.*', '', list.files(data_path))
 print(label)
 
