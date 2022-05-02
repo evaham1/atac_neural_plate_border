@@ -25,7 +25,8 @@ option_list <- list(
     make_option(c("", "--stage_clust_res"), action = "store", type = "double", help = "clustering resolution for stage data", default = 1),
     make_option(c("", "--full_clust_res"), action = "store", type = "double", help = "clustering resolution for full data", default = 2),
     make_option(c("", "--clustree"), action = "store", type = "logical", help = "whether to run clustree plot", default = TRUE),
-    make_option(c("", "--clustree_by"), action = "store", type = "double", help = "clustering res intervals for clustree", default = 0.1),
+    make_option(c("", "--stage_clustree_by"), action = "store", type = "double", help = "clustering res intervals for clustree for stages", default = 0.1),
+    make_option(c("", "--full_clustree_by"), action = "store", type = "double", help = "clustering res intervals for clustree for full data", default = 0.2),
     make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
     )
 
@@ -202,13 +203,19 @@ print("UMAP added")
 if (isTRUE(opt$clustree)) {
   print("running clustree plot...")
 
-  png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-  print(ArchR_ClustRes(ArchR, by = opt$clustree_by, starting_res = -opt$clustree_by))
-  graphics.off()
-  print("clustree plot ran")
-}
+  if (length(unique(ArchR$stage)) == 1){
+    png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+    print(ArchR_ClustRes(ArchR, by = opt$stage_clustree_by, starting_res = -opt$stage_clustree_by))
+    graphics.off()
+    print("clustree plot ran")
+} else {
+    png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+    print(ArchR_ClustRes(ArchR, by = opt$full_clustree_by, starting_res = -opt$full_clustree_by))
+    graphics.off()
+    print("clustree plot ran")
+}}
 
-# Set clustering res = 1 for stages and 2 for full data
+# Set clustering for stage and full data
 if (length(unique(ArchR$stage)) == 1){
   ArchR <- addClusters(
   input = ArchR,
