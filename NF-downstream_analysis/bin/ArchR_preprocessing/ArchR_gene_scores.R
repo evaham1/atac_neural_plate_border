@@ -288,10 +288,10 @@ marker_tables
 mixedrank = function(x) order(gtools::mixedorder(x))
 markers_top_table_S2 = marker_tables %>%  
   as.data.frame() %>%
-  dplyr::group_by(cluster) %>%
+  dplyr::group_by(clusters) %>%
   dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
   dplyr::top_n(Log2FC, n = 100) %>%
-  dplyr::arrange(mixedrank(cluster), desc(Log2FC))
+  dplyr::arrange(mixedrank(clusters), desc(Log2FC))
 
 # subsetting markers to only include top 50 per cluster
 markers_include = markers_top_table_S2 %>% subset(rank<=50, select = "name", drop = T)
