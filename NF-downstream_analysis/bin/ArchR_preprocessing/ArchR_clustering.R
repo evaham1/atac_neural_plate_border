@@ -64,7 +64,7 @@ if(opt$verbose) print(opt)
     stop("--runtype must be set to 'nextflow'")
   }
   
-  cat(paste0("script ran with ", ncores, " cores\n"))
+  cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
