@@ -71,7 +71,7 @@ workflow A {
             .concat(PREPROCESSING.out.output)
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
-            .map { [[sample_id:'all_stages_filtered'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
         FULL_PROCESSING ( ch_combined ) // filter full data
         ///////////////////////////////////////////////////////////////
 
