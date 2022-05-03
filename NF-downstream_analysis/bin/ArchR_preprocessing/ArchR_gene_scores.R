@@ -34,6 +34,8 @@ opt = getopt(spec)
     rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/gene_scores/rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/clustering/rds_files/"
     
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/HH6/postfiltering/clustering/rds_files/"
+    
     #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1_ArchR_clustering_prefiltering/rds_files/"
     #plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1.5_ArchR_gene_scores_unfiltered/plots/"
 
@@ -279,7 +281,7 @@ add_name = function(X, c) {
   X$clusters = c
   X
 }
-marker_tables = marker_genes %>% getMarkers(cutOff = "FDR <= 0.5 & Log2FC >= 0.5")
+marker_tables = marker_genes %>% getMarkers(cutOff = "FDR <= 1 & Log2FC >= 0")
 marker_tables = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) 
 marker_tables_clean <- c()
 for (i in 1:length(marker_tables)){
@@ -287,7 +289,7 @@ for (i in 1:length(marker_tables)){
   if(!is.null(marker_tables[[i]])){
     add <- marker_tables[[i]]
     marker_tables_clean <- c(marker_tables_clean, add)
-  }
+  } else { print("this cluster has no markers!") }
 }
 marker_tables <- marker_tables_clean %>% Reduce(f = rbind)
 
@@ -310,6 +312,7 @@ if (length(markers_label) == 0){markers_label <- NULL}
 # plot heatmap
 heatmapGS <- plotMarkerHeatmap(
   seMarker = marker_subset, 
+  cutOff = "FDR <= 1 & Log2FC >= 0",
   labelMarkers = markers_label,
   clusterCols = TRUE,
   pal = viridis::magma(30),
