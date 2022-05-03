@@ -133,16 +133,125 @@ png(paste0(plot_path, 'clusters_diff_peak_cutoff_heatmap.png'), height = 50, wid
 draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 graphics.off()
 
-top_markers_se <- extract_top_features(markersPeaks, n = 10)
-heatmapPeaks <- plotMarkerHeatmap(
-  seMarker = top_markers_se, 
-  cutOff = "FDR <= 1",
-  transpose = FALSE,
-  nLabel = 3)
+# https://github.com/maehrlab/pharyngeal_endoderm_development/blob/main/scATAC_qc_analysis/scATAC_analysis/scATAC_10_Fig3a_3b.ipynb
+add_name = function(X, c) {
+  if(nrow(X)==0) return(NULL)
+  X$cluster = c
+  X
+}
+## All peaks:
+marker_tables = markersPeaks %>% getMarkers(cutOff = "FDR <= 1 & Log2FC >= 0.1")
+marker_tables_S = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) %>% Reduce(f = rbind)
+mixedrank = function(x) order(gtools::mixedorder(x))
+# markers_top_S = marker_tables_S %>%  
+#   as.data.frame() %>%
+#   #dplyr::mutate( highest_logfc_by_gene = ave(Log2FC, name, FUN = max)) %>%
+#   #dplyr::mutate( is_highest = Log2FC == highest_logfc_by_gene) %>%
+#   #subset(is_highest) %>%
+#   dplyr::group_by(cluster) %>%
+#   dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
+#   # dplyr::top_n(Log2FC, n = 1000000) %>%
+#   dplyr::arrange(mixedrank(cluster), desc(Log2FC))
+# #write.csv(markers_top_S,"all_differentially_expressed_peaks.csv", row.names = FALSE)
 
-png(paste0(plot_path, 'clusters_diff_peak_top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
-draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+# Plot top peaks:
+markers_top = marker_tables_S %>%  
+  as.data.frame() %>%
+  dplyr::mutate( highest_logfc_by_gene = ave(Log2FC, name, FUN = max)) %>%
+  dplyr::mutate( is_highest = Log2FC == highest_logfc_by_gene) %>%
+  subset(is_highest) %>%
+  dplyr::group_by(cluster) %>%
+  dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
+  dplyr::top_n(Log2FC, n = 50) %>%
+  dplyr::arrange(mixedrank(cluster), desc(Log2FC))
+markers_label   = markers_top %>% subset(rank<=2,  select = "name", drop = T) 
+markers_include = markers_top %>% subset(rank<=4000000, select = "unique_id", drop = T) 
+#length(markers_include)
+marker_subset = markersPeaks[rowData(markersPeaks)$unique_id %in% markers_include,]
+
+png(paste0(plot_path, 'clusters_diff_peak_top50_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+heatmapGS <- plotMarkerHeatmap(
+  seMarker = marker_subset, 
+  cutOff = "FDR <= 1 & Log2FC >= 0.1",
+  labelMarkers = labelMarkers,
+  pal = viridisLite::mako(256)
+)
 graphics.off()
+
+# ######################
+# # subset for proximal/distal/etc
+# 
+# tmp_peaks = data.frame(ArchR@peakSet)
+# tmp_diff_peaks = data.frame(rowData(markersPeaks))
+# 
+# diff_peaks_join_peakset = left_join(tmp_diff_peaks, tmp_peaks, 
+#                                     by = c("seqnames" = "seqnames", "start" = "start", "end" = "end"))
+# diff_peaks_join_peakset$name = paste(diff_peaks_join_peakset$nearestGene, diff_peaks_join_peakset$distToTSS,sep="_")
+# diff_peaks_join_peakset$unique_id = paste(diff_peaks_join_peakset$seqnames, diff_peaks_join_peakset$start, diff_peaks_join_peakset$end, sep=":")
+# rowData(markersPeaks) = diff_peaks_join_peakset
+# 
+# # extract labels of peaks closest to handpicked genes:
+# handpicked_genes  <- c(
+#   "GATA3", "DLX5", "SIX1", "EYA2", #PPR
+#   "MSX1", "TFAP2A", "TFAP2B", #mix
+#   "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
+#   "SOX2", "SOX21" # neural
+# )
+# markers_label_handpicked = diff_peaks_join_peakset[as.vector(diff_peaks_join_peakset$nearestGene %in% handpicked_genes),]$name
+# ## Promoter peaks::
+# markersPeaks_promoter <- subset(markersPeaks, rowData(markersPeaks)$peakType == "Promoter")
+# marker_tables_promoter = markersPeaks_promoter %>% getMarkers(cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+# #marker_tables_promoter_tmp = marker_tables_promoter %>%  as.data.frame() 
+# #write.csv(marker_tables_promoter_tmp,"all_differentially_expressed_peaks_promoter.csv", row.names = FALSE)
+# 
+# ## Distal peaks:
+# markersPeaks_distal <- subset(markersPeaks, rowData(markersPeaks)$peakType == "Distal")
+# marker_tables_distal = markersPeaks_distal %>% getMarkers(cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+# #marker_tables_distal_tmp = marker_tables_distal %>%  as.data.frame() 
+# #write.csv(marker_tables_distal_tmp,"all_differentially_expressed_peaks_distal.csv", row.names = FALSE)
+
+# ## Plot top distal peaks:
+# marker_tables_distal = markersPeaks_distal %>% getMarkers(cutOff = "FDR <= 0.01 & Log2FC >= 0.5")
+# marker_tables_distal = mapply(add_name, marker_tables_distal, names(marker_tables_distal), SIMPLIFY = F) 
+# marker_tables_clean <- c()
+# for (i in 1:length(marker_tables_distal)){
+#   print(i)
+#   if(!is.null(marker_tables_distal[[i]])){
+#     add <- marker_tables_distal[[i]]
+#     marker_tables_clean <- c(marker_tables_clean, add)
+#   } else { print("this cluster has no markers!") }
+# }
+# marker_tables_distal <- marker_tables_clean %>% Reduce(f = rbind)
+# mixedrank = function(x) order(gtools::mixedorder(x))
+# markers_top_distal = marker_tables_distal %>%  
+#   as.data.frame() %>%
+#   dplyr::mutate( highest_logfc_by_gene = ave(Log2FC, name, FUN = max)) %>%
+#   dplyr::mutate( is_highest = Log2FC == highest_logfc_by_gene) %>%
+#   subset(is_highest) %>%
+#   dplyr::group_by(cluster) %>%
+#   dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
+#   #  dplyr::top_n(Log2FC, n = 100) %>%
+#   dplyr::arrange(mixedrank(cluster), desc(Log2FC))
+# #dim(marker_tables_distal)
+# markers_label   = markers_top_distal %>% subset(rank<=2,  select = "name", drop = T) 
+# markers_include = markers_top_distal %>% subset(rank<=4000000, select = "unique_id", drop = T) 
+# #length(markers_include)
+# marker_subset = markersPeaks_distal[rowData(markersPeaks_distal)$unique_id %in% markers_include,]
+# #dim(marker_subset)
+# 
+# labelMarkers = markers_label_handpicked %>% union(markers_label)
+# #length(labelMarkers)
+# 
+# heatmapGS <- plotMarkerHeatmap(
+#   seMarker = marker_subset, 
+#   cutOff = "FDR <= 1 & Log2FC >= 0.1",
+#   #labelMarkers = labelMarkers,
+#   pal = viridisLite::mako(256),
+#   returnMatrix = TRUE
+# )
+# 
+# heatmap(heatmapGS)
+# pheatmap(heatmapGS, show_rownames = FALSE)
 
 ############################# SC_HELPER_CELL_TYPE Marker Peaks #######################################
 
@@ -162,17 +271,6 @@ if (is.null(ArchR$scHelper_cell_type_old) == FALSE) {
   
   png(paste0(plot_path, 'scHelper_cell_type_diff_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
   print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
-  graphics.off()
-  
-  top_markers_se <- extract_top_features(markersPeaks, n = 10)
-  heatmapPeaks <- plotMarkerHeatmap(
-    seMarker = top_markers_se, 
-    cutOff = "FDR <= 1",
-    transpose = FALSE,
-    nLabel = 3)
-  
-  png(paste0(plot_path, 'scHelper_cell_type_diff_peak_top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
-  draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
   graphics.off()
 }
 
@@ -194,18 +292,6 @@ if (length(unique(ArchR$stage)) > 1) {
   png(paste0(plot_path, 'stage_diff_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
   print(draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot"))
   graphics.off()
-  
-  top_markers_se <- extract_top_features(markersPeaks, n = 10)
-  heatmapPeaks <- plotMarkerHeatmap(
-    seMarker = top_markers_se, 
-    cutOff = "FDR <= 1",
-    transpose = FALSE,
-    nLabel = 3)
-  
-  png(paste0(plot_path, 'stage_diff_peak_top10_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
-  draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-  graphics.off()
-  
   
 }
 
