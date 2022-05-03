@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("clustering ArchR ")
+print("clustering ArchR")
 
 ############################## Load libraries #######################################
 library(getopt)
