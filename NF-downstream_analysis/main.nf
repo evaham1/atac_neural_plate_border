@@ -78,6 +78,7 @@ workflow A {
         ch_atac = QC_MED.out.output // Collect rds files from all stages
             .concat(FULL_PROCESSING.out.output)
             .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]} //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
+            .view()
         
     } else {
        
@@ -97,7 +98,7 @@ workflow A {
         .groupTuple( by:0 )
         // .map{[it[0], it[[1]] + it[2]]}
         .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
-        //.view()
+        .view()
         .set {ch_integrate}
 
     // ARCHR: Integrate
