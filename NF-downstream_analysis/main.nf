@@ -83,7 +83,13 @@ workflow A {
     } else {
        
        METADATA_ATAC( params.atac_sample_sheet )
-       ch_atac = METADATA_ATAC.out.metadata //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
+       ch_atac = METADATA_ATAC.out.metadata 
+       // [[sample_id:HH5], [HH5_Save-ArchR]]
+       //[[sample_id:HH6], [HH6_Save-ArchR]]
+       //[[sample_id:HH7], [HH7_Save-ArchR]]
+       //[[sample_id:ss4], [ss4_Save-ArchR]]
+       //[[sample_id:ss8], [ss8_Save-ArchR]]
+       //[[sample_id:FullData], [FullData_Save-ArchR]]
 
     }
 
@@ -92,15 +98,18 @@ workflow A {
 
     // RNA: read in data
     METADATA_RNA( params.rna_sample_sheet )
-    METADATA_RNA.out.view()
+    //[[sample_id:HH5], [HH5_clustered_data.RDS]]
+    //[[sample_id:HH6], [HH6_clustered_data.RDS]]
+    //[[sample_id:HH7], [HH7_clustered_data.RDS]]
+    //[[sample_id:ss4], [ss4_clustered_data.RDS]]
+    //[[sample_id:ss8], [ss8_clustered_data.RDS]]
+    //[[sample_id:FullData], [seurat_label_transfer.RDS]]
    
     // combine ATAC and RNA data
     ch_atac
         .concat( METADATA_RNA.out.metadata )
-        .groupTuple( by:0 )
-        .view()
-        // .map{[it[0], it[[1]] + it[2]]}
-        .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
+        .groupTuple( by:0 ) //[ [sample_id:HH5], [ [HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
+        .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
         .view()
         .set {ch_integrate}
 
