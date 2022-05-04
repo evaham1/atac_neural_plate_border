@@ -90,14 +90,15 @@ workflow A {
     ///////////////////// INTEGRATING //////////////////////////////
     ///////////////////////////////////////////////////////////////
 
-    ch_atac.view() 
     // RNA: read in data
     METADATA_RNA( params.rna_sample_sheet )
+    METADATA_RNA.out.view()
    
     // combine ATAC and RNA data
     ch_atac
         .concat( METADATA_RNA.out.metadata )
         .groupTuple( by:0 )
+        .view()
         // .map{[it[0], it[[1]] + it[2]]}
         .map{ [ it[0], [it[1][0], it[1][1][0]] ] }
         .view()
