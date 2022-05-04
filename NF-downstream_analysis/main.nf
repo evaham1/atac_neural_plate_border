@@ -82,7 +82,8 @@ workflow A {
         
     } else {
        
-       ch_atac = METADATA_ATAC( params.atac_sample_sheet ).out //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
+       METADATA_ATAC( params.atac_sample_sheet )
+       ch_atac = METADATA_ATAC.out //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
     
     }
 
