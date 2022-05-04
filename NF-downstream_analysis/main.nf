@@ -83,13 +83,14 @@ workflow A {
     } else {
        
        METADATA_ATAC( params.atac_sample_sheet )
-       ch_atac = METADATA_ATAC.out //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
-    
+       ch_atac = METADATA_ATAC.out.metadata //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
+
     }
 
     ///////////////////// INTEGRATING //////////////////////////////
     ///////////////////////////////////////////////////////////////
 
+    ch_atac.view() 
     // RNA: read in data
     METADATA_RNA( params.rna_sample_sheet )
    
