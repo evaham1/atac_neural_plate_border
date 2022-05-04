@@ -79,7 +79,7 @@ if(!is.null(opt$groups1)){
 #if(!is.null(opt$groups2)){
 #  opt$groups2 = strsplit(opt$groups2, ',')[[1]]}
 
-if(is.na(opt$meta_col1)){
+if(is.null(opt$meta_col1)){
   stop("meta_col1 parameter must be provided. See script usage (--help)")}
 if(is.null(opt$groups1)){
   stop("groups1 parameter must be provided. See script usage (--help)")}
