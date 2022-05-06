@@ -224,18 +224,19 @@ if (length(unique(ArchR$stage)) > 1){
   cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
   graphics.off()
 
-}
-
 ##################### Distribution of rna stages across atac stages ##################################
 
-rna_stages <- plotEmbedding(ArchR, name = "rna_stage", plotAs = "points", size = 1.8, baseSize = 0, 
+  rna_stages <- plotEmbedding(ArchR, name = "rna_stage", plotAs = "points", size = 1.8, baseSize = 0, 
                             labelSize = 8, legendSize = 0, labelAsFactors = FALSE, pal = stage_colours)
-atac_stages <- plotEmbedding(ArchR, name = "stage", plotAs = "points", size = 1.8, baseSize = 0, 
+  atac_stages <- plotEmbedding(ArchR, name = "stage", plotAs = "points", size = 1.8, baseSize = 0, 
                              labelSize = 8, legendSize = 0, labelAsFactors = FALSE, pal = stage_colours)
-png(paste0(plot_path, 'UMAPs_rna_stages_VS_atac_stages.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(rna_stages + atac_stages)
-graphics.off()
+  png(paste0(plot_path, 'UMAPs_rna_stages_VS_atac_stages.png'), height = 20, width = 40, units = 'cm', res = 400)
+  print(rna_stages + atac_stages)
+  graphics.off()
 
-png(paste0(plot_path, "rna_atac_stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "rna_stage", group2 = "stage")
-graphics.off()
+  png(paste0(plot_path, "rna_atac_stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+  cell_counts_heatmap(ArchR = ArchR, group1 = "rna_stage", group2 = "stage")
+  graphics.off()
+
+}
+
