@@ -31,16 +31,12 @@ opt = getopt(spec)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
+
+    #data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
+    #data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/1_unconstrained_integration/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/2_identify_clusters/rds_files/"
     
-    plot_path = "./output/NF-downstream_analysis/ArchR_integration/plots/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_integration/rds_files/"
-    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering//rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/HH5/ArchR_clustering//rds_files/"
-    
-    # already integrated
-    data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -135,8 +131,8 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 ############################## COLOURS #######################################
 
 ###### stage colours
-stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
-stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
 ###### schelper cell type colours
@@ -158,58 +154,31 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
 atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
 atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
 
-#############################################################################################
-############################## Assign cluster labels #######################################
+############################## Integration scores plots #######################################
 
-########### New labels
-plot_path = "./plots/new_labels/"
+plot_path = "./plots/integration_scores/"
+
+png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
+              legendSize = 10)
+graphics.off()
+
+png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
+plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+           name = "predictedScore_Un", plotAs = "Violin")
+graphics.off()
+
+##################### Distribution of labels across clusters ##################################
+
+plot_path = "./plots/label_by_cluster_distribution/"
 dir.create(plot_path, recursive = T)
 
 # visualise distribution across clusters
-png(paste0(plot_path, 'counts_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters")
-graphics.off()
-
-png(paste0(plot_path, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters")
-graphics.off()
-
-# assign cluster labels
-cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_new))
-scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
-cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
-
-png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
-grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-new_labels <- cluster_idents[,1]
-names(new_labels) <- cluster_idents[,2]
-ArchR$cluster_new_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
-
-p1 <- plotEmbedding(ArchR, name = "cluster_new_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
-p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
-
-png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(p1)
-graphics.off()
-
-png(paste0(plot_path, 'assigned_cluster_idents_UMAP_comparison.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(p1 + p2)
-graphics.off()
-
-########### Old labels
-plot_path = "./plots/old_labels/"
-dir.create(plot_path, recursive = T)
-
-# visualise distribution across clusters
-png(paste0(plot_path, 'counts_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+png(paste0(plot_path, 'label_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
 cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
 graphics.off()
 
-png(paste0(plot_path, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
 cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
 graphics.off()
 
@@ -237,4 +206,31 @@ graphics.off()
 
 png(paste0(plot_path, 'assigned_cluster_idents_UMAP_comparison.png'), height = 20, width = 40, units = 'cm', res = 400)
 print(p1 + p2)
+graphics.off()
+
+##################### Distribution of labels across stages ##################################
+
+plot_path = "./plots/old_labels_stage_distribution/"
+dir.create(plot_path, recursive = T)
+  
+png(paste0(plot_path, 'counts_by_stage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
+graphics.off()
+  
+png(paste0(plot_path, "stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
+graphics.off()
+
+##################### Distribution of rna stages across atac stages ##################################
+
+rna_stages <- plotEmbedding(ArchR, name = "rna_stage", plotAs = "points", size = 1.8, baseSize = 0, 
+                            labelSize = 8, legendSize = 0, labelAsFactors = FALSE, pal = stage_colours)
+atac_stages <- plotEmbedding(ArchR, name = "stage", plotAs = "points", size = 1.8, baseSize = 0, 
+                             labelSize = 8, legendSize = 0, labelAsFactors = FALSE, pal = stage_colours)
+png(paste0(plot_path, 'UMAPs_rna_stages_VS_atac_stages.png'), height = 20, width = 40, units = 'cm', res = 400)
+print(rna_stages + atac_stages)
+graphics.off()
+
+png(paste0(plot_path, "rna_atac_stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+cell_counts_heatmap(ArchR = ArchR, group1 = "rna_stage", group2 = "stage")
 graphics.off()

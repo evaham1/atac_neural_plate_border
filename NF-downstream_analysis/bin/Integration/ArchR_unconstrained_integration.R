@@ -37,6 +37,7 @@ opt = getopt(spec)
     #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering//rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/HH5/ArchR_clustering//rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FULL_PROCESSINGHH5/ArchR_clustering//rds_files/"
     
     # already integrated
     data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
@@ -62,6 +63,7 @@ opt = getopt(spec)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
+
 
 
 ############################## Read in ArchR project and seurat object #######################################
@@ -92,8 +94,8 @@ old_labels[is.na(contam)] <- as.character(original[is.na(contam)])
 seurat_data@meta.data$old_labels <- old_labels
 
 ###### stage colours
-stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
-stage_colours = c("#E78AC3", "#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 stage_cols <- stage_colours[levels(droplevels(seurat_data@meta.data$stage))]
 
@@ -177,6 +179,12 @@ print("integration completed")
 extracted_rna_labels <- seurat_data@meta.data[ArchR$predictedCell_Un, c("scHelper_cell_type", "old_labels")]
 ArchR$scHelper_cell_type_new <- extracted_rna_labels[, "scHelper_cell_type"]
 ArchR$scHelper_cell_type_old <- extracted_rna_labels[, "old_labels"]
+
+# use matched RNA cells to add rna metadata to ATAC cells
+extracted_rna_metadata <- seurat_data@meta.data[ArchR$predictedCell_Un, c("run", "stage", "seurat_clusters")]
+ArchR$rna_stage <- extracted_rna_metadata[, "stage"]
+ArchR$rna_run <- extracted_rna_metadata[, "run"]
+ArchR$rna_clusters <- extracted_rna_metadata[, "seurat_clusters"]
 
 # save integrated ArchR project
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
@@ -288,44 +296,3 @@ graphics.off()
 png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
 do.call(cowplot::plot_grid, c(list(ncol = 3), p2c))
 graphics.off()
-
-############################## Constrained integration #######################################
-########  do I want to do this?? 
-
-# # which seurat clusters correspond to which cell types?
-# seurat_df <- data.frame(cluster_id = seurat$seurat_clusters,
-#                         scHelper_cell_type = seurat$scHelper_cell_type)
-# seurat_df <- seurat_df %>% remove_rownames(.) %>% distinct(., .keep_all = FALSE)
-#Assign scRNA cell states to cluster numbers - automate for every cell state
-#clust_FB_rna <- paste0(seurat_df$cluster_id[which(seurat_df$scHelper_cell_type == "FB")], collapse = "|")
-
-# Identify scRNAseq cells that are in these clusters
-# rna_FB_cells <- names(seurat$scHelper_cell_type)[which(seurat$scHelper_cell_type == "FB")]
-# 
-# #Assign scATAC to cell states to cluster numbers - automate for every cell state
-# clust_FB_atac <- rownames(cM)[grep('FB', preClust)]
-# atac_FB_cells <-ArchR$cellNames[ArchR$clusters %in% clust_FB_atac]
-# 
-# groupList <- SimpleList(
-#   FB = SimpleList(
-#     ATAC = atac_FB_cells,
-#     RNA = rna_FB_cells
-#   )
-# )
-# 
-# # doesnt work - needs to include all ATAC cells
-# # how would I do this, every cell type? then not going to differ..
-# # just divide neural/NNE?? contam??
-# ArchR <- addGeneIntegrationMatrix(
-#   ArchRProj = ArchR, 
-#   useMatrix = "GeneScoreMatrix",
-#   matrixName = "GeneIntegrationMatrix",
-#   reducedDims = "IterativeLSI",
-#   seRNA = seurat,
-#   addToArrow = FALSE, 
-#   groupList = groupList,
-#   groupRNA = "BioClassification",
-#   nameCell = "predictedCell_Co",
-#   nameGroup = "predictedGroup_Co",
-#   nameScore = "predictedScore_Co"
-# )
