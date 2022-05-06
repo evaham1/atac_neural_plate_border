@@ -33,11 +33,6 @@ opt = getopt(spec)
     plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/gene_scores/plots/"
     rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/gene_scores/rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/clustering/rds_files/"
-    
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/HH6/postfiltering/clustering/rds_files/"
-    
-    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1_ArchR_clustering_prefiltering/rds_files/"
-    #plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/1.5_ArchR_gene_scores_unfiltered/plots/"
 
     addArchRThreads(threads = 1) 
     
@@ -300,6 +295,7 @@ markers_top_table_S2 = marker_tables %>%
   dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
   dplyr::top_n(Log2FC, n = 100) %>%
   dplyr::arrange(mixedrank(clusters), desc(Log2FC))
+write.csv(markers_top_table_S2, paste0(plot_path, "Table_top_100_genescore_markers_per_scATAC_clusters.csv"), row.names = FALSE)
 
 # subsetting markers to only include top 50 per cluster
 markers_include = markers_top_table_S2 %>% subset(rank<=50, select = "name", drop = T)

@@ -8,6 +8,10 @@ include {R as SUBSET_INTEGRATION} from "$baseDir/modules/local/r/main"          
 include {R as CLUSTER_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 include {R as CLUSTER_IDENTIFY_FILTERED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_cluster_identities.R", checkIfExists: true) )
 
+include {R as GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
+include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as PEAK_DIFF} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks.R", checkIfExists: true) )
+
 
 workflow INTEGRATING {
     take:
@@ -24,6 +28,11 @@ workflow INTEGRATING {
     SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
     CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
     CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out )
+
+    // Characterise clusters
+    GENE_SCORES( CLUSTER_INTEGRATION.out )
+    PEAK_CALL( CLUSTER_INTEGRATION.out )
+    PEAK_DIFF( PEAK_CALL.out )
 
     //emit integrated ArchR objects:
     emit:
