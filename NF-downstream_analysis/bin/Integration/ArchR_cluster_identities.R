@@ -211,16 +211,20 @@ graphics.off()
 
 ##################### Distribution of labels across stages ##################################
 
-plot_path = "./plots/old_labels_stage_distribution/"
-dir.create(plot_path, recursive = T)
+if (length(unique(ArchR$stage)) > 1){
+
+  plot_path = "./plots/old_labels_stage_distribution/"
+  dir.create(plot_path, recursive = T)
   
-png(paste0(plot_path, 'counts_by_stage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
-graphics.off()
+  png(paste0(plot_path, 'counts_by_stage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+  cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
+  graphics.off()
   
-png(paste0(plot_path, "stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
-graphics.off()
+  png(paste0(plot_path, "stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+  cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
+  graphics.off()
+
+}
 
 ##################### Distribution of rna stages across atac stages ##################################
 
