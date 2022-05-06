@@ -157,6 +157,7 @@ atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_
 ############################## Integration scores plots #######################################
 
 plot_path = "./plots/integration_scores/"
+dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
