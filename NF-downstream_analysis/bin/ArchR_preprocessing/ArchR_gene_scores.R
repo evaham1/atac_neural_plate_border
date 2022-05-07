@@ -34,6 +34,8 @@ opt = getopt(spec)
     rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/gene_scores/rds_files/"
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/postfiltering/clustering/rds_files/"
 
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/HH6/prefiltering_1/clustering/rds_files/"
+    
     addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
@@ -309,7 +311,7 @@ if (length(markers_label) == 0){markers_label <- NULL}
 heatmapGS <- plotMarkerHeatmap(
   seMarker = marker_subset, 
   cutOff = "FDR <= 1 & Log2FC >= 0",
-  labelMarkers = markers_label,
+  #labelMarkers = markers_label,
   clusterCols = TRUE,
   pal = viridis::magma(30),
   nLabel = 3
