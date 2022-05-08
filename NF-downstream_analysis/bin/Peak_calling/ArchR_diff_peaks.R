@@ -40,6 +40,7 @@ if(opt$verbose) print(opt)
     
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/ss8/prefiltering/peak_calling/rds_files/"
     #plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/2_differential_peaks/plots/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/HH6/prefiltering/peak_calling/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -143,39 +144,43 @@ add_name = function(X, c) {
 marker_tables = markersPeaks %>% getMarkers(cutOff = "FDR <= 1 & Log2FC >= 0.1")
 marker_tables_S = mapply(add_name, marker_tables, names(marker_tables), SIMPLIFY = F) %>% Reduce(f = rbind)
 mixedrank = function(x) order(gtools::mixedorder(x))
-# markers_top_S = marker_tables_S %>%  
-#   as.data.frame() %>%
-#   #dplyr::mutate( highest_logfc_by_gene = ave(Log2FC, name, FUN = max)) %>%
-#   #dplyr::mutate( is_highest = Log2FC == highest_logfc_by_gene) %>%
-#   #subset(is_highest) %>%
-#   dplyr::group_by(cluster) %>%
-#   dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
-#   # dplyr::top_n(Log2FC, n = 1000000) %>%
-#   dplyr::arrange(mixedrank(cluster), desc(Log2FC))
-# #write.csv(markers_top_S,"all_differentially_expressed_peaks.csv", row.names = FALSE)
+markers_top_S = marker_tables_S %>%
+  as.data.frame() %>%
+  #dplyr::mutate( highest_logfc_by_gene = ave(Log2FC, name, FUN = max)) %>%
+  #dplyr::mutate( is_highest = Log2FC == highest_logfc_by_gene) %>%
+  #subset(is_highest) %>%
+  dplyr::group_by(cluster) %>%
+  dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
+  # dplyr::top_n(Log2FC, n = 1000000) %>%
+  dplyr::arrange(mixedrank(cluster), desc(Log2FC))
+write.csv(markers_top_S, paste0(plot_path, "all_differentially_expressed_peaks.csv"), row.names = FALSE)
 
 # Plot top peaks:
 markers_top = marker_tables_S %>%  
   as.data.frame() %>%
-  dplyr::mutate( highest_logfc_by_gene = ave(Log2FC, name, FUN = max)) %>%
-  dplyr::mutate( is_highest = Log2FC == highest_logfc_by_gene) %>%
-  subset(is_highest) %>%
+  # dplyr::mutate( highest_logfc_by_gene = ave(Log2FC, name, FUN = max)) %>%
+  # dplyr::mutate( is_highest = Log2FC == highest_logfc_by_gene) %>%
+  # subset(is_highest) %>%
   dplyr::group_by(cluster) %>%
   dplyr::mutate(rank = rank(-Log2FC, ties = "first")) %>%
   dplyr::top_n(Log2FC, n = 50) %>%
   dplyr::arrange(mixedrank(cluster), desc(Log2FC))
-markers_label   = markers_top %>% subset(rank<=2,  select = "name", drop = T) 
-markers_include = markers_top %>% subset(rank<=4000000, select = "unique_id", drop = T) 
+#markers_label   = markers_top %>% subset(rank<=2,  select = "name", drop = T) 
+#markers_include = markers_top %>% subset(rank<=4000000, select = "unique_id", drop = T) 
+markers_include <- markers_top$idx
 #length(markers_include)
-marker_subset = markersPeaks[rowData(markersPeaks)$unique_id %in% markers_include,]
+marker_subset = markersPeaks[rowData(markersPeaks)$idx %in% markers_include,]
 
-png(paste0(plot_path, 'clusters_diff_peak_top50_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
 heatmapGS <- plotMarkerHeatmap(
   seMarker = marker_subset, 
   cutOff = "FDR <= 1 & Log2FC >= 0.1",
-  labelMarkers = labelMarkers,
-  pal = viridisLite::mako(256)
+  #labelMarkers = labelMarkers,
+  pal = viridisLite::mako(256),
+  nLabel = 3
 )
+
+png(paste0(plot_path, 'clusters_diff_peak_top50_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+print(heatmapGS)
 graphics.off()
 
 # ######################
