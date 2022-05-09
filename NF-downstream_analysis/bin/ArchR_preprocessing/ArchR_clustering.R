@@ -165,41 +165,64 @@ names(stage_colours) <- stage_order
 
 #################################################################################
 ############################## PROCESSING #######################################
-
-############## Iterative LSI Dimensionality Reduction ###########################
-# need to look at setting seed for this
-ArchR <- addIterativeLSI(
-  ArchRProj = ArchR,
-  useMatrix = "TileMatrix", 
-  name = "IterativeLSI", 
-  iterations = 2, 
-  clusterParams = list( #See Seurat::FindClusters
-    resolution = c(0.2), 
-    sampleCells = 10000, 
-    n.start = 10
-  ), 
-  varFeatures = 25000, 
-  dimsToUse = 1:30,
-  seed = 1,
-  force = TRUE
-)
+# Dimensionality reduction
+ArchR <- addIterativeLSI(ArchR, force = TRUE)
 print("iterative LSI ran")
 
-############################## Run UMAP #################################
-ArchR <- addUMAP(
-  ArchRProj = ArchR, 
-  reducedDims = "IterativeLSI", 
-  name = "UMAP", 
-  nNeighbors = 30, 
-  minDist = 0.5, 
-  metric = "cosine",
-  force = TRUE
-)
+# Run UMAP
+ArchR <- addUMAP(ArchR, force = TRUE)
 print("UMAP added")
 
-################## Seurat graph-based clustering #################################
+# Cluster
+ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$clust_res, force = TRUE)
+print("clustering ran")
 
-# Try different clustering resolutions if looking at individual stages (otherwise takes too long)
+####### OLD PROCESSING ########
+# ArchR <- addIterativeLSI(
+#   ArchRProj = ArchR,
+#   useMatrix = "TileMatrix", 
+#   name = "IterativeLSI", 
+#   iterations = 2, 
+#   clusterParams = list( #See Seurat::FindClusters
+#     resolution = c(0.2), 
+#     sampleCells = 10000, 
+#     n.start = 10
+#   ), 
+#   varFeatures = 25000, 
+#   dimsToUse = 1:30,
+#   seed = 1,
+#   force = TRUE
+# )
+
+# ArchR <- addUMAP(
+#   ArchRProj = ArchR, 
+#   reducedDims = "IterativeLSI", 
+#   name = "UMAP", 
+#   nNeighbors = 30, 
+#   minDist = 0.5, 
+#   metric = "cosine",
+#   force = TRUE
+# )
+# # Set clustering for stage and full data
+# if (length(unique(ArchR$stage)) == 1){
+#   ArchR <- addClusters(
+#   input = ArchR,
+#   reducedDims = "IterativeLSI",
+#   method = "Seurat",
+#   name = "clusters",
+#   resolution = opt$stage_clust_res,
+#   force = TRUE)
+# } else {
+#   ArchR <- addClusters(
+#   input = ArchR,
+#   reducedDims = "IterativeLSI",
+#   method = "Seurat",
+#   name = "clusters",
+#   resolution = opt$full_clust_res,
+#   force = TRUE)
+# }
+
+# Plot Clustree
 if (isTRUE(opt$clustree)) {
   print("running clustree plot...")
 
@@ -214,28 +237,6 @@ if (isTRUE(opt$clustree)) {
     graphics.off()
     print("clustree plot ran")
 }}
-
-# Set clustering for stage and full data
-if (length(unique(ArchR$stage)) == 1){
-  ArchR <- addClusters(
-  input = ArchR,
-  reducedDims = "IterativeLSI",
-  method = "Seurat",
-  name = "clusters",
-  resolution = opt$stage_clust_res,
-  force = TRUE)
-} else {
-  ArchR <- addClusters(
-  input = ArchR,
-  reducedDims = "IterativeLSI",
-  method = "Seurat",
-  name = "clusters",
-  resolution = opt$full_clust_res,
-  force = TRUE)
-}
-
-print("clustering ran")
-print(table(ArchR$clusters))
 
 ################## Save clustered ArchR project #################################
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
@@ -331,26 +332,6 @@ if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
 
 plot_path <- paste0(plot_path, "QC_plots/")
 dir.create(plot_path, recursive = T)
-
-############################ Plot QC metrics on UMAP #############################
-
-png(paste0(plot_path, "UMAP_nFrags.png"), width=20, height=20, units = 'cm', res = 200)
-plotEmbedding(ArchR, name = "nFrags",
-              plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-              baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
-graphics.off()
-
-png(paste0(plot_path, "UMAP_NucleosomeRatio.png"), width=20, height=20, units = 'cm', res = 200)
-plotEmbedding(ArchR, name = "NucleosomeRatio",
-              plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-              baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
-graphics.off()
-
-png(paste0(plot_path, "UMAP_TSSEnrichment.png"), width=20, height=20, units = 'cm', res = 200)
-plotEmbedding(ArchR, name = "TSSEnrichment",
-              plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-              baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
-graphics.off()
 
 ######################## QC Vioin Plots #######################################
 
