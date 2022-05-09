@@ -174,7 +174,11 @@ ArchR <- addUMAP(ArchR, force = TRUE)
 print("UMAP added")
 
 # Cluster
-ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$clust_res, force = TRUE)
+if (length(unique(ArchR$stage)) == 1){
+  ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$stage_clust_res, force = TRUE)
+} else {
+  ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$full_clust_res, force = TRUE)
+}
 print("clustering ran")
 
 ####### OLD PROCESSING ########
