@@ -172,7 +172,7 @@ outliers = "outliers"
 while ( length(outliers) > 0 ) {
   
   iteration <- iteration + 1
-  print(paste0("iteration ", iteration))
+  print(paste0("iteration ", iteration, "/"))
   
   plot_path <- paste0(base_plot_path, "iteration_", iteration)
   dir.create(plot_path, recursive = T)
@@ -186,66 +186,56 @@ while ( length(outliers) > 0 ) {
   ArchR <- addUMAP(ArchR, force = TRUE)
   print("UMAP added")
 
-  # Clustree
-  png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-  print(ArchR_ClustRes(ArchR, by = opt$clustree_by, starting_res = -opt$clustree_by))
-  graphics.off()
+  # # Clustree
+  # png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+  # print(ArchR_ClustRes(ArchR, by = opt$clustree_by, starting_res = -opt$clustree_by))
+  # graphics.off()
 
   # Cluster
   ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$clust_res, force = TRUE)
   print("clustering ran")
 
   ##############  PLOTS  ##################
-  # Number of cells in each cluster
-  cluster_cell_counts <- as.data.frame(table(substr(ArchR$clusters, 2, nchar(ArchR$clusters))))
-  cluster_cell_counts <- cluster_cell_counts %>% 
-    rename(Cell_count = Freq, Cluster_number = Var1) %>%
-    mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
-    arrange(Cluster_number)
-  png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 25, width = 10, units = 'cm', res = 400)
-  grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
-  graphics.off()
-  
   # Labelled UMAP
   png(paste0(plot_path, 'UMAP_clusters.png'), height = 20, width = 20, units = 'cm', res = 400)
-  plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, 
-                labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
+  print(plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, 
+                labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
   graphics.off()
   
   # QC UMAPs
   png(paste0(plot_path, "UMAP_nFrags.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "nFrags",
+  print(plotEmbedding(ArchR, name = "nFrags",
                 plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-                baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+                baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE))
   graphics.off()
   png(paste0(plot_path, "UMAP_NucleosomeRatio.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "NucleosomeRatio",
+  print(plotEmbedding(ArchR, name = "NucleosomeRatio",
                 plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-                baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+                baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE))
   graphics.off()
   png(paste0(plot_path, "UMAP_TSSEnrichment.png"), width=20, height=20, units = 'cm', res = 200)
-  plotEmbedding(ArchR, name = "TSSEnrichment",
+  print(plotEmbedding(ArchR, name = "TSSEnrichment",
                 plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-                baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE)
+                baseSize = 20, labelSize = 0, legendSize = 20, randomize = TRUE))
   graphics.off()
 
   # Violin Plots
   metrics = "nFrags"
-  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 12)
+  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 20, alpha = 0.4, addBoxPlot = TRUE)
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", color = "red")
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", color = "red")
   png(paste0(plot_path, "VlnPlot_thresholds_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
   print(p)
   graphics.off()
   metrics = "TSSEnrichment"
-  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 12)
+  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 20, alpha = 0.4, addBoxPlot = TRUE)
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", color = "red")
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", color = "red")
   png(paste0(plot_path, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
   print(p)
   graphics.off()
   metrics = "NucleosomeRatio"
-  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 12)
+  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 20, alpha = 0.4, addBoxPlot = TRUE)
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", color = "red")
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", color = "red")
   png(paste0(plot_path, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
