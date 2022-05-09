@@ -172,9 +172,10 @@ outliers = "outliers"
 while ( length(outliers) > 0 ) {
   
   iteration <- iteration + 1
-  print(paste0("iteration ", iteration, "/"))
+  print(paste0("iteration ", iteration))
   
-  plot_path <- paste0(base_plot_path, "iteration_", iteration)
+  plot_path <- paste0(base_plot_path, "iteration_", iteration, "/")
+  print(plot_path)
   dir.create(plot_path, recursive = T)
   
   ##############  PROCESSING  ##################
@@ -186,16 +187,17 @@ while ( length(outliers) > 0 ) {
   ArchR <- addUMAP(ArchR, force = TRUE)
   print("UMAP added")
 
-  # # Clustree
-  # png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-  # print(ArchR_ClustRes(ArchR, by = opt$clustree_by, starting_res = -opt$clustree_by))
-  # graphics.off()
+  # Clustree
+  png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+  print(ArchR_ClustRes(ArchR, by = opt$clustree_by, starting_res = -opt$clustree_by))
+  graphics.off()
 
   # Cluster
   ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$clust_res, force = TRUE)
   print("clustering ran")
 
   ##############  PLOTS  ##################
+
   # Labelled UMAP
   png(paste0(plot_path, 'UMAP_clusters.png'), height = 20, width = 20, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, 
