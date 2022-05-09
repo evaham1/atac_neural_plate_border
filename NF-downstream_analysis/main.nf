@@ -26,6 +26,8 @@ include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/S
 include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
 include { FULL_PROCESSING as FULL_PROCESSING } from "$baseDir/subworkflows/local/1_processing/Full_processing"
 
+include { FILTERING } from "$baseDir/subworkflows/local/filtering"
+
 // INTEGRATION WORKFLOWS
 include { METADATA as METADATA_ATAC } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
@@ -64,8 +66,11 @@ workflow A {
 
         //QC_NO_FILTER ( PREPROCESSING.out.output )
         //QC_LOW ( PREPROCESSING.out.output )
-        QC_MED ( PREPROCESSING.out.output )
+        //QC_MED ( PREPROCESSING.out.output )
         //QC_HIGH ( PREPROCESSING.out.output )
+
+        FILTERING ( PREPROCESSING.out.output )
+
 
         ch_combined = QC_MED.out.output // Collect rds files from all stages
             .concat(PREPROCESSING.out.output)
