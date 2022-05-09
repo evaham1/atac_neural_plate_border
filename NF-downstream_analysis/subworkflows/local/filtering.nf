@@ -6,6 +6,7 @@ include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               a
 
 include {R as FILTER_CLUSTER_LOOP} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_cluster_filter_loop.R", checkIfExists: true) )
 
+include {R as CLUSTER_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 include {R as GENE_SCORES_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
 include {R as PEAK_CALL_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as PEAK_DIFF_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks.R", checkIfExists: true) )
@@ -31,8 +32,9 @@ workflow FILTERING {
     FILTER_CLUSTER_LOOP( ch_split_stage )
 
     ///     CHECK QUALITY     ///
-    GENE_SCORES_POSTFILTER( FILTER_CLUSTER_LOOP.out )
-    PEAK_CALL_POSTFILTER( FILTER_CLUSTER_LOOP.out )
+    CLUSTER_POSTFILTER( FILTER_CLUSTER_LOOP.out )
+    GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
+    PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
     PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
 
     emit:
