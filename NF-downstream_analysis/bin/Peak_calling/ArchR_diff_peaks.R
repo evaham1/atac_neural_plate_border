@@ -154,7 +154,7 @@ graphics.off()
 
 ############################# Heatmap of top 50 peaks per cell group #######################################
 
-subset_peaks <- extract_top_features(markersPeaks, n = 50)
+marker_subset <- extract_top_features(markersPeaks, n = 50)
 
 heatmapGS <- plotMarkerHeatmap(
   seMarker = marker_subset, 
