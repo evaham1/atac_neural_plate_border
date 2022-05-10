@@ -223,21 +223,21 @@ while ( length(outliers) > 0 ) {
 
   # Violin Plots
   metrics = "nFrags"
-  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 20, alpha = 0.4, addBoxPlot = TRUE)
+  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 25, alpha = 0.4, addBoxPlot = TRUE)
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", color = "red")
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", color = "red")
   png(paste0(plot_path, "VlnPlot_thresholds_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
   print(p)
   graphics.off()
   metrics = "TSSEnrichment"
-  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 20, alpha = 0.4, addBoxPlot = TRUE)
+  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 25, alpha = 0.4, addBoxPlot = TRUE)
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", color = "red")
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", color = "red")
   png(paste0(plot_path, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
   print(p)
   graphics.off()
   metrics = "NucleosomeRatio"
-  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 20, alpha = 0.4, addBoxPlot = TRUE)
+  p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", name = metrics, plotAs = "Violin", baseSize = 25, alpha = 0.4, addBoxPlot = TRUE)
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", color = "red")
   p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", color = "red")
   png(paste0(plot_path, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
