@@ -44,7 +44,8 @@ if(opt$verbose) print(opt)
     rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/rds_files/"
     plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/plots/"
     
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
+    # peaks already called
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/ss8/postfiltering/peak_calling/rds_files/"
     #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
     
     addArchRThreads(threads = 1) 
@@ -254,6 +255,7 @@ graphics.off()
 ## What are these peaks annotated too
 counts <- as.data.frame(table(peaks_df$peakType))
 colnames(counts) <- c("Peak Annotation", "Number of peaks")
+counts <- counts %>% mutate('Percentage' = round(100*(`Number of peaks`/sum(counts$`Number of peaks`))))
 
 png(paste0(plot_path, 'peak_counts_per_type.png'), height = 10, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Peak Counts per type", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -264,4 +266,7 @@ png(paste0(plot_path, 'peak_counts_per_type_piechart.png'), height = 10, width =
 ggplot(counts, aes(x="", y=`Number of peaks`, fill=`Peak Annotation`)) +
   geom_bar(stat="identity", width=1) +
   coord_polar("y", start=0) +
-  theme_void()
+  theme_void() +
+  geom_text(aes(label = paste0(Percentage, "%")),
+            position = position_stack(vjust = 0.5))
+graphics.off()
