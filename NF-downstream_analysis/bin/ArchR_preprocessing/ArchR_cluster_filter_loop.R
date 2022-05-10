@@ -254,7 +254,7 @@ while ( length(outliers) > 0 ) {
   cellsSample <- ArchR$cellNames[idxSample]
   ArchR_filtered <- ArchR[cellsSample, ]
   
-  # how many cells filtered
+  # which clusters filtered
   unfiltered <- as.data.frame(table(ArchR$clusters))
   colnames(unfiltered) <- c("Cluster_ID", "Unfiltered_cell_count")
   unfiltered <- unfiltered %>% mutate(Cluster_ID = as.numeric(gsub('^.', '', Cluster_ID))) %>%
@@ -265,6 +265,16 @@ while ( length(outliers) > 0 ) {
   cell_counts[is.na(cell_counts)] <- 0
   
   png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 30, width = 15, units = 'cm', res = 400)
+  grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+               tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+  graphics.off()
+  
+  # how many cells filtered total
+  unfiltered <- table(ArchR$stage)
+  filtered <- table(ArchR_filtered$stage)
+  cell_counts <- rbind(unfiltered, filtered)
+  
+  png(paste0(plot_path, 'stage_cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
   grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
                tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
   graphics.off()
