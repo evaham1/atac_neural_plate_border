@@ -40,7 +40,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/filter"
     #rds_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/1_PREPROCESS/"
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/1_PREPROCESS/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -87,7 +87,7 @@ p2 <- plotGroups(
   plotAs = "violin",
   alpha = 0.4,
   addBoxPlot = TRUE,
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours
 )
 png(paste0(plot_path, 'TSS_enrichment_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
@@ -100,7 +100,7 @@ p3 <- plotGroups(
   colorBy = "cellColData", 
   name = "TSSEnrichment",
   plotAs = "ridges",
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours
 )
 png(paste0(plot_path, 'TSS_enrichment_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
@@ -124,7 +124,7 @@ p4 <- plotGroups(
   plotAs = "violin",
   alpha = 0.4,
   addBoxPlot = TRUE,
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours
 )
 png(paste0(plot_path, 'fragment_log10_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
@@ -137,7 +137,7 @@ p3 <- plotGroups(
   colorBy = "cellColData", 
   name = "log10(nFrags)",
   plotAs = "ridges",
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours
 )
 png(paste0(plot_path, 'fragment_log10_count_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
@@ -153,7 +153,7 @@ p4 <- plotGroups(
   plotAs = "violin",
   alpha = 0.4,
   addBoxPlot = TRUE,
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours
 )
 png(paste0(plot_path, 'fragment_count_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
@@ -166,7 +166,7 @@ p <- plotGroups(
   colorBy = "cellColData", 
   name = "nFrags",
   plotAs = "ridges",
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours)
 png(paste0(plot_path, 'fragment_count_ridge.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p)
@@ -185,7 +185,7 @@ p2 <- plotGroups(
   plotAs = "violin",
   alpha = 0.4,
   addBoxPlot = TRUE,
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours
 )
 png(paste0(plot_path, 'Nucleosome_ratio_vln.png'), height = 25, width = 25, units = 'cm', res = 400)
@@ -198,7 +198,7 @@ p3 <- plotGroups(
   colorBy = "cellColData", 
   name = "NucleosomeRatio",
   plotAs = "ridges",
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours
 )
 png(paste0(plot_path, 'Nucleosome_ratio_ridge.png'), height = 15, width = 21, units = 'cm', res = 400)
@@ -222,7 +222,9 @@ p <- ggPoint(
   ylabel = "TSS Enrichment",
   xlim = c(log10(500), quantile(df[,1], probs = 0.99)),
   ylim = c(0, quantile(df[,2], probs = 0.99))
-) + geom_hline(yintercept = 4, lty = "dashed") + geom_vline(xintercept = 3, lty = "dashed")
+) + geom_hline(yintercept = 4, lty = "dashed") + geom_vline(xintercept = 3, lty = "dashed") +
+  theme(axis.text=element_text(size=18), axis.title=element_text(size=25), legend.text=element_text(size=12),
+        legend.key.size = unit(1.4, 'cm'), legend.title=element_text(size=18))
 
 png(paste0(plot_path, 'fragments_vs_TSS.png'), height = 25, width = 25, units = 'cm', res = 400)
 print(p)
@@ -253,13 +255,13 @@ if (opt$filter == FALSE) {
   ## plot thresholds
   p <- plotGroups(
     ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", alpha = 0.4,
-    name = "nFrags", plotAs = "violin", baseSize = 20, pal = stage_colours)
+    name = "nFrags", plotAs = "violin", baseSize = 25, pal = stage_colours)
   p1 <- p + 
-    geom_hline(yintercept = limits_df$upper_limit[1], linetype = "dashed", color = stage_colours[1]) +
-    geom_hline(yintercept = limits_df$upper_limit[2], linetype = "dashed", color = stage_colours[2]) +
-    geom_hline(yintercept = limits_df$upper_limit[3], linetype = "dashed", color = stage_colours[3]) +
-    geom_hline(yintercept = limits_df$upper_limit[4], linetype = "dashed", color = stage_colours[4]) +
-    geom_hline(yintercept = limits_df$upper_limit[5], linetype = "dashed", color = stage_colours[5])
+    geom_segment(aes(x = 0.5, xend = 1.5, y = limits_df$upper_limit[1], , yend = limits_df$upper_limit[1]), linetype = "dashed", colour = "black") +
+    geom_segment(aes(x = 1.5, xend = 2.5, y = limits_df$upper_limit[2], , yend = limits_df$upper_limit[2]), linetype = "dashed", colour = "black") +
+    geom_segment(aes(x = 2.5, xend = 3.5, y = limits_df$upper_limit[3], , yend = limits_df$upper_limit[3]), linetype = "dashed", colour = "black") +
+    geom_segment(aes(x = 3.5, xend = 4.5, y = limits_df$upper_limit[4], , yend = limits_df$upper_limit[4]), linetype = "dashed", colour = "black") +
+    geom_segment(aes(x = 4.5, xend = 5.5, y = limits_df$upper_limit[5], , yend = limits_df$upper_limit[5]), linetype = "dashed", colour = "black")
   png(paste0(plot_path, 'fragment_count_violin_thresholds.png'), height = 25, width = 25, units = 'cm', res = 400)
   print(p1)
   graphics.off()
@@ -292,7 +294,7 @@ p <- plotGroups(
   colorBy = "cellColData", 
   name = "nFrags",
   plotAs = "violin",
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours,
   alpha = 0.4)
 png(paste0(plot_path, 'fragment_count_violin_filtered.png'), height = 25, width = 25, units = 'cm', res = 400)
@@ -305,7 +307,7 @@ p3 <- plotGroups(
   colorBy = "cellColData", 
   name = "log10(nFrags)",
   plotAs = "ridges",
-  baseSize = 20,
+  baseSize = 25,
   pal = stage_colours)
 png(paste0(plot_path, 'fragment_log10_count_violin_filtered.png'), height = 15, width = 21, units = 'cm', res = 400)
 print(p3)
