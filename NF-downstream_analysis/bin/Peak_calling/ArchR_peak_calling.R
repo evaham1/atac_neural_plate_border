@@ -243,11 +243,11 @@ grid.arrange(top=textGrob("Peak Counts per group", gp=gpar(fontsize=12, fontface
              tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-png(paste0(plot_path, 'peak_counts_per_group_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
-ggplot(data=counts, aes(x=`ID`, y=`Number of peaks`)) +
-  geom_bar(stat="identity") +
-  scale_x_continuous(breaks = round(seq(min(counts$ID), max(counts$ID), by = 1),1))
-graphics.off()
+# png(paste0(plot_path, 'peak_counts_per_group_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
+# ggplot(data=counts, aes(x=`ID`, y=`Number of peaks`)) +
+#   geom_bar(stat="identity") +
+#   scale_x_continuous(breaks = round(seq(min(counts$ID), max(counts$ID), by = 1),1))
+# graphics.off()
 
 ##############################################################################
 ############################# Peak Annotations ###############################
