@@ -104,7 +104,7 @@ p1 <- plotEmbedding(ArchR,
                     baseSize = 0, labelSize = 0, legendSize = 0, 
                     pal = stage_colours, randomize = TRUE)
 p2 <- plotEmbedding(ArchR, 
-                    name = "clusters",
+                    name = "stage_clusters",
                     plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
                     randomize = TRUE)
