@@ -56,7 +56,7 @@ workflow A {
 
         ///////////////////// PROCESSING //////////////////////////////
         METADATA( params.sample_sheet )    
-        METADATA.out.view()
+        //METADATA.out.view()
         METADATA.out // METADATA.out: [[meta], [cellranger_output]]
             .combine(ch_reference)
             .map{[it[0], it[1] + it[2]]}
@@ -83,7 +83,7 @@ workflow A {
         ch_atac = FILTERING.out.output // Collect rds files from all stages
             .concat(FULL_PROCESSING.out.output)
             .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]} //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
-            .view() //need to fix by adding a square bracket so it looks like ch_atac below
+            //.view() //need to fix by adding a square bracket so it looks like ch_atac below
         
     } else {
        
@@ -115,7 +115,7 @@ workflow A {
         .concat( METADATA_RNA.out.metadata )
         .groupTuple( by:0 ) //[ [sample_id:HH5], [ [HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
         .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-        .view()
+        //.view()
         .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
     // ARCHR: Integrate

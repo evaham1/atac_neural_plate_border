@@ -25,17 +25,17 @@ workflow INTEGRATING {
     UNCON_INTEGRATE.out.view()
 
     // Label clusters based on most frequent label within each cluster
-    CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out )
+    //CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out )
     
     // Filter contaminating cells from all channels and re-cluster all channels
-    SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
-    CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
-    CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out )
+    //SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
+    //CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
+    //CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out )
 
     // Characterise clusters
-    GENE_SCORES( CLUSTER_INTEGRATION.out )
-    PEAK_CALL( CLUSTER_INTEGRATION.out )
-    PEAK_DIFF( PEAK_CALL.out )
+    //GENE_SCORES( CLUSTER_INTEGRATION.out )
+    //PEAK_CALL( CLUSTER_INTEGRATION.out )
+    //PEAK_DIFF( PEAK_CALL.out )
 
     // Look at the stage clusters on the full dataset
     ch_combined = UNCON_INTEGRATE.out // Collect integrated atac objects
@@ -48,6 +48,6 @@ workflow INTEGRATING {
 
     //emit integrated ArchR objects:
     emit:
-    archr_integrated_full = CLUSTER_INTEGRATION.out
+    //archr_integrated_full = CLUSTER_INTEGRATION.out
     transfer_labels = TRANSFER_LABELS.out
 }
