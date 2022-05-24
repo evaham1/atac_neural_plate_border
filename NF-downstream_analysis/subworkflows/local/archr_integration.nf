@@ -63,5 +63,5 @@ workflow INTEGRATING {
     //emit integrated ArchR objects:
     emit:
     //archr_integrated_full = CLUSTER_INTEGRATION.out
-    transfer_labels = TRANSFER_LABELS.out
+    integrated = UNCON_INTEGRATE.out
 }
