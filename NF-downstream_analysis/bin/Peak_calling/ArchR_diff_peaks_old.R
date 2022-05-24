@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 print("differential peaks ArchR")
-# calculates differential peaks between clusters, scHelper_cell_types_old and stage -> plots on heatmaps
+# imports calculated differential peaks and visualises them
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -150,6 +150,14 @@ heatmapPeaks <- plotMarkerHeatmap(
   cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
   nLabel = 3)
 png(paste0(plot_path, 'diff_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+graphics.off()
+
+heatmapPeaks <- plotMarkerHeatmap(
+  seMarker = markersPeaks, 
+  cutOff = "FDR <= 0.6 & Log2FC >= 0.7",
+  nLabel = 3)
+png(paste0(plot_path, 'diff_peak_cutoff_heatmap_2.png'), height = 50, width = 40, units = 'cm', res = 400)
 draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 graphics.off()
 
