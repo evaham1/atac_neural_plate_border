@@ -9,7 +9,8 @@ include {R as FILTER_CLUSTER_LOOP} from "$baseDir/modules/local/r/main"         
 include {R as CLUSTER_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 include {R as GENE_SCORES_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
 include {R as PEAK_CALL_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as PEAK_DIFF_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks.R", checkIfExists: true) )
+include {R as HEATMAP_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
+include {R as HEATMAP_GEX} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 
 
 workflow FILTERING {
@@ -34,8 +35,10 @@ workflow FILTERING {
     ///     CHECK QUALITY     ///
     CLUSTER_POSTFILTER( FILTER_CLUSTER_LOOP.out )
     GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
+    HEATMAP_GEX( PEAK_CALL_POSTFILTER.out )
+
     PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
-    PEAK_DIFF_POSTFILTER( PEAK_CALL_POSTFILTER.out )
+    HEATMAP_PEAKS( PEAK_CALL_POSTFILTER.out )
 
     emit:
     output = PEAK_CALL_POSTFILTER.out

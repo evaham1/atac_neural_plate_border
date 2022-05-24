@@ -19,14 +19,9 @@ nextflow.enable.dsl = 2
 
 // PREPROCESSING WORKFLOWS
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
-include { PREPROCESSING } from "$baseDir/subworkflows/local/1_processing/Preprocessing"
-include { QC_STAGES as QC_NO_FITER } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
-include { QC_STAGES as QC_LOW } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
-include { QC_STAGES as QC_MED } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
-include { QC_STAGES as QC_HIGH } from "$baseDir/subworkflows/local/1_processing/Stage_processing"
-include { FULL_PROCESSING as FULL_PROCESSING } from "$baseDir/subworkflows/local/1_processing/Full_processing"
-
-include { FILTERING } from "$baseDir/subworkflows/local/filtering"
+include { PREPROCESSING } from "$baseDir/subworkflows/local/Processing/Preprocessing"
+include { FILTERING } from "$baseDir/subworkflows/local/Processing/Filtering"
+include { FULL_PROCESSING as FULL_PROCESSING } from "$baseDir/subworkflows/local/Processing/Full_processing"
 
 // INTEGRATION WORKFLOWS
 include { METADATA as METADATA_ATAC } from "$baseDir/subworkflows/local/metadata"
@@ -64,19 +59,14 @@ workflow A {
 
         PREPROCESSING ( ch_metadata ) // create ArchR object
 
-        //QC_NO_FILTER ( PREPROCESSING.out.output )
-        //QC_LOW ( PREPROCESSING.out.output )
-        //QC_MED ( PREPROCESSING.out.output )
-        //QC_HIGH ( PREPROCESSING.out.output )
-
-        FILTERING ( PREPROCESSING.out.output )
-
+        FILTERING ( PREPROCESSING.out.output ) // iterative filtering
 
         ch_combined = FILTERING.out.output // Collect rds files from all stages
             .concat(PREPROCESSING.out.output)
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            
         FULL_PROCESSING ( ch_combined ) // filter full data
         ///////////////////////////////////////////////////////////////
 
