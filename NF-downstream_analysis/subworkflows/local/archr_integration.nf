@@ -51,13 +51,13 @@ workflow INTEGRATING {
     HEATMAP_PEAKS( PEAK_CALL.out )
 
     // Look at the stage clusters on the full dataset
-    ch_combined = UNCON_INTEGRATE.out // Collect integrated atac objects
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            .view()
-    TRANSFER_LABELS( ch_combined )
-    PEAK_CALL_TL( TRANSFER_LABELS.out )
+    // ch_combined = UNCON_INTEGRATE.out // Collect integrated atac objects
+    //         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+    //         .collect()
+    //         .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+    //         .view()
+    // TRANSFER_LABELS( ch_combined )
+    // PEAK_CALL_TL( TRANSFER_LABELS.out )
 
 
     //emit integrated ArchR objects:
