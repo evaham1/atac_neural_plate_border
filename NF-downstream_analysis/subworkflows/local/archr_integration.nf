@@ -22,7 +22,6 @@ include {R as HEATMAP_PEAKS} from "$baseDir/modules/local/r/main"               
 // visualise full dataset
 include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_preprocessing/transfer_labels.R", checkIfExists: true) )
 include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as PEAK_DIFF_TL} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks.R", checkIfExists: true) )
 
 
 workflow INTEGRATING {
@@ -59,7 +58,6 @@ workflow INTEGRATING {
             .view()
     TRANSFER_LABELS( ch_combined )
     PEAK_CALL_TL( TRANSFER_LABELS.out )
-    PEAK_DIFF_TL( PEAK_CALL_TL.out )
 
 
     //emit integrated ArchR objects:
