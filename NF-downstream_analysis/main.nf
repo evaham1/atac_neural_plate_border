@@ -66,7 +66,7 @@ workflow A {
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            
+
         FULL_PROCESSING ( ch_combined ) // filter full data
         ///////////////////////////////////////////////////////////////
 
@@ -114,13 +114,6 @@ workflow A {
     // [[ meta:full], ATAC]]
     // [ [[meta: HH5], ATAC] , [[meta: HH6], ATAC]]
     // [ [[meta: HH5], RNA], [[meta: HH6], RNA]]
-
-    // INTEGRATING.out.archr_integrated_full.view()
-    
-    // ///////////////////// PEAK CALLING ////////////////////////////
-    // ///////////////////////////////////////////////////////////////
-    
-    // PEAK_CALLING( INTEGRATING.out.archr_integrated_full )
     
 }
 
