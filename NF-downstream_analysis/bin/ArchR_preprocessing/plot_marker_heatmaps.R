@@ -239,20 +239,26 @@ if (opt$matrix == "GeneScoreMatrix"){
   pal = viridis::magma(100)
 }
 
-ids <- extract_ids(seMarker, cutOff = ifelse(opt$matrix == "PeakMatrix", "FDR <= 0.01 & Log2FC >= 3", "FDR <= 0.01 & Log2FC >= 1"), top_n = FALSE) # extract ids
-if(length(ids) == 0){
-  print("no markers found!")
-} else {
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
+ids <- extract_ids(seMarker, cutOff = ifelse(opt$matrix == "PeakMatrix", "FDR <= 0.01 & Log2FC >= 5", "FDR <= 0.01 & Log2FC >= 1"), top_n = FALSE) # extract ids
+subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
 
-  png(paste0(plot_path, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-  marker_heatmap(subsetted_matrix, pal = pal)
-  graphics.off()  
-}
+png(paste0(plot_path, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
+marker_heatmap(subsetted_matrix, pal = pal)
+graphics.off()
 
-ids <- extract_ids(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
+ids <- extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
 subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
 
 png(paste0(plot_path, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
 marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal)
+graphics.off()
+
+###################### Boxplot showing distribution of FDR and Logf2c values #############################
+
+png(paste0(plot_path, 'Log2FC_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+boxplot(assays(seMarker)$Log2FC)
+graphics.off()
+
+png(paste0(plot_path, 'FDR_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+boxplot(assays(seMarker)$FDR)
 graphics.off()
