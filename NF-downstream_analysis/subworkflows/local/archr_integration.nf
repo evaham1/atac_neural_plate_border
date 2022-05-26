@@ -65,7 +65,7 @@ workflow INTEGRATING {
     TRANSFER_LABELS( ch_combined )
     HEATMAP_GEX_TL( TRANSFER_LABELS.out )
     PEAK_CALL_TL( TRANSFER_LABELS.out )
-    HEATMAP_PEAKS_TL( PEAK_CALL_TL )
+    HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
 
 
     //emit integrated ArchR objects:
