@@ -295,7 +295,7 @@ plot_data <- plot_data[complete.cases(plot_data), ]
 # scatter plot of -10log9FDR) VS Log2FC coloured by stage and significant features highlighted
 png(paste0(plot_path, 'FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
 ggplot(plot_data, aes(x = -LogFDR, y = LogFC, color = stage, shape = Passed)) + 
-  geom_point(alpha = 0.3) + 
+  geom_point(alpha = 0.5) + 
   scale_color_manual(values=stage_colours) +
   scale_shape_manual(values=c(16, 17)) +
   geom_segment(aes(x = 2, xend = 2, y = 1, yend = max(LogFC), colour = "black")) +
@@ -354,13 +354,13 @@ HH5_df <- data.frame(FDR_cutoff = sequence, number_of_features = number_of_featu
 
 df <- do.call("rbind", list(HH5_df, HH6_df, HH7_df, ss4_df, ss8_df))
 
-png(paste0(plot_path, 'changing_FDR_cutoffs_logFC_0_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'changing_FDR_cutoffs_logFC_0_linegraph.png'), height = 20, width = 20, units = 'cm', res = 400)
 ggplot(df, aes(x=FDR_cutoff, y=number_of_features, group=stage, colour=stage)) +
   geom_line() + scale_color_manual(values=stage_colours) + theme_minimal()
 graphics.off()
 
 df_cut <- df %>% group_by(stage) %>% filter(FDR_cutoff < 0.1)
-png(paste0(plot_path, 'changing_FDR_cutoffs_zoom_logFC_0_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'changing_FDR_cutoffs_zoom_logFC_0_linegraph.png'), height = 20, width = 20, units = 'cm', res = 400)
 ggplot(df_cut, aes(x=FDR_cutoff, y=number_of_features, group=stage, colour=stage)) +
   geom_line() + scale_color_manual(values=stage_colours) + theme_minimal()
 graphics.off()
@@ -415,13 +415,13 @@ HH5_df <- data.frame(FDR_cutoff = sequence, number_of_features = number_of_featu
 
 df <- do.call("rbind", list(HH5_df, HH6_df, HH7_df, ss4_df, ss8_df))
 
-png(paste0(plot_path, 'changing_FDR_cutoffs_logFC_1_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'changing_FDR_cutoffs_logFC_1_linegraph.png'), height = 20, width = 20, units = 'cm', res = 400)
 ggplot(df, aes(x=FDR_cutoff, y=number_of_features, group=stage, colour=stage)) +
   geom_line() + scale_color_manual(values=stage_colours) + theme_minimal()
 graphics.off()
 
 df_cut <- df %>% group_by(stage) %>% filter(FDR_cutoff < 0.1)
-png(paste0(plot_path, 'changing_FDR_cutoffs_zoom_logFC_1_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'changing_FDR_cutoffs_zoom_logFC_1_linegraph.png'), height = 20, width = 20, units = 'cm', res = 400)
 ggplot(df_cut, aes(x=FDR_cutoff, y=number_of_features, group=stage, colour=stage)) +
   geom_line() + scale_color_manual(values=stage_colours) + theme_minimal()
 graphics.off()
