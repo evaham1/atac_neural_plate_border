@@ -251,7 +251,7 @@ if (length(ids) < 2){
   subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
   
   png(paste0(plot_path, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-  marker_heatmap(subsetted_matrix, pal = pal)
+  print(marker_heatmap(subsetted_matrix, pal = pal))
   graphics.off()
 }
 
