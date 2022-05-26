@@ -203,22 +203,24 @@ stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
+opt$group_by <- "clusters"
+
 # Read in all data
 files <- list.files(data_path, full.names = TRUE)
 print(files)
 stages_data <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
 print(paste0("Stages data: ", stages_data))
-#full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
-#print(paste0("Destination data: ", full_data))
 
-print(stages_data[1])
-print(stages_data[[1]])
-
-HH5 <- loadArchRProject(path = stages_data[1], force = FALSE, showLogo = TRUE)
-HH6 <- loadArchRProject(path = stages_data[2], force = FALSE, showLogo = TRUE)
-HH7 <- loadArchRProject(path = stages_data[3], force = FALSE, showLogo = TRUE)
-ss4 <- loadArchRProject(path = stages_data[4], force = FALSE, showLogo = TRUE)
-ss8 <- loadArchRProject(path = stages_data[5], force = FALSE, showLogo = TRUE)
+HH5 <- loadArchRProject(path = stages_data[1], force = TRUE, showLogo = FALSE)
+print(HH5)
+HH6 <- loadArchRProject(path = stages_data[2], force = TRUE, showLogo = FALSE)
+print(HH6)
+HH7 <- loadArchRProject(path = stages_data[3], force = TRUE, showLogo = FALSE)
+print(HH7)
+ss4 <- loadArchRProject(path = stages_data[4], force = TRUE, showLogo = FALSE)
+print(ss4)
+ss8 <- loadArchRProject(path = stages_data[5], force = TRUE, showLogo = FALSE)
+print(ss8)
 
 ####################### Calculate diff features between cell groups ##########################
 
