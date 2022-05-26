@@ -23,6 +23,7 @@ include {R as HEATMAP_PEAKS} from "$baseDir/modules/local/r/main"               
 include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_preprocessing/transfer_labels.R", checkIfExists: true) )
 include {R as COMPARE_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/compare_stages.R", checkIfExists: true) )
 include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as HEATMAP_PEAKS_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 
 
 workflow INTEGRATING {
@@ -51,15 +52,18 @@ workflow INTEGRATING {
     //PEAK_DIFF( PEAK_CALL.out )
     HEATMAP_PEAKS( PEAK_CALL.out )
 
-    // Look at the stage clusters on the full dataset
+    // Compare stages directly
     ch_combined = UNCON_INTEGRATE.out // Collect integrated atac objects
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
             .view()
-    TRANSFER_LABELS( ch_combined )
     COMPARE_STAGES( ch_combined )
-    // PEAK_CALL_TL( TRANSFER_LABELS.out )
+
+    // visualise clusters from individual stages on full dataset
+    TRANSFER_LABELS( ch_combined )
+    PEAK_CALL_TL( TRANSFER_LABELS.out )
+    HEATMAP_PEAKS_TL( PEAK_CALL_TL )
 
 
     //emit integrated ArchR objects:
