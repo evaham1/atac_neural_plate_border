@@ -249,7 +249,7 @@ ss4_se <- add_unique_ids_to_se(ss4_se, ss4, matrix_type = opt$matrix)
 ss8_se <- add_unique_ids_to_se(ss8_se, ss8, matrix_type = opt$matrix)
 
 
-###################### Boxplot showing distribution of FDR and Logf2c values #############################
+###################### Plots showing distribution of FDR and Logf2c values #############################
 
 HH5_df <- data.frame(LogFC = c(t(assays(HH5_se)$Log2FC)), FDR = c(t(assays(HH5_se)$FDR)), stage = "HH5", stringsAsFactors=FALSE)
 HH6_df <- data.frame(LogFC = c(t(assays(HH6_se)$Log2FC)), FDR = c(t(assays(HH6_se)$FDR)), stage = "HH6", stringsAsFactors=FALSE)
@@ -279,6 +279,25 @@ ggplot(df_cut, aes(x=stage, y=FDR)) +
   geom_boxplot()
 graphics.off()
 
+df <- df %>% mutate(LogFDR = as.numeric(log10(FDR))) %>%
+  mutate(Passed = as.factor(ifelse(FDR < 0.01 & LogFC > 1,"passed", "failed")))
+
+# randomly shuffle rows so plots point in a random order
+set.seed(42)
+rows <- sample(nrow(df))
+plot_data <- df[rows, ]
+
+plot_data <- plot_data[complete.cases(plot_data), ]
+
+# scatter plot of -10log9FDR) VS Log2FC coloured by stage and significant features highlighted
+png(paste0(plot_path, 'FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(plot_data, aes(x = -LogFDR, y = LogFC, color = stage, shape = Passed)) + 
+  geom_point(alpha = 0.3) + 
+  scale_color_manual(values=stage_colours) +
+  scale_shape_manual(values=c(16, 17)) +
+  geom_segment(aes(x = 2, xend = 2, y = 1, yend = max(LogFC), colour = "black")) +
+  geom_segment(aes(x = 2, xend = max(abs(LogFDR)), y = 1, yend = 1, colour = "black"))
+graphics.off()
 
 ###################### Plots showing how many features pass different thresholds #############################
 

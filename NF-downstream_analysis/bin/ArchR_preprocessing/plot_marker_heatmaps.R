@@ -262,7 +262,7 @@ png(paste0(plot_path, 'diff_top10_heatmap.png'), height = 40, width = 20, units 
 marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal)
 graphics.off()
 
-###################### Plot showing distribution of FDR and Logf2c values #############################
+###################### Plots showing distribution of FDR and Logf2c values #############################
 
 png(paste0(plot_path, 'Log2FC_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
 boxplot(assays(seMarker)$Log2FC)
@@ -277,8 +277,13 @@ df <- data.frame(LogFC = c(t(assays(seMarker)$Log2FC)), FDR = c(t(assays(seMarke
 
 df <- df %>% mutate(Passed = as.factor(ifelse(FDR < 0.01 & LogFC > 1,"passed", "failed")))
 
+set.seed(42)
+rows <- sample(nrow(df))
+df <- df[rows, ]
+
 png(paste0(plot_path, 'FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
-ggplot(df, aes(x = -LogFDR, y = LogFC, color = Passed)) + 
+ggplot(df, aes(x = -LogFDR, y = LogFC, color = Passed, shape = Passed)) + 
   geom_point() + 
-  scale_color_manual(values=c("black", "red"))
+  scale_color_manual(values=c("black", "red")) +
+  scale_shape_manual(values=c(16, 17))
 graphics.off()
