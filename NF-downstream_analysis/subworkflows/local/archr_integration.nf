@@ -24,6 +24,7 @@ include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"             
 include {R as COMPARE_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/compare_stages.R", checkIfExists: true) )
 include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as HEATMAP_PEAKS_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
+include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 
 
 workflow INTEGRATING {
@@ -62,6 +63,7 @@ workflow INTEGRATING {
 
     // visualise clusters from individual stages on full dataset
     TRANSFER_LABELS( ch_combined )
+    HEATMAP_GEX_TL( TRANSFER_LABELS.out )
     PEAK_CALL_TL( TRANSFER_LABELS.out )
     HEATMAP_PEAKS_TL( PEAK_CALL_TL )
 
