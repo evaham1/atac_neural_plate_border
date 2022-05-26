@@ -208,16 +208,17 @@ files <- list.files(data_path, full.names = TRUE)
 print(files)
 stages_data <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
 print(paste0("Stages data: ", stages_data))
-full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
-print(paste0("Destination data: ", full_data))
+#full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
+#print(paste0("Destination data: ", full_data))
+
+print(stages_data[1])
+print(stages_data[[1]])
 
 HH5 <- loadArchRProject(path = stages_data[1], force = FALSE, showLogo = TRUE)
 HH6 <- loadArchRProject(path = stages_data[2], force = FALSE, showLogo = TRUE)
 HH7 <- loadArchRProject(path = stages_data[3], force = FALSE, showLogo = TRUE)
 ss4 <- loadArchRProject(path = stages_data[4], force = FALSE, showLogo = TRUE)
 ss8 <- loadArchRProject(path = stages_data[5], force = FALSE, showLogo = TRUE)
-
-ArchR_list <- c(HH5, HH6, HH7, ss4, ss8)
 
 ####################### Calculate diff features between cell groups ##########################
 
