@@ -44,6 +44,10 @@ if(opt$verbose) print(opt)
     #ss8
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/ss8/postfiltering/peak_calling/rds_files/"
     plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/ss8/postfiltering/heatmaps_gex/plots/"
+    
+    #HH5
+    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/HH5/postfiltering/peak_calling/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/HH5/postfiltering/heatmaps_gex/plots/"
   
     # stage_clusters on full data
     #data_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/7_peak_calling/rds_files/"
@@ -239,12 +243,17 @@ if (opt$matrix == "GeneScoreMatrix"){
   pal = viridis::magma(100)
 }
 
-ids <- extract_ids(seMarker, cutOff = ifelse(opt$matrix == "PeakMatrix", "FDR <= 0.01 & Log2FC >= 5", "FDR <= 0.01 & Log2FC >= 1"), top_n = FALSE) # extract ids
-subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
-
-png(paste0(plot_path, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-marker_heatmap(subsetted_matrix, pal = pal)
-graphics.off()
+ids <- extract_ids(seMarker, cutOff = ifelse(opt$matrix == "PeakMatrix", "FDR <= 0.01 & Log2FC >= 1", "FDR <= 0.01 & Log2FC >= 1"), top_n = FALSE) # extract ids
+if (length(ids) < 2){
+  print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
+} else {
+  print(paste0(length(ids), " features passed cutoff - now plotting heatmap"))
+  subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
+  
+  png(paste0(plot_path, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
+  marker_heatmap(subsetted_matrix, pal = pal)
+  graphics.off()
+}
 
 ids <- extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
 subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
@@ -253,7 +262,7 @@ png(paste0(plot_path, 'diff_top10_heatmap.png'), height = 40, width = 20, units 
 marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal)
 graphics.off()
 
-###################### Boxplot showing distribution of FDR and Logf2c values #############################
+###################### Plot showing distribution of FDR and Logf2c values #############################
 
 png(paste0(plot_path, 'Log2FC_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
 boxplot(assays(seMarker)$Log2FC)
@@ -261,4 +270,15 @@ graphics.off()
 
 png(paste0(plot_path, 'FDR_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
 boxplot(assays(seMarker)$FDR)
+graphics.off()
+
+df <- data.frame(LogFC = c(t(assays(seMarker)$Log2FC)), FDR = c(t(assays(seMarker)$FDR)), 
+                 LogFDR = log10(c(t(assays(seMarker)$FDR))), stringsAsFactors=FALSE)
+
+df <- df %>% mutate(Passed = as.factor(ifelse(FDR < 0.01 & LogFC > 1,"passed", "failed")))
+
+png(paste0(plot_path, 'FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(df, aes(x = -LogFDR, y = LogFC, color = Passed)) + 
+  geom_point() + 
+  scale_color_manual(values=c("black", "red"))
 graphics.off()
