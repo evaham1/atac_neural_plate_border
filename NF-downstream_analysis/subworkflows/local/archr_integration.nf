@@ -26,6 +26,8 @@ include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               a
 include {R as HEATMAP_PEAKS_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 
+include {R as PEAKS_ACROSS_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/peaks_across_time.R", checkIfExists: true) )
+
 
 workflow INTEGRATING {
     take:
@@ -66,6 +68,9 @@ workflow INTEGRATING {
     HEATMAP_GEX_TL( TRANSFER_LABELS.out )
     PEAK_CALL_TL( TRANSFER_LABELS.out )
     HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
+
+    // visualise peaks from later time points on TL full dataset
+    PEAKS_ACROSS_TIME( PEAK_CALL_TL.out )
 
 
     //emit integrated ArchR objects:

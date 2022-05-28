@@ -25,8 +25,6 @@ library(ComplexHeatmap)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How to group cells to call peaks", default = "clusters",),
-  make_option(c("-m", "--matrix"), action = "store", type = "character", help = "Matrix to use", default = "PeakMatrix",),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
@@ -42,8 +40,8 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # test input folder made
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/test_input/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/compare_stages/"
+    data_path = "./output/NF-downstream_analysis/ArchR_integration/transfer_labels/peak_call/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_integration/transfer_labels_late_peaks/plots/"
     
     addArchRThreads(threads = 1) 
     
@@ -144,8 +142,8 @@ subset_matrix <- function(mat, ids) {
 
 ### Function to plot marker heatmap
 marker_heatmap <- function(mat, pal = NULL, 
-                           labelRows = FALSE, fontSizeRows = 12,
-                           labelCols = TRUE, fontSizeCols = 12) {
+                           labelRows = FALSE, fontSizeRows = 12, clusterRows = TRUE,
+                           labelCols = TRUE, fontSizeCols = 12, clusterCols = TRUE) {
   
   # scale each feature independently and add min/max limits
   limits <- c(-2, 2) # could make this user-defined
@@ -160,16 +158,20 @@ marker_heatmap <- function(mat, pal = NULL,
   }
   
   # order rows by eucladian distance
-  dist_mat <- dist(mat, method = 'euclidean')
-  hclust_avg <- hclust(dist_mat, method = 'average')
-  ordered_features <- hclust_avg$labels[c(hclust_avg$order)]
-  mat <- mat[match(ordered_features, rownames(mat)), ]
+  if (clusterRows == TRUE){
+    dist_mat <- dist(mat, method = 'euclidean')
+    hclust_avg <- hclust(dist_mat, method = 'average')
+    ordered_features <- hclust_avg$labels[c(hclust_avg$order)]
+    mat <- mat[match(ordered_features, rownames(mat)), ]
+  }
   
   # order columns by eucladian distance
-  dist_mat <- dist(t(mat), method = 'euclidean')
-  hclust_avg <- hclust(dist_mat, method = 'average')
-  ordered_cell_groups <- hclust_avg$labels[c(hclust_avg$order)]
-  mat <- mat[ , match(ordered_cell_groups, colnames(mat))]
+  if (clusterCols == TRUE){
+    dist_mat <- dist(t(mat), method = 'euclidean')
+    hclust_avg <- hclust(dist_mat, method = 'average')
+    ordered_cell_groups <- hclust_avg$labels[c(hclust_avg$order)]
+    mat <- mat[ , match(ordered_cell_groups, colnames(mat))]
+  }
   
   Heatmap(
     matrix = mat,
@@ -201,62 +203,146 @@ stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
-opt$group_by <- "clusters"
+pal = paletteContinuous(set = "solarExtra", n = 100)
 
 # Read in all data
 files <- list.files(data_path, full.names = TRUE)
 print(files)
-stages_data <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
-print(paste0("Stages data: ", stages_data))
 
-ss4 <- loadArchRProject(path = stages_data[4], force = TRUE, showLogo = FALSE)
-print(ss4)
-ss8 <- loadArchRProject(path = stages_data[5], force = TRUE, showLogo = FALSE)
-print(ss8)
+full_data <- grep("FullData", files, invert = F, value = TRUE)
+FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
 
-getAvailableMatrices(ss4)
+getAvailableMatrices(FullData)
+FullData@peakSet
 
-####################### Calculate diff features between cell groups ##########################
-ss4_se <- getMarkerFeatures(
-  ArchRProj = ss4, 
-  useMatrix = opt$matrix, 
-  groupBy = opt$group_by)
-ss8_se <- getMarkerFeatures(
-  ArchRProj = ss8, 
-  useMatrix = opt$matrix, 
-  groupBy = opt$group_by)
+############################# Prepare FULL data for plotting #######################################
+Full_se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters")
+Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
 
-ss4_se <- add_unique_ids_to_se(ss4_se, ss4, matrix_type = opt$matrix)
-ss8_se <- add_unique_ids_to_se(ss8_se, ss8, matrix_type = opt$matrix)
-
-############################# Prepare data for plotting #######################################
-
-matrix <- extract_means_from_se(seMarker) # extract means df from se object
+matrix <- extract_means_from_se(Full_se) # extract means df from se object
 normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
 
-###################### Extract features of interest and plot them #############################
-if (opt$matrix == "PeakMatrix"){
-  pal = paletteContinuous(set = "solarExtra", n = 100)
-}
-if (opt$matrix == "GeneScoreMatrix"){
-  pal = viridis::magma(100)
-}
+############################# Extract peaks that are DA in ss8 PPR + NC cells #######################################
 
-ids <- extract_ids(seMarker, cutOff = ifelse(opt$matrix == "PeakMatrix", "FDR <= 0.01 & Log2FC >= 1", "FDR <= 0.01 & Log2FC >= 1"), top_n = FALSE) # extract ids
-if (length(ids) < 2){
-  print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
-} else {
-  print(paste0(length(ids), " features passed cutoff - now plotting heatmap"))
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
-  
-  png(paste0(plot_path, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal))
-  graphics.off()
-}
+### NC and PPR
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss8_C7", "ss8_C8", "ss8_C1"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
 
-ids <- extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
-subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-png(paste0(plot_path, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal)
+png(paste0(plot_path, 'diff_ss8_NC_PPR_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
+
+### Just PPR
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss8_C7", "ss8_C8"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+
+png(paste0(plot_path, 'diff_ss8_PPR_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
+
+### Just NC
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss8_C1"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+
+png(paste0(plot_path, 'diff_ss8_NC_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
+
+# # subset matrix to only include cell clusters of interest
+# PPR_matrix <- matrix[, c("HH5_C1", "HH6_C1", "HH6_C2", "HH7_C4", "ss4_C2", "ss4_C3", "ss8_C7", "ss8_C8")]
+# normalised_matrix <- Log2norm(PPR_matrix)
+# subsetted_matrix <- as.matrix(subset_matrix(normalised_matrix, ids))
+# 
+# png(paste0(plot_path, 'diff_ss8_PPR_subset_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+# print(marker_heatmap(PPR_matrix, pal = pal, clusterCols = FALSE))
+# graphics.off()
+# 
+# 
+# png(paste0(plot_path, 'diff_ss8_PPR_heatmap_rownames.png'), height = 100, width = 30, units = 'cm', res = 400)
+# print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE, fontSizeRows = 5))
+# graphics.off()
+# 
+# se
+
+############################# Extract peaks that are DA in ss4 PPR + NC cells #######################################
+
+### NC and PPR
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss4_C2", "ss4_C3", "ss4_C6"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+
+png(paste0(plot_path, 'diff_ss4_NC_PPR_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
+
+### Just PPR
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss4_C2", "ss4_C3"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+
+png(paste0(plot_path, 'diff_ss4_PPR_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
+
+### Just NC
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss4_C6"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+
+png(paste0(plot_path, 'diff_ss4_NC_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
