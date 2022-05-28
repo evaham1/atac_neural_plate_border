@@ -26,7 +26,7 @@ include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               a
 include {R as HEATMAP_PEAKS_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 
-include {R as PEAKS_ACROSS_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/peaks_across_time.R", checkIfExists: true) )
+include {R as PEAKS_ACROSS_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/peaks_across_time.R", checkIfExists: true) )
 
 
 workflow INTEGRATING {
