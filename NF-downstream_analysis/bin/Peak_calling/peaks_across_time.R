@@ -220,6 +220,7 @@ FullData@peakSet
 ############################## BETWEEN STAGES #####################################
 
 plot_path = "./plots/stage/"
+dir.create(plot_path, recursive = T)
 
 ############################# stage: Prepare FULL data for plotting 
 Full_se <- getMarkerFeatures(
@@ -336,6 +337,7 @@ graphics.off()
 ############################## BETWEEN STAGE CLUSTERS #####################################
 
 plot_path = "./plots/stage_clusters/"
+dir.create(plot_path, recursive = T)
 
 ############################# stage_clusters: Prepare FULL data for plotting 
 Full_se <- getMarkerFeatures(
