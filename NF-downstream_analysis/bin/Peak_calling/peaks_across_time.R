@@ -390,7 +390,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = "ss8_C1", "ss8_C2", "ss8_C3", "ss8_C4", "ss8_C5", "ss8_C6", "ss8_C7", "ss8_C8", "ss8_C9", "ss8_C10")
+  useGroups = c("ss8_C1", "ss8_C2", "ss8_C3", "ss8_C4", "ss8_C5", "ss8_C6", "ss8_C7", "ss8_C8", "ss8_C9", "ss8_C10"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 1", top_n = FALSE)
 print(paste0("ss8: ", length(ids)))
@@ -411,7 +411,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = "ss4_C1", "ss4_C2", "ss4_C3", "ss4_C4", "ss4_C5", "ss4_C6", "ss4_C7", "ss4_C8", "ss4_C9")
+  useGroups = c("ss4_C1", "ss4_C2", "ss4_C3", "ss4_C4", "ss4_C5", "ss4_C6", "ss4_C7", "ss4_C8", "ss4_C9"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 1", top_n = FALSE)
 print(paste0("ss4: ", length(ids)))
@@ -432,7 +432,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = "HH7_C1", "HH7_C2", "HH7_C3", "HH7_C4", "HH7_C5", "HH7_C6")
+  useGroups = c("HH7_C1", "HH7_C2", "HH7_C3", "HH7_C4", "HH7_C5", "HH7_C6"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 1", top_n = FALSE)
 print(paste0("HH7: ", length(ids)))
@@ -453,7 +453,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = "HH6_C1", "HH6_C2", "HH6_C3", "HH6_C4", "HH6_C5", "HH6_C6")
+  useGroups = c("HH6_C1", "HH6_C2", "HH6_C3", "HH6_C4", "HH6_C5", "HH6_C6"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 1", top_n = FALSE)
 print(paste0("HH6: ", length(ids)))
@@ -474,7 +474,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = "HH5_C1", "HH5_C2", "HH5_C3", "HH5_C4", "HH5_C5", "HH5_C6")
+  useGroups = c("HH5_C1", "HH5_C2", "HH5_C3", "HH5_C4", "HH5_C5", "HH5_C6"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 1", top_n = FALSE)
 print(paste0("HH5: ", length(ids)))
