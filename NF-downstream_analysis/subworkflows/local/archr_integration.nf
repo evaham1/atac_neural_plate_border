@@ -26,7 +26,7 @@ include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               a
 include {R as HEATMAP_PEAKS_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 
-include {R as PEAKS_ACROSS_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/peaks_across_time.R", checkIfExists: true) )
+include {R as DIFF_PEAKS_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_stages.R", checkIfExists: true) )
 
 
 workflow INTEGRATING {
@@ -69,8 +69,8 @@ workflow INTEGRATING {
     PEAK_CALL_TL( TRANSFER_LABELS.out )
     HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
 
-    // visualise peaks from later time points on TL full dataset
-    PEAKS_ACROSS_TIME( PEAK_CALL_TL.out )
+    // visualise differential peaks across full data
+    DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
 
 
     //emit integrated ArchR objects:

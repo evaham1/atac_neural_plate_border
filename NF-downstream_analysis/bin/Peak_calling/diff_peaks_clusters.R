@@ -248,20 +248,42 @@ if (length(ids) > 4){
   graphics.off()
 }
 
-ids <- extract_ids(Full_se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE)
-print(paste0("all peaks top 10: ", length(ids)))
+ids <- extract_ids(Full_se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 20)
+print(paste0("all peaks top 20: ", length(ids)))
 
 if (length(ids) > 4){
   matrix <- extract_means_from_se(Full_se)
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'full_heatmap_top10.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  png(paste0(plot_path, 'full_heatmap_top.png'), height = 30, width = 30, units = 'cm', res = 400)
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
-############################# stage: extract peaks and plot for each stage individually
+############################# stage: volcano plots for each stage individually
+
+png(paste0(plot_path, 'HH5_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
+print(markerPlot(seMarker = Full_se, name = "HH5", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+graphics.off()
+
+png(paste0(plot_path, 'HH6_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
+print(markerPlot(seMarker = Full_se, name = "HH6", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+graphics.off()
+
+png(paste0(plot_path, 'HH7_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
+print(markerPlot(seMarker = Full_se, name = "HH7", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+graphics.off()
+
+png(paste0(plot_path, 'ss4_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
+print(markerPlot(seMarker = Full_se, name = "ss4", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+graphics.off()
+
+png(paste0(plot_path, 'ss8_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
+print(markerPlot(seMarker = Full_se, name = "ss8", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+graphics.off()
+
+############################# stage: extract peaks and plot for each stage individually (most peaks dont pass thresholds)
 
 se <- getMarkerFeatures(
   ArchRProj = FullData, 
