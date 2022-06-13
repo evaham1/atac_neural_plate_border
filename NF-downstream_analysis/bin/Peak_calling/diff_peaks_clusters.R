@@ -215,187 +215,10 @@ FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
 getAvailableMatrices(FullData)
 FullData@peakSet
 
+##########################################################################
+############################## PLOTS #####################################
 
-###################################################################################
-############################## BETWEEN STAGES #####################################
-
-plot_path = "./plots/stage/"
-dir.create(plot_path, recursive = T)
-
-print("plots between stages")
-
-############################# stage: Prepare FULL data for plotting 
-Full_se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage")
-Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
-
-matrix <- extract_means_from_se(Full_se) # extract means df from se object
-normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
-
-############################# stage: plot all differential peaks
-ids <- extract_ids(Full_se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE)
-print(paste0("all peaks: ", length(ids)))
-
-if (length(ids) > 4){
-  matrix <- extract_means_from_se(Full_se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
-
-  png(paste0(plot_path, 'full_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-  graphics.off()
-}
-
-ids <- extract_ids(Full_se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 20)
-print(paste0("all peaks top 20: ", length(ids)))
-
-if (length(ids) > 4){
-  matrix <- extract_means_from_se(Full_se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
-
-  png(paste0(plot_path, 'full_heatmap_top.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-  graphics.off()
-}
-
-############################# stage: volcano plots for each stage individually
-
-png(paste0(plot_path, 'HH5_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "HH5", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
-graphics.off()
-
-png(paste0(plot_path, 'HH6_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "HH6", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
-graphics.off()
-
-png(paste0(plot_path, 'HH7_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "HH7", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
-graphics.off()
-
-png(paste0(plot_path, 'ss4_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "ss4", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
-graphics.off()
-
-png(paste0(plot_path, 'ss8_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "ss8", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
-graphics.off()
-
-############################# stage: extract peaks and plot for each stage individually (most peaks dont pass thresholds)
-
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage",
-  useGroups = "ss8")
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = FALSE)
-print(paste0("ss8: ", length(ids)))
-
-if (length(ids) > 4){
-  matrix <- extract_means_from_se(Full_se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
-
-  png(paste0(plot_path, 'ss8_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-  graphics.off()
-}
-
-##
-
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage",
-  useGroups = "ss4")
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = FALSE)
-print(paste0("ss4: ", length(ids)))
-
-if (length(ids) > 4){
-  matrix <- extract_means_from_se(Full_se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
-
-  png(paste0(plot_path, 'ss4_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-  graphics.off()
-}
-
-##
-
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage",
-  useGroups = "HH7")
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = FALSE)
-print(paste0("HH7: ", length(ids)))
-
-if (length(ids) > 4){
-  matrix <- extract_means_from_se(Full_se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
-
-  png(paste0(plot_path, 'HH7_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-  graphics.off()
-}
-
-##
-
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage",
-  useGroups = "HH6")
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = FALSE)
-print(paste0("HH6: ", length(ids)))
-
-if (length(ids) > 4){
-  matrix <- extract_means_from_se(Full_se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
-
-  png(paste0(plot_path, 'HH6_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-  graphics.off()
-}
-
-##
-
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage",
-  useGroups = "HH5")
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = FALSE)
-print(paste0("HH5: ", length(ids)))
-
-if (length(ids) > 4){
-  matrix <- extract_means_from_se(Full_se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
-
-  png(paste0(plot_path, 'HH5_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-  graphics.off()
-}
-
-###################################################################################
-############################## BETWEEN STAGE CLUSTERS #####################################
-
-plot_path = "./plots/stage_clusters/"
-dir.create(plot_path, recursive = T)
-print("between stage clusters")
-
-############################# stage_clusters: Prepare FULL data for plotting 
+##### Prepare FULL data for plotting 
 Full_se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
@@ -405,7 +228,7 @@ Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
 matrix <- extract_means_from_se(Full_se) # extract means df from se object
 normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
 
-############################# stage_clusters: plot all differential peaks
+##### Plot all differential peaks
 ids <- extract_ids(Full_se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE)
 print(paste0("all peaks: ", length(ids)))
 
@@ -427,12 +250,12 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'full_heatmap_top10.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  png(paste0(plot_path, 'full_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
-############################# stage_clusters: extract peaks and plot for each stage individually
+###### Extract peaks and plot for each stage individually
 
 se <- getMarkerFeatures(
   ArchRProj = FullData, 
@@ -460,7 +283,7 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'ss8_heatmap_top10.png'), height = 30, width = 30, units = 'cm', res = 400)
+  png(paste0(plot_path, 'ss8_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400, labelRows = TRUE)
   print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
   graphics.off()
 }
@@ -493,8 +316,8 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'ss4_heatmap_top10.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  png(paste0(plot_path, 'ss4_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
@@ -526,8 +349,8 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'HH7_heatmap_top10.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  png(paste0(plot_path, 'HH7_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
@@ -559,8 +382,8 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'HH6_heatmap_top10.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  png(paste0(plot_path, 'HH6_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
@@ -592,8 +415,8 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'HH5_heatmap_top10.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  png(paste0(plot_path, 'HH5_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
