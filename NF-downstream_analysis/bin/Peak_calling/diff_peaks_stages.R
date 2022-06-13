@@ -264,23 +264,23 @@ plot_path = "./plots/volcano_plots/"
 dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'HH5_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "HH5", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+print(markerPlot(seMarker = Full_se, name = "HH5", cutOff = "FDR <= 0.05", plotAs = "Volcano"))
 graphics.off()
 
 png(paste0(plot_path, 'HH6_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "HH6", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+print(markerPlot(seMarker = Full_se, name = "HH6", cutOff = "FDR <= 0.05", plotAs = "Volcano"))
 graphics.off()
 
 png(paste0(plot_path, 'HH7_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "HH7", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+print(markerPlot(seMarker = Full_se, name = "HH7", cutOff = "FDR <= 0.05", plotAs = "Volcano"))
 graphics.off()
 
 png(paste0(plot_path, 'ss4_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "ss4", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+print(markerPlot(seMarker = Full_se, name = "ss4", cutOff = "FDR <= 0.05", plotAs = "Volcano"))
 graphics.off()
 
 png(paste0(plot_path, 'ss8_volcano.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(markerPlot(seMarker = Full_se, name = "ss8", cutOff = "FDR <= 0.05 & Log2FC >= 0", plotAs = "Volcano"))
+print(markerPlot(seMarker = Full_se, name = "ss8", cutOff = "FDR <= 0.05", plotAs = "Volcano"))
 graphics.off()
 
 ###### Individual stage heatmaps
