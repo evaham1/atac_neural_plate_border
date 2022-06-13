@@ -203,8 +203,6 @@ stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
-opt$group_by <- "clusters"
-
 # Read in all data
 files <- list.files(data_path, full.names = TRUE)
 print(files)
@@ -222,28 +220,28 @@ print(ss4)
 ss8 <- loadArchRProject(path = stages_data[5], force = TRUE, showLogo = FALSE)
 print(ss8)
 
-####################### Calculate diff features between cell groups ##########################
+####################### Calculate diff features between clusters in each stage ##########################
 
 HH5_se <- getMarkerFeatures(
   ArchRProj = HH5, 
   useMatrix = opt$matrix, 
-  groupBy = opt$group_by)
+  groupBy = "clusters")
 HH6_se <- getMarkerFeatures(
   ArchRProj = HH6, 
   useMatrix = opt$matrix, 
-  groupBy = opt$group_by)
+  groupBy = "clusters")
 HH7_se <- getMarkerFeatures(
   ArchRProj = HH7, 
   useMatrix = opt$matrix, 
-  groupBy = opt$group_by)
+  groupBy = "clusters")
 ss4_se <- getMarkerFeatures(
   ArchRProj = ss4, 
   useMatrix = opt$matrix, 
-  groupBy = opt$group_by)
+  groupBy = "clusters")
 ss8_se <- getMarkerFeatures(
   ArchRProj = ss8, 
   useMatrix = opt$matrix, 
-  groupBy = opt$group_by)
+  groupBy = "clusters")
 
 HH5_se <- add_unique_ids_to_se(HH5_se, HH5, matrix_type = opt$matrix)
 HH6_se <- add_unique_ids_to_se(HH6_se, HH6, matrix_type = opt$matrix)
@@ -260,10 +258,48 @@ HH7_df <- data.frame(LogFC = c(t(assays(HH7_se)$Log2FC)), FDR = c(t(assays(HH7_s
 ss4_df <- data.frame(LogFC = c(t(assays(ss4_se)$Log2FC)), FDR = c(t(assays(ss4_se)$FDR)), stage = "ss4", stringsAsFactors=FALSE)
 ss8_df <- data.frame(LogFC = c(t(assays(ss8_se)$Log2FC)), FDR = c(t(assays(ss8_se)$FDR)), stage = "ss8", stringsAsFactors=FALSE)
 
+png(paste0(plot_path, 'HH5_FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(HH5_df, aes(x = -LogFDR, y = LogFC)) + 
+  geom_point(alpha = 0.5) + 
+  geom_segment(aes(x = 2, xend = 2, y = 1, yend = max(LogFC), colour = "black")) +
+  geom_segment(aes(x = 2, xend = max(abs(LogFDR)), y = 1, yend = 1, colour = "black"))
+graphics.off()
+
+png(paste0(plot_path, 'HH6_FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(HH6_df, aes(x = -LogFDR, y = LogFC)) + 
+  geom_point(alpha = 0.5) + 
+  geom_segment(aes(x = 2, xend = 2, y = 1, yend = max(LogFC), colour = "black")) +
+  geom_segment(aes(x = 2, xend = max(abs(LogFDR)), y = 1, yend = 1, colour = "black"))
+graphics.off()
+
+png(paste0(plot_path, 'HH7_FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(HH7_df, aes(x = -LogFDR, y = LogFC)) + 
+  geom_point(alpha = 0.5) + 
+  geom_segment(aes(x = 2, xend = 2, y = 1, yend = max(LogFC), colour = "black")) +
+  geom_segment(aes(x = 2, xend = max(abs(LogFDR)), y = 1, yend = 1, colour = "black"))
+graphics.off()
+
+png(paste0(plot_path, 'ss4_FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(ss4_df, aes(x = -LogFDR, y = LogFC)) + 
+  geom_point(alpha = 0.5) + 
+  geom_segment(aes(x = 2, xend = 2, y = 1, yend = max(LogFC), colour = "black")) +
+  geom_segment(aes(x = 2, xend = max(abs(LogFDR)), y = 1, yend = 1, colour = "black"))
+graphics.off()
+
+png(paste0(plot_path, 'ss8_FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(ss8_df, aes(x = -LogFDR, y = LogFC)) + 
+  geom_point(alpha = 0.5) + 
+  geom_segment(aes(x = 2, xend = 2, y = 1, yend = max(LogFC), colour = "black")) +
+  geom_segment(aes(x = 2, xend = max(abs(LogFDR)), y = 1, yend = 1, colour = "black"))
+graphics.off()
+
+## all stages together
+
 df <- do.call("rbind", list(HH5_df, HH6_df, HH7_df, ss4_df, ss8_df))
 
 unique(df$stage)
 
+## Boxplots
 png(paste0(plot_path, 'Log2FC_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
 ggplot(df, aes(x=stage, y=LogFC)) + 
   geom_boxplot()
@@ -274,7 +310,6 @@ ggplot(df, aes(x=stage, y=FDR)) +
   geom_boxplot()
 graphics.off()
 
-  
 df_cut <- df %>% group_by(stage) %>% filter(FDR < 0.05)
 
 png(paste0(plot_path, 'FDR_0.05_cutoff_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
