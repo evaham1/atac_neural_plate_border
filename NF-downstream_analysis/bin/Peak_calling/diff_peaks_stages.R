@@ -285,7 +285,7 @@ graphics.off()
 
 ###### Individual stage heatmaps
 
-plot_path = "./plots/heatmaps/"
+plot_path = "./plots/stages_heatmaps/"
 dir.create(plot_path, recursive = T)
 
 # create matrix across clusters
@@ -314,14 +314,14 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'ss8_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = FALSE))
   graphics.off()
 
   matrix <- extract_means_from_se(clusters_se)
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'ss8_clusters_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = FALSE))
   graphics.off()
 }
 
@@ -341,14 +341,14 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'ss4_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 
   matrix <- extract_means_from_se(clusters_se)
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'ss4_clusters_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
@@ -368,14 +368,14 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'HH7_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 
   matrix <- extract_means_from_se(clusters_se)
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'HH7_clusters_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
@@ -395,14 +395,14 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'HH6_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 
   matrix <- extract_means_from_se(clusters_se)
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'HH6_clusters_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
@@ -422,13 +422,13 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'HH5_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 
   matrix <- extract_means_from_se(clusters_se)
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
   png(paste0(plot_path, 'HH5_clusters_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
