@@ -196,6 +196,20 @@ marker_heatmap <- function(mat, pal = NULL,
   
 }
 
+# takes matrix of average cut sites per cluster, sums the average across clusters within each stage
+# then filters peaks that have an aggregated count score above the threshold in every stage
+open_across_stages_test <- function(m, threshold = 0){
+  df <- as.data.frame(m)
+  sums <- data.frame(HH5_sum = rowSums(dplyr::select(df, starts_with("HH5"))),
+                     HH6_sum = rowSums(dplyr::select(df, starts_with("HH6"))),
+                     HH7_sum = rowSums(dplyr::select(df, starts_with("HH7"))),
+                     ss4_sum = rowSums(dplyr::select(df, starts_with("ss4"))),
+                     ss8_sum = rowSums(dplyr::select(df, starts_with("ss8"))))
+  rownames(sums) <- rownames(m)
+  filtered <- filter(sums, HH5_sum > threshold, HH6_sum > threshold, HH7_sum > threshold, ss4_sum > threshold, ss8_sum > threshold)
+  return(rownames(filtered))
+}
+
 ###########################################################################################
 ############################## Read in ArchR projects #####################################
 
@@ -222,9 +236,6 @@ Full_se <- getMarkerFeatures(
   groupBy = "stage_clusters")
 Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
 
-matrix <- extract_means_from_se(Full_se) # extract means df from se object
-normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
-
 #############################################################################
 ############################## ss8: PPR #####################################
 
@@ -235,84 +246,120 @@ se <- getMarkerFeatures(
   useGroups = c("ss8_C7", "ss8_C8"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+unique_ids <- unique(ids)
 
 matrix <- extract_means_from_se(Full_se)
 normalised_matrix <- Log2norm(matrix)
-subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+subsetted_matrix <- subset_matrix(normalised_matrix, unique_ids)
 
 png(paste0(plot_path, 'ss8_PPR_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-## now need to go into the matrix and extract the peaks that are open in at least one cluster in every stage
+length(unique_ids) # 7531
+subsetted_raw_matrix <- subset_matrix(matrix, unique_ids)
+open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
+length(open_peaks) # 41
+new_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
-# ### Just NC
-# se <- getMarkerFeatures(
-#   ArchRProj = FullData, 
-#   useMatrix = "PeakMatrix", 
-#   groupBy = "stage_clusters",
-#   useGroups = c("ss8_C1"))
-# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-# ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+png(paste0(plot_path, 'ss8_PPR_open_over_time_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(new_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+                   
+write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
 
-# matrix <- extract_means_from_se(Full_se)
-# normalised_matrix <- Log2norm(matrix)
-# subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+#############################################################################
+############################## ss8: NC #####################################
 
-# png(paste0(plot_path, 'diff_ss8_NC_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
-# print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-# graphics.off()
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss8_C1"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+unique_ids <- unique(ids)
 
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, unique_ids)
 
-# ############################# Extract peaks that are DA in ss4 PPR + NC cells #######################################
+png(paste0(plot_path, 'ss8_NC_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
 
-# ### NC and PPR
-# se <- getMarkerFeatures(
-#   ArchRProj = FullData, 
-#   useMatrix = "PeakMatrix", 
-#   groupBy = "stage_clusters",
-#   useGroups = c("ss4_C2", "ss4_C3", "ss4_C6"))
-# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-# ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+length(unique_ids) # 5825
+subsetted_raw_matrix <- subset_matrix(matrix, unique_ids)
+open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
+length(open_peaks) # 14
+new_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
-# matrix <- extract_means_from_se(Full_se)
-# normalised_matrix <- Log2norm(matrix)
-# subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+png(paste0(plot_path, 'ss8_NC_open_over_time_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(new_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
 
-# png(paste0(plot_path, 'diff_ss4_NC_PPR_heatmap.png'), height = 30, width = 30, units = 'cm', res = 400)
-# print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-# graphics.off()
+write.table(open_peaks, file = paste0(plot_path, "ss8_NC_putative_enhancers.txt"), sep = "")
 
-# ### Just PPR
-# se <- getMarkerFeatures(
-#   ArchRProj = FullData, 
-#   useMatrix = "PeakMatrix", 
-#   groupBy = "stage_clusters",
-#   useGroups = c("ss4_C2", "ss4_C3"))
-# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-# ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+#############################################################################
+############################## ss4: PPR #####################################
 
-# matrix <- extract_means_from_se(Full_se)
-# normalised_matrix <- Log2norm(matrix)
-# subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss4_C2", "ss4_C3"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+unique_ids <- unique(ids)
 
-# png(paste0(plot_path, 'diff_ss4_PPR_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
-# print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-# graphics.off()
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, unique_ids)
 
-# ### Just NC
-# se <- getMarkerFeatures(
-#   ArchRProj = FullData, 
-#   useMatrix = "PeakMatrix", 
-#   groupBy = "stage_clusters",
-#   useGroups = c("ss4_C6"))
-# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-# ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+png(paste0(plot_path, 'ss4_PPR_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
 
-# matrix <- extract_means_from_se(Full_se)
-# normalised_matrix <- Log2norm(matrix)
-# subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+length(unique_ids) # 1329
+subsetted_raw_matrix <- subset_matrix(matrix, unique_ids)
+open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
+length(open_peaks) # 8
+new_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
-# png(paste0(plot_path, 'diff_ss4_NC_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
-# print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-# graphics.off()
+png(paste0(plot_path, 'ss4_PPR_open_over_time_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+print(marker_heatmap(new_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+write.table(open_peaks, file = paste0(plot_path, "ss4_PPR_putative_enhancers.txt"), sep = "")
+
+#############################################################################
+############################## ss4: NC #####################################
+
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss4_C6"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+unique_ids <- unique(ids)
+
+matrix <- extract_means_from_se(Full_se)
+normalised_matrix <- Log2norm(matrix)
+subsetted_matrix <- subset_matrix(normalised_matrix, unique_ids)
+
+png(paste0(plot_path, 'ss4_NC_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+graphics.off()
+
+length(unique_ids) # 308
+subsetted_raw_matrix <- subset_matrix(matrix, unique_ids)
+open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
+length(open_peaks) # 5
+new_matrix <- subset_matrix(normalised_matrix, open_peaks)
+
+png(paste0(plot_path, 'ss4_NC_open_over_time_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+print(marker_heatmap(new_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+write.table(open_peaks, file = paste0(plot_path, "ss4_NC_putative_enhancers.txt"), sep = "")
