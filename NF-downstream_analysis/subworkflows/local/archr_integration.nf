@@ -63,7 +63,7 @@ workflow INTEGRATING {
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
             .view()
-    COMPARE_STAGES( ch_combined )
+    //COMPARE_STAGES( ch_combined )
 
     // visualise clusters from individual stages on full dataset
     TRANSFER_LABELS( ch_combined )
