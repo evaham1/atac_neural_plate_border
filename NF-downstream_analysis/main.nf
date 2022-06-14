@@ -29,7 +29,7 @@ include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
 
 // PEAK EXPLORING WORKFLOWS
-
+include { PEAK_EXPLORING } from "$baseDir/subworkflows/local/archr_peak_exploring"
 
 // PARAMS
 def skip_QC = params.skip_QC ? true : false
@@ -116,6 +116,8 @@ workflow A {
     // [ [[meta: HH5], ATAC] , [[meta: HH6], ATAC]]
     // [ [[meta: HH5], RNA], [[meta: HH6], RNA]]
     
+    // IN PROCESS: peak exploring
+    PEAK_EXPLORING( INTEGRATING.out.integrated )
 }
 
 /*

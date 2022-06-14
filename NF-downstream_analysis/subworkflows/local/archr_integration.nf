@@ -10,26 +10,7 @@ include {R as SUBSET_INTEGRATION} from "$baseDir/modules/local/r/main"          
 include {R as CLUSTER_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 include {R as CLUSTER_IDENTIFY_FILTERED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_cluster_identities.R", checkIfExists: true) )
 
-// characterise gene scores
-include {R as GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_gene_scores.R", checkIfExists: true) )
-include {R as HEATMAP_GEX} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
-
-// characterise peaks
-include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as PEAK_DIFF} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/Peak_calling/ArchR_diff_peaks_analysis.R", checkIfExists: true) )
-include {R as HEATMAP_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
-
-// visualise full dataset
-include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_preprocessing/transfer_labels.R", checkIfExists: true) )
-include {R as COMPARE_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/compare_stages.R", checkIfExists: true) )
-include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as HEATMAP_PEAKS_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
-include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
-
-include {R as DIFF_PEAKS_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_stages.R", checkIfExists: true) )
-include {R as DIFF_PEAKS_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_clusters.R", checkIfExists: true) )
-include {R as FINDING_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/finding_enhancers.R", checkIfExists: true) )
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 workflow INTEGRATING {
     take:
@@ -43,42 +24,13 @@ workflow INTEGRATING {
     // Label clusters based on most frequent label within each cluster
     CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out )
     
-    // // Filter contaminating cells from all channels and re-cluster all channels
-    // SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
-    // CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
-    // CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out )
-
-    // Characterise clusters using gene scores
-    GENE_SCORES( UNCON_INTEGRATE.out )
-    HEATMAP_GEX( UNCON_INTEGRATE.out )
-
-    // Characterise clusters using peaks
-    PEAK_CALL( UNCON_INTEGRATE.out )
-    //PEAK_DIFF( PEAK_CALL.out )
-    HEATMAP_PEAKS( PEAK_CALL.out )
-
-    // Compare stages directly
-    ch_combined = UNCON_INTEGRATE.out // Collect integrated atac objects
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            .view()
-    //COMPARE_STAGES( ch_combined )
-
-    // visualise clusters from individual stages on full dataset
-    TRANSFER_LABELS( ch_combined )
-    HEATMAP_GEX_TL( TRANSFER_LABELS.out )
-    PEAK_CALL_TL( TRANSFER_LABELS.out )
-    HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
-
-    // visualise differential peaks across full data
-    DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
-    DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
-    FINDING_ENHANCERS( PEAK_CALL_TL.out )
-
+    // Filter contaminating cells from all channels and re-cluster all channels
+    SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
+    CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
+    CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out )
 
     //emit integrated ArchR objects:
     emit:
-    //archr_integrated_full = CLUSTER_INTEGRATION.out
     integrated = UNCON_INTEGRATE.out
+    integrated_filtered = CLUSTER_INTEGRATION.out
 }
