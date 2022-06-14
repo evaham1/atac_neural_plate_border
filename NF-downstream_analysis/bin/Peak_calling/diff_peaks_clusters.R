@@ -283,8 +283,8 @@ if (length(ids) > 4){
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'ss8_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400, labelRows = TRUE)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  png(paste0(plot_path, 'ss8_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
+  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
