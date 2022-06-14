@@ -28,6 +28,8 @@ include { METADATA as METADATA_ATAC } from "$baseDir/subworkflows/local/metadata
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
 
+// PEAK EXPLORING WORKFLOWS
+
 
 // PARAMS
 def skip_QC = params.skip_QC ? true : false
@@ -51,7 +53,6 @@ workflow A {
 
         ///////////////////// PROCESSING //////////////////////////////
         METADATA( params.sample_sheet )    
-        //METADATA.out.view()
         METADATA.out // METADATA.out: [[meta], [cellranger_output]]
             .combine(ch_reference)
             .map{[it[0], it[1] + it[2]]}

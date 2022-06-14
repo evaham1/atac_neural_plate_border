@@ -4,6 +4,8 @@ nextflow.enable.dsl = 2
 include {R as PREPROCESS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_preprocessing.R", checkIfExists: true) )
 include {EDIT_GTF} from "$baseDir/modules/local/edit_gtf/main"
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 workflow PREPROCESSING {
     take:
     input

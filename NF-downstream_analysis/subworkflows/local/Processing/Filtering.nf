@@ -12,6 +12,7 @@ include {R as PEAK_CALL_POSTFILTER} from "$baseDir/modules/local/r/main"        
 include {R as HEATMAP_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 include {R as HEATMAP_GEX} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/plot_marker_heatmaps.R", checkIfExists: true) )
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 workflow FILTERING {
     take:
@@ -34,8 +35,9 @@ workflow FILTERING {
 
     ///     CHECK QUALITY     ///
     CLUSTER_POSTFILTER( FILTER_CLUSTER_LOOP.out )
+
     GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
-    HEATMAP_GEX( PEAK_CALL_POSTFILTER.out )
+    HEATMAP_GEX( CLUSTER_POSTFILTER.out )
 
     PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
     HEATMAP_PEAKS( PEAK_CALL_POSTFILTER.out )
