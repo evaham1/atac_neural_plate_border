@@ -28,6 +28,7 @@ include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"              
 
 include {R as DIFF_PEAKS_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_stages.R", checkIfExists: true) )
 include {R as DIFF_PEAKS_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_clusters.R", checkIfExists: true) )
+include {R as FINDING_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/finding_enhancers.R", checkIfExists: true) )
 
 
 workflow INTEGRATING {
@@ -73,6 +74,7 @@ workflow INTEGRATING {
     // visualise differential peaks across full data
     DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
     DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
+    FINDING_ENHANCERS( PEAK_CALL_TL.out )
 
 
     //emit integrated ArchR objects:
