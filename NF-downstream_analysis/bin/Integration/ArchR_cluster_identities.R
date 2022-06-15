@@ -273,7 +273,7 @@ graphics.off()
 
 if (length(unique(ArchR$stage)) > 1){
 
-  plot_path = "./plots/old_labels_stage_distribution/"
+  plot_path = "./plots/labels_by_stage_distribution/"
   dir.create(plot_path, recursive = T)
   
   png(paste0(plot_path, 'counts_by_stage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
