@@ -63,7 +63,7 @@ opt = getopt(spec)
 ############################### FUNCTIONS ####################################
 
 # function to count how many cells from each cluster/sample are assigned the same label/cluster
-cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
+cell_counting <- function(ArchR = ArchR, group1 = "clusters", group2 = "stage", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order) {
   group1_data <- getCellColData(ArchR, select = group1)[,1]
   group1_cell_counts <- as.data.frame(table(group1_data))
   colnames(group1_cell_counts) <- c("ID", "Total_count")
@@ -83,23 +83,42 @@ cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
     }
   }
   
-  cell_counts <- merge(group1_cell_counts, group2_cell_counts)
+  cell_counts <- merge(group1_cell_counts, group2_cell_counts) %>%
+    column_to_rownames(., var = "ID")
+  totals <- cell_counts$Total_count
+  cell_counts <- cell_counts[, -1]
+  cell_counts[is.na(cell_counts)] <- 0
   
-  
-  # Ordering rows and columns to better visualise
-  if (group1 == "clusters"){
-    cell_counts <- cell_counts %>% 
-      mutate(ID = as.numeric(gsub('^.', '', ID))) %>%
-      arrange(ID)
-    }
-  
-  if (group2 == "clusters"){
-    new_names <- as.numeric(gsub('^.', '', colnames(cell_counts)[3:length(colnames(cell_counts))]))
-    colnames(cell_counts)[3:length(colnames(cell_counts))] <- new_names
-    cell_counts <- cell_counts[, c("ID", "Total_count", 1:max(new_names))]
+  # Order rows and columns - group 1 = order rows
+  if (group1 %in% c("clusters", "stage")) {
+    cell_counts <- cell_counts[ mixedsort(rownames(cell_counts)) , ] }
+  if (group1 == "scHelper_cell_type_old") {
+    if (is.null(scHelper_cell_type_order)){
+      print("scHelper_cell_type_order not specified!")
+    } else {
+      order <- scHelper_cell_type_order[scHelper_cell_type_order %in% rownames(cell_counts)]
+      cell_counts <- cell_counts[ order , ] }
   }
   
-  grid.arrange(tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+  # Order rows and columns - group 2 = order columns
+  if (group2 %in% c("clusters", "stage")){
+    cell_counts <- cell_counts[ , mixedsort(colnames(cell_counts)) ]
+  }
+  if (group2 == "scHelper_cell_type_old") {
+    if (is.null(scHelper_cell_type_order)){
+      print("scHelper_cell_type_order not specified!")
+    } else {
+      order <- scHelper_cell_type_order[scHelper_cell_type_order %in% colnames(cell_counts)]
+      cell_counts <- cell_counts[ , order ] }
+  }
+  
+  # either return table or print it
+  if (print_table == FALSE){
+    return(cell_counts)
+  } else {
+    cell_counts <- cell_counts %>% mutate(., Total = totals)
+    grid.arrange(tableGrob(cell_counts, theme = ttheme_minimal()))
+  }
 }
 
 # function to make heatmap showing contribution of cell groups to other cell groups
@@ -115,6 +134,40 @@ cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new"
     border_color = "black"
   )
 }
+
+# function to make piecharts/barcharts showing contribution of cell groups to other cell groups
+cell_counts_piecharts <- function(counts, cols, scale = FALSE) {
+  
+  # remove any columns that have no cells in
+  if (0 %in% colSums(counts)){
+    counts <- counts[,-(which(colSums(counts)==0))] }
+  
+  # scale by number of cells in each row
+  if (scale == TRUE){
+    count_data <- t(apply(counts, 1, function(x) x/sum(x)))
+  } else { 
+    count_data <- counts }
+  
+  # make piecharts
+  plots <- list()
+  for (i in colnames(counts)){
+    print(i)
+    # calculate totals to add to plot titles
+    raw_data <- data.frame(group = rownames(counts), value = (counts[,i]))
+    total <- sum(raw_data$value)
+    # extract either scaled or raw data for plotting
+    data <- data.frame(group = rownames(count_data), value = (count_data[,i]))
+    plot <- ggplot(data, aes(x="", y=value, fill=group)) +
+      geom_bar(stat="identity", width=1, color="white") +
+      coord_polar("y", start=0) +
+      theme_void() + scale_fill_manual(values= cols) +
+      ggtitle(paste0(i, " (cells: ", total, ")")) +
+      theme(legend.position="none", plot.title = element_text(size = 20, hjust = 0.5, vjust = 0))
+    plots[[i]] <- plot
+  }
+  do.call(grid.arrange,plots)
+}
+  
 
 ############################## Read in ArchR project  #######################################
 
@@ -174,13 +227,20 @@ graphics.off()
 plot_path = "./plots/label_by_cluster_distribution/"
 dir.create(plot_path, recursive = T)
 
-# visualise distribution across clusters
+# visualise distribution across clusters: table
 png(paste0(plot_path, 'label_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
+cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
 graphics.off()
 
+# visualise distribution across clusters: confusion matrix
 png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
 cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
+graphics.off()
+
+# visualise distribution across clusters: piecharts
+counts <- cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
+cell_counts_piecharts(counts, col = scHelper_cell_type_colours)
 graphics.off()
 
 # assign cluster labels
@@ -217,13 +277,36 @@ if (length(unique(ArchR$stage)) > 1){
   dir.create(plot_path, recursive = T)
   
   png(paste0(plot_path, 'counts_by_stage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-  cell_counts(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
+  cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage", scHelper_cell_type_order = scHelper_cell_type_order)
   graphics.off()
   
+  # visualise distribution across stages: confusion matrix
   png(paste0(plot_path, "stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
   cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage")
   graphics.off()
-
+  
+  # visualise distribution across stages: piecharts
+  counts <- cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "stage", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+  png(paste0(plot_path, "label_by_stage_piecharts_unscaled.png"), width=50, height=40, units = 'cm', res = 200)
+  cell_counts_piecharts(counts, col = scHelper_cell_type_colours)
+  graphics.off()
+  
+  png(paste0(plot_path, "label_by_stage_piecharts_scaled.png"), width=50, height=40, units = 'cm', res = 200)
+  cell_counts_piecharts(counts, col = scHelper_cell_type_colours, scale = TRUE)
+  graphics.off()
+  
+##################### Distribution of stages across labels ##################################
+  
+  # visualise distribution across stages: piecharts
+  counts <- cell_counting(ArchR = ArchR, group1 = "stage", group2 = "scHelper_cell_type_old", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+  png(paste0(plot_path, "stage_by_label_piecharts_unscaled.png"), width=50, height=40, units = 'cm', res = 200)
+  cell_counts_piecharts(counts, col = stage_colours)
+  graphics.off()
+  
+  png(paste0(plot_path, "stage_by_label_piecharts_scaled.png"), width=50, height=40, units = 'cm', res = 200)
+  cell_counts_piecharts(counts, col = stage_colours, scale = TRUE)
+  graphics.off()
+  
 ##################### Distribution of rna stages across atac stages ##################################
 
   rna_stages <- plotEmbedding(ArchR, name = "rna_stage", plotAs = "points", size = 1.8, baseSize = 0, 
@@ -239,4 +322,3 @@ if (length(unique(ArchR$stage)) > 1){
   graphics.off()
 
 }
-
