@@ -17,6 +17,7 @@ library(parallel)
 library(presto)
 library(Seurat)
 library(plyr)
+library(gtools)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
