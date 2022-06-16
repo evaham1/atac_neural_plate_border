@@ -40,8 +40,8 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # test input folder made
-    data_path = "./output/NF-downstream_analysis/ArchR_integration/transfer_labels/peak_call/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_integration/transfer_labels_late_peaks/plots/"
+    data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels/peak_call/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels_late_peaks/plots/"
     
     addArchRThreads(threads = 1) 
     
@@ -210,6 +210,30 @@ open_across_stages_test <- function(m, threshold = 0){
   return(rownames(filtered))
 }
 
+######### Function to plot tracks of ids of interest - only works with one cluster done at a time!
+plot_browser_tracks <- function(ArchR, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
+                                groupBy = "clusters", ids = ids, plot_path = plot_path, prefix = "_enhancer_") {
+  
+  # extract granges object
+  gr <- getMarkers(se, cutOff = cutOff, returnGR = TRUE)
+  
+  # extend ranges around peaks and create plot of all tracks
+  extended_ranges <- extendGR(gr = gr[[1]], upstream = extend, downstream = extend)
+  p <- plotBrowserTrack(ArchR, region = extended_ranges, groupBy = groupBy)
+  
+  # extract the peaks of interest and only print those
+  markerList <- getMarkers(se, cutOff = cutOff)
+  rows <- match(markerList[[1]]$unique_id, ids)
+  rows <- rows[!is.na(rows)]
+  for (row in rows){
+    print(row)
+    name <- markerList[[1]]$unique_id[row]
+    png(paste0(plot_path, prefix, name, '.png'), height = 50, width = 50, units = 'cm', res = 400)
+    grid::grid.draw(p[[row]])
+    graphics.off()
+  }
+}
+
 ###########################################################################################
 ############################## Read in ArchR projects #####################################
 
@@ -239,6 +263,9 @@ Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
 #############################################################################
 ############################## ss8: PPR #####################################
 
+plot_path <- "./plots/ss8_PPR/"
+dir.create(plot_path, recursive = T)
+
 se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
@@ -267,6 +294,18 @@ print(marker_heatmap(new_matrix, pal = pal, clusterCols = FALSE, labelRows = TRU
 graphics.off()
                    
 write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
+
+#### plot gene tracks of these peaks (can only do one cluster at time!)
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("ss8_C7"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+
+plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 50000, 
+                                groupBy = "stage_clusters", ids = open_peaks, 
+                                plot_path = plot_path, prefix = "ss8_PPR_enhancer_")
 
 #############################################################################
 ############################## ss8: NC #####################################
