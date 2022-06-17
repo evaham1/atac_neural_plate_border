@@ -280,7 +280,7 @@ matrix <- extract_means_from_se(Full_se)
 normalised_matrix <- Log2norm(matrix)
 subsetted_matrix <- subset_matrix(normalised_matrix, unique_ids)
 
-png(paste0(plot_path, 'diff_accessible_heatmap.png'), height = 20, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = 'cm', res = 400)
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
@@ -307,7 +307,7 @@ length(open_peaks) # 35
 
 subsetted_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
-png(paste0(plot_path, 'diff_accessible_annot_filtered.png_open_early'), height = 20, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path, 'diff_accessible_annot_filtered_open_early.png'), height = 20, width = 30, units = 'cm', res = 400)
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
 graphics.off()
 
@@ -315,6 +315,8 @@ graphics.off()
 
 write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
 
+plot_path <- "./plots/ss8_PPR/tracks_C7/"
+dir.create(plot_path, recursive = T)
 se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C7")) # need to do one cluster at a time
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 50000, 
@@ -324,6 +326,8 @@ plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend 
                     groupBy = "stage_clusters", ids = open_peaks, 
                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
 
+plot_path <- "./plots/ss8_PPR/tracks_C8/"
+dir.create(plot_path, recursive = T)
 se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C8")) # need to do one cluster at a time
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 50000, 
