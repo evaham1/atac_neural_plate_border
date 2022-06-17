@@ -319,10 +319,10 @@ plot_path <- "./plots/ss8_PPR/tracks_C7/"
 dir.create(plot_path, recursive = T)
 se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C7")) # need to do one cluster at a time
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 50000, 
+plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
                     groupBy = "stage_clusters", ids = open_peaks, 
                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 5000, 
+plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
                     groupBy = "stage_clusters", ids = open_peaks, 
                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
 
