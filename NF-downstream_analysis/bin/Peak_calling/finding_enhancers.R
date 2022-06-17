@@ -213,7 +213,7 @@ open_across_stages_test <- function(m, threshold = 0){
 ######### Function to plot tracks of ids of interest - only works with one cluster done at a time!
 plot_browser_tracks <- function(ArchR, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
                                 groupBy = "clusters", ids = ids, plot_path = plot_path, prefix = "_enhancer_") {
-  
+
   # extract granges objects and extend 
   gr <- getMarkers(se, cutOff = cutOff, returnGR = TRUE)
   extended_ranges <- extendGR(gr = gr[[1]], upstream = extend, downstream = extend)
@@ -296,19 +296,18 @@ graphics.off()
 write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
 
 #### plot gene tracks of these peaks (can only do one cluster at time!)
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage_clusters",
-  useGroups = c("ss8_C7"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-
 plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 50000, 
                                 groupBy = "stage_clusters", ids = open_peaks, 
-                                plot_path = plot_path, prefix = "ss8_PPR_enhancer_")
+                                plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
+plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 10000, 
+                    groupBy = "stage_clusters", ids = open_peaks, 
+                    plot_path = plot_path, prefix = "ss8_PPR_enhancer_10000_")
 
 #############################################################################
 ############################## ss8: NC #####################################
+
+plot_path <- "./plots/ss8_NC/"
+dir.create(plot_path, recursive = T)
 
 se <- getMarkerFeatures(
   ArchRProj = FullData, 
@@ -342,6 +341,9 @@ write.table(open_peaks, file = paste0(plot_path, "ss8_NC_putative_enhancers.txt"
 #############################################################################
 ############################## ss4: PPR #####################################
 
+plot_path <- "./plots/ss4_PPR/"
+dir.create(plot_path, recursive = T)
+
 se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
@@ -373,6 +375,9 @@ write.table(open_peaks, file = paste0(plot_path, "ss4_PPR_putative_enhancers.txt
 
 #############################################################################
 ############################## ss4: NC #####################################
+
+plot_path <- "./plots/ss4_NC/"
+dir.create(plot_path, recursive = T)
 
 se <- getMarkerFeatures(
   ArchRProj = FullData, 
