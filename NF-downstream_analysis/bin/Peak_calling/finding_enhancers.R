@@ -214,22 +214,22 @@ open_across_stages_test <- function(m, threshold = 0){
 plot_browser_tracks <- function(ArchR, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
                                 groupBy = "clusters", ids = ids, plot_path = plot_path, prefix = "_enhancer_") {
   
-  # extract granges object
+  # extract granges objects and extend 
   gr <- getMarkers(se, cutOff = cutOff, returnGR = TRUE)
-  
-  # extend ranges around peaks and create plot of all tracks
   extended_ranges <- extendGR(gr = gr[[1]], upstream = extend, downstream = extend)
-  p <- plotBrowserTrack(ArchR, region = extended_ranges, groupBy = groupBy)
   
-  # extract the peaks of interest and only print those
+  # get coordinates of granges object that want to plot based on ids
   markerList <- getMarkers(se, cutOff = cutOff)
   rows <- match(markerList[[1]]$unique_id, ids)
   rows <- rows[!is.na(rows)]
+  
+  # plot granges objects
   for (row in rows){
     print(row)
     name <- markerList[[1]]$unique_id[row]
+    p <- plotBrowserTrack(ArchR, region = extended_ranges[row], groupBy = groupBy)
     png(paste0(plot_path, prefix, name, '.png'), height = 50, width = 50, units = 'cm', res = 400)
-    grid::grid.draw(p[[row]])
+    grid::grid.draw(p)
     graphics.off()
   }
 }
