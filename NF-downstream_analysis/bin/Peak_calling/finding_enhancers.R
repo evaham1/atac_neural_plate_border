@@ -226,7 +226,7 @@ plot_browser_tracks <- function(ArchR, se, cutOff = "FDR <= 0.01 & Log2FC >= 1",
   # plot granges objects
   for (row in rows){
     print(row)
-    name <- markerList[[1]]$unique_id[row]
+    name <- str_replace(markerList[[1]]$unique_id[row], ":", "-")
     p <- plotBrowserTrack(ArchR, region = extended_ranges[row], groupBy = groupBy)
     png(paste0(plot_path, prefix, name, '.png'), height = 50, width = 50, units = 'cm', res = 400)
     grid::grid.draw(p)
