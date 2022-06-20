@@ -288,6 +288,7 @@ graphics.off()
 id_data <- rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ]
 write.csv(id_data, file = paste0(plot_path, "diff_accessible_peak_annotations.csv"))
 filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
+write.csv(filtered_id_data, file = paste0(plot_path, "diff_accessible_peak_annotations_anno_filtered.csv"))
 filtered_ids <- filtered_id_data$unique_id
 length(unique_ids) # 7531
 length(filtered_ids) # 6841
@@ -330,10 +331,10 @@ plot_path <- "./plots/ss8_PPR/tracks_C8/"
 dir.create(plot_path, recursive = T)
 se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C8")) # need to do one cluster at a time
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 50000, 
+plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
                     groupBy = "stage_clusters", ids = open_peaks, 
                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.001 & Log2FC >= 1", extend = 5000, 
+plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
                     groupBy = "stage_clusters", ids = open_peaks, 
                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
 
