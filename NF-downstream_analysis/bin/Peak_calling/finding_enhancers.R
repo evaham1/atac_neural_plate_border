@@ -214,20 +214,23 @@ open_across_stages_test <- function(m, threshold = 0){
 plot_browser_tracks <- function(ArchR, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
                                 groupBy = "clusters", ids = ids, plot_path = plot_path, prefix = "_enhancer_") {
   
-  # extract granges objects and extend 
+  # extract granges objects and add unique ids
   gr <- getMarkers(se, cutOff = cutOff, returnGR = TRUE)
-  extended_ranges <- extendGR(gr = gr[[1]], upstream = extend, downstream = extend)
+  gr <- gr[[1]]
+  values(gr) <- DataFrame(unique_id = paste0(gr@seqnames, ":", gr@ranges))
+  
+  # extend granges object so can see around the peak
+  gr_extended <- extendGR(gr = gr, upstream = extend, downstream = extend)
   
   # get coordinates of granges object that want to plot based on ids
-  markerList <- getMarkers(se, cutOff = cutOff)
-  rows <- match(markerList[[1]]$unique_id, ids)
-  rows <- rows[!is.na(rows)]
+  gr_subset <- gr[(elementMetadata(gr_extended)[, "unique_id"] %in% ids)]
   
   # plot granges objects
-  for (row in rows){
+  for (row in 1:length(gr_subset$unique_id)){
     print(row)
-    name <- str_replace(markerList[[1]]$unique_id[row], ":", "-")
-    p <- plotBrowserTrack(ArchR, region = extended_ranges[row], groupBy = groupBy)
+    name <- gr_subset$unique_id[row]
+    print(name)
+    p <- plotBrowserTrack(ArchR, region = gr_subset[row], groupBy = groupBy)
     png(paste0(plot_path, prefix, name, '.png'), height = 50, width = 50, units = 'cm', res = 400)
     grid::grid.draw(p)
     graphics.off()
@@ -273,8 +276,7 @@ se <- getMarkerFeatures(
   groupBy = "stage_clusters",
   useGroups = c("ss8_C7", "ss8_C8"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-ids <- extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
-unique_ids <- unique(ids)
+unique_ids <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
 
 matrix <- extract_means_from_se(Full_se)
 normalised_matrix <- Log2norm(matrix)
@@ -284,13 +286,13 @@ png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = '
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-### Step 2: filter out peaks in genes
-id_data <- rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ]
-write.csv(id_data, file = paste0(plot_path, "diff_accessible_peak_annotations.csv"))
+length(unique_ids) #7531
+id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ])
+dim(id_data) #7531 x 21
+
+### Step 2: filter out peaks in genes - FILTER_1
 filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
-write.csv(filtered_id_data, file = paste0(plot_path, "diff_accessible_peak_annotations_anno_filtered.csv"))
 filtered_ids <- filtered_id_data$unique_id
-length(unique_ids) # 7531
 length(filtered_ids) # 6841
 
 subsetted_matrix <- subset_matrix(normalised_matrix, filtered_ids)
@@ -299,9 +301,9 @@ png(paste0(plot_path, 'diff_accessible_annot_filtered.png'), height = 20, width 
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-### Step 3: filter out peaks not open in earlier stages
+id_data <- id_data %>% mutate(filter_1 = ifelse(unique_id %in% filtered_ids == TRUE, "T", "F"))
 
-length(filtered_ids) # 6841
+### Step 3: filter out peaks not open in earlier stages
 subsetted_raw_matrix <- subset_matrix(matrix, filtered_ids)
 open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
 length(open_peaks) # 35
@@ -312,9 +314,11 @@ png(paste0(plot_path, 'diff_accessible_annot_filtered_open_early.png'), height =
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
 graphics.off()
 
-### Step 4: export peaks and visualise them
+id_data <- id_data %>% mutate(filter_2 = ifelse(unique_id %in% open_peaks == TRUE, "T", "F"))
 
+### Step 4: export peaks and visualise them
 write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
+write.csv(id_data, file = paste0(plot_path, "ss8_PPR_putative_enhancers_table.csv"))
 
 plot_path <- "./plots/ss8_PPR/tracks_C7/"
 dir.create(plot_path, recursive = T)
