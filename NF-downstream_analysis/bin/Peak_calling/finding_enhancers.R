@@ -228,7 +228,7 @@ plot_browser_tracks <- function(ArchR, se, cutOff = "FDR <= 0.01 & Log2FC >= 1",
   # plot granges objects
   for (row in 1:length(gr_subset$unique_id)){
     print(row)
-    name <- gr_subset$unique_id[row]
+    name <- str_replace(gr_subset$unique_id[row], ":", "-")
     print(name)
     p <- plotBrowserTrack(ArchR, region = gr_subset[row], groupBy = groupBy)
     png(paste0(plot_path, prefix, name, '.png'), height = 50, width = 50, units = 'cm', res = 400)
@@ -327,9 +327,9 @@ se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
                     groupBy = "stage_clusters", ids = open_peaks, 
                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
-                    groupBy = "stage_clusters", ids = open_peaks, 
-                    plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
+# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
+#                     groupBy = "stage_clusters", ids = open_peaks, 
+#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
 
 plot_path <- "./plots/ss8_PPR/tracks_C8/"
 dir.create(plot_path, recursive = T)
@@ -338,9 +338,9 @@ se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
                     groupBy = "stage_clusters", ids = open_peaks, 
                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
-                    groupBy = "stage_clusters", ids = open_peaks, 
-                    plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
+# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
+#                     groupBy = "stage_clusters", ids = open_peaks, 
+#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
 
 # #############################################################################
 # ############################## ss8: NC #####################################
