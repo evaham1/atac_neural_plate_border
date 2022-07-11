@@ -50,6 +50,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     data_path = "./input/rds_files/"
+    rds_path = "./rds_files/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores) 
@@ -256,12 +257,8 @@ FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
 getAvailableMatrices(FullData)
 FullData@peakSet
 
-# Prepare FULL data for plotting 
-Full_se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage_clusters")
-Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
+# Read in full se object
+Full_se <- readRDS(paste0(rds_path, "Full_se"))
 
 #############################################################################
 ############################## ss8: PPR #####################################

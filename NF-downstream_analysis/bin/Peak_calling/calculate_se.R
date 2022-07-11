@@ -1,0 +1,122 @@
+#!/usr/bin/env Rscript
+
+print("finding enhancers")
+# look for peaks which are differentially upregulated in the NC or PPR clusters at ss8/ss4 and are also open earlier
+
+############################## Load libraries #######################################
+library(getopt)
+library(optparse)
+library(ArchR)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(GenomicFeatures)
+library(hexbin)
+library(pheatmap)
+library(gridExtra)
+library(grid)
+library(parallel)
+library(clustree)
+library(plyr)
+library(ComplexHeatmap)
+
+############################## Set up script options #######################################
+# Read in command line opts
+option_list <- list(
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+)
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
+
+# Set paths and load data
+{
+  if(length(commandArgs(trailingOnly = TRUE)) == 0){
+    cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
+    
+    ncores = 8
+    
+    # test input folder made
+    data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels/peak_call/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels_late_peaks/plots/"
+    
+    addArchRThreads(threads = 1) 
+    
+  } else if (opt$runtype == "nextflow"){
+    cat('pipeline running through Nextflow\n')
+    
+    plot_path = "./plots/"
+    data_path = "./input/rds_files/"
+    rds_path = "./rds_files/"
+    ncores = opt$cores
+    
+    addArchRThreads(threads = ncores) 
+    
+  } else {
+    stop("--runtype must be set to 'nextflow'")
+  }
+  
+  cat(paste0("script ran with ", ncores, " cores\n"))
+  dir.create(plot_path, recursive = T)
+}
+
+############################### FUNCTIONS ####################################
+
+### Function to add unique ids to se peak object so can subset properly
+add_unique_ids_to_se <- function(seMarker, ArchR, matrix_type) {
+  
+  if (matrix_type == "PeakMatrix") {
+    tmp_peaks = data.frame(ArchR@peakSet)
+    tmp_diff_peaks = data.frame(rowData(seMarker))
+    diff_peaks_join_peakset = left_join(tmp_diff_peaks, tmp_peaks, 
+                                        by = c("seqnames" = "seqnames", "start" = "start", "end" = "end"))
+    diff_peaks_join_peakset$gene_name = paste(diff_peaks_join_peakset$nearestGene, diff_peaks_join_peakset$distToTSS,sep="_")
+    diff_peaks_join_peakset$unique_id = paste0(diff_peaks_join_peakset$seqnames, ":", diff_peaks_join_peakset$start, "-", diff_peaks_join_peakset$end)
+    rowData(seMarker) = diff_peaks_join_peakset
+  }
+  
+  if (matrix_type == "GeneScoreMatrix") {
+    rowData <- as.data.frame(rowData(seMarker))
+    
+    duplicated_gene_names <- rowData$name[duplicated(rowData$name)]
+    duplicated_genes <- rowData[which(rowData$name %in% duplicated_gene_names), ]
+    duplicated_genes <- duplicated_genes %>% group_by(name) %>% 
+      arrange(name) %>% mutate(unique_id = paste0(name, "-", rowid(name)))
+    join_df = left_join(rowData, duplicated_genes,
+                        by = c("seqnames" = "seqnames", "start" = "start", "end" = "end", "name" = "name", "idx" = "idx", "strand" = "strand"))
+    
+    join_df <- join_df %>% mutate(unique_id = coalesce(unique_id, name))
+    
+    rowData(seMarker) = join_df
+  }
+  
+  return(seMarker)
+}
+
+###########################################################################################
+############################## Read in ArchR projects #####################################
+
+files <- list.files(data_path, full.names = TRUE)
+print(files)
+
+full_data <- grep("FullData", files, invert = F, value = TRUE)
+FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
+
+getAvailableMatrices(FullData)
+FullData@peakSet
+
+saveArchRProject(ArchRProj = FullData, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
+
+###########################################################################################
+########################## Calculate se across all clusters ###############################
+
+Full_se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters")
+Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
+
+saveRDS(Full_se, file = paste0(rds_path, "Full_se"))

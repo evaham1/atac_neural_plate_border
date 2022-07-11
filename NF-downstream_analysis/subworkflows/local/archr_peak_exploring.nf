@@ -15,6 +15,7 @@ include {R as DIFF_PEAKS_STAGES} from "$baseDir/modules/local/r/main"           
 include {R as DIFF_PEAKS_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_clusters.R", checkIfExists: true) )
 
 // look for enhancers
+include {R as SE_CALCULATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
 include {R as FINDING_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/finding_enhancers.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,10 @@ workflow PEAK_EXPLORING {
     // visualise differential peaks across full data
     DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
     DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
-    FINDING_ENHANCERS( PEAK_CALL_TL.out )
+
+    // finding enhancers
+    SE_CALCULATE( PEAK_CALL_TL.out )
+    FINDING_ENHANCERS( SE_CALCULATE.out )
     
     emit:
     transfer_label_peaks = PEAK_CALL_TL.out
