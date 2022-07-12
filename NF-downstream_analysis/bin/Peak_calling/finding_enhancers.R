@@ -259,7 +259,9 @@ getAvailableMatrices(FullData)
 FullData@peakSet
 
 # Read in full se object
-Full_se <- readRDS(paste0(rds_path, "Full_se.RDS"))
+se_data <- grep("Full_se", files, invert = F, value = TRUE)
+print(se_data)
+Full_se <- readRDS(se_data)
 
 #############################################################################
 ############################## ss8: PPR #####################################
