@@ -18,6 +18,11 @@ include {R as DIFF_PEAKS_CLUSTERS} from "$baseDir/modules/local/r/main"         
 include {R as SE_CALCULATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
 include {R as FINDING_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/finding_enhancers.R", checkIfExists: true) )
 
+// look for enhancers in just NPB cells
+include {R as SUBSET_NPB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_subsetting.R", checkIfExists: true) )
+include {R as CLUSTER_NPB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as PEAK_CALL_NPB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 workflow PEAK_EXPLORING {
@@ -48,7 +53,13 @@ workflow PEAK_EXPLORING {
     // finding enhancers
     SE_CALCULATE( PEAK_CALL_TL.out )
     FINDING_ENHANCERS( SE_CALCULATE.out )
+
+    // subset NPB
+    SUBSET_NPB( TRANSFER_LABELS.out )
+    CLUSTER_NPB( SUBSET_NPB.out )
+    PEAK_CALL_NPB( CLUSTER_NPB.out )
     
     emit:
     transfer_label_peaks = PEAK_CALL_TL.out
+    npb_peaks = PEAK_CALL_NPB.out
 }
