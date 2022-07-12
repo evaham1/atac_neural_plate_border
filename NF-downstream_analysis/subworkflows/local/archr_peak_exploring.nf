@@ -33,6 +33,11 @@ include {R as CLUSTER_NPB_SS4} from "$baseDir/modules/local/r/main"             
 include {R as SUBSET_NPB_SS8} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_subsetting.R", checkIfExists: true) )
 include {R as CLUSTER_NPB_SS8} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
 
+// look for enhancers in just NPB cells - subset using just labels
+include {R as SUBSET_NPB_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_subsetting.R", checkIfExists: true) )
+include {R as CLUSTER_NPB_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_clustering.R", checkIfExists: true) )
+include {R as PEAK_CALL_NPB_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -77,6 +82,11 @@ workflow PEAK_EXPLORING {
     CLUSTER_NPB_SS4( SUBSET_NPB_SS4.out )
     SUBSET_NPB_SS8( TRANSFER_LABELS.out )
     CLUSTER_NPB_SS8( SUBSET_NPB_SS8.out )
+
+    // subset NPB using just labels
+    SUBSET_NPB_LABELS( TRANSFER_LABELS.out )
+    CLUSTER_NPB_LABELS( SUBSET_NPB_LABELS.out )
+    PEAK_CALL_NPB_LABELS( CLUSTER_NPB_LABELS.out )
     
     emit:
     transfer_label_peaks = PEAK_CALL_TL.out
