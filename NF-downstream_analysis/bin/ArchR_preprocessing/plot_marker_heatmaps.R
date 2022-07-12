@@ -235,7 +235,6 @@ seMarker <- add_unique_ids_to_se(seMarker, ArchR, matrix_type = opt$matrix)
 matrix <- extract_means_from_se(seMarker) # extract means df from se object
 normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
 
-###################### Extract features of interest and plot them #############################
 if (opt$matrix == "PeakMatrix"){
   pal = paletteContinuous(set = "solarExtra", n = 100)
 }
@@ -243,7 +242,9 @@ if (opt$matrix == "GeneScoreMatrix"){
   pal = viridis::magma(100)
 }
 
-ids <- extract_ids(seMarker, cutOff = ifelse(opt$matrix == "PeakMatrix", "FDR <= 0.01 & Log2FC >= 1", "FDR <= 0.01 & Log2FC >= 1"), top_n = FALSE) # extract ids
+###################### Heatmap of positive markers which pass cutoff thresholds #############################
+
+ids <- extract_ids(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
 if (length(ids) < 2){
   print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
 } else {
@@ -255,7 +256,9 @@ if (length(ids) < 2){
   graphics.off()
 }
 
-ids <- extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
+###################### Heatmap of positive markers top 10 per cell group #############################
+
+ids <- extract_ids(seMarker, cutOff = "FDR <= 1 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
 subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
 
 png(paste0(plot_path, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
