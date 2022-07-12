@@ -120,4 +120,4 @@ Full_se <- getMarkerFeatures(
   groupBy = "stage_clusters")
 Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
 
-saveRDS(Full_se, file = paste0(rds_path, "Full_se"))
+saveRDS(Full_se, file = paste0(rds_path, "Full_se.RDS"))

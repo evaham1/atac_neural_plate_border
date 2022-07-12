@@ -61,6 +61,7 @@ if(opt$verbose) print(opt)
   
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
+  dir.create(rds_path, recursive = T)
 }
 
 ############################### FUNCTIONS ####################################
@@ -258,7 +259,7 @@ getAvailableMatrices(FullData)
 FullData@peakSet
 
 # Read in full se object
-Full_se <- readRDS(paste0(rds_path, "Full_se"))
+Full_se <- readRDS(paste0(rds_path, "Full_se.RDS"))
 
 #############################################################################
 ############################## ss8: PPR #####################################
