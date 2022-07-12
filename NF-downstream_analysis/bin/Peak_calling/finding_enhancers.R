@@ -50,7 +50,6 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     data_path = "./input/rds_files/"
-    rds_path = "./rds_files/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores) 
@@ -61,7 +60,6 @@ if(opt$verbose) print(opt)
   
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
-  dir.create(rds_path, recursive = T)
 }
 
 ############################### FUNCTIONS ####################################
@@ -258,10 +256,12 @@ FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
 getAvailableMatrices(FullData)
 FullData@peakSet
 
-# Read in full se object
-se_data <- grep("Full_se", files, invert = F, value = TRUE)
-print(se_data)
-Full_se <- readRDS(se_data)
+# Prepare FULL data for plotting 
+Full_se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters")
+Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
 
 #############################################################################
 ############################## ss8: PPR #####################################
@@ -286,14 +286,14 @@ png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = '
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-length(unique_ids) #7531
+print(length(unique_ids)) #7531
 id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ])
-dim(id_data) #7531 x 21
+print(dim(id_data)) #7531 x 21
 
 ### Step 2: filter out peaks in genes - FILTER_1
 filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
 filtered_ids <- filtered_id_data$unique_id
-length(filtered_ids) # 6841
+print(length(filtered_ids)) # 6841
 
 subsetted_matrix <- subset_matrix(normalised_matrix, filtered_ids)
 
@@ -306,7 +306,7 @@ id_data <- id_data %>% mutate(filter_1 = ifelse(unique_id %in% filtered_ids == T
 ### Step 3: filter out peaks not open in earlier stages
 subsetted_raw_matrix <- subset_matrix(matrix, filtered_ids)
 open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
-length(open_peaks) # 35
+print(length(open_peaks)) # 35
 
 subsetted_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
@@ -320,24 +320,24 @@ id_data <- id_data %>% mutate(filter_2 = ifelse(unique_id %in% open_peaks == TRU
 write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
 write.csv(id_data, file = paste0(plot_path, "ss8_PPR_putative_enhancers_table.csv"))
 
-plot_path <- "./plots/ss8_PPR/tracks_C7/"
-dir.create(plot_path, recursive = T)
-se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C7")) # need to do one cluster at a time
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
-                    groupBy = "stage_clusters", ids = open_peaks, 
-                    plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
-# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
+# plot_path <- "./plots/ss8_PPR/tracks_C7/"
+# dir.create(plot_path, recursive = T)
+# se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C7")) # need to do one cluster at a time
+# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
 #                     groupBy = "stage_clusters", ids = open_peaks, 
-#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
+#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
+# # plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
+# #                     groupBy = "stage_clusters", ids = open_peaks, 
+# #                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
 
-plot_path <- "./plots/ss8_PPR/tracks_C8/"
-dir.create(plot_path, recursive = T)
-se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C8")) # need to do one cluster at a time
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
-                    groupBy = "stage_clusters", ids = open_peaks, 
-                    plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
+# plot_path <- "./plots/ss8_PPR/tracks_C8/"
+# dir.create(plot_path, recursive = T)
+# se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C8")) # need to do one cluster at a time
+# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
+#                     groupBy = "stage_clusters", ids = open_peaks, 
+#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
 # plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
 #                     groupBy = "stage_clusters", ids = open_peaks, 
 #                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
