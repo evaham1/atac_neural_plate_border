@@ -42,6 +42,7 @@ if(opt$verbose) print(opt)
     # test input folder made
     data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels/peak_call/rds_files/"
     plot_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels_late_peaks/plots/"
+    se_path = "./NF-downstream_analysis/work/b8/6306d2907d1376bc51d5f92d5e48d7/rds_files/Full_se.RDS"
     
     addArchRThreads(threads = 1) 
     
@@ -237,8 +238,27 @@ plot_browser_tracks <- function(ArchR, se, cutOff = "FDR <= 0.01 & Log2FC >= 1",
   }
 }
 
-###########################################################################################
-############################## Read in ArchR projects #####################################
+## function to create a granges object from a peak id and optionally extend it
+make_gr_object <- function(id, extend = TRUE, extend_by = 50000){
+  seqnames <- sub("\\:.*", "", id)
+  range <- sub(".*\\:", "", id)
+  start <- sub("\\-.*", "", range)
+  end <- sub(".*\\-", "", range)
+  df <- data.frame(seqnames=seqnames, start=start, end=end,
+                   strand="*")
+  
+  gr <- makeGRangesFromDataFrame(df)
+  values(gr) <- DataFrame(unique_id = id)
+  
+  if(extend == TRUE){
+    gr <- extendGR(gr = gr, upstream = extend_by, downstream = extend_by)
+  }
+  
+  return(gr)
+}
+
+#################################################################################
+############################## Read in data #####################################
 
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
@@ -246,7 +266,7 @@ names(stage_colours) <- stage_order
 
 pal = paletteContinuous(set = "solarExtra", n = 100)
 
-# Read in all data
+# Read in ArchR project data
 files <- list.files(data_path, full.names = TRUE)
 print(files)
 
@@ -256,12 +276,14 @@ FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
 getAvailableMatrices(FullData)
 FullData@peakSet
 
-# Prepare FULL data for plotting 
-Full_se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage_clusters")
-Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
+# Read in calculated summarised exp object across all data
+se_data <- grep("Full_se", files, invert = F, value = TRUE)
+print(se_data)
+Full_se <- readRDS(se_data)
+
+# when running interactively:
+#Full_se <- readRDS(se_path)
+
 
 #############################################################################
 ############################## ss8: PPR #####################################
@@ -286,14 +308,14 @@ png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = '
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-print(length(unique_ids)) #7531
+print(paste0("length of unique_ids: ", length(unique_ids))) #7531
 id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ])
 print(dim(id_data)) #7531 x 21
 
 ### Step 2: filter out peaks in genes - FILTER_1
 filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
 filtered_ids <- filtered_id_data$unique_id
-print(length(filtered_ids)) # 6841
+print(paste0("length of filtered_ids: ", length(filtered_ids))) # 6841
 
 subsetted_matrix <- subset_matrix(normalised_matrix, filtered_ids)
 
@@ -306,7 +328,7 @@ id_data <- id_data %>% mutate(filter_1 = ifelse(unique_id %in% filtered_ids == T
 ### Step 3: filter out peaks not open in earlier stages
 subsetted_raw_matrix <- subset_matrix(matrix, filtered_ids)
 open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
-print(length(open_peaks)) # 35
+print(paste0("length of open_peaks: ", length(open_peaks))) # 35
 
 subsetted_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
@@ -320,27 +342,34 @@ id_data <- id_data %>% mutate(filter_2 = ifelse(unique_id %in% open_peaks == TRU
 write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
 write.csv(id_data, file = paste0(plot_path, "ss8_PPR_putative_enhancers_table.csv"))
 
-# plot_path <- "./plots/ss8_PPR/tracks_C7/"
-# dir.create(plot_path, recursive = T)
-# se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C7")) # need to do one cluster at a time
-# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
-#                     groupBy = "stage_clusters", ids = open_peaks, 
-#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
-# # plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
-# #                     groupBy = "stage_clusters", ids = open_peaks, 
-# #                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
+# make genome browser plots
+plot_path <- paste0(plot_path, "browser_tracks/")
 
-# plot_path <- "./plots/ss8_PPR/tracks_C8/"
-# dir.create(plot_path, recursive = T)
-# se <- getMarkerFeatures(FullData, useMatrix = "PeakMatrix", groupBy = "stage_clusters", useGroups = c("ss8_C8")) # need to do one cluster at a time
-# se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 50000, 
-#                     groupBy = "stage_clusters", ids = open_peaks, 
-#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_50000_")
-# plot_browser_tracks(FullData, se, cutOff = "FDR <= 0.01 & Log2FC >= 1", extend = 5000, 
-#                     groupBy = "stage_clusters", ids = open_peaks, 
-#                     plot_path = plot_path, prefix = "ss8_PPR_enhancer_5000_")
+for (id in open_peaks){
+  print(id)
+  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
+  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
+                        title = paste0("Peak ID:", id))
+  
+  name <- str_replace(id, ":", "-")
+  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
+  grid::grid.draw(p)
+  graphics.off()
+}
+
+for (id in open_peaks){
+  print(id)
+  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 50000)
+  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
+                        title = paste0("Peak ID:", id))
+  
+  name <- str_replace(id, ":", "-")
+  png(paste0(plot_path, name, '_extended_by_50000.png'), height = 50, width = 50, units = 'cm', res = 400)
+  grid::grid.draw(p)
+  graphics.off()
+}
 
 # #############################################################################
 # ############################## ss8: NC #####################################
