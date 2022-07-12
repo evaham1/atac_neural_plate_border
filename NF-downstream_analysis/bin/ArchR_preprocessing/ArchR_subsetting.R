@@ -22,7 +22,6 @@ option_list <- list(
     make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
     make_option(c("-m", "--meta_col1"), action = "store", type = "character", help = "Name of first metadata column containing groups to subset", default = NULL),
     #make_option(c("", "--meta_col2"), action = "store", type = "character", help = "Name of second metadata column containing groups to subset", default = NULL),
-    #make_option(c("-o", "--output"), action = "store", type = "character", help = "Name of output ArchR project", default = 'ArchR_subset'),
     make_option(c("-g", "--groups1"), action = "store", type = "character", help = "Classifications of cells (within meta_col1) to subset from dataset. \
     If multiple classifications are used to subest, must be provided as a comma separated list i.e. --groups celltype1,celltype2", default = NULL),
     #make_option(c("", "--groups2"), action = "store", type = "character", help = "Classifications of cells (within meta_col2) to subset from dataset.", default = NULL),
@@ -42,16 +41,17 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-    
-    #plot_path = "./output/NF-downstream_analysis/4_ArchR_filter_clusters/plots/"
-    #rds_path = "./output/NF-downstream_analysis/4_ArchR_filter_clusters/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_integration/ss8/1_unconstrained_integration/rds_files/"
-
     addArchRThreads(threads = 1)
     
+    data_path = "./output/NF-downstream_analysis/ArchR_integration/ss8/1_unconstrained_integration/rds_files/"
     opt$invert1 = TRUE
     opt$groups1 = "BI,PGC,meso,endo"
     opt$meta_col1 = "scHelper_cell_type_old"
+    
+    data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels/rds_files/"
+    opt$invert1 = FALSE
+    opt$groups1 = "HH7_C4,HH7_C5,HH7_C6"
+    opt$meta_col1 = "stage_clusters"
   
     
   } else if (opt$runtype == "nextflow"){
@@ -130,7 +130,7 @@ if (opt$invert == FALSE) {
 cells <- ArchR$cellNames[idxPass]
 
 png(paste0(plot_path, "UMAP_cells_to_remove.png"), width=20, height=20, units = 'cm', res = 200)
-plotEmbedding(ArchR, name = "clusters", highlightCells = cells,
+plotEmbedding(ArchR, name = opt$meta_col, highlightCells = cells,
     plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
     baseSize = 0, labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
 graphics.off()
@@ -138,19 +138,47 @@ graphics.off()
 ### Plot cell counts before and after subsetting per stage
 unfiltered <- table(ArchR$stage)
 filtered <- table(ArchR_subset$stage)
-cell_counts <- rbind(unfiltered, filtered)
+cell_counts <- as.data.frame(dplyr::bind_rows(unfiltered, filtered))
+cell_counts[is.na(cell_counts)] = 0
 
 png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 10, width = 20, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-### Plot cell counts before and after subsetting per stage
+### Plot cell counts before and after subsetting per cluster
 unfiltered <- table(ArchR$clusters)
 filtered <- table(ArchR_subset$clusters)
-cell_counts <- rbind(unfiltered, filtered)
+cell_counts <- as.data.frame(dplyr::bind_rows(unfiltered, filtered))
+cell_counts[is.na(cell_counts)] = 0
 
 png(paste0(plot_path, 'cell_counts_table_clusters.png'), height = 10, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
+
+### Plot cell counts before and after subsetting per stage_cluster
+if ("stage_clusters" %in% colnames(ArchR@cellColData)){
+  unfiltered <- table(ArchR$stage_clusters)
+  filtered <- table(ArchR_subset$stage_clusters)
+  cell_counts <- as.data.frame(dplyr::bind_rows(unfiltered, filtered))
+  cell_counts[is.na(cell_counts)] = 0
+  
+  png(paste0(plot_path, 'cell_counts_table_stage_clusters.png'), height = 10, width = 30, units = 'cm', res = 400)
+  grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+               tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+  graphics.off()
+}
+
+### Plot cell counts before and after subsetting per sc_helper_cell_type
+if ("scHelper_cell_type_old" %in% colnames(ArchR@cellColData)){
+  unfiltered <- table(ArchR$scHelper_cell_type_old)
+  filtered <- table(ArchR_subset$scHelper_cell_type_old)
+  cell_counts <- as.data.frame(dplyr::bind_rows(unfiltered, filtered))
+  cell_counts[is.na(cell_counts)] = 0
+
+  png(paste0(plot_path, 'cell_counts_table_scHelper_cell_type_old.png'), height = 10, width = 30, units = 'cm', res = 400)
+  grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+  graphics.off()
+}
