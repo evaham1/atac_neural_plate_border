@@ -32,5 +32,5 @@ workflow INTEGRATING {
     //emit integrated ArchR objects:
     emit:
     integrated = UNCON_INTEGRATE.out
-    integrated_filtered = CLUSTER_INTEGRATION.out
+    //integrated_filtered = CLUSTER_INTEGRATION.out
 }
