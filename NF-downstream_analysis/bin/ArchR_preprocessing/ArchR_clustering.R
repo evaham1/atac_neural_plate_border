@@ -141,6 +141,114 @@ cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new"
   )
 }
 
+############################### FUNCTIONS - custom made #################################################
+
+# function to count how many cells from each cluster/sample are assigned the same label/cluster
+cell_counting <- function(ArchR = ArchR, group1 = "clusters", group2 = "stage", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order) {
+  group1_data <- getCellColData(ArchR, select = group1)[,1]
+  group1_cell_counts <- as.data.frame(table(group1_data))
+  colnames(group1_cell_counts) <- c("ID", "Total_count")
+  
+  group2_cell_counts <- data.frame()
+  group2_data <- getCellColData(ArchR, select = group2)[,1]
+  data_group1 <- getCellColData(ArchR, select = group1)[,1]
+  for (i in unique(group1_data)) {
+    cells <- ArchR$cellNames[BiocGenerics::which(data_group1 == i)]
+    if (length(cells) > 1){
+      ArchR_subset <- ArchR[cells, ]
+      data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
+      group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
+        pivot_wider(names_from = data_group2, values_from = Freq) %>% 
+        add_column(ID = !!i)
+      group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
+    }
+  }
+  
+  cell_counts <- merge(group1_cell_counts, group2_cell_counts) %>%
+    column_to_rownames(., var = "ID")
+  totals <- cell_counts$Total_count
+  cell_counts <- cell_counts[, -1]
+  cell_counts[is.na(cell_counts)] <- 0
+  
+  # Order rows and columns - group 1 = order rows
+  if (group1 %in% c("clusters", "stage")) {
+    cell_counts <- cell_counts[ mixedsort(rownames(cell_counts)) , ] }
+  if (group1 == "scHelper_cell_type_old") {
+    if (is.null(scHelper_cell_type_order)){
+      print("scHelper_cell_type_order not specified!")
+    } else {
+      order <- scHelper_cell_type_order[scHelper_cell_type_order %in% rownames(cell_counts)]
+      cell_counts <- cell_counts[ order , ] }
+  }
+  
+  # Order rows and columns - group 2 = order columns
+  if (group2 %in% c("clusters", "stage")){
+    cell_counts <- cell_counts[ , mixedsort(colnames(cell_counts)) ]
+  }
+  if (group2 == "scHelper_cell_type_old") {
+    if (is.null(scHelper_cell_type_order)){
+      print("scHelper_cell_type_order not specified!")
+    } else {
+      order <- scHelper_cell_type_order[scHelper_cell_type_order %in% colnames(cell_counts)]
+      cell_counts <- cell_counts[ , order ] }
+  }
+  
+  # either return table or print it
+  if (print_table == FALSE){
+    return(cell_counts)
+  } else {
+    cell_counts <- cell_counts %>% mutate(., Total = totals)
+    grid.arrange(tableGrob(cell_counts, theme = ttheme_minimal()))
+  }
+}
+
+# function to make heatmap showing contribution of cell groups to other cell groups
+cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters") {
+  group1_data <- getCellColData(ArchR, select = group1)[,1]
+  group2_data <- getCellColData(ArchR, select = group2)[,1]
+  cM <- confusionMatrix(paste0(group2_data), paste0(group1_data))
+  cM <- cM / Matrix::rowSums(cM)
+  
+  p <- pheatmap::pheatmap(
+    mat = cM,
+    color = paletteContinuous("whiteBlue"), 
+    border_color = "black"
+  )
+}
+
+# function to make piecharts/barcharts showing contribution of cell groups to other cell groups
+cell_counts_piecharts <- function(counts, cols, scale = FALSE) {
+  
+  # remove any columns that have no cells in
+  if (0 %in% colSums(counts)){
+    counts <- counts[,-(which(colSums(counts)==0))] }
+  
+  # scale by number of cells in each row
+  if (scale == TRUE){
+    count_data <- t(apply(counts, 1, function(x) x/sum(x)))
+  } else { 
+    count_data <- counts }
+  
+  # make piecharts
+  plots <- list()
+  for (i in colnames(counts)){
+    print(i)
+    # calculate totals to add to plot titles
+    raw_data <- data.frame(group = rownames(counts), value = (counts[,i]))
+    total <- sum(raw_data$value)
+    # extract either scaled or raw data for plotting
+    data <- data.frame(group = rownames(count_data), value = (count_data[,i]))
+    plot <- ggplot(data, aes(x="", y=value, fill=group)) +
+      geom_bar(stat="identity", width=1, color="white") +
+      coord_polar("y", start=0) +
+      theme_void() + scale_fill_manual(values= cols) +
+      ggtitle(paste0(i, " (cells: ", total, ")")) +
+      theme(legend.position="none", plot.title = element_text(size = 20, hjust = 0.5, vjust = 0))
+    plots[[i]] <- plot
+  }
+  do.call(grid.arrange,plots)
+}
+
 ############################## Read in ArchR project #######################################
 
 # If files are not in rds_files subdirectory look in input dir 
