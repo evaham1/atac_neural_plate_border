@@ -21,13 +21,13 @@ option_list <- list(
     make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
     make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
     make_option(c("-m", "--meta_col1"), action = "store", type = "character", help = "Name of first metadata column containing groups to subset", default = NULL),
-    #make_option(c("", "--meta_col2"), action = "store", type = "character", help = "Name of second metadata column containing groups to subset", default = NULL),
+    make_option(c("-n", "--meta_col2"), action = "store", type = "character", help = "Name of second metadata column containing groups to subset", default = NULL),
     make_option(c("-g", "--groups1"), action = "store", type = "character", help = "Classifications of cells (within meta_col1) to subset from dataset. \
     If multiple classifications are used to subest, must be provided as a comma separated list i.e. --groups celltype1,celltype2", default = NULL),
-    #make_option(c("", "--groups2"), action = "store", type = "character", help = "Classifications of cells (within meta_col2) to subset from dataset.", default = NULL),
-    #make_option(c("-i", "--invert1"), action = "store", type = "logical", help = "Boolean for whether to invert groups1 selection", default = FALSE),
-    #make_option(c("", "--invert2"), action = "store", type = "logical", help = "Boolean for whether to invert groups2 selection", default = FALSE),
-    make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE),
+    make_option(c("-p", "--groups2"), action = "store", type = "character", help = "Classifications of cells (within meta_col2) to subset from dataset.", default = NULL),
+    make_option(c("-i", "--invert1"), action = "store", type = "logical", help = "Boolean for whether to invert groups1 selection", default = FALSE),
+    make_option(c("-q", "--invert2"), action = "store", type = "logical", help = "Boolean for whether to invert groups2 selection", default = FALSE),
+    make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE),
     make_option(c("", "--invert"), action = "store", type = "logical", help = "Invert subset", default = FALSE)
     )
 
@@ -47,6 +47,7 @@ if(opt$verbose) print(opt)
     opt$invert1 = TRUE
     opt$groups1 = "BI,PGC,meso,endo"
     opt$meta_col1 = "scHelper_cell_type_old"
+    opt$meta_col2 = NULL
     
     data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels/rds_files/"
     opt$invert1 = FALSE
@@ -76,8 +77,8 @@ if(opt$verbose) print(opt)
 # Set up options
 if(!is.null(opt$groups1)){
   opt$groups1 = strsplit(opt$groups1, ',')[[1]]}
-#if(!is.null(opt$groups2)){
-#  opt$groups2 = strsplit(opt$groups2, ',')[[1]]}
+if(!is.null(opt$groups2)){
+  opt$groups2 = strsplit(opt$groups2, ',')[[1]]}
 
 if(is.null(opt$meta_col1)){
   stop("meta_col1 parameter must be provided. See script usage (--help)")}
@@ -86,16 +87,24 @@ if(is.null(opt$groups1)){
 
 
 ############################## Function to subset ArchR project #######################################
-subset_ArchR <- function(ArchR_object, meta_col, groups, invert = FALSE){
-  if (invert == FALSE){
-    idxPass <- which(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups)
+subset_ArchR <- function(ArchR_object, meta_col1, meta_col2, groups1, groups2, invert1, invert2, invert = FALSE){
+  
+  print(paste0("Filtering on first meta_col: ", meta_col1))
+  if (invert1 == FALSE){
+    idxPass_1 <- which(ArchR_object@cellColData[,meta_col1] %in% groups1)
+  } else { idxPass_1 <- which(!(ArchR_object@cellColData[,meta_col1] %in% groups1)) }
+  idxPass <- idxPass_1
+  
+  if (is.null(meta_col2) == FALSE){
+    print(paste0("Filtering on second meta_col: ", meta_col2))
+    if (invert2 == FALSE){
+      idxPass_2 <- which(ArchR_object@cellColData[,meta_col2] %in% groups2) 
+    } else { idxPass_2 <- which(!(ArchR_object@cellColData[,meta_col2] %in% groups2)) }
+    idxPass <- idxPass_1[(idxPass_1 %in% idxPass_2)] # take intersect of pass 1 and pass 2
   }
-  else {
-    idxPass <- which(!(ArchR_object@cellColData[,opt$meta_col] %in% opt$groups))
-  }
+  
   cellsPass <- ArchR$cellNames[idxPass]
-  ArchR_filtered <- ArchR[cellsPass, ]
-  return(ArchR_filtered)
+  ArchR_subset <- ArchR[cellsPass, ]
 }
 
 ############################## Read in ArchR project #######################################
@@ -112,28 +121,16 @@ print(colnames(ArchR@cellColData))
 
 #####################################################################################
 ############################## Subset ArchR object #######################################
-### will need to add extra functionality here 
-ArchR_subset <- subset_ArchR(ArchR, meta_col = opt$meta_col1, groups = opt$groups1, invert = opt$invert)
+
+ArchR_subset <- subset_ArchR(ArchR, meta_col1 = opt$meta_col1, meta_col2 = opt$meta_col2, 
+                             groups1 = opt$groups1, groups2 = opt$groups2,
+                             invert1 = opt$invert1, invert2 = opt$invert2)
 print("ArchR object subsetted")
 
 saveArchRProject(ArchRProj = ArchR_subset, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 
 #####################################################################################
 ############################## Visualisations #######################################
-
-### Plot removed cells on UMAP
-if (opt$invert == FALSE) {
-    idxPass <- which(ArchR@cellColData[,opt$meta_col] %in% opt$groups)
-} else {
-    idxPass <- which(!(ArchR@cellColData[,opt$meta_col] %in% opt$groups))
-}
-cells <- ArchR$cellNames[idxPass]
-
-png(paste0(plot_path, "UMAP_cells_to_remove.png"), width=20, height=20, units = 'cm', res = 200)
-plotEmbedding(ArchR, name = opt$meta_col, highlightCells = cells,
-    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-    baseSize = 0, labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
-graphics.off()
 
 ### Plot cell counts before and after subsetting per stage
 unfiltered <- table(ArchR$stage)
