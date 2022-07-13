@@ -161,7 +161,7 @@ if ("stage_clusters" %in% colnames(ArchR@cellColData)){
   cell_counts <- as.data.frame(dplyr::bind_rows(unfiltered, filtered))
   cell_counts[is.na(cell_counts)] = 0
   
-  png(paste0(plot_path, 'cell_counts_table_stage_clusters.png'), height = 10, width = 30, units = 'cm', res = 400)
+  png(paste0(plot_path, 'cell_counts_table_stage_clusters.png'), height = 10, width = 60, units = 'cm', res = 400)
   grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
                tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
   graphics.off()
