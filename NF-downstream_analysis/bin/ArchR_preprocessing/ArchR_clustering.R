@@ -108,11 +108,13 @@ ArchR_IdentifyOutliers <- function(ArchR, group_by = 'clusters', metrics, inters
 ArchR_ClustRes <- function(ArchR, by = 0.1, starting_res = 0){
   plots <- list()
   resolutions <- c(seq(starting_res, starting_res+9*by, by=by))
+  print(paste0("resolutions: ", resolutions))
   cluster_df <- data.frame(ArchR$cellNames)
   
   if(length(ArchR@reducedDims) == 0){stop("Carry out dimensionality reduction before clustering")}
   
   for(res in resolutions[2:length(resolutions)]){
+    print(paste0("resolution: ", res))
     ArchR_clustered <- addClusters(input = ArchR, name = "clusters", force = TRUE, resolution = res)
     plots[[paste(res)]] <- plotEmbedding(ArchR_clustered, name = "clusters") +
       ggtitle(paste("resolution = ", res))
@@ -292,51 +294,6 @@ if (length(unique(ArchR$stage)) == 1){
   ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$full_clust_res, force = TRUE)
 }
 print("clustering ran")
-
-####### OLD PROCESSING ########
-# ArchR <- addIterativeLSI(
-#   ArchRProj = ArchR,
-#   useMatrix = "TileMatrix", 
-#   name = "IterativeLSI", 
-#   iterations = 2, 
-#   clusterParams = list( #See Seurat::FindClusters
-#     resolution = c(0.2), 
-#     sampleCells = 10000, 
-#     n.start = 10
-#   ), 
-#   varFeatures = 25000, 
-#   dimsToUse = 1:30,
-#   seed = 1,
-#   force = TRUE
-# )
-
-# ArchR <- addUMAP(
-#   ArchRProj = ArchR, 
-#   reducedDims = "IterativeLSI", 
-#   name = "UMAP", 
-#   nNeighbors = 30, 
-#   minDist = 0.5, 
-#   metric = "cosine",
-#   force = TRUE
-# )
-# # Set clustering for stage and full data
-# if (length(unique(ArchR$stage)) == 1){
-#   ArchR <- addClusters(
-#   input = ArchR,
-#   reducedDims = "IterativeLSI",
-#   method = "Seurat",
-#   name = "clusters",
-#   resolution = opt$stage_clust_res,
-#   force = TRUE)
-# } else {
-#   ArchR <- addClusters(
-#   input = ArchR,
-#   reducedDims = "IterativeLSI",
-#   method = "Seurat",
-#   name = "clusters",
-#   resolution = opt$full_clust_res,
-#   force = TRUE)
-# }
 
 # Plot Clustree
 if (isTRUE(opt$clustree)) {
