@@ -25,9 +25,9 @@ workflow INTEGRATING {
     CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out )
     
     // Filter contaminating cells from all channels and re-cluster all channels
-    SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
-    CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
-    CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out )
+    //SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
+    //CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
+    //CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out )
 
     //emit integrated ArchR objects:
     emit:
