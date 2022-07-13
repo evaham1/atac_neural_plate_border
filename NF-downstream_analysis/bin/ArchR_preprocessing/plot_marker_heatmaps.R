@@ -152,7 +152,8 @@ subset_matrix <- function(mat, ids) {
 ### Function to plot marker heatmap
 marker_heatmap <- function(mat, pal = NULL, 
                            labelRows = FALSE, fontSizeRows = 12,
-                           labelCols = TRUE, fontSizeCols = 12) {
+                           labelCols = TRUE, fontSizeCols = 12,
+                           cluster_columns = TRUE, cluster_rows = TRUE) {
   
   # scale each feature independently and add min/max limits
   limits <- c(-2, 2) # could make this user-defined
@@ -166,17 +167,17 @@ marker_heatmap <- function(mat, pal = NULL,
     pal <- paletteContinuous(set = "solarExtra", n = 100)
   }
   
-  # order rows by eucladian distance
-  dist_mat <- dist(mat, method = 'euclidean')
-  hclust_avg <- hclust(dist_mat, method = 'average')
-  ordered_features <- hclust_avg$labels[c(hclust_avg$order)]
-  mat <- mat[match(ordered_features, rownames(mat)), ]
-  
-  # order columns by eucladian distance
-  dist_mat <- dist(t(mat), method = 'euclidean')
-  hclust_avg <- hclust(dist_mat, method = 'average')
-  ordered_cell_groups <- hclust_avg$labels[c(hclust_avg$order)]
-  mat <- mat[ , match(ordered_cell_groups, colnames(mat))]
+  # # order rows by eucladian distance
+  # dist_mat <- dist(mat, method = 'euclidean')
+  # hclust_avg <- hclust(dist_mat, method = 'average')
+  # ordered_features <- hclust_avg$labels[c(hclust_avg$order)]
+  # mat <- mat[match(ordered_features, rownames(mat)), ]
+  # 
+  # # order columns by eucladian distance
+  # dist_mat <- dist(t(mat), method = 'euclidean')
+  # hclust_avg <- hclust(dist_mat, method = 'average')
+  # ordered_cell_groups <- hclust_avg$labels[c(hclust_avg$order)]
+  # mat <- mat[ , match(ordered_cell_groups, colnames(mat))]
   
   Heatmap(
     matrix = mat,
@@ -186,14 +187,14 @@ marker_heatmap <- function(mat, pal = NULL,
     # add raster stuff?
     
     #Column Options
-    cluster_columns = FALSE,
+    cluster_columns = cluster_columns,
     show_column_names = labelCols,
     column_names_gp = gpar(fontsize = fontSizeCols),
     column_names_max_height = unit(100, "mm"),
     #column_split = colData$stage,
     
     #Row Options
-    cluster_rows = FALSE,
+    cluster_rows = cluster_rows,
     show_row_names = labelRows,
     row_names_gp = gpar(fontsize = fontSizeRows)
     #row_split = row_split_params
@@ -258,11 +259,11 @@ if (length(ids) < 2){
 
 ###################### Heatmap of positive markers top 10 per cell group #############################
 
-ids <- extract_ids(seMarker, cutOff = "FDR <= 1 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
+ids <- extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
 subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
 
 png(paste0(plot_path, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal)
+marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE)
 graphics.off()
 
 ###################### Plots showing distribution of FDR and Logf2c values #############################
