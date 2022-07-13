@@ -344,6 +344,7 @@ write.csv(id_data, file = paste0(plot_path, "ss8_PPR_putative_enhancers_table.cs
 
 # make genome browser plots
 plot_path <- paste0(plot_path, "browser_tracks/")
+dir.create(plot_path, recursive = T)
 
 for (id in open_peaks){
   print(id)
