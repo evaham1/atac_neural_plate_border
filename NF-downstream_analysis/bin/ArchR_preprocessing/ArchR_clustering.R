@@ -314,6 +314,7 @@ if (isTRUE(opt$clustree)) {
 ################## Save clustered ArchR project #################################
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+print("ArchR object saved")
 
 #######################################################################################
 ############################ CELL COUNTS PER CLUSTER ##################################
@@ -343,6 +344,8 @@ if (length(unique(ArchR$stage)) > 1){
   cell_counts_heatmap(ArchR = ArchR, group1 = "clusters", group2 = "stage")
   graphics.off()
 }
+
+print("cell counts calculated")
 
 #######################################################################################
 ################################### UMAPS #############################################
