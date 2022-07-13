@@ -16,6 +16,10 @@ library(gridExtra)
 library(grid)
 library(parallel)
 library(clustree)
+library(presto)
+library(Seurat)
+library(plyr)
+library(gtools)
 
 ############################## Set up script options #######################################
 # Read in command line opts
