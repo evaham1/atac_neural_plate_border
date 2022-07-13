@@ -494,7 +494,7 @@ if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
 
   if (length(unique(ArchR$stage)) > 1){
 
-    plot_path = paste0(plot_path, "labels_by_stage_distribution/"
+    plot_path = paste0(plot_path, "labels_by_stage_distribution/")
     dir.create(plot_path, recursive = T)
   
     png(paste0(plot_path, 'counts_by_stage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
