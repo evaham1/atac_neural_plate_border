@@ -86,7 +86,7 @@ ArchR_IdentifyOutliers <- function(ArchR, group_by = 'clusters', metrics, inters
     min = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1])
     max = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2])
     
-    outlier[[metric]] <- as.tibble(getCellColData(ArchR)) %>%
+    outlier[[metric]] <- as_tibble(getCellColData(ArchR)) %>%
       group_by((!!as.symbol(group_by))) %>%
       summarise(median = median((!!as.symbol(metric)))) %>%
       filter(median > max | median < min) %>%
@@ -400,6 +400,7 @@ graphics.off()
 
 # automatically identify outlier clusters using adapted scHelper function
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+print(outliers)
 
 # highlight outlier clusters on UMAP
 if (is.null(outliers) == FALSE){
@@ -428,6 +429,7 @@ graphics.off()
 
 # automatically identify outlier clusters using adapted scHelper function
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+print(outliers)
 
 # highlight outlier clusters on UMAP
 if (is.null(outliers) == FALSE){
@@ -458,6 +460,7 @@ graphics.off()
 
 # automatically identify outlier clusters using adapted scHelper function
 outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+print(outliers)
 
 # highlight outlier clusters on UMAP
 if (is.null(outliers) == FALSE){
@@ -469,6 +472,8 @@ if (is.null(outliers) == FALSE){
       baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
   graphics.off()
 }
+
+print("QC plots done")
 
 #################################################################################
 ############################ CELL LABEL PLOTS ###################################
