@@ -386,7 +386,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = c("ss8_C71"))
+  useGroups = c("ss8_C1"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 unique_ids <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
 
