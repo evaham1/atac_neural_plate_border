@@ -547,30 +547,30 @@ if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
   graphics.off()
 
   # assign cluster labels
-  cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_old))
-  scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
-  cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
+  # cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_old))
+  # scHelper_cell_types <- colnames(cM)[apply(cM, 1 , which.max)]
+  # cluster_idents <- cbind(scHelper_cell_types, rownames(cM))
 
-  png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
-  grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
-  graphics.off()
+  # png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+  # grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
+  # graphics.off()
 
-  new_labels <- cluster_idents[,1]
-  names(new_labels) <- cluster_idents[,2]
-  ArchR$cluster_old_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
+  # new_labels <- cluster_idents[,1]
+  # names(new_labels) <- cluster_idents[,2]
+  # ArchR$cluster_old_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
 
-  p1 <- plotEmbedding(ArchR, name = "cluster_old_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-                labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
-  p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-                labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
+  # p1 <- plotEmbedding(ArchR, name = "cluster_old_labels", plotAs = "points", size = 1.8, baseSize = 0, 
+  #               labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
+  # p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+  #               labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
 
-  png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-  print(p1)
-  graphics.off()
+  # png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+  # print(p1)
+  # graphics.off()
 
-  png(paste0(plot_path, 'assigned_cluster_idents_UMAP_comparison.png'), height = 20, width = 40, units = 'cm', res = 400)
-  print(p1 + p2)
-  graphics.off()
+  # png(paste0(plot_path, 'assigned_cluster_idents_UMAP_comparison.png'), height = 20, width = 40, units = 'cm', res = 400)
+  # print(p1 + p2)
+  # graphics.off()
 
   ##################### Distribution of labels across stages ##################################
 
