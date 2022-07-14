@@ -87,10 +87,10 @@ ArchR_IdentifyOutliers <- function(ArchR, group_by = 'clusters', metrics, inters
     max = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2])
     
     outlier[[metric]] <- as_tibble(getCellColData(ArchR)) %>%
-      group_by((!!as.symbol(group_by))) %>%
-      summarise(median = median((!!as.symbol(metric)))) %>%
-      filter(median > max | median < min) %>%
-      pull(!!as.symbol(group_by))
+      dplyr::group_by((!!as.symbol(group_by))) %>%
+      dplyr::summarise(median = median((!!as.symbol(metric)))) %>%
+      dplyr::filter(median > max | median < min) %>%
+      dplyr::pull(!!as.symbol(group_by))
   }
   
   if(intersect_metrics){
@@ -167,8 +167,8 @@ cell_counting <- function(ArchR = ArchR, group1 = "clusters", group2 = "stage", 
       ArchR_subset <- ArchR[cells, ]
       data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
       group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
-        pivot_wider(names_from = data_group2, values_from = Freq) %>% 
-        add_column(ID = !!i)
+        dplyr::pivot_wider(names_from = data_group2, values_from = Freq) %>% 
+        dplyr::add_column(ID = !!i)
       group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
     }
   }
@@ -375,105 +375,105 @@ plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = ifelse(length(
               labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
 graphics.off()
 
-#################################################################################
-############################### QC PLOTS ########################################
+# #################################################################################
+# ############################### QC PLOTS ########################################
 
-plot_path <- "./plots/QC_plots/"
-dir.create(plot_path, recursive = T)
+# plot_path <- "./plots/QC_plots/"
+# dir.create(plot_path, recursive = T)
 
-######################## QC Vioin Plots #######################################
+# ######################## QC Vioin Plots #######################################
 
-quantiles = c(0.2, 0.8)
+# quantiles = c(0.2, 0.8)
 
-##### nFrags
-p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-  name = "nFrags", plotAs = "Violin", baseSize = 12)
+# ##### nFrags
+# p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+#   name = "nFrags", plotAs = "Violin", baseSize = 12)
 
-metrics = "nFrags"
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
-                   color = "red")
-png(paste0(plot_path, "VlnPlot_thresholds_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
+# metrics = "nFrags"
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
+#                    color = "red")
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
+#                    color = "red")
+# png(paste0(plot_path, "VlnPlot_thresholds_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
+# print(p)
+# graphics.off()
 
-# automatically identify outlier clusters using adapted scHelper function
-outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
-print(outliers)
+# # automatically identify outlier clusters using adapted scHelper function
+# outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+# print(outliers)
 
-# highlight outlier clusters on UMAP
-if (is.null(outliers) == FALSE){
-  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-  cellsSample <- ArchR$cellNames[idxSample]
-  png(paste0(plot_path, "UMAP_nFrags_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
-                      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-                      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
-  graphics.off()
-}
+# # highlight outlier clusters on UMAP
+# if (is.null(outliers) == FALSE){
+#   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+#   cellsSample <- ArchR$cellNames[idxSample]
+#   png(paste0(plot_path, "UMAP_nFrags_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+#   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+#                       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+#                       baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
+#   graphics.off()
+# }
 
-#### TSS Enrichment
-p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-  name = "TSSEnrichment",plotAs = "violin",
-  alpha = 0.4, addBoxPlot = TRUE, baseSize = 12)
+# #### TSS Enrichment
+# p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+#   name = "TSSEnrichment",plotAs = "violin",
+#   alpha = 0.4, addBoxPlot = TRUE, baseSize = 12)
 
-metrics = "TSSEnrichment"
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
-                   color = "red")
-png(paste0(plot_path, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
+# metrics = "TSSEnrichment"
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
+#                    color = "red")
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
+#                    color = "red")
+# png(paste0(plot_path, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
+# print(p)
+# graphics.off()
 
-# automatically identify outlier clusters using adapted scHelper function
-outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
-print(outliers)
+# # automatically identify outlier clusters using adapted scHelper function
+# outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+# print(outliers)
 
-# highlight outlier clusters on UMAP
-if (is.null(outliers) == FALSE){
-  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-  cellsSample <- ArchR$cellNames[idxSample]
-  png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
-      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
-  graphics.off()
-}
+# # highlight outlier clusters on UMAP
+# if (is.null(outliers) == FALSE){
+#   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+#   cellsSample <- ArchR$cellNames[idxSample]
+#   png(paste0(plot_path, "UMAP_TSSEnrichment_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+#   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+#       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+#       baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
+#   graphics.off()
+# }
 
-#### Nucleosome signal
-p <- plotGroups(ArchR, 
-  groupBy = "clusters", colorBy = "cellColData", 
-  name = "NucleosomeRatio", plotAs = "violin",
-  alpha = 0.4, addBoxPlot = TRUE, baseSize = 12
-)
+# #### Nucleosome signal
+# p <- plotGroups(ArchR, 
+#   groupBy = "clusters", colorBy = "cellColData", 
+#   name = "NucleosomeRatio", plotAs = "violin",
+#   alpha = 0.4, addBoxPlot = TRUE, baseSize = 12
+# )
 
-metrics = "NucleosomeRatio"
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
-                   color = "red")
-png(paste0(plot_path, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
+# metrics = "NucleosomeRatio"
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1]), linetype = "dashed", 
+#                    color = "red")
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2]), linetype = "dashed", 
+#                    color = "red")
+# png(paste0(plot_path, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
+# print(p)
+# graphics.off()
 
-# automatically identify outlier clusters using adapted scHelper function
-outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
-print(outliers)
+# # automatically identify outlier clusters using adapted scHelper function
+# outliers <- ArchR_IdentifyOutliers(ArchR, group_by = 'clusters', metrics = metrics, intersect_metrics = FALSE, quantiles = quantiles)
+# print(outliers)
 
-# highlight outlier clusters on UMAP
-if (is.null(outliers) == FALSE){
-  idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
-  cellsSample <- ArchR$cellNames[idxSample]
-  png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
-  print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
-      plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
-      baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
-  graphics.off()
-}
+# # highlight outlier clusters on UMAP
+# if (is.null(outliers) == FALSE){
+#   idxSample <- BiocGenerics::which(ArchR$clusters %in% outliers)
+#   cellsSample <- ArchR$cellNames[idxSample]
+#   png(paste0(plot_path, "UMAP_NucleosomeRatio_outliers.png"), width=20, height=20, units = 'cm', res = 200)
+#   print(plotEmbedding(ArchR, name = "clusters", highlightCells = cellsSample,
+#       plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+#       baseSize = 20, labelSize = 14, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE))
+#   graphics.off()
+# }
 
-print("QC plots done")
+# print("QC plots done")
 
 #################################################################################
 ############################ CELL LABEL PLOTS ###################################
