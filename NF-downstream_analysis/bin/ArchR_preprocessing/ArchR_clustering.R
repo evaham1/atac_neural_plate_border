@@ -8,6 +8,7 @@ library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
+library(plyr)
 library(dplyr)
 library(GenomicFeatures)
 library(hexbin)
@@ -18,7 +19,6 @@ library(parallel)
 library(clustree)
 library(presto)
 library(Seurat)
-library(plyr)
 library(gtools)
 
 ############################## Set up script options #######################################
@@ -51,6 +51,9 @@ if(opt$verbose) print(opt)
 
     # already clustered
     data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
+    
+    # NPB subset
+    data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/NPB/subset/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -321,10 +324,12 @@ print("ArchR object saved")
 
 # Plot number of cells in each cluster
 cluster_cell_counts <- as.data.frame(table(substr(ArchR$clusters, 2, nchar(ArchR$clusters))))
+print(cluster_cell_counts)
 cluster_cell_counts <- cluster_cell_counts %>% 
-  rename(Cell_count = Freq, Cluster_number = Var1) %>%
-  mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
-  arrange(Cluster_number)
+  dplyr::rename(Cell_count = Freq, Cluster_number = Var1) %>%
+  dplyr::mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
+  dplyr::arrange(Cluster_number)
+print(cluster_cell_counts)
 
 png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 25, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
