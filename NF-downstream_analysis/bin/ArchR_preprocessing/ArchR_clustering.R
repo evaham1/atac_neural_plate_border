@@ -167,8 +167,8 @@ cell_counting <- function(ArchR = ArchR, group1 = "clusters", group2 = "stage", 
       ArchR_subset <- ArchR[cells, ]
       data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
       group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
-        dplyr::pivot_wider(names_from = data_group2, values_from = Freq) %>% 
-        dplyr::add_column(ID = !!i)
+        tidyr::pivot_wider(names_from = data_group2, values_from = Freq) %>% 
+        tibble::add_column(ID = !!i)
       group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
     }
   }
