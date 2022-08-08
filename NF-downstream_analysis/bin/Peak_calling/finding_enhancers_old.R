@@ -202,8 +202,7 @@ marker_heatmap <- function(mat, pal = NULL,
 
 # takes matrix of average cut sites per cluster, sums the average across clusters within each stage
 # then filters peaks that have an aggregated count score above the threshold in every stage
-open_across_stages_test <- function(m, threshold_type = "min", threshold_HH5 = 0, threshold_HH6 = 0,
-                                    threshold_HH7 = 0, threshold_ss4 = 0, threshold_ss8 = 0){
+open_across_stages_test <- function(m, threshold = 0){
   df <- as.data.frame(m)
   sums <- data.frame(HH5_sum = rowSums(dplyr::select(df, starts_with("HH5"))),
                      HH6_sum = rowSums(dplyr::select(df, starts_with("HH6"))),
@@ -211,19 +210,7 @@ open_across_stages_test <- function(m, threshold_type = "min", threshold_HH5 = 0
                      ss4_sum = rowSums(dplyr::select(df, starts_with("ss4"))),
                      ss8_sum = rowSums(dplyr::select(df, starts_with("ss8"))))
   rownames(sums) <- rownames(m)
-  
-  if (!(threshold_type %in% c("min","max"))){
-    print("threshold_type must either be 'min' or 'max'")
-  }
-  if (threshold_type == "min"){
-    filtered <- filter(sums, HH5_sum > threshold_HH5, HH6_sum > threshold_HH6, 
-                       HH7_sum > threshold_HH7, ss4_sum > threshold_ss4, ss8_sum > threshold_ss8)
-  }
-  if (threshold_type == "max"){
-    filtered <- filter(sums, HH5_sum < threshold_HH5, HH6_sum < threshold_HH6, 
-                       HH7_sum < threshold_HH7, ss4_sum < threshold_ss4, ss8_sum < threshold_ss8)
-  }
-  
+  filtered <- filter(sums, HH5_sum > threshold, HH6_sum > threshold, HH7_sum > threshold, ss4_sum > threshold, ss8_sum > threshold)
   return(rownames(filtered))
 }
 
@@ -300,16 +287,11 @@ Full_se <- readRDS(se_data)
 # when running interactively:
 #Full_se <- readRDS(se_path)
 
+
 #############################################################################
-###############################   PPR   #####################################
+############################## ss8: PPR #####################################
 
-##################### ss8 PPR vs ss8 everything else #######################
-# diff accessible in PPR ss8 clusters (C7+C8) vs other cells at ss8
-# then filter on annotation 
-# then filter so open at all stages (early peaks) 
-# OR only open from HH7 onwards (late peaks)
-
-plot_path <- "./plots/PPR/diff_within_ss8"
+plot_path <- "./plots/ss8_PPR/"
 dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in PPR
@@ -317,8 +299,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = c("ss8_C7", "ss8_C8"),
-  bgdGroups = c("ss8_C1", "ss8_C2", "ss8_C3", "ss8_C4", "ss8_C5", "ss8_C6", "ss8_C9", "ss8_C10"))
+  useGroups = c("ss8_C7", "ss8_C8"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 unique_ids <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
 
@@ -330,11 +311,11 @@ png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = '
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-print(paste0("length of unique_ids: ", length(unique_ids))) #10481
+print(paste0("length of unique_ids: ", length(unique_ids))) #7531
 id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ])
-print(dim(id_data)) #10481 x 21
+print(dim(id_data)) #7531 x 21
 
-### Step 2: filter out peaks in genes
+### Step 2: filter out peaks in genes - FILTER_1
 filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
 filtered_ids <- filtered_id_data$unique_id
 print(paste0("length of filtered_ids: ", length(filtered_ids))) # 6841
@@ -345,42 +326,30 @@ png(paste0(plot_path, 'diff_accessible_annot_filtered.png'), height = 20, width 
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-id_data <- id_data %>% mutate(annotation_filter = ifelse(unique_id %in% filtered_ids == TRUE, "T", "F"))
+id_data <- id_data %>% mutate(filter_1 = ifelse(unique_id %in% filtered_ids == TRUE, "T", "F"))
 
-### Step 3: early peaks (open at every stage from HH5)
+### Step 3: filter out peaks not open in earlier stages
 subsetted_raw_matrix <- subset_matrix(matrix, filtered_ids)
-early_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 1.5,
-                                      threshold_HH6 = 1.5, threshold_HH7 = 1.5, threshold_ss4 = 1.5, threshold_ss8 = 1.5)
-print(paste0("length of early_peaks: ", length(early_peaks))) # 20
+open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
+print(paste0("length of open_peaks: ", length(open_peaks))) # 35
 
-subsetted_matrix <- subset_matrix(normalised_matrix, early_peaks)
+subsetted_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_HH5.png'), height = 20, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path, 'diff_accessible_annot_filtered_open_early.png'), height = 20, width = 30, units = 'cm', res = 400)
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
 graphics.off()
 
-id_data <- id_data %>% mutate(early_filter = ifelse(unique_id %in% early_peaks == TRUE, "T", "F"))
-
-### Step 3: late peaks (open only from HH7)
-late_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "max", threshold_HH5 = 0.015,
-                                      threshold_HH6 = 0.015, threshold_HH7 = 10, threshold_ss4 = 10, threshold_ss8 = 10)
-print(paste0("length of late_peaks: ", length(late_peaks))) # 23
-
-subsetted_matrix <- subset_matrix(normalised_matrix, late_peaks)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_HH7.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-graphics.off()
-
-id_data <- id_data %>% mutate(late_filter = ifelse(unique_id %in% late_peaks == TRUE, "T", "F"))
+id_data <- id_data %>% mutate(filter_2 = ifelse(unique_id %in% open_peaks == TRUE, "T", "F"))
 
 ### Step 4: export peaks and visualise them
+write.table(open_peaks, file = paste0(plot_path, "ss8_PPR_putative_enhancers.txt"), sep = "")
 write.csv(id_data, file = paste0(plot_path, "ss8_PPR_putative_enhancers_table.csv"))
 
-# make genome browser plots for open peaks
-plot_path <- paste0(plot_path, "browser_tracks/early_peaks/")
+# make genome browser plots
+plot_path <- paste0(plot_path, "browser_tracks/")
 dir.create(plot_path, recursive = T)
-for (id in early_peaks){
+
+for (id in open_peaks){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
@@ -393,134 +362,23 @@ for (id in early_peaks){
   graphics.off()
 }
 
-plot_path <- paste0(plot_path, "browser_tracks/late_peaks/")
-dir.create(plot_path, recursive = T)
-for (id in late_peaks){
+for (id in open_peaks){
   print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
+  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 50000)
   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
   name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
-  grid::grid.draw(p)
-  graphics.off()
-}
-
-
-################ PPR: HH7,ss4,ss8 PPR vs everything else ####################
-# diff accessible in PPR clusters at HH7, ss4 and ss8 vs all other cells
-# then filter on annotation, 
-# then filter so open at all stages (early peaks) 
-# OR only open from HH7 onwards (late peaks)
-
-plot_path <- "./plots/PPR/diff_HH7_ss4_ss8"
-dir.create(plot_path, recursive = T)
-
-### Step 1: differentially accessible in PPR
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage_clusters",
-  useGroups = c("HH7_C4", "ss4_C2", "ss4_C3", "ss8_C7", "ss8_C8"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-unique_ids <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
-
-matrix <- extract_means_from_se(Full_se)
-normalised_matrix <- Log2norm(matrix)
-subsetted_matrix <- subset_matrix(normalised_matrix, unique_ids)
-
-png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-graphics.off()
-
-print(paste0("length of unique_ids: ", length(unique_ids))) #7883
-id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ])
-print(dim(id_data))
-
-### Step 2: filter out peaks in genes
-filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
-filtered_ids <- filtered_id_data$unique_id
-print(paste0("length of filtered_ids: ", length(filtered_ids))) # 7139
-
-subsetted_matrix <- subset_matrix(normalised_matrix, filtered_ids)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-graphics.off()
-
-id_data <- id_data %>% mutate(annotation_filter = ifelse(unique_id %in% filtered_ids == TRUE, "T", "F"))
-
-### Step 3: early peaks (open at every stage from HH5)
-subsetted_raw_matrix <- subset_matrix(matrix, filtered_ids)
-early_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 1,
-                                      threshold_HH6 = 1, threshold_HH7 = 1, threshold_ss4 = 1, threshold_ss8 = 1)
-print(paste0("length of early_peaks: ", length(early_peaks))) # 39
-
-subsetted_matrix <- subset_matrix(normalised_matrix, early_peaks)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_HH5.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-graphics.off()
-
-id_data <- id_data %>% mutate(open_early_filter = ifelse(unique_id %in% early_peaks == TRUE, "T", "F"))
-
-### Step 3: late peaks (only open from HH7)
-late_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "max", threshold_HH5 = 0.01,
-                                        threshold_HH6 = 0.01, threshold_HH7 = 10, threshold_ss4 = 10, threshold_ss8 = 10)
-print(paste0("length of late_peaks: ", length(late_peaks))) # 7
-
-subsetted_matrix <- subset_matrix(normalised_matrix, late_peaks)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_HH7.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-graphics.off()
-
-id_data <- id_data %>% mutate(closed_early_filter = ifelse(unique_id %in% late_peaks == TRUE, "T", "F"))
-
-### Step 4: export peaks and visualise them
-write.csv(id_data, file = paste0(plot_path, "HH7_ss4_ss8_PPR_putative_enhancers_table.csv"))
-
-# make genome browser plots for open peaks
-plot_path <- paste0(plot_path, "browser_tracks/early_peaks/")
-dir.create(plot_path, recursive = T)
-for (id in early_peaks){
-  print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
-                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
-                        title = paste0("Peak ID:", id))
-  
-  name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
-  grid::grid.draw(p)
-  graphics.off()
-}
-
-plot_path <- paste0(plot_path, "browser_tracks/late_peaks/")
-dir.create(plot_path, recursive = T)
-for (id in late_peaks){
-  print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
-                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
-                        title = paste0("Peak ID:", id))
-  
-  name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
+  png(paste0(plot_path, name, '_extended_by_50000.png'), height = 50, width = 50, units = 'cm', res = 400)
   grid::grid.draw(p)
   graphics.off()
 }
 
 #############################################################################
-##############################    NC    #####################################
+############################## ss8: NC #####################################
 
-# diff accessible in NC ss8 clusters (C1) vs other clusters at ss8 (although we have NC mix...)
-# filter on annotation, 
-# then filter so open at all stages OR only open from HH7 onwards
-
-plot_path <- "./plots/NC/diff_within_ss8"
+plot_path <- "./plots/ss8_NC/"
 dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in NC
@@ -528,8 +386,7 @@ se <- getMarkerFeatures(
   ArchRProj = FullData, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
-  useGroups = c("ss8_C1"),
-  bgdGroups = c("ss8_C2", "ss8_C3", "ss8_C4", "ss8_C5", "ss8_C6", "ss8_C7", "ss8_C8", "ss8_C9", "ss8_C10"))
+  useGroups = c("ss8_C1"))
 se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
 unique_ids <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
 
@@ -541,118 +398,14 @@ png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = '
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
 graphics.off()
 
-print(paste0("length of unique_ids: ", length(unique_ids))) #4312
-id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ])
-print(dim(id_data)) #4312 x 21
-
-### Step 2: filter out peaks in genes - FILTER_1
-filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
-filtered_ids <- filtered_id_data$unique_id
-print(paste0("length of filtered_ids: ", length(filtered_ids))) # 3938
-
-subsetted_matrix <- subset_matrix(normalised_matrix, filtered_ids)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-graphics.off()
-
-id_data <- id_data %>% mutate(filter_1 = ifelse(unique_id %in% filtered_ids == TRUE, "T", "F"))
-
-### Step 3: earlyish peaks (open from HH7)
-subsetted_raw_matrix <- subset_matrix(matrix, filtered_ids)
-earlyish_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 0.00001,
-                                      threshold_HH6 = 0.00001, threshold_HH7 = 1, threshold_ss4 = 1, threshold_ss8 = 1)
-print(paste0("length of earlyish_peaks: ", length(earlyish_peaks))) # 35
-
-subsetted_matrix <- subset_matrix(normalised_matrix, earlyish_peaks)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_HH7.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-graphics.off()
-
-id_data <- id_data %>% mutate(filter_2 = ifelse(unique_id %in% earlyish_peaks == TRUE, "T", "F"))
-
-### Step 3: late peaks (open from ss4)
-late_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "max", threshold_HH5 = 0.01,
-                                        threshold_HH6 = 0.01, threshold_HH7 = 0.01, threshold_ss4 = 10, threshold_ss8 = 10)
-print(paste0("length of late_peaks: ", length(late_peaks))) # 12
-
-subsetted_matrix <- subset_matrix(normalised_matrix, late_peaks)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_ss4.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-graphics.off()
-
-id_data <- id_data %>% mutate(closed_early_filter = ifelse(unique_id %in% late_peaks == TRUE, "T", "F"))
-
-### Step 4: export peaks and visualise them
-write.csv(id_data, file = paste0(plot_path, "ss8_NC_putative_enhancers_table.csv"))
-
-# make genome browser plots
-plot_path <- paste0(plot_path, "browser_tracks/earlyish_peaks/")
-dir.create(plot_path, recursive = T)
-for (id in earlyish_peaks){
-  print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
-                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
-                        title = paste0("Peak ID:", id))
-  
-  name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
-  grid::grid.draw(p)
-  graphics.off()
-}
-
-plot_path <- paste0(plot_path, "browser_tracks/late_peaks/")
-dir.create(plot_path, recursive = T)
-for (id in late_peaks){
-  print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
-                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
-                        title = paste0("Peak ID:", id))
-  
-  name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
-  grid::grid.draw(p)
-  graphics.off()
-}
-
-
-# diff accessible in NC HH7,ss4,ss8 clusters, 
-# filter on annotation, 
-# then filter for earlyish (open from HH7)
-# or late (from ss4)
-
-plot_path <- "./plots/NC/diff_HH7_ss4_ss8"
-dir.create(plot_path, recursive = T)
-
-### Step 1: differentially accessible in NC
-se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage_clusters",
-  useGroups = c("HH7_C5", "HH7_C6", "ss4_C6", "ss8_C1"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
-unique_ids <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
-
-matrix <- extract_means_from_se(Full_se)
-normalised_matrix <- Log2norm(matrix)
-subsetted_matrix <- subset_matrix(normalised_matrix, unique_ids)
-
-png(paste0(plot_path, 'diff_accessible.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-graphics.off()
-
-print(paste0("length of unique_ids: ", length(unique_ids))) #5825
+print(paste0("length of unique_ids: ", length(unique_ids))) #7531
 id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% unique_ids), ])
 print(dim(id_data)) #7531 x 21
 
 ### Step 2: filter out peaks in genes - FILTER_1
 filtered_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
 filtered_ids <- filtered_id_data$unique_id
-print(paste0("length of filtered_ids: ", length(filtered_ids))) # 5320
+print(paste0("length of filtered_ids: ", length(filtered_ids))) # 6841
 
 subsetted_matrix <- subset_matrix(normalised_matrix, filtered_ids)
 
@@ -662,40 +415,28 @@ graphics.off()
 
 id_data <- id_data %>% mutate(filter_1 = ifelse(unique_id %in% filtered_ids == TRUE, "T", "F"))
 
-### Step 3: earlyish peaks (open from HH7)
+### Step 3: filter out peaks not open in earlier stages
 subsetted_raw_matrix <- subset_matrix(matrix, filtered_ids)
-earlyish_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 0.00001,
-                                          threshold_HH6 = 0.00001, threshold_HH7 = 1, threshold_ss4 = 1, threshold_ss8 = 1)
-print(paste0("length of earlyish_peaks: ", length(earlyish_peaks))) # 35
+open_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold = 1)
+print(paste0("length of open_peaks: ", length(open_peaks))) # 35
 
-subsetted_matrix <- subset_matrix(normalised_matrix, earlyish_peaks)
+subsetted_matrix <- subset_matrix(normalised_matrix, open_peaks)
 
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_HH7.png'), height = 20, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path, 'diff_accessible_annot_filtered_open_early.png'), height = 20, width = 30, units = 'cm', res = 400)
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
 graphics.off()
 
-id_data <- id_data %>% mutate(filter_2 = ifelse(unique_id %in% earlyish_peaks == TRUE, "T", "F"))
-
-### Step 3: late peaks (open from ss4)
-late_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "max", threshold_HH5 = 0.01,
-                                      threshold_HH6 = 0.01, threshold_HH7 = 0.01, threshold_ss4 = 10, threshold_ss8 = 10)
-print(paste0("length of late_peaks: ", length(late_peaks))) # 12
-
-subsetted_matrix <- subset_matrix(normalised_matrix, late_peaks)
-
-png(paste0(plot_path, 'diff_accessible_annot_filtered_open_from_ss4.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-graphics.off()
-
-id_data <- id_data %>% mutate(closed_early_filter = ifelse(unique_id %in% late_peaks == TRUE, "T", "F"))
+id_data <- id_data %>% mutate(filter_2 = ifelse(unique_id %in% open_peaks == TRUE, "T", "F"))
 
 ### Step 4: export peaks and visualise them
+write.table(open_peaks, file = paste0(plot_path, "ss8_NC_putative_enhancers.txt"), sep = "")
 write.csv(id_data, file = paste0(plot_path, "ss8_NC_putative_enhancers_table.csv"))
 
 # make genome browser plots
-plot_path <- paste0(plot_path, "browser_tracks/earlyish_peaks/")
+plot_path <- paste0(plot_path, "browser_tracks/")
 dir.create(plot_path, recursive = T)
-for (id in earlyish_peaks){
+
+for (id in open_peaks){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
@@ -708,17 +449,15 @@ for (id in earlyish_peaks){
   graphics.off()
 }
 
-plot_path <- paste0(plot_path, "browser_tracks/late_peaks/")
-dir.create(plot_path, recursive = T)
-for (id in late_peaks){
+for (id in open_peaks){
   print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
+  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 50000)
   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
   name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
+  png(paste0(plot_path, name, '_extended_by_50000.png'), height = 50, width = 50, units = 'cm', res = 400)
   grid::grid.draw(p)
   graphics.off()
 }
