@@ -547,3 +547,91 @@ for (id in ids_3){
   grid::grid.draw(p)
   graphics.off()
 }
+
+##################### HH7 + ss4 + ss8 - open from HH5 #######################
+plot_path <- "./plots/PPR/diff_HH7_ss4_ss8_open_from_HH5/"
+dir.create(plot_path, recursive = T)
+
+### Step 1: differentially accessible in ss8 PPR clusters vs everything else
+se <- getMarkerFeatures(
+  ArchRProj = FullData, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "stage_clusters",
+  useGroups = c("HH7_C4", "ss4_C2", "ss4_C3", "ss8_C7", "ss8_C8"))
+se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 2", top_n = FALSE))
+print(paste0("length of ids_1: ", length(ids_1)))
+
+subsetted_matrix <- subset_matrix(normalised_matrix, ids_1)
+png(paste0(plot_path, '1_diff_accessible.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+id_data <- as.data.frame(rowData(se)[which(rowData(se)$unique_id %in% ids_1), ])
+print(dim(id_data))
+
+### Step 2: filter out peaks in genes
+annot_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
+annot_keep_ids <- annot_id_data$unique_id
+print(paste0("length of annot_keep_ids: ", length(annot_keep_ids))) # 51
+
+ids_2 <- intersect(ids_1, annot_keep_ids)
+print(paste0("length of ids_2: ", length(ids_2))) # 51
+
+subsetted_matrix <- subset_matrix(normalised_matrix, ids_2)
+png(paste0(plot_path, '2_diff_accessible_annot_filtered.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+id_data <- id_data %>% mutate(annotation_filter = ifelse(unique_id %in% ids_2 == TRUE, "T", "F"))
+
+### Step 3: filter out peaks that are differentially accessible between aPPR and pPPR
+ap_filter_ids <- ids_2[ids_2 %in% ss8_ap_filter_ids]
+print(paste0("length of ss8_ap_filter_ids that are in ids_2: ", length(ap_filter_ids)))
+ids_3 <- setdiff(ids_2, ap_filter_ids)
+print(paste0("length of ids_3 after filtering for ap differences at ss8: ", length(ids_3)))
+
+ap_filter_ids <- ids_2[ids_2 %in% ss4_ap_filter_ids]
+print(paste0("length of ss4_ap_filter_ids that are in ids_2: ", length(ap_filter_ids)))
+ids_3 <- setdiff(ids_3, ap_filter_ids)
+print(paste0("length of ids_3 after filtering for ap differences at ss4: ", length(ids_3)))
+
+subsetted_matrix <- subset_matrix(normalised_matrix, ids_3)
+png(paste0(plot_path, '3_diff_accessible_annot_filtered_ap_filtered.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+id_data <- id_data %>% mutate(ap_filter = ifelse(unique_id %in% ids_3 == TRUE, "T", "F"))
+
+### Step 3: filter to only include those that open early
+subsetted_raw_matrix <- subset_matrix(matrix, ids_3)
+early_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 1.5,
+                                      threshold_HH6 = 1.5, threshold_HH7 = 1.5, threshold_ss4 = 1.5, threshold_ss8 = 1.5)
+print(paste0("length of early_peaks: ", length(early_peaks))) # 20
+
+subsetted_matrix <- subset_matrix(normalised_matrix, early_peaks)
+
+png(paste0(plot_path, '4_diff_accessible_annot_filtered_ap_filtered_open_from_HH5.png'), height = 20, width = 30, units = 'cm', res = 400)
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+id_data <- id_data %>% mutate(early_filter = ifelse(unique_id %in% early_peaks == TRUE, "T", "F"))
+
+### Step 4: export peaks and visualise them
+write.csv(id_data, file = paste0(plot_path, "putative_enhancers_table.csv"))
+
+# make genome browser plots for open peaks
+plot_path <- paste0(plot_path, "browser_tracks/")
+dir.create(plot_path, recursive = T)
+for (id in ids_3){
+  print(id)
+  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
+  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
+                        title = paste0("Peak ID:", id))
+  
+  name <- str_replace(id, ":", "-")
+  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
+  grid::grid.draw(p)
+  graphics.off()
+}
