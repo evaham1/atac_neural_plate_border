@@ -355,7 +355,7 @@ print(dim(id_data)) #55 x 21
 
 ### Step 2: filter out peaks in genes
 annot_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
-annot_keep_ids <- annot_filter_id_data$unique_id
+annot_keep_ids <- annot_id_data$unique_id
 print(paste0("length of annot_keep_ids: ", length(annot_keep_ids))) # 51
 
 ids_2 <- intersect(ids_1, annot_keep_ids)
@@ -424,7 +424,7 @@ print(dim(id_data)) #52 x 21
 
 ### Step 2: filter out peaks in genes
 annot_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
-annot_keep_ids <- annot_filter_id_data$unique_id
+annot_keep_ids <- annot_id_data$unique_id
 print(paste0("length of annot_keep_ids: ", length(annot_keep_ids))) # 51
 
 ids_2 <- intersect(ids_1, annot_keep_ids)
@@ -498,7 +498,7 @@ print(dim(id_data)) #52 x 21
 
 ### Step 2: filter out peaks in genes
 annot_id_data <- id_data[which(id_data$peakType %in% c("Distal", "Intronic")), ]
-annot_keep_ids <- annot_filter_id_data$unique_id
+annot_keep_ids <- annot_id_data$unique_id
 print(paste0("length of annot_keep_ids: ", length(annot_keep_ids))) # 51
 
 ids_2 <- intersect(ids_1, annot_keep_ids)
