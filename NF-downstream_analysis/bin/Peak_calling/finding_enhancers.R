@@ -459,20 +459,20 @@ id_data <- id_data %>% mutate(ap_filter = ifelse(unique_id %in% ids_3 == TRUE, "
 write.csv(id_data, file = paste0(plot_path, "putative_enhancers_table.csv"))
 
 # make genome browser plots for open peaks
-plot_path <- paste0(plot_path, "browser_tracks/")
-dir.create(plot_path, recursive = T)
-for (id in ids_3){
-  print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
-                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
-                        title = paste0("Peak ID:", id))
+# plot_path <- paste0(plot_path, "browser_tracks/")
+# dir.create(plot_path, recursive = T)
+# for (id in ids_3){
+#   print(id)
+#   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
+#   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+#                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
+#                         title = paste0("Peak ID:", id))
   
-  name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
-  grid::grid.draw(p)
-  graphics.off()
-}
+#   name <- str_replace(id, ":", "-")
+#   png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
+#   grid::grid.draw(p)
+#   graphics.off()
+# }
 
 ##################### HH7 + ss4 + ss8 #######################
 plot_path <- "./plots/PPR/diff_HH7_ss4_ss8/"
@@ -533,20 +533,20 @@ id_data <- id_data %>% mutate(ap_filter = ifelse(unique_id %in% ids_3 == TRUE, "
 write.csv(id_data, file = paste0(plot_path, "putative_enhancers_table.csv"))
 
 # make genome browser plots for open peaks
-plot_path <- paste0(plot_path, "browser_tracks/")
-dir.create(plot_path, recursive = T)
-for (id in ids_3){
-  print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
-                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
-                        title = paste0("Peak ID:", id))
+# plot_path <- paste0(plot_path, "browser_tracks/")
+# dir.create(plot_path, recursive = T)
+# for (id in ids_3){
+#   print(id)
+#   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
+#   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+#                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
+#                         title = paste0("Peak ID:", id))
   
-  name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
-  grid::grid.draw(p)
-  graphics.off()
-}
+#   name <- str_replace(id, ":", "-")
+#   png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
+#   grid::grid.draw(p)
+#   graphics.off()
+# }
 
 ##################### HH7 + ss4 + ss8 - open from HH5 #######################
 plot_path <- "./plots/PPR/diff_HH7_ss4_ss8_open_from_HH5/"
@@ -621,17 +621,17 @@ id_data <- id_data %>% mutate(early_filter = ifelse(unique_id %in% early_peaks =
 write.csv(id_data, file = paste0(plot_path, "putative_enhancers_table.csv"))
 
 # make genome browser plots for open peaks
-plot_path <- paste0(plot_path, "browser_tracks/")
-dir.create(plot_path, recursive = T)
-for (id in ids_3){
-  print(id)
-  gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
-                        plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
-                        title = paste0("Peak ID:", id))
+# plot_path <- paste0(plot_path, "browser_tracks/")
+# dir.create(plot_path, recursive = T)
+# for (id in ids_3){
+#   print(id)
+#   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
+#   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+#                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
+#                         title = paste0("Peak ID:", id))
   
-  name <- str_replace(id, ":", "-")
-  png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
-  grid::grid.draw(p)
-  graphics.off()
-}
+#   name <- str_replace(id, ":", "-")
+#   png(paste0(plot_path, name, '_extended_by_10000.png'), height = 50, width = 50, units = 'cm', res = 400)
+#   grid::grid.draw(p)
+#   graphics.off()
+# }
