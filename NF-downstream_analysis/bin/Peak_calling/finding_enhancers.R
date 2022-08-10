@@ -605,17 +605,17 @@ id_data <- id_data %>% mutate(ap_filter = ifelse(unique_id %in% ids_3 == TRUE, "
 
 ### Step 3: filter to only include those that open early
 subsetted_raw_matrix <- subset_matrix(matrix, ids_3)
-early_peaks <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 1,
+ids_4 <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 1,
                                       threshold_HH6 = 1, threshold_HH7 = 1, threshold_ss4 = 1, threshold_ss8 = 1)
-print(paste0("length of early_peaks: ", length(early_peaks)))
+print(paste0("length of ids_4: ", length(ids_4)))
 
-subsetted_matrix <- subset_matrix(normalised_matrix, early_peaks)
+subsetted_matrix <- subset_matrix(normalised_matrix, ids_4)
 
 png(paste0(plot_path, '4_diff_accessible_annot_filtered_ap_filtered_open_from_HH5.png'), height = 20, width = 30, units = 'cm', res = 400)
 print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
 graphics.off()
 
-id_data <- id_data %>% mutate(early_filter = ifelse(unique_id %in% early_peaks == TRUE, "T", "F"))
+id_data <- id_data %>% mutate(early_filter = ifelse(unique_id %in% ids_4 == TRUE, "T", "F"))
 
 ### Step 4: export peaks and visualise them
 write.csv(id_data, file = paste0(plot_path, "putative_enhancers_table.csv"))
@@ -623,7 +623,7 @@ write.csv(id_data, file = paste0(plot_path, "putative_enhancers_table.csv"))
 # make genome browser plots for open peaks
 plot_path <- paste0(plot_path, "browser_tracks/")
 dir.create(plot_path, recursive = T)
-for (id in ids_3){
+for (id in ids_4){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
   p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
