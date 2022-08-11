@@ -673,7 +673,7 @@ print(paste0("length of ids_2: ", length(ids_2))) # 51
 
 subsetted_matrix <- subset_matrix(normalised_matrix, ids_2)
 png(paste0(plot_path, '2_diff_accessible_annot_filtered.png'), height = 20, width = 30, units = 'cm', res = 400)
-print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = FALSE))
+print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
 graphics.off()
 
 id_data <- id_data %>% mutate(annotation_filter = ifelse(unique_id %in% ids_2 == TRUE, "T", "F"))
