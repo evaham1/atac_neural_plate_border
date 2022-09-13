@@ -184,12 +184,6 @@ print("pseudo replicates created")
 ##############################################################################################
 ############################## Call peaks on pseudo-replicates ###############################
 
-# idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C6", "C7"))
-# cellsSample <- ArchR$cellNames[idxSample]
-# ArchR <- ArchR[cellsSample, ]
-
-#pathToMacs2 <- findMacs2()
-
 ArchR <- addReproduciblePeakSet(
  ArchRProj = ArchR,
  groupBy = opt$group_by,
@@ -202,7 +196,13 @@ print("peaks called using Macs2")
 getPeakSet(ArchR)
 getAvailableMatrices(ArchR)
 
-ArchR_peaks <- addPeakMatrix(ArchR)
+## add unique names to peaks
+ps_df <- data.frame(ArchR@peakSet)
+ps <- ArchR@peakSet
+ps$name <- paste0(ps_df$seqnames, "-", ps_df$start, "-", ps_df$end)
+ArchR@peakSet <- ps
+ArchR_peaks <- addPeakMatrix(ArchR, force = TRUE)
+
 getPeakSet(ArchR_peaks)
 getAvailableMatrices(ArchR_peaks)
 
