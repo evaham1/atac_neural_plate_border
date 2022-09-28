@@ -1,0 +1,215 @@
+##### Plotting genome tracks functions
+
+# load libraries
+library(getopt)
+library(optparse)
+library(ArchR)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(GenomicFeatures)
+library(hexbin)
+library(gridExtra)
+library(grid)
+library(parallel)
+library(Rsamtools)
+
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("Gviz")
+library(Gviz)
+
+# load data
+data_path = "./ArchRSubset/"
+TestData <- loadArchRProject(path = data_path, force = TRUE, showLogo = FALSE)
+
+getAvailableMatrices(TestData)
+TestData@peakSet
+
+#### NEED TO ADD GENE ANNOTATIONS!
+#### COMING SOON: RUN THE ABOVE FUNCTION IN A LOOP FOR MULTIPLE CELL GROUPS AND PLOT TOGETHER
+#### ALSO TRY COMBINING TRACKS IN DIFFERENT WAYS + CHANGING AESTHETICS
+
+###################################################################################
+###################         Genome track plots      ###############################
+
+######### FUNCTIONS
+
+## function to create a granges object from a peak id and optionally extend it
+id_to_granges <- function(id, extend = TRUE, extend_by = 50000){
+  seqnames <- sub("\\:.*", "", id)
+  range <- sub(".*\\:", "", id)
+  start <- sub("\\-.*", "", range)
+  end <- sub(".*\\-", "", range)
+  df <- data.frame(seqnames=seqnames, start=start, end=end,
+                   strand="*")
+  
+  gr <- makeGRangesFromDataFrame(df)
+  values(gr) <- DataFrame(unique_id = id)
+  
+  if(extend == TRUE){
+    gr <- extendGR(gr = gr, upstream = extend_by, downstream = extend_by)
+  }
+  
+  return(gr)
+}
+
+## function to extract a cell IDs of a cell group
+extract_cell_IDs <- function(ArchRProj, groupby = "clusters", group) {
+  column_position <- which(colnames(getCellColData(ArchRProj)) %in% groupby)
+  idxSample <- BiocGenerics::which(getCellColData(ArchRProj)[,column_position] %in% group)
+  cell_IDs <- ArchRProj$cellNames[idxSample]
+  return(cell_IDs)
+}
+
+## function to create bin across the whole range in granges file
+create_bins <- function(granges, bin_width = 10){
+  start_position <- start(granges)
+  end_position <- end(granges)
+  full_range_gr <- GRanges(seqname = as.character(seqnames(fragment_data)[1]), 
+                           ranges=IRanges(start=start_position, width=end_position-start_position), strand= "*")
+  bins <- tile(full_range_gr, width = 10)
+  bins <- unlist(bins)
+  return(bins)
+}
+
+## function to create genome axis track (optionally with bins highlighted)
+create_genome_axis_track <- function(granges, highlight_bins = TRUE, bins = NULL){
+  if (highlight_bins == TRUE){
+    gr <- makeGRangesFromDataFrame(as.data.frame(bins)[seq(1, nrow(as.data.frame(bins)), 2), ])
+  } else {
+    gr <- GRanges(seqname = as.character(seqnames(fragment_data)[1]), 
+                  ranges=IRanges(start=start_position, width=end_position-start_position), strand= "*")
+  }
+  axisTrack <- GenomeAxisTrack(range = gr)
+}
+
+
+
+####
+####### Run functions to make one plot showing raw fragment files and histogram on top
+
+# extract range from id
+id <- "chr13:16022000-16024500"
+print(id)
+gr <- id_to_granges(id = id, extend = FALSE)
+
+# extract cell ids of group of interest
+cell_IDs <- extract_cell_IDs(TestData, group = c("C5"))
+
+# extract fragment file for these cells and range
+fragment_file <- getFragmentsFromProject(TestData, subsetBy = gr, cellNames = cell_IDs, verbose = TRUE)
+fragment_data <- fragment_file[[1]]
+
+# create bins
+bins <- create_bins(fragment_data, 10)
+
+# create genome axis track with bins highlighted
+axisTrack <- create_genome_axis_track(fragment_data, highlight_bins = TRUE, bins = bins)
+plotTracks(axisTrack)
+
+# create gene annotation track - not working to make txdb Error: database or disk is full
+ref_path = "./output/NF-downstream_analysis/ArchR_preprocessing/PREPROCESSING/edit_gtf/"
+txdb <- makeTxDbFromGFF(paste0(ref_path, "temp.gtf"))
+print("txdb made")
+genes(txdb)
+
+grtrack <- GeneRegionTrack(
+  txdb,
+  chromosome = "chr13", start = 16022000, end = 16024500,
+  showId = TRUE,
+  name = "Gene Annotation"
+)
+
+plotTracks(
+  list(axisTrack, grtrack),
+  from = st, to = en
+)
+
+# create fragment track - could colour code by cell?? - not working it just combines them altogether?!?
+fragment_track <- AnnotationTrack(fragment_data, name = "Fragments")
+plotTracks(list(axisTrack, fragment_track))
+
+# Count number of fragments in each bin
+bins$counts <- countOverlaps(bins, fragment_data)
+
+# Plot histogram of counts per bin
+count_track <- DataTrack(bins, name = "count", type = "histogram", fill.histogram = "magenta")
+
+#dp <- DisplayPars(col = "red")
+#dp
+#availableDisplayPars("DataTrack")
+
+plotTracks(list(axisTrack, count_track, fragment_track))
+
+
+####### Run functions to make one plot showing histograms of 3 cell clusters
+
+id <- "chr13:16022000-16024500"
+print(id)
+gr <- id_to_granges(id = id, extend = FALSE)
+cell_groups <- c("C5", "C6", "C7")
+
+data_tracks <- c()
+
+for (cg in cell_groups){
+  print(cg)
+  cell_IDs <- extract_cell_IDs(TestData, group = cg)
+  fragment_file <- getFragmentsFromProject(TestData, subsetBy = gr, cellNames = cell_IDs, verbose = TRUE)
+  fragment_data <- fragment_file[[1]]
+  bins <- create_bins(fragment_data, 10)
+
+  #fragment_track <- AnnotationTrack(fragment_data, name = "Fragments")
+  #plotTracks(list(axisTrack, fragment_track))
+  
+  bins$counts <- countOverlaps(bins, fragment_data)
+  data_track <- DataTrack(bins, name = cg, type = "histogram", fill.histogram = "magenta")
+  data_tracks <- c(data_tracks, data_track)
+}
+
+plotTracks(c(axisTrack, data_tracks))
+
+##################################### Feature plots
+
+# of (imputed) gene score
+getFeatures(TestData, useMatrix = "GeneScoreMatrix")
+TestData <- addImputeWeights(TestData)
+plotEmbedding(TestData, colorBy = "GeneScoreMatrix", name = "SIX1")
+
+# of peak
+getFeatures(TestData, useMatrix = "PeakMatrix")
+test <- getMatrixFromProject(FullData, useMatrix='PeakMatrix')
+test_names <- getMarkers(FullData, cutOff = "FDR <= 0.1 & Log2FC >= 1", returnGR = TRUE)["Erythroid"],
+
+plotEmbedding(TestData, colorBy = "PeakMatrix", name = "10")
+
+
+#### function to add unique peak names peak matrix
+
+ps_df = data.frame(TestData@peakSet)
+ps <- TestData@peakSet
+ps$name <- paste0(ps_df$seqnames, "-", ps_df$start, "-", ps_df$end)
+TestData@peakSet <- ps
+TestData <- addPeakMatrix(ArchRProj = TestData, force = TRUE, threads = 16)
+
+plotEmbedding(
+  ArchRProj = TestData,
+  colorBy = "PeakMatrix",
+  name = c("chr33-7735605-7736105"),
+  embedding = "UMAP",
+  quantCut = c(0.01, 0.95),
+  imputeWeights = getImputeWeights(ArchRProj = TestData),
+  rastr = TRUE,
+  plotAs = "points"
+)
+
+tmp_peaks = data.frame(ArchR@peakSet)
+
+
+diff_peaks_join_peakset$unique_id = paste0(diff_peaks_join_peakset$seqnames, ":", diff_peaks_join_peakset$start, "-", diff_peaks_join_peakset$end)
+rowData(seMarker) = diff_peaks_join_peakset
+
+ps <- TestData@peakSet
+ps$name <- 
+
+
