@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("ArchR transfer cluster IDs from stage data to full data")
+print("ArchR transfer cluster IDs from stage data to full data ")
 
 ############################## Load libraries #######################################
 library(getopt)
