@@ -212,7 +212,7 @@ saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = paste0(rds_path, lab
 print("ArchR project saved")
 
 ##############################################################################
-##################### How many peaks per cell group###########################
+##################### How many peaks per cell group ###########################
 
 ## Create df of peaks
 peaks_granges <- getPeakSet(ArchR_peaks)
@@ -243,14 +243,27 @@ grid.arrange(top=textGrob("Peak Counts per group", gp=gpar(fontsize=12, fontface
              tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-# png(paste0(plot_path, 'peak_counts_per_group_barchart.png'), height = 10, width = 20, units = 'cm', res = 400)
-# ggplot(data=counts, aes(x=`ID`, y=`Number of peaks`)) +
-#   geom_bar(stat="identity") +
-#   scale_x_continuous(breaks = round(seq(min(counts$ID), max(counts$ID), by = 1),1))
-# graphics.off()
+########################################################################
+##################### How many cut sites per peak ###########################
+
+peak_data <- getMatrixFromProject(ArchR_peaks, useMatrix = "PeakMatrix")
+peak_matrix <- t(assays(peak_data)[[1]])
+colnames(peak_matrix) <- rowData(peak_data)$name
+
+png(paste0(plot_path, 'cutsites_per_peak.png'), height = 45, width = 10, units = 'cm', res = 400)
+hist(colSums(peak_matrix), breaks = 1000, main = "Histogram of cut sites per peak", 
+     xlab = "Number of cut sites", ylab = "Frequency")
+graphics.off()
+
+table <- data.frame(Stats = names(cutsites), Value = as.vector(cutsites))
+grid.arrange(top=textGrob("Cut sites per peak", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(table, rows=NULL, theme = ttheme_minimal()))
+
 
 ##############################################################################
 ############################# Peak Annotations ###############################
+
+plot_path <- paste0(plot_path, "annotations/")
 
 ## What are these peaks annotated too
 counts <- as.data.frame(table(peaks_df$peakType))
@@ -270,3 +283,71 @@ ggplot(counts, aes(x="", y=`Number of peaks`, fill=`Peak Annotation`)) +
   geom_text(aes(label = paste0(Percentage, "%")),
             position = position_stack(vjust = 0.5))
 graphics.off()
+
+
+## What is the distance of these peaks to nearest TSS
+ggplot(peaks_df, aes(x = distToTSS, fill = peakType)) + 
+  geom_histogram(binwidth=1000, alpha=0.5)
+
+ggplot(peaks_df, aes(x = log(distToTSS), fill = peakType)) + 
+  geom_histogram(binwidth=1000, alpha=0.5)
+
+png(paste0(plot_path, 'dist_to_TSS.png'), height = 40, width = 30, units = 'cm', res = 400)
+ggplot(peaks_df, aes(x = distToTSS)) + 
+  geom_histogram(binwidth=1000) + 
+  facet_grid(peakType ~ .) +
+  geom_vline(aes(xintercept = 500), color = "black", linetype = "dashed", size = 1)
+graphics.off()
+
+peaks_df <- mutate(peaks_df, log_distToTSS = log(peaks_df$distToTSS))
+png(paste0(plot_path, 'log_dist_to_TSS.png'), height = 40, width = 30, units = 'cm', res = 400)
+ggplot(peaks_df, aes(x = log_distToTSS)) + 
+  geom_histogram(binwidth = 0.05) + 
+  facet_grid(peakType ~ .) +
+  geom_vline(aes(xintercept = log(500)), color = "black", linetype = "dashed", size = 1)
+graphics.off()
+
+## What is the distance of these peaks to nearest gene
+png(paste0(plot_path, 'dist_to_gene_start.png'), height = 40, width = 30, units = 'cm', res = 400)
+ggplot(peaks_df, aes(x = distToGeneStart)) + 
+  geom_histogram(binwidth=1000) + 
+  facet_grid(peakType ~ .) +
+  geom_vline(aes(xintercept = 500), color = "black", linetype = "dashed", size = 1)
+graphics.off()
+
+peaks_df <- mutate(peaks_df, log_distToGeneStart = log(peaks_df$distToGeneStart))
+png(paste0(plot_path, 'log_dist_to_gene_start.png'), height = 40, width = 30, units = 'cm', res = 400)
+ggplot(peaks_df, aes(x = log_distToGeneStart)) + 
+  geom_histogram(binwidth = 0.05) + 
+  facet_grid(peakType ~ .) +
+  geom_vline(aes(xintercept = log(500)), color = "black", linetype = "dashed", size = 1)
+graphics.off()
+
+## What proportion of these peaks from each annotation are less or more than 500bp from a TSS
+distal_peaks <- peaks_df[which(peaks_df$peakType == "Distal"), ]
+distal_peaks <- mutate(distal_peaks, near_TSS = ifelse(distal_peaks$distToTSS < 500, "Less", "More"))
+counts <- table(distal_peaks$near_TSS)
+png(paste0(plot_path, 'Distal_500bp_TSS_threshold.png'), height = 20, width = 25, units = 'cm', res = 400)
+pie(counts, main = "Distal peaks more or less than 500bp from TSS")
+graphics.off
+
+promoter_peaks <- peaks_df[which(peaks_df$peakType == "Promoter"), ]
+promoter_peaks <- mutate(promoter_peaks, near_TSS = ifelse(promoter_peaks$distToTSS < 500, "Less", "More"))
+counts <- table(promoter_peaks$near_TSS)
+png(paste0(plot_path, 'Promoter_500bp_TSS_threshold.png'), height = 20, width = 25, units = 'cm', res = 400)
+pie(counts, main = "Promoter peaks more or less than 500bp from TSS")
+graphics.off
+
+intronic_peaks <- peaks_df[which(peaks_df$peakType == "Intronic"), ]
+intronic_peaks <- mutate(intronic_peaks, near_TSS = ifelse(intronic_peaks$distToTSS < 500, "Less", "More"))
+counts <- table(intronic_peaks$near_TSS)
+png(paste0(plot_path, 'Intronic_500bp_TSS_threshold.png'), height = 20, width = 25, units = 'cm', res = 400)
+pie(counts, main = "Intronic peaks more or less than 500bp from TSS")
+graphics.off
+
+exonic_peaks <- peaks_df[which(peaks_df$peakType == "Exonic"), ]
+exonic_peaks <- mutate(exonic_peaks, near_TSS = ifelse(exonic_peaks$distToTSS < 500, "Less", "More"))
+counts <- table(exonic_peaks$near_TSS)
+png(paste0(plot_path, 'Exonic_500bp_TSS_threshold.png'), height = 20, width = 25, units = 'cm', res = 400)
+pie(counts, main = "Exonic peaks more or less than 500bp from TSS")
+graphics.off
