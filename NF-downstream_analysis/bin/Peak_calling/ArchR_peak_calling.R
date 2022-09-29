@@ -171,7 +171,7 @@ cell_counts(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
 graphics.off()
 
 # Make pseudo replicates and see which samples these cells come from
-pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE)
+pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE, force = TRUE)
 
 png(paste0(plot_path_1, 'cell_counts_by_pseudoreplicate_table.png'), height = 80, width = 30, units = 'cm', res = 400)
 pseudoreplicate_counts(ArchR, pseudo_replicates)
