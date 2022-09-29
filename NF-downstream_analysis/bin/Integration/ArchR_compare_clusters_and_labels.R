@@ -32,11 +32,11 @@ opt = getopt(spec)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-
+    
     #data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
-    #data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/1_unconstrained_integration/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/2_identify_clusters/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
+    #data_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/1_unconstrained_integration/rds_files/"
+    #plot_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/2_identify_clusters/rds_files/"
     
     
     addArchRThreads(threads = 1) 
@@ -70,6 +70,7 @@ print(label)
 ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
+getAvailableMatrices(ArchR)
 
 ############################################################################################
 ############################## COLOURS #######################################
@@ -139,7 +140,16 @@ graphics.off()
 
 ########################## Dim reduction on peak matrix: DISTAL peaks ###############################
 
-peak_data <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix", threads = 1)
-# add code here to subset and replace peakmatrix for a new ArchR object to only include distal peaks
+peak_matrix <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix", threads = 1)
+peak_data <- getPeakSet(ArchR)
+distal_indices <- peak_data[which(peak_data$peakType == "Distal"), ][, 12]
+
+test <- peak_matrix[which(rowData(peak_matrix)$idx == "1"), ]
+rowData(test)
+
 
 # add code here to dim reduce, cluster and plot with this new peakset
+
+
+
+
