@@ -265,6 +265,7 @@ grid.arrange(top=textGrob("Cut sites per peak", gp=gpar(fontsize=12, fontface = 
 ############################# Peak Annotations ###############################
 
 plot_path <- paste0(plot_path, "annotations/")
+dir.create(plot_path, recursive = T)
 
 ## What are these peaks annotated too
 counts <- as.data.frame(table(peaks_df$peakType))
