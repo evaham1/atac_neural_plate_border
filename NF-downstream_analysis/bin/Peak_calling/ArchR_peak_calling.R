@@ -255,6 +255,7 @@ hist(colSums(peak_matrix), breaks = 1000, main = "Histogram of cut sites per pea
      xlab = "Number of cut sites", ylab = "Frequency")
 graphics.off()
 
+cutsites <- summary(colSums(peak_matrix))
 table <- data.frame(Stats = names(cutsites), Value = as.vector(cutsites))
 grid.arrange(top=textGrob("Cut sites per peak", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, rows=NULL, theme = ttheme_minimal()))
