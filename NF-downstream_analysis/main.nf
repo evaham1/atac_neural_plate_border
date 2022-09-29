@@ -23,6 +23,9 @@ include { PREPROCESSING } from "$baseDir/subworkflows/local/Processing/Preproces
 include { FILTERING } from "$baseDir/subworkflows/local/Processing/Filtering"
 include { FULL_PROCESSING as FULL_PROCESSING } from "$baseDir/subworkflows/local/Processing/Full_processing"
 
+// CLUSTERING AND PEAK CALLING WORKFLOW
+include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
+
 // INTEGRATION WORKFLOWS
 include { METADATA as METADATA_ATAC } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
@@ -90,6 +93,10 @@ workflow A {
 
     }
 
+    ///////////////////// PEAK CALLING ////////////////////////////
+    ///////////////////////////////////////////////////////////////
+    PEAK_CALLING( ch_atac )
+
     ///////////////////// INTEGRATING //////////////////////////////
     ///////////////////////////////////////////////////////////////
 
@@ -103,7 +110,7 @@ workflow A {
     //[[sample_id:FullData], [seurat_label_transfer.RDS]]
    
     // combine ATAC and RNA data
-    ch_atac
+    PEAK_CALLING.out
         .concat( METADATA_RNA.out.metadata )
         .groupTuple( by:0 ) //[ [sample_id:HH5], [ [HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
         .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
@@ -116,6 +123,9 @@ workflow A {
     // [[ meta:full], ATAC]]
     // [ [[meta: HH5], ATAC] , [[meta: HH6], ATAC]]
     // [ [[meta: HH5], RNA], [[meta: HH6], RNA]]
+
+    ///////////////////// EXPLORING //////////////////////////////
+    ///////////////////////////////////////////////////////////////
     
     // IN PROCESS: peak exploring
     PEAK_EXPLORING( INTEGRATING.out.integrated )
