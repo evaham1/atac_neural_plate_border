@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("ArchR integration")
+print("ArchR integration ")
 
 ############################## Load libraries #######################################
 library(getopt)
