@@ -68,20 +68,14 @@ opt = getopt(spec)
 
 ############################## Read in ArchR project and seurat object #######################################
 
-# If files are not in rds_files subdirectory look in input dir 
-label <- sub('_.*', '', list.files(data_path))
-print(label) 
+# Pull out label, input folder should look like: rds_files, HH5_clustered_data.RDS
+label <- sub('_.*', '', list.files(data_path))[2]
+print(label)
 
-if (length(label) == 0){
-  data_path = "./input/"
-  label <- sub('_.*', '', list.files(data_path))
-  print(label)
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-} else {
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-}
+print(paste0(data_path, "rds_files/", label, "_Save-ArchR"))
+
+# Load atac data in rds_files
+ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/", label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 # load seurat object by reading in any rds object
 rna_path <- list.files(path = data_path, pattern = "*.RDS", full.names = TRUE)
