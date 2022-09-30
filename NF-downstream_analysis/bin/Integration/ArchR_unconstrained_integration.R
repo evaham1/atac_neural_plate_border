@@ -70,17 +70,10 @@ opt = getopt(spec)
 
 # Pull out label, input folder should look like: rds_files, HH5_clustered_data.RDS
 print(list.files(data_path))
-label <- sub('_.*', '', list.files(data_path))
+labels <- sub('_.*', '', list.files(data_path))
+print(labels)
+label <- labels[-which(labels == "rds")]
 print(label)
-
-print(label)[0]
-print(label)[1]
-print(label)[2]
-
-label <- label[2]
-print(label)
-
-print(paste0(data_path, "rds_files/", label, "_Save-ArchR"))
 
 # Load atac data in rds_files
 ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/", label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
