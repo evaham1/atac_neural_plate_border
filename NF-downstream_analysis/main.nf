@@ -96,16 +96,12 @@ workflow A {
     ///////////////////// PEAK CALLING ////////////////////////////
     ///////////////////////////////////////////////////////////////
     PEAK_CALLING( ch_atac )
-    ch_combined_peaks = PEAK_CALLING.out.output // Collect rds files from all stages
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .view()
 
     ///////////////////// INTEGRATING //////////////////////////////
     ///////////////////////////////////////////////////////////////
 
     // RNA: read in data
-    METADATA_RNA( params.rna_sample_sheet )
+    METADATA_RNA( params.rna_sample_sheet ) // temp taken out fulldata to match atac
     //[[sample_id:HH5], [HH5_clustered_data.RDS]]
     //[[sample_id:HH6], [HH6_clustered_data.RDS]]
     //[[sample_id:HH7], [HH7_clustered_data.RDS]]
@@ -114,7 +110,7 @@ workflow A {
     //[[sample_id:FullData], [seurat_label_transfer.RDS]]
    
     // combine ATAC and RNA data
-    ch_combined_peaks
+    PEAK_CALLING.out
         .concat( METADATA_RNA.out.metadata )
         .groupTuple( by:0 ) //[ [sample_id:HH5], [ [HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
         .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }

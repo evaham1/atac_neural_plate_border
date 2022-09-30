@@ -4,3 +4,4 @@ HH6,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_anal
 HH7,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/HH7_splitstage_data/rds_files/HH7_clustered_data.RDS
 ss4,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/ss4_splitstage_data/rds_files/ss4_clustered_data.RDS
 ss8,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/ss8_splitstage_data/rds_files/ss8_clustered_data.RDS
+FullData,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/rds_files/seurat_label_transfer.RDS
