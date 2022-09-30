@@ -82,7 +82,7 @@ workflow A {
         
     } else {
        
-       METADATA_ATAC( params.atac_sample_sheet ) //need to change this sample sheet it is wrong!!
+       METADATA_ATAC( params.atac_sample_sheet ) //need to update this and rerun with upstream to check it matches!! also need to add back in full data
        ch_atac = METADATA_ATAC.out.metadata 
        // [[sample_id:HH5], [HH5_Save-ArchR]]
        //[[sample_id:HH6], [HH6_Save-ArchR]]
