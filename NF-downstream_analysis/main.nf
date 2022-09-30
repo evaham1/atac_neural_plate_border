@@ -96,6 +96,10 @@ workflow A {
     ///////////////////// PEAK CALLING ////////////////////////////
     ///////////////////////////////////////////////////////////////
     PEAK_CALLING( ch_atac )
+    ch_combined_peaks = PEAK_CALLING.out.output // Collect rds files from all stages
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .collect()
+            .view()
 
     ///////////////////// INTEGRATING //////////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -108,8 +112,6 @@ workflow A {
     //[[sample_id:ss4], [ss4_clustered_data.RDS]]
     //[[sample_id:ss8], [ss8_clustered_data.RDS]]
     //[[sample_id:FullData], [seurat_label_transfer.RDS]]
-
-    PEAK_CALLING.out.view()
    
     // combine ATAC and RNA data
     PEAK_CALLING.out
