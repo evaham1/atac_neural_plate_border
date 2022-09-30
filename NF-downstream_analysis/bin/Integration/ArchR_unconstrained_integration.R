@@ -77,6 +77,9 @@ print(label)[0]
 print(label)[1]
 print(label)[2]
 
+label <- label[2]
+print(label)
+
 print(paste0(data_path, "rds_files/", label, "_Save-ArchR"))
 
 # Load atac data in rds_files
