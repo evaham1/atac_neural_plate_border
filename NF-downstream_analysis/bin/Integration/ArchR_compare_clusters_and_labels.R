@@ -102,7 +102,7 @@ atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_
 ###############################################################################################
 ############################## Rerun dim reduction with peaks #################################
 
-plot_path = "./plots/UMAPs_with_different_dim_red"
+plot_path = "./plots/UMAPs_with_different_dim_red/"
 dir.create(plot_path, recursive = T)
 
 ########################## Original dim reduction on tile matrix ###############################
