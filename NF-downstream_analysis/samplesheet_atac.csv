@@ -1,7 +1,7 @@
 sample_id,data
-HH5,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/HH5/postfiltering/peak_calling/rds_files/HH5_Save-ArchR
-HH6,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/HH6/postfiltering/peak_calling/rds_files/HH6_Save-ArchR
-HH7,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/HH7/postfiltering/peak_calling/rds_files/HH7_Save-ArchR
-ss4,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/ss4/postfiltering/peak_calling/rds_files/ss4_Save-ArchR
-ss8,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/ss8/postfiltering/peak_calling/rds_files/ss8_Save-ArchR
-FullData,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_preprocessing/FULL_PROCESSING/FullData/postfiltering/peak_calling/rds_files/FullData_Save-ArchR
+HH5,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_processing/HH5/PEAK_CALLING/peak_call/rds_files/HH5_Save-ArchR
+HH6,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_processing/HH6/PEAK_CALLING/peak_call/rds_files/HH6_Save-ArchR
+HH7,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_processing/HH7/PEAK_CALLING/peak_call/rds_files/HH7_Save-ArchR
+ss4,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_processing/ss4/PEAK_CALLING/peak_call/rds_files/ss4_Save-ArchR
+ss8,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_processing/ss8/PEAK_CALLING/peak_call/rds_files/ss8_Save-ArchR
+FullData,/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/ArchR_processing/FullData/PEAK_CALLING/peak_call/rds_files/FullData_Save-ArchR
