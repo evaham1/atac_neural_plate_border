@@ -82,7 +82,7 @@ workflow A {
         
     } else {
        
-       METADATA_ATAC( params.atac_sample_sheet )
+       METADATA_ATAC( params.atac_sample_sheet ) //need to change this sample sheet it is wrong!!
        ch_atac = METADATA_ATAC.out.metadata 
        // [[sample_id:HH5], [HH5_Save-ArchR]]
        //[[sample_id:HH6], [HH6_Save-ArchR]]
@@ -108,13 +108,15 @@ workflow A {
     //[[sample_id:ss4], [ss4_clustered_data.RDS]]
     //[[sample_id:ss8], [ss8_clustered_data.RDS]]
     //[[sample_id:FullData], [seurat_label_transfer.RDS]]
+
+    PEAK_CALLING.out.view()
    
     // combine ATAC and RNA data
     PEAK_CALLING.out
         .concat( METADATA_RNA.out.metadata )
         .groupTuple( by:0 ) //[ [sample_id:HH5], [ [HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
         .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-        //.view()
+        .view()
         .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
     // ARCHR: Integrate
