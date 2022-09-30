@@ -250,15 +250,17 @@ peak_data <- getMatrixFromProject(ArchR_peaks, useMatrix = "PeakMatrix")
 peak_matrix <- t(assays(peak_data)[[1]])
 colnames(peak_matrix) <- rowData(peak_data)$name
 
-png(paste0(plot_path, 'cutsites_per_peak.png'), height = 45, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'cutsites_per_peak_histogram.png'), height = 20, width = 40, units = 'cm', res = 400)
 hist(colSums(peak_matrix), breaks = 1000, main = "Histogram of cut sites per peak", 
      xlab = "Number of cut sites", ylab = "Frequency")
 graphics.off()
 
 cutsites <- summary(colSums(peak_matrix))
 table <- data.frame(Stats = names(cutsites), Value = as.vector(cutsites))
+png(paste0(plot_path, 'cutsites_per_peak_table.png'), height = 30, width = 20, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Cut sites per peak", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 
 ##############################################################################
