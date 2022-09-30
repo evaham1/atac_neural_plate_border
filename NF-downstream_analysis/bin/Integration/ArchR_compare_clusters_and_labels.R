@@ -34,7 +34,7 @@ opt = getopt(spec)
     ncores = 8
     
     #data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
+    data_path = "./output/NF-downstream_analysis/ArchR_processing/HH5/INTEGRATING/1_unconstrained_integration/rds_files/"
     #data_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/1_unconstrained_integration/rds_files/"
     #plot_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/2_identify_clusters/rds_files/"
     
@@ -140,16 +140,169 @@ graphics.off()
 
 ########################## Dim reduction on peak matrix: DISTAL peaks ###############################
 
-peak_matrix <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix", threads = 1)
-peak_data <- getPeakSet(ArchR)
-distal_indices <- peak_data[which(peak_data$peakType == "Distal"), ][, 12]
+#peak_matrix <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix", threads = 1)
+peak_set <- getPeakSet(ArchR)
 
-test <- peak_matrix[which(rowData(peak_matrix)$idx == "1"), ]
-rowData(test)
+# extract distal peaks
+#distal_names <- peak_data[which(peak_data$peakType == "Distal"), ]$name
+#distal_peaks <- peak_matrix[which(rowData(peak_matrix)$name %in% distal_names), ]
 
+distal_peak_set <- peak_set[which(peak_set$peakType == "Distal"), ]
 
-# add code here to dim reduce, cluster and plot with this new peakset
+# overwrite peakset of ArchR object to only include distal peaks
+ArchR_distal_peaks <- addPeakSet(ArchR, peakSet = distal_peak_set, force = TRUE)
+getPeakSet(ArchR_distal_peaks)
+ArchR_distal_peaks <- addPeakMatrix(ArchR_distal_peaks)
 
+# re-run dim reduction with new peak matrix
+ArchR_distal_peaks <- addIterativeLSI(ArchR_distal_peaks, useMatrix = "PeakMatrix", force = TRUE)
+print("iterative LSI ran")
+ArchR_distal_peaks <- addUMAP(ArchR_distal_peaks, force = TRUE)
+print("UMAP added")
+ArchR_distal_peaks <- addClusters(ArchR_distal_peaks, name = "clusters", resolution = 1, force = TRUE)
+print("clustering ran")
 
+png(paste0(plot_path, 'Distal_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_distal_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
 
+png(paste0(plot_path, 'Distal_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_distal_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+graphics.off()
 
+########################## Dim reduction on peak matrix: PROMOTER peaks ###############################
+
+promoter_peak_set <- peak_set[which(peak_set$peakType == "Promoter"), ]
+
+# overwrite peakset of ArchR object to only include distal peaks
+ArchR_promoter_peaks <- addPeakSet(ArchR, peakSet = promoter_peak_set, force = TRUE)
+getPeakSet(ArchR_promoter_peaks)
+ArchR_promoter_peaks <- addPeakMatrix(ArchR_promoter_peaks)
+
+# re-run dim reduction with new peak matrix
+ArchR_promoter_peaks <- addIterativeLSI(ArchR_promoter_peaks, useMatrix = "PeakMatrix", force = TRUE)
+print("iterative LSI ran")
+ArchR_promoter_peaks <- addUMAP(ArchR_promoter_peaks, force = TRUE)
+print("UMAP added")
+ArchR_promoter_peaks <- addClusters(ArchR_promoter_peaks, name = "clusters", resolution = 1, force = TRUE)
+print("clustering ran")
+
+png(paste0(plot_path, 'Promoter_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_promoter_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
+
+png(paste0(plot_path, 'Promoter_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_promoter_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+graphics.off()
+
+########################## Dim reduction on peak matrix: PROMOTER+EXONIC peaks ###############################
+
+genes_peak_set <- peak_set[which(peak_set$peakType %in% c("Exonic", "Promoter")), ]
+
+# overwrite peakset of ArchR object to only include distal peaks
+ArchR_genes_peaks <- addPeakSet(ArchR, peakSet = genes_peak_set, force = TRUE)
+getPeakSet(ArchR_genes_peaks)
+ArchR_genes_peaks <- addPeakMatrix(ArchR_genes_peaks)
+
+# re-run dim reduction with new peak matrix
+ArchR_genes_peaks <- addIterativeLSI(ArchR_genes_peaks, useMatrix = "PeakMatrix", force = TRUE)
+print("iterative LSI ran")
+ArchR_genes_peaks <- addUMAP(ArchR_genes_peaks, force = TRUE)
+print("UMAP added")
+ArchR_genes_peaks <- addClusters(ArchR_genes_peaks, name = "clusters", resolution = 1, force = TRUE)
+print("clustering ran")
+
+png(paste0(plot_path, 'Promoter_and_exonic_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
+
+png(paste0(plot_path, 'Promoter_and_exonic_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+graphics.off()
+
+########################## Dim reduction on peak matrix: EXONIC peaks ###############################
+
+exonic_peak_set <- peak_set[which(peak_set$peakType %in% c("Exonic")), ]
+
+# overwrite peakset of ArchR object to only include distal peaks
+ArchR_exonic_peaks <- addPeakSet(ArchR, peakSet = exonic_peak_set, force = TRUE)
+getPeakSet(ArchR_exonic_peaks)
+ArchR_exonic_peaks <- addPeakMatrix(ArchR_exonic_peaks)
+
+# re-run dim reduction with new peak matrix
+ArchR_exonic_peaks <- addIterativeLSI(ArchR_exonic_peaks, useMatrix = "PeakMatrix", force = TRUE)
+print("iterative LSI ran")
+ArchR_exonic_peaks <- addUMAP(ArchR_exonic_peaks, force = TRUE)
+print("UMAP added")
+ArchR_exonic_peaks <- addClusters(ArchR_exonic_peaks, name = "clusters", resolution = 1, force = TRUE)
+print("clustering ran")
+
+png(paste0(plot_path, 'Exonic_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_exonic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
+
+png(paste0(plot_path, 'Exonic_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_exonic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+graphics.off()
+
+########################## Dim reduction on peak matrix: INTRONIC peaks ###############################
+
+intronic_peak_set <- peak_set[which(peak_set$peakType %in% c("Intronic")), ]
+
+# overwrite peakset of ArchR object to only include distal peaks
+ArchR_intronic_peaks <- addPeakSet(ArchR, peakSet = intronic_peak_set, force = TRUE)
+getPeakSet(ArchR_intronic_peaks)
+ArchR_intronic_peaks <- addPeakMatrix(ArchR_intronic_peaks)
+
+# re-run dim reduction with new peak matrix
+ArchR_intronic_peaks <- addIterativeLSI(ArchR_intronic_peaks, useMatrix = "PeakMatrix", force = TRUE)
+print("iterative LSI ran")
+ArchR_intronic_peaks <- addUMAP(ArchR_intronic_peaks, force = TRUE)
+print("UMAP added")
+ArchR_intronic_peaks <- addClusters(ArchR_intronic_peaks, name = "clusters", resolution = 1, force = TRUE)
+print("clustering ran")
+
+png(paste0(plot_path, 'Intronic_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_intronic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
+
+png(paste0(plot_path, 'Intronic_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_intronic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+graphics.off()
+
+########################## Dim reduction on peak matrix: INTRONIC+DISTAL peaks ###############################
+
+ex_peak_set <- peak_set[which(peak_set$peakType %in% c("Intronic", "Distal")), ]
+
+# overwrite peakset of ArchR object to only include distal peaks
+ArchR_ex_genes_peaks <- addPeakSet(ArchR, peakSet = ex_peak_set, force = TRUE)
+getPeakSet(ArchR_ex_genes_peaks)
+ArchR_ex_genes_peaks <- addPeakMatrix(ArchR_ex_genes_peaks)
+
+# re-run dim reduction with new peak matrix
+ArchR_ex_genes_peaks <- addIterativeLSI(ArchR_ex_genes_peaks, useMatrix = "PeakMatrix", force = TRUE)
+print("iterative LSI ran")
+ArchR_ex_genes_peaks <- addUMAP(ArchR_ex_genes_peaks, force = TRUE)
+print("UMAP added")
+ArchR_ex_genes_peaks <- addClusters(ArchR_ex_genes_peaks, name = "clusters", resolution = 1, force = TRUE)
+print("clustering ran")
+
+png(paste0(plot_path, 'Intronic_and_distal_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_ex_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
+
+png(paste0(plot_path, 'Intronic_and_distal_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_ex_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+graphics.off()
