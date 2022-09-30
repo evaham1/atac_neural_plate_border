@@ -18,10 +18,10 @@ workflow PEAK_CALLING {
     CLUSTER( input )
     
     GENE_SCORES( CLUSTER.out )
-    HEATMAP_GEX( CLUSTER.out )
+    //HEATMAP_GEX( CLUSTER.out )
 
     PEAK_CALL( CLUSTER.out )
-    HEATMAP_PEAKS( PEAK_CALL.out )
+    //HEATMAP_PEAKS( PEAK_CALL.out )
 
     //emit clustered and peak-called objects:
     emit:
