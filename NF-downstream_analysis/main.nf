@@ -110,11 +110,10 @@ workflow A {
     //[[sample_id:FullData], [seurat_label_transfer.RDS]]
    
     // combine ATAC and RNA data
-    PEAK_CALLING.out
-        .view()
-        .concat( METADATA_RNA.out.metadata )
-        .groupTuple( by:0 ) //[ [sample_id:HH5], [ [HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
-        .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+    PEAK_CALLING.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+        .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
+        .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
         .view()
         .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
