@@ -72,7 +72,9 @@ opt = getopt(spec)
 print(list.files(data_path))
 labels <- sub('_.*', '', list.files(data_path))
 print(labels)
+
 label <- labels[-which(labels == "rds")]
+if(label == "seurat"){label <- "FullData"}
 print(label)
 
 # Load atac data in rds_files
