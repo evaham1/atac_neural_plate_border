@@ -41,7 +41,7 @@ workflow FILTERING {
 
     FILTER_FULL ( ch_combined ) // filter full data
 
-    ch_output = FILTERING.out.output // Collect rds files from all stages
+    ch_output = FILTER_CLUSTER_LOOP.out // Collect rds files from all stages
         .concat(FILTER_FULL.out)
         .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]} //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
         .map{ [ it[0], it[[1]] ] }
