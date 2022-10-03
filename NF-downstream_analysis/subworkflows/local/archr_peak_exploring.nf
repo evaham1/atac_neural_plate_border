@@ -67,8 +67,8 @@ workflow PEAK_EXPLORING {
     //DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
 
     // finding enhancers
-    //SE_CALCULATE( PEAK_CALL_TL.out )
-    //FINDING_ENHANCERS( SE_CALCULATE.out )
+    SE_CALCULATE( PEAK_CALL_TL.out )
+    FINDING_ENHANCERS( SE_CALCULATE.out )
 
     // subset NPB
     // SUBSET_NPB( TRANSFER_LABELS.out )
