@@ -63,8 +63,8 @@ workflow PEAK_EXPLORING {
     HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
 
     // visualise differential peaks across full data
-    //DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
-    //DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
+    DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
+    DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
 
     // finding enhancers
     SE_CALCULATE( PEAK_CALL_TL.out )

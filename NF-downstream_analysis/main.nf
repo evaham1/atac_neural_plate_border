@@ -64,25 +64,11 @@ workflow A {
         PREPROCESSING ( ch_metadata ) // create ArchR object
 
         FILTERING ( PREPROCESSING.out.output ) // iterative filtering
-
-        ch_combined = FILTERING.out.output // Collect rds files from all stages
-            .concat(PREPROCESSING.out.output)
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-
-        FULL_PROCESSING ( ch_combined ) // filter full data
-        ///////////////////////////////////////////////////////////////
-
-        ch_atac = FILTERING.out.output // Collect rds files from all stages
-            .concat(FULL_PROCESSING.out.output)
-            .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]} //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
-            .map{ [ it[0], it[[1]] ] }
-            .view()
+        ch_atac = FILTERING.out.output
         
     } else {
        
-       METADATA_ATAC( params.atac_sample_sheet ) //need to update this and rerun with upstream to check it matches!! also need to add back in full data
+       METADATA_ATAC( params.atac_sample_sheet )
        ch_atac = METADATA_ATAC.out.metadata 
        // [[sample_id:HH5], [HH5_Save-ArchR]]
        //[[sample_id:HH6], [HH6_Save-ArchR]]
@@ -101,7 +87,7 @@ workflow A {
     ///////////////////////////////////////////////////////////////
 
     // RNA: read in data
-    METADATA_RNA( params.rna_sample_sheet ) // temp taken out fulldata to match atac
+    METADATA_RNA( params.rna_sample_sheet )
     //[[sample_id:HH5], [HH5_clustered_data.RDS]]
     //[[sample_id:HH6], [HH6_clustered_data.RDS]]
     //[[sample_id:HH7], [HH7_clustered_data.RDS]]

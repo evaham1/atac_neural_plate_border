@@ -5,12 +5,7 @@ include {R as FILTER} from "$baseDir/modules/local/r/main"               addPara
 include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
 
 include {R as FILTER_CLUSTER_LOOP} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_cluster_filter_loop.R", checkIfExists: true) )
-
-include {R as CLUSTER_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
-include {R as GENE_SCORES_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_gene_scores.R", checkIfExists: true) )
-include {R as PEAK_CALL_POSTFILTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as HEATMAP_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_marker_heatmaps.R", checkIfExists: true) )
-include {R as HEATMAP_GEX} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_marker_heatmaps.R", checkIfExists: true) )
+include {R as FILTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/ArchR_filter_full_data.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,6 +14,10 @@ workflow FILTERING {
     input
 
     main:
+
+    input
+        .set {ch_input}
+
     ///     FILTER nFRAGS    ///
     FILTER( input )
 
@@ -30,20 +29,25 @@ workflow FILTERING {
         .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
         .set { ch_split_stage }     
 
-    ///     FILTER CLUSTERS     ///
+    ///     FILTER CLUSTERS IN INDIVIDUAL STAGES     ///
     FILTER_CLUSTER_LOOP( ch_split_stage )
 
-    // ///     CHECK QUALITY     ///
-    // CLUSTER_POSTFILTER( FILTER_CLUSTER_LOOP.out )
+    ///     FILTER FULL DATA USING CELL IDS FROM STAGES     ///
+    ch_combined = FILTER_CLUSTER_LOOP.out // Collect rds files from all stages
+            .concat(ch_input)
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-    // GENE_SCORES_POSTFILTER( CLUSTER_POSTFILTER.out )
-    // HEATMAP_GEX( CLUSTER_POSTFILTER.out )
+    FILTER_FULL ( ch_combined ) // filter full data
 
-    // PEAK_CALL_POSTFILTER( CLUSTER_POSTFILTER.out )
-    // HEATMAP_PEAKS( PEAK_CALL_POSTFILTER.out )
+    ch_output = FILTERING.out.output // Collect rds files from all stages
+        .concat(FILTER_FULL.out)
+        .map{[it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]} //[ [[meta: HH5], ATAC.rds] , [[meta: HH6], ATAC.rds], [[meta: FullData], ATAC.rds]]
+        .map{ [ it[0], it[[1]] ] }
+        .view()
 
     emit:
-    //output = PEAK_CALL_POSTFILTER.out
-    output = FILTER_CLUSTER_LOOP.out
+    output = ch_output
 
 }
