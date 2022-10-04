@@ -21,7 +21,6 @@ nextflow.enable.dsl = 2
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/Processing/Preprocessing"
 include { FILTERING } from "$baseDir/subworkflows/local/Processing/Filtering"
-include { FULL_PROCESSING as FULL_PROCESSING } from "$baseDir/subworkflows/local/Processing/Full_processing"
 
 // CLUSTERING AND PEAK CALLING WORKFLOW
 include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
