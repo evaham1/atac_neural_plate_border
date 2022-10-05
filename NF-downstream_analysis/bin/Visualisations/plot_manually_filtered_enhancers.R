@@ -39,9 +39,9 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # test input folder made
-    data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels/peak_call/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/transfer_labels_late_peaks/plots/"
-    se_path = "./NF-downstream_analysis/work/b8/6306d2907d1376bc51d5f92d5e48d7/rds_files/Full_se.RDS"
+    data_path = "./NF-downstream_analysis/work/17/d51f87f947475ee9e5e230be2c5426/rds_files/" #need to update
+    plot_path = "./output/NF-downstream_analysis/Downstream_processing/transfer_labels/plot_manually_filtered_enhancers/plots/"
+    se_path = "./NF-downstream_analysis/work/17/d51f87f947475ee9e5e230be2c5426/rds_files/" 
     
     addArchRThreads(threads = 1) 
     
@@ -300,3 +300,128 @@ Full_se <- readRDS(se_data)
 matrix <- extract_means_from_se(Full_se)
 normalised_matrix <- Log2norm(matrix)
 
+
+##################################################################################################
+##########################    Read in manually selected peaks   ##################################
+
+NC_peak_ids <- c("chr1:4741943-4742443", "chr1:36224641-36225141",
+                 "chr18:8888066-8888566", "chr2:41875394-41875894",
+                 "chr2:42661874-42662374", "chr2:140273671-140274171",
+                 "chr4:70459983-70460483", "chr8:7216956-7217456",
+                 "chr3:60034724-60035224", "chr4:51680702-51681202",
+                 "chr9:5834645-5835145", "chr1:57370425-57370925",
+                 "chr1:61674271-61674771", "chr4:39407032-39407532")
+
+PPR_peak_ids <- c("chr2:10216477-10216977", "chr2:11936117-11936617",
+                  "chr2:45931424-45931924", "chr21:5992393-5992893",
+                  "chr9:16689582-16690082", "chr1:44512244-44512744",
+                  "chr12:1723295-1723795", "chr4:69910791-69911291",
+                  "chr8:25914832-25915332", "chr1:88390937-88391437",
+                  "chr2:149406064-149406564", "chr4:5183754-5184254",
+                  "chr4:11263569-11264069")
+
+
+###########################################################################
+##########################    Heatmaps   ##################################
+
+## NC
+NC_matrix <- subset_matrix(normalised_matrix, NC_peak_ids)
+
+png(paste0(plot_path, 'NC/NC_heatmap_clustered.png'), height = 20, width = 40, units = 'cm', res = 400)
+print(marker_heatmap(NC_matrix, pal = pal, clusterCols = TRUE, labelRows = TRUE))
+graphics.off()
+
+png(paste0(plot_path, 'NC/NC_heatmap_unclustered.png'), height = 20, width = 40, units = 'cm', res = 400)
+print(marker_heatmap(NC_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+## PPR
+PPR_matrix <- subset_matrix(normalised_matrix, PPR_peak_ids)
+
+png(paste0(plot_path, 'PPR/PPR_heatmap_clustered.png'), height = 20, width = 40, units = 'cm', res = 400)
+print(marker_heatmap(PPR_matrix, pal = pal, clusterCols = TRUE, labelRows = TRUE))
+graphics.off()
+
+png(paste0(plot_path, 'PPR/PPR_heatmap_unclustered.png'), height = 20, width = 40, units = 'cm', res = 400)
+print(marker_heatmap(PPR_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+graphics.off()
+
+####################################################################################
+##########################    Genome Browser Plots   ###############################
+
+## create new function for this and add here
+
+######################################################################################
+##########################    Annotation Piechart   ##################################
+Full_peaks_data <- getPeakSet(FullData)
+
+## NC
+NC_peaks_data <- Full_peaks_data[which(Full_peaks_data$name %in% gsub(":", "-", NC_peak_ids)), ]
+
+counts <- as.data.frame(table(NC_peaks_data$peakType))
+colnames(counts) <- c("Peak Annotation", "Number of peaks")
+counts <- counts %>% mutate('Percentage' = round(100*(`Number of peaks`/sum(counts$`Number of peaks`))))
+
+png(paste0(plot_path, 'NC/peak_counts_per_type.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Peak Counts per type", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+png(paste0(plot_path, 'NC/peak_counts_per_type_piechart.png'), height = 10, width = 20, units = 'cm', res = 400)
+ggplot(counts, aes(x="", y=`Number of peaks`, fill=`Peak Annotation`)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  theme_void() +
+  geom_text(aes(label = paste0(Percentage, "%")),
+            position = position_stack(vjust = 0.5))
+graphics.off()
+
+## PPR
+PPR_peaks_data <- Full_peaks_data[which(Full_peaks_data$name %in% gsub(":", "-", PPR_peak_ids)), ]
+
+counts <- as.data.frame(table(PPR_peaks_data$peakType))
+colnames(counts) <- c("Peak Annotation", "Number of peaks")
+counts <- counts %>% mutate('Percentage' = round(100*(`Number of peaks`/sum(counts$`Number of peaks`))))
+
+png(paste0(plot_path, 'PPR/peak_counts_per_type.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Peak Counts per type", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+png(paste0(plot_path, 'PPR/peak_counts_per_type_piechart.png'), height = 10, width = 20, units = 'cm', res = 400)
+ggplot(counts, aes(x="", y=`Number of peaks`, fill=`Peak Annotation`)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  theme_void() +
+  geom_text(aes(label = paste0(Percentage, "%")),
+            position = position_stack(vjust = 0.5))
+graphics.off()
+
+##########################################################################################
+##########################    Distance to nearest TSSs   ##################################
+
+## NC
+NC_peaks_data <- as.data.frame(NC_peaks_data, row.names = NULL)
+
+png(paste0(plot_path, 'NC/dist_to_TSS.png'), height = 30, width = 20, units = 'cm', res = 400)
+ggplot(NC_peaks_data, aes(x = peakType, y = distToTSS)) + 
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) +
+  geom_hline(aes(yintercept = 500), color = "black", linetype = "dashed", size = 1)
+graphics.off()
+
+NC_peaks_data_minus_outlier <- NC_peaks_data[which(NC_peaks_data$distToTSS < 50000), ]
+
+png(paste0(plot_path, 'NC/dist_to_TSS_minus_outlier.png'), height = 30, width = 20, units = 'cm', res = 400)
+ggplot(NC_peaks_data_minus_outlier, aes(x = peakType, y = distToTSS)) + 
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) +
+  geom_hline(aes(yintercept = 500), color = "black", linetype = "dashed", size = 1)
+graphics.off()
+
+## PPR
+PPR_peaks_data <- as.data.frame(PPR_peaks_data, row.names = NULL)
+
+png(paste0(plot_path, 'PPR/dist_to_TSS.png'), height = 30, width = 20, units = 'cm', res = 400)
+ggplot(PPR_peaks_data, aes(x = peakType, y = distToTSS)) + 
+  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) +
+  geom_hline(aes(yintercept = 500), color = "black", linetype = "dashed", size = 1)
+graphics.off()
