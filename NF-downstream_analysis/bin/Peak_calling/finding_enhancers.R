@@ -803,7 +803,7 @@ graphics.off()
 
 id_data <- id_data %>% mutate(annotation_filter = ifelse(unique_id %in% ids_2 == TRUE, "T", "F"))
 
-### Step 3: filter to only include those that open at ss4
+### Step 3: filter to only include those that open at HH7
 subsetted_raw_matrix <- subset_matrix(matrix, ids_2)
 ids_3 <- open_across_stages_test(subsetted_raw_matrix, threshold_type = "min", threshold_HH5 = 0.001,
                                  threshold_HH6 = 0.001, threshold_HH7 = 1, threshold_ss4 = 1, threshold_ss8 = 1)
