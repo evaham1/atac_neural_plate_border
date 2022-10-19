@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 
 // compare stages
-include {R as COMPARE_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_preprocessing/compare_stages.R", checkIfExists: true) )
+include {R as COMPARE_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/compare_stages.R", checkIfExists: true) )
 
 // visualise on full dataset (transfer labels object)
 include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_utilities/transfer_labels.R", checkIfExists: true) )
