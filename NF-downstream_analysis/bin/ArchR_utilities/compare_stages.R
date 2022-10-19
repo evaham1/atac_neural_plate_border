@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
-print("nice heatmaps")
-# calculates differential peaks between clusters, scHelper_cell_types_old and stage -> plots on heatmaps
+print("compare stages")
+# compares stages
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -258,6 +258,8 @@ HH7_df <- data.frame(LogFC = c(t(assays(HH7_se)$Log2FC)), FDR = c(t(assays(HH7_s
 ss4_df <- data.frame(LogFC = c(t(assays(ss4_se)$Log2FC)), FDR = c(t(assays(ss4_se)$FDR)), stage = "ss4", stringsAsFactors=FALSE)
 ss8_df <- data.frame(LogFC = c(t(assays(ss8_se)$Log2FC)), FDR = c(t(assays(ss8_se)$FDR)), stage = "ss8", stringsAsFactors=FALSE)
 
+print(HH5_df[1:10, 1:10])
+
 png(paste0(plot_path, 'HH5_FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
 ggplot(HH5_df, aes(x = -LogFDR, y = LogFC)) + 
   geom_point(alpha = 0.5) + 
@@ -297,7 +299,7 @@ graphics.off()
 
 df <- do.call("rbind", list(HH5_df, HH6_df, HH7_df, ss4_df, ss8_df))
 
-unique(df$stage)
+print(unique(df$stage))
 
 ## Boxplots
 png(paste0(plot_path, 'Log2FC_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)

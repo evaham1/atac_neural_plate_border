@@ -57,7 +57,7 @@ workflow PEAK_EXPLORING {
             .view()
 
     // compare variability/how many differential peaks we have at different stages
-    //COMPARE_STAGES( ch_combined )
+    COMPARE_STAGES( ch_combined )
 
     // visualise clusters from individual stages on full dataset
     TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data

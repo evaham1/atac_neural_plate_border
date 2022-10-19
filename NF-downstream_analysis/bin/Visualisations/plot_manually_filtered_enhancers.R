@@ -406,7 +406,7 @@ NC_peaks_data <- as.data.frame(NC_peaks_data, row.names = NULL)
 png(paste0(plot_path, 'NC/dist_to_TSS.png'), height = 30, width = 20, units = 'cm', res = 400)
 ggplot(NC_peaks_data, aes(x = peakType, y = distToTSS)) + 
   geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) +
-  geom_hline(aes(yintercept = 500), color = "black", linetype = "dashed", size = 1)
+  geom_hline(aes(yintercept = 50000), color = "black", linetype = "dashed", size = 1)
 graphics.off()
 
 NC_peaks_data_minus_outlier <- NC_peaks_data[which(NC_peaks_data$distToTSS < 50000), ]
@@ -423,5 +423,5 @@ PPR_peaks_data <- as.data.frame(PPR_peaks_data, row.names = NULL)
 png(paste0(plot_path, 'PPR/dist_to_TSS.png'), height = 30, width = 20, units = 'cm', res = 400)
 ggplot(PPR_peaks_data, aes(x = peakType, y = distToTSS)) + 
   geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) +
-  geom_hline(aes(yintercept = 500), color = "black", linetype = "dashed", size = 1)
+  geom_hline(aes(yintercept = 50000), color = "black", linetype = "dashed", size = 1)
 graphics.off()
