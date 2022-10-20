@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
-print("finding enhancers")
-# look for peaks which are differentially upregulated in the NC or PPR clusters at ss8/ss4 and are also open earlier
+print("calculates SE object by running 'getMarkerFeatures'")
+# calculates SE object by running 'getMarkerFeatures', this is useful to save time downstream!
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -25,7 +25,8 @@ library(ComplexHeatmap)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE),
+  make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How cells were grouped to call peaks", default = "clusters",),
 )
 
 opt_parser = OptionParser(option_list = option_list)
@@ -98,26 +99,38 @@ add_unique_ids_to_se <- function(seMarker, ArchR, matrix_type) {
 }
 
 ###########################################################################################
-############################## Read in ArchR projects #####################################
+############################## Read in ArchR project #####################################
 
-files <- list.files(data_path, full.names = TRUE)
-print(files)
+# If files are not in rds_files subdirectory look in input dir
+label <- sub('_.*', '', list.files(data_path))
+print(label)
 
-full_data <- grep("FullData", files, invert = F, value = TRUE)
-FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
+if (length(label) == 0){
+  data_path = "./input/"
+  label <- sub('_.*', '', list.files(data_path))
+  print(label)
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+} else {
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+}
 
-getAvailableMatrices(FullData)
-FullData@peakSet
+getAvailableMatrices(ArchR)
+ArchR@peakSet
 
-saveArchRProject(ArchRProj = FullData, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+print("ArchR project saved")
 
 ###########################################################################################
 ########################## Calculate se across all clusters ###############################
 
-Full_se <- getMarkerFeatures(
-  ArchRProj = FullData, 
-  useMatrix = "PeakMatrix", 
-  groupBy = "stage_clusters")
-Full_se <- add_unique_ids_to_se(Full_se, FullData, matrix_type = "PeakMatrix")
+print(paste0("Cells grouped by: ", opt$group_by))
 
-saveRDS(Full_se, file = paste0(rds_path, "Full_se.RDS"))
+se <- getMarkerFeatures(
+  ArchRProj = ArchR, 
+  useMatrix = "PeakMatrix", 
+  groupBy = opt$group_by)
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
+
+saveRDS(se, file = paste0(rds_path, "SE_object.RDS"))
