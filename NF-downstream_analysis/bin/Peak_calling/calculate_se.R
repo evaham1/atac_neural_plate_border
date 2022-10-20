@@ -25,8 +25,8 @@ library(ComplexHeatmap)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE),
-  make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How cells were grouped to call peaks", default = "clusters",),
+  make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How cells are grouped when peaks called", default = "clusters",),
+  make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
 opt_parser = OptionParser(option_list = option_list)
