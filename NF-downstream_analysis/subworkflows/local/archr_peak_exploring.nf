@@ -54,10 +54,7 @@ workflow PEAK_EXPLORING {
     main:
     // calculate se object for all stages + fulldata
     SE_CALCULATE( input_ch )
-    SE_CALCULATE.out.map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}.view()
-    SE_CALCULATE.out.map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[1]}.view()
-
-
+    SE_CALCULATE.out.map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}.view()
 
     // collect all integrated rds objects into a single element in channel
     ch_combined = SE_CALCULATE.out // Collect integrated atac objects + calculated se objects
