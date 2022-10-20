@@ -54,20 +54,27 @@ workflow PEAK_EXPLORING {
     main:
     // calculate se object for all stages + fulldata
     SE_CALCULATE( input_ch )
-    SE_CALCULATE.out.map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0][1]}.view()
 
-    // collect all integrated rds objects into a single element in channel
-    ch_combined = SE_CALCULATE.out // Collect integrated atac objects + calculated se objects
+    // collect all se objects into a single channel
+    ch_se_combined = SE_CALCULATE.out
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            //.view()
+            .view()
 
     // compare variability/how many differential peaks we have at different stages
-    COMPARE_STAGES( ch_combined )
+    COMPARE_STAGES( ch_se_combined )
 
     ////////////////////////////////////////////////////////////////////////////////////////////
                     /// CREATE TRANSFER LABELS OBJECT   ///
+    
+    // collect all integrated rds objects into a single element in channel
+    ch_combined = input_ch
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            .view()
+
     // visualise clusters from individual stages on full dataset
     TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
     HEATMAP_GEX_TL( TRANSFER_LABELS.out )
