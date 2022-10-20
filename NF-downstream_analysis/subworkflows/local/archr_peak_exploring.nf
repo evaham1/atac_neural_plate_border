@@ -65,7 +65,8 @@ workflow PEAK_EXPLORING {
     // compare variability/how many differential peaks we have at different stages
     COMPARE_STAGES( CALCULATE_SE.out )
 
-    /// CREATE TRANSFER LABELS OBJECT   ///
+    ////////////////////////////////////////////////////////////////////////////////////////////
+                    /// CREATE TRANSFER LABELS OBJECT   ///
     // visualise clusters from individual stages on full dataset
     TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
     HEATMAP_GEX_TL( TRANSFER_LABELS.out )
