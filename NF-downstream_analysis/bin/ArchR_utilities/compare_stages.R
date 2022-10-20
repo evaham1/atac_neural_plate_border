@@ -196,59 +196,19 @@ marker_heatmap <- function(mat, pal = NULL,
   
 }
 
-###########################################################################################
-############################## Read in ArchR projects #######################################
+####################### Read in RDS objects ##########################
 
-stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
-stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
-names(stage_colours) <- stage_order
-
-# Read in all data
-files <- list.files(data_path, full.names = TRUE)
-print(files)
-stages_data <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
-print(paste0("Stages data: ", stages_data))
-
-HH5 <- loadArchRProject(path = stages_data[1], force = TRUE, showLogo = FALSE)
-print(HH5)
-HH6 <- loadArchRProject(path = stages_data[2], force = TRUE, showLogo = FALSE)
-print(HH6)
-HH7 <- loadArchRProject(path = stages_data[3], force = TRUE, showLogo = FALSE)
-print(HH7)
-ss4 <- loadArchRProject(path = stages_data[4], force = TRUE, showLogo = FALSE)
-print(ss4)
-ss8 <- loadArchRProject(path = stages_data[5], force = TRUE, showLogo = FALSE)
-print(ss8)
-
-####################### Calculate diff features between clusters in each stage ##########################
-
-HH5_se <- getMarkerFeatures(
-  ArchRProj = HH5, 
-  useMatrix = opt$matrix, 
-  groupBy = "clusters")
-HH6_se <- getMarkerFeatures(
-  ArchRProj = HH6, 
-  useMatrix = opt$matrix, 
-  groupBy = "clusters")
-HH7_se <- getMarkerFeatures(
-  ArchRProj = HH7, 
-  useMatrix = opt$matrix, 
-  groupBy = "clusters")
-ss4_se <- getMarkerFeatures(
-  ArchRProj = ss4, 
-  useMatrix = opt$matrix, 
-  groupBy = "clusters")
-ss8_se <- getMarkerFeatures(
-  ArchRProj = ss8, 
-  useMatrix = opt$matrix, 
-  groupBy = "clusters")
+HH5_se <- readRDS("./input/HH5_SE.RDS")
+HH6_se <- readRDS("./input/HH6_SE.RDS")
+HH7_se <- readRDS("./input/HH7_SE.RDS")
+ss4_se <- readRDS("./input/ss4_SE.RDS")
+ss8_se <- readRDS("./input/ss8_SE.RDS")
 
 HH5_se <- add_unique_ids_to_se(HH5_se, HH5, matrix_type = opt$matrix)
 HH6_se <- add_unique_ids_to_se(HH6_se, HH6, matrix_type = opt$matrix)
 HH7_se <- add_unique_ids_to_se(HH7_se, HH7, matrix_type = opt$matrix)
 ss4_se <- add_unique_ids_to_se(ss4_se, ss4, matrix_type = opt$matrix)
 ss8_se <- add_unique_ids_to_se(ss8_se, ss8, matrix_type = opt$matrix)
-
 
 ###################### Plots showing distribution of FDR and Logf2c values #############################
 
