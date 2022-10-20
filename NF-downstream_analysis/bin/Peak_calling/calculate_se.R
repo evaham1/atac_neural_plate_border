@@ -119,9 +119,6 @@ if (length(label) == 0){
 getAvailableMatrices(ArchR)
 ArchR@peakSet
 
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
-print("ArchR project saved")
-
 ###########################################################################################
 ########################## Calculate se across all clusters ###############################
 
