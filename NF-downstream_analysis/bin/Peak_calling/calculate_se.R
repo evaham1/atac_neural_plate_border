@@ -133,4 +133,4 @@ se <- getMarkerFeatures(
   groupBy = opt$group_by)
 se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 
-saveRDS(se, file = paste0(rds_path, "SE_object.RDS"))
+saveRDS(se, file = paste0(rds_path, label, "_SE.RDS"))

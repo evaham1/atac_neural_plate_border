@@ -52,15 +52,15 @@ workflow PEAK_EXPLORING {
     input_ch
 
     main:
+    // calculate se object for all stages + fulldata
+    SE_CALCULATE( input_ch )
+
     // collect all integrated rds objects into a single element in channel
-    ch_combined = input_ch // Collect integrated atac objects
+    ch_combined = SE_CALCULATE.out // Collect integrated atac objects + calculated se objects
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
             .view()
-
-    // calculate se object for all stages + fulldata
-    SE_CALCULATE( ch_combined )
 
     // compare variability/how many differential peaks we have at different stages
     COMPARE_STAGES( SE_CALCULATE.out )
