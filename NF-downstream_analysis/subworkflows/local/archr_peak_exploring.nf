@@ -1,6 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
+// calculate se on stages and full data
+include {R as SE_CALCULATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
+
 // compare stages
 include {R as COMPARE_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/compare_stages.R", checkIfExists: true) )
 
@@ -15,7 +18,7 @@ include {R as DIFF_PEAKS_STAGES} from "$baseDir/modules/local/r/main"           
 include {R as DIFF_PEAKS_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_clusters.R", checkIfExists: true) )
 
 // look for enhancers
-include {R as SE_CALCULATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
+include {R as SE_CALCULATE_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
 include {R as FINDING_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/finding_enhancers.R", checkIfExists: true) )
 
 // plots for enhancers
@@ -56,9 +59,13 @@ workflow PEAK_EXPLORING {
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
             .view()
 
-    // compare variability/how many differential peaks we have at different stages
-    COMPARE_STAGES( ch_combined )
+    // calculate se object for all stages + fulldata
+    CALCULATE_SE( ch_combined )
 
+    // compare variability/how many differential peaks we have at different stages
+    COMPARE_STAGES( CALCULATE_SE.out )
+
+    /// CREATE TRANSFER LABELS OBJECT   ///
     // visualise clusters from individual stages on full dataset
     TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
     HEATMAP_GEX_TL( TRANSFER_LABELS.out )
@@ -70,8 +77,8 @@ workflow PEAK_EXPLORING {
     DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
 
     // finding enhancers
-    SE_CALCULATE( PEAK_CALL_TL.out )
-    FINDING_ENHANCERS( SE_CALCULATE.out )
+    SE_CALCULATE_TL( PEAK_CALL_TL.out )
+    FINDING_ENHANCERS( SE_CALCULATE_TL.out )
     PLOT_MANUALLY_FILTERED_ENHANCERS( SE_CALCULATE.out )
 
     // subset NPB
