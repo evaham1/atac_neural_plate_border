@@ -63,7 +63,7 @@ workflow PEAK_EXPLORING {
             .view()
 
     // compare variability/how many differential peaks we have at different stages
-    COMPARE_STAGES( SE_CALCULATE.out )
+    COMPARE_STAGES( ch_combined )
 
     ////////////////////////////////////////////////////////////////////////////////////////////
                     /// CREATE TRANSFER LABELS OBJECT   ///
