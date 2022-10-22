@@ -223,7 +223,7 @@ peaks_df <- as.data.frame(peaks_granges)
 peaks_df <- peaks_df %>% mutate(ID = ids)
 
 counts <- as.data.frame(table(peaks_df$ID))
-colnames(counts) <- c("ID", "Number of peaks")
+colnames(counts) <- c("ID", "nPeaks")
 
 # order rows by cluster number or scHelper cell state
 if (opt$group_by == "clusters") {
@@ -236,6 +236,9 @@ if (opt$group_by == "scHelper_cell_type_old") {
   order <- intersect(scHelper_cell_type_order, counts$ID)
   counts <- counts[match(order, counts$ID),]
 }
+
+# Add total peak counts
+counts <- counts %>% add_row(ID = "Total", nPeaks = sum(counts$nPeaks))
 
 ## Plot how many peaks found per cluster
 png(paste0(plot_path, 'peak_counts_per_group.png'), height = 45, width = 10, units = 'cm', res = 400)
