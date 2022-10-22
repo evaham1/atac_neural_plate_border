@@ -224,6 +224,7 @@ peaks_df <- peaks_df %>% mutate(ID = ids)
 
 counts <- as.data.frame(table(peaks_df$ID))
 colnames(counts) <- c("ID", "nPeaks")
+print(counts)
 
 # order rows by cluster number or scHelper cell state
 if (opt$group_by == "clusters") {
@@ -237,8 +238,10 @@ if (opt$group_by == "scHelper_cell_type_old") {
   counts <- counts[match(order, counts$ID),]
 }
 
+print(counts)
 # Add total peak counts
 counts <- counts %>% add_row(ID = "Total", nPeaks = sum(counts$nPeaks))
+print(counts)
 
 ## Plot how many peaks found per cluster
 png(paste0(plot_path, 'peak_counts_per_group.png'), height = 45, width = 10, units = 'cm', res = 400)
