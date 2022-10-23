@@ -19,13 +19,16 @@ include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"              
 include {R as DIFF_PEAKS_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_stages.R", checkIfExists: true) )
 include {R as DIFF_PEAKS_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/diff_peaks_clusters.R", checkIfExists: true) )
 
+// cluster peaks into modules
+include {R as CLUSTER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/Clustering_peaks.R", checkIfExists: true) )
+
 //////////////////        Look for enhancers       ///////////////////
 // look for enhancers
-include {R as SE_CALCULATE_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
-include {R as FINDING_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Finding_enhancers/finding_enhancers.R", checkIfExists: true) )
+// include {R as SE_CALCULATE_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
+// include {R as FINDING_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Finding_enhancers/finding_enhancers.R", checkIfExists: true) )
 
-// plots for enhancers
-include {R as PLOT_MANUALLY_FILTERED_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_manually_filtered_enhancers.R", checkIfExists: true) )
+// // plots for enhancers
+// include {R as PLOT_MANUALLY_FILTERED_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_manually_filtered_enhancers.R", checkIfExists: true) )
 
 //////////////////        NPB subset       ///////////////////
 // // look for enhancers in just NPB cells
@@ -89,13 +92,17 @@ workflow PEAK_EXPLORING {
     DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
     DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
 
+    // cluster peaks into modules
+    CLUSTER_PEAKS( PEAK_CALL_TL.out )
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////
                     /// FINDING ENHANCERS   ///
 
     // finding enhancers
-    SE_CALCULATE_TL( PEAK_CALL_TL.out )
-    FINDING_ENHANCERS( SE_CALCULATE_TL.out )
-    PLOT_MANUALLY_FILTERED_ENHANCERS( SE_CALCULATE_TL.out )
+//     SE_CALCULATE_TL( PEAK_CALL_TL.out )
+//     FINDING_ENHANCERS( SE_CALCULATE_TL.out )
+//     PLOT_MANUALLY_FILTERED_ENHANCERS( SE_CALCULATE_TL.out )
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////

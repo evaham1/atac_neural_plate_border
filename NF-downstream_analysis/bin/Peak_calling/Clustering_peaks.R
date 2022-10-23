@@ -67,8 +67,9 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
-###########     Functions
-##########################################################
+##############################################################################
+############################### FUNCTIONS ####################################
+
 ## function to create empty final correlation matrix
 gen_corr_matrix <- function ( mat ){
   return(matrix(nrow = ncol(mat), ncol = ncol(mat),
@@ -105,6 +106,7 @@ fast_cor <- function (mat, chunk_size) {
   coords <- calc_chunk_coords(feature_pairs, k = chunk_size)
   
   for (i in 1:nrow(coords)){
+    print(paste0("Chunk ", i))
     chunk_coords <- coords[i, "start"]:coords[i, "end"]
     feature_pairs_chunk <- feature_pairs[chunk_coords, ]
     chunk_cor_mat <- chunk_cor(mat, feature_pairs_chunk)
@@ -115,15 +117,13 @@ fast_cor <- function (mat, chunk_size) {
   return(corr_mat)
 }
 
-
-
-##############################################################################
+#################################################################################
+############################## Read in data #####################################
 
 # extract peak matrix - takes a long time
 peak_data <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix", threads = 1)
-peak_matrix <- t(assays(peak_data)[[1]])
-colnames(peak_matrix) <- rowData(peak_data)$name
-
+matrix <- t(assays(peak_data)[[1]])
+colnames(matrix) <- rowData(peak_data)$name
 
 ### as extracting matrix takes a long time could write and read matrix
 # # save peak matrix
@@ -137,7 +137,7 @@ colnames(peak_matrix) <- rowData(peak_data)$name
 # rownames(matrix) <- scan("rownames.txt", character(), quote = "")
 
 
-# ######### Test matrix
+# ######### Generate Test matrix
 # # create test matrix and save
 # test_matrix <- matrix[1:1000, 1:10000]
 # writeMM(test_matrix, "test_matrix.txt")
@@ -145,73 +145,65 @@ colnames(peak_matrix) <- rowData(peak_data)$name
 # write(rownames(test_matrix), "test_rownames.txt")
 
 
-#########################################################################
-### Filter peaks, try to cut down 260,000 -> 100,000
-hist()
-hist(colSums(matrix > 0), breaks = 1000)
-summary(colSums(matrix > 0))
+###########################################################################
+################ Filter peaks based on annotation #########################
 
-top_peaks <- sort(colSums(matrix > 0), decreasing = TRUE)[1:1000]
-names(top_peaks)
+peak_set <- getPeakSet(ArchR)
+print(unique(peak_set$peakType))
+included_peak_set <- peak_set[which(peak_set$peakType %in% c("Distal", "Intronic")), ]
+print(length(included_peak_set$name))
 
-filtered_matrix <- matrix[, names(top_peaks)]
-dim(filtered_matrix)
+# need to do this for the test matrix, for full matrix should return all peaks
+included_peaks <- included_peak_set$name[included_peak_set$name %in% colnames(matrix)]
+print(length(included_peaks))
 
+# filter matrix to only include these peaks -> f1_matrix
+f1_matrix <- matrix[, included_peaks]
+print(paste0("Peak number before filtering: ", ncol(matrix)))
+print(paste0("Peak number after filtering: ", ncol(f1_matrix)))
 
-############################################################################
-### Cluster peaks
+##############################################################################################
+################ Filter peaks based on number of cells it is open in #########################
 
-fast_cor(mat = matrix[1:100, 1:100], chunk_size = 5)
+### Chose final number as 100,000 peaks
 
+## Plot distribution of number of cells per peak
+png(paste0(plot_path, 'Unfiltered_hist_cells_per_peak.png'), height = 20, width = 25, units = 'cm', res = 400)
+hist(colSums(f1_matrix > 0), breaks = 1000)
+graphics.off()
 
+cells_per_peak <- summary(colSums(f1_matrix > 0))
+table <- data.frame(Stats = names(cells_per_peak), Value = as.vector(cells_per_peak))
+png(paste0(plot_path, 'Unfiltered_cells_per_peak_summary_table.png'), height = 30, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Number of cells peak is open in", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(table, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
+## Filter peaks so take only ones open in many cells - top 100,000, change to 1,000 for test matrix
+top_peaks <- sort(colSums(f1_matrix > 0), decreasing = TRUE)[1:100000]
+print(length(names(top_peaks)))
 
+f2_matrix <- f1_matrix[, names(top_peaks)]
+print(paste0("Peak number before filtering: ", ncol(f1_matrix)))
+print(paste0("Peak number after filtering: ", ncol(f2_matrix)))
 
-###################   OLD
-#############   Test speed of correlating matrices of different sizes
+## Redo plots to see where these filtered peaks lie in the distribution
+png(paste0(plot_path, 'Filtered_hist_cells_per_peak.png'), height = 20, width = 25, units = 'cm', res = 400)
+hist(colSums(f2_matrix > 0), breaks = 1000)
+graphics.off()
 
-# # cor with different sized matrices
-# mini_matrix <- peak_matrix[, 1:1000]
-# mini_matrix_dense <- as.matrix(mini_matrix)
-# system.time(cor(mini_matrix_dense, method = "spearman"))
-# #user  system elapsed 
-# #0.690   0.000   0.692 
-
-# mini_matrix <- peak_matrix[, 1:2000]
-# mini_matrix_dense <- as.matrix(mini_matrix)
-# system.time(cor(mini_matrix_dense, method = "spearman"))
-# #user  system elapsed 
-# #25.113   0.025  25.176 
-
-# mini_matrix <- peak_matrix[, 1:5000]
-# mini_matrix_dense <- as.matrix(mini_matrix)
-# system.time(cor(mini_matrix_dense, method = "spearman"))
-# #user  system elapsed 
-# #150.106   0.891 151.164
-
-# mini_matrix <- peak_matrix[, 1:10000]
-# mini_matrix_dense <- as.matrix(mini_matrix)
-# system.time(cor(mini_matrix_dense, method = "spearman"))
-# #user  system elapsed 
-# #580.238   0.931 582.086 
-
-# # plot relative timings using standard cor function:
-# plot_data <- data.frame(Number_of_peaks = c(1000, 2000, 5000, 10000),
-#                         Seconds_to_compute = c(0.692, 25.176, 151.164, 582.086))
-# ggplot(plot_data, aes(x = Number_of_peaks, y = Seconds_to_compute)) + geom_point() + geom_line()
-
-
-# # see how long it takes to rank matrix, then should be able to just feed into pearsons test
-# system.time(apply(mini_matrix_dense, 2, rank))
-# #    user  system elapsed 
-# #     1.156   0.000   1.157 
-# system.time())
-# frank(mini_matrix_dense, x = colnames(mini_matrix_dense))
-# #    user  system elapsed 
-# #   2.432   0.002   0.643 
+cells_per_peak_filtered <- summary(colSums(f2_matrix > 0))
+table <- data.frame(Stats = names(cells_per_peak_filtered), Value = as.vector(cells_per_peak_filtered))
+png(paste0(plot_path, 'Filtered_cells_per_peak_summary_table.png'), height = 30, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Number of cells peak is open in", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(table, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 
-# ranked_mini_matrix <- apply(mini_matrix_dense, 2, rank)
-# ranked_mini_matrix[1:5, 1:5]
-# dim(ranked_mini_matrix)
-# max(ranked_mini_matrix[,4])
+#################################################################################
+############################## Cluster peaks #####################################
+
+correlation_matrix <- fast_cor(mat = f2_matrix[1:100, 1:100], chunk_size = 1000)
+save(correlation_matrix, file = paste0(rds_path, "correlation_matrix.RData"))
+
+
