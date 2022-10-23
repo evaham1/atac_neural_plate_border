@@ -283,7 +283,7 @@ names(new_labels) <- cluster_idents[,1]
 ArchR$cluster_old_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
 
 p1 <- plotEmbedding(ArchR, name = "cluster_old_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+              labelSize = 8, legendSize = 0, labelAsFactors = FALSE)
 p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
 
