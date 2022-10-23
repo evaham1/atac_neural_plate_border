@@ -88,6 +88,8 @@ dim(rowData(ss8_se)) # 146,059 peaks
 ########################################################################################################
 ###### Barchart of total number of PEAKS and PEAKS that have a FDR < 0.01 for at least one cluster
 
+dir.create(paste0(plot_path, "Barcharts/"), recursive = T)
+
 HH5_FDRs <- as.data.frame(assays(HH5_se)$FDR)
 HH5 <- table(apply(HH5_FDRs, 1, function(x) sum(x < 0.01) >= 1))
 HH6_FDRs <- as.data.frame(assays(HH6_se)$FDR)
@@ -142,6 +144,8 @@ graphics.off()
 ########################################################################################################
 ########################################################################################################
 ###### Volcano plots of TESTS LogFC and FDRs and TESTS that have a FDR < 0.01
+
+dir.create(paste0(plot_path, "Volcano_plots/"), recursive = T)
 
 #### adjust these plots so colour points based on pass/fail threshold
 ### also maybe plot them together so they have the same y axes??
