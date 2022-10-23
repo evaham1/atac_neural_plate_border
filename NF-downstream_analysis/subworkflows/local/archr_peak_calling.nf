@@ -13,7 +13,7 @@ workflow PEAK_CALLING {
     main:
     // Run peak calling and examine resulting differential peaks
     PEAK_CALL( input )
-    HEATMAP_PEAKS( PEAK_CALL.out )
+    //HEATMAP_PEAKS( PEAK_CALL.out )
 
     //emit peak-called object:
     emit:
