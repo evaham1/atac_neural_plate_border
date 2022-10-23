@@ -15,12 +15,12 @@ include {R as CLUSTER_IDENTIFY_FILTERED} from "$baseDir/modules/local/r/main"   
 
 workflow INTEGRATING {
     take:
-    input_ch
+    input
 
     main:
 
     // Integrate full data and split stage data
-    UNCON_INTEGRATE ( input_ch )
+    UNCON_INTEGRATE ( input )
 
     // Examine the resulting integration
     CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
@@ -33,10 +33,9 @@ workflow INTEGRATING {
     CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
 
     // Examine the resulting integration
-    CLUSTER_IDENTIFY ( SUBSET_INTEGRATION.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
-    INTEGRATION_CLUSTERS_COMPARE ( SUBSET_INTEGRATION.out ) // Examine the relationship between clusters and labels
+    CLUSTER_IDENTIFY ( CLUSTER_INTEGRATION.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
+    INTEGRATION_CLUSTERS_COMPARE ( CLUSTER_INTEGRATION.out ) // Examine the relationship between clusters and labels
     
-
     //emit integrated ArchR objects:
     emit:
     integrated = UNCON_INTEGRATE.out

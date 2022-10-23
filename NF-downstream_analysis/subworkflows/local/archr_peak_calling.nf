@@ -12,10 +12,10 @@ workflow PEAK_CALLING {
 
     main:
     // Run peak calling and examine resulting differential peaks
-    PEAK_CALL( CLUSTER.out )
+    PEAK_CALL( input )
     HEATMAP_PEAKS( PEAK_CALL.out )
 
-    //emit clustered and peak-called objects:
+    //emit peak-called object:
     emit:
     output = PEAK_CALL.out
 }
