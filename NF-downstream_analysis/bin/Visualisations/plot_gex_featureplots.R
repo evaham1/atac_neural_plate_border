@@ -189,8 +189,35 @@ feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
 
 all_genes <- unique(c(contaminating_markers, late_markers, early_markers, ap_markers, dotplot_1_genes, dotplot_2_genes))
 
-############################## Dot Plots #################################
+############################## Feature Plots #################################
 
+# impute weights using MAGIC to plot better feature plots
+ArchR <- addImputeWeights(ArchR)
+
+png(paste0(plot_path, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = contaminating_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = late_markers)
+graphics.off()
+
+png(paste0(plot_path, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = ap_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = early_markers)
+graphics.off()
+
+png(paste0(plot_path, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+feature_plot_grid(ArchR, gene_list = feature_plot_genes)
+graphics.off()
+
+print("Feature plots done")
+
+############################## Dot Plots #################################
+### not using these as they look very bad due to sparsity of data
 # addArchRThreads(threads = 1) 
 
 # png(paste0(plot_path, 'Contaminating_markers_DotPlots.png'), height = 15, width = 15, units = 'cm', res = 400)
@@ -218,30 +245,3 @@ all_genes <- unique(c(contaminating_markers, late_markers, early_markers, ap_mar
 # graphics.off()
 
 # print("Dotplots done")
-
-############################## Feature Plots #################################
-
-# impute weights using MAGIC to plot better feature plots
-ArchR <- addImputeWeights(ArchR)
-
-png(paste0(plot_path, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = contaminating_markers)
-graphics.off()
-
-png(paste0(plot_path, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = late_markers)
-graphics.off()
-
-png(paste0(plot_path, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = ap_markers)
-graphics.off()
-
-png(paste0(plot_path, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = early_markers)
-graphics.off()
-
-png(paste0(plot_path, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-feature_plot_grid(ArchR, gene_list = feature_plot_genes)
-graphics.off()
-
-print("Feature plots done")
