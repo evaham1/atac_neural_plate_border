@@ -22,13 +22,16 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/Processing/Preprocessing"
 include { FILTERING } from "$baseDir/subworkflows/local/Processing/Filtering"
 
-// CLUSTERING AND PEAK CALLING WORKFLOW
-include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
+// CLUSTERING WORKFLOW
+include { CLUSTERING } from "$baseDir/subworkflows/local/archr_clustering_and_gex"
 
 // INTEGRATION WORKFLOWS
 include { METADATA as METADATA_ATAC } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
+
+// PEAK CALLING WORKFLOW
+include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
 
 // PEAK EXPLORING WORKFLOWS
 include { PEAK_EXPLORING } from "$baseDir/subworkflows/local/archr_peak_exploring"
@@ -78,9 +81,9 @@ workflow A {
 
     }
 
-    ///////////////////// PEAK CALLING ////////////////////////////
+    ///////////////////// CLUSTERING ////////////////////////////
     ///////////////////////////////////////////////////////////////
-    PEAK_CALLING( ch_atac )
+    CLUSTERING( ch_atac )
 
     ///////////////////// INTEGRATING //////////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -95,25 +98,29 @@ workflow A {
     //[[sample_id:FullData], [seurat_label_transfer.RDS]]
    
     // combine ATAC and RNA data
-    PEAK_CALLING.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+    CLUSTERING.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
         .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
         .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
         .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
         .view()
         .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-    // ARCHR: Integrate
+    // ARCHR: Integrate + filter out contaminating cells
     INTEGRATING( ch_integrate )
     // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]]]
     // [[ meta:full], ATAC]]
     // [ [[meta: HH5], ATAC] , [[meta: HH6], ATAC]]
     // [ [[meta: HH5], RNA], [[meta: HH6], RNA]]
 
+    ///////////////////// PEAK CALLING ////////////////////////////
+    ///////////////////////////////////////////////////////////////
+    PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+
     ///////////////////// EXPLORING //////////////////////////////
     ///////////////////////////////////////////////////////////////
     
     // IN PROCESS: peak exploring
-    PEAK_EXPLORING( INTEGRATING.out.integrated )
+    PEAK_EXPLORING( PEAK_CALLING.out )
 }
 
 /*
