@@ -21,5 +21,5 @@ workflow CLUSTERING {
 
     //emit clustered and peak-called objects:
     emit:
-    output = GENE_SCORES.out
+    output = CLUSTER.out
 }
