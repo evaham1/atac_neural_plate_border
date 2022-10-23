@@ -8,6 +8,8 @@ include {R as INTEGRATION_CLUSTERS_COMPARE} from "$baseDir/modules/local/r/main"
 
 // remove contamination
 include {R as SUBSET_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
+
+// rerun clustering and check integration on subset
 include {R as CLUSTER_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as CLUSTER_IDENTIFY_FILTERED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_cluster_identities.R", checkIfExists: true) )
 
@@ -33,8 +35,7 @@ workflow INTEGRATING {
     CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
 
     // Examine the resulting integration
-    CLUSTER_IDENTIFY ( CLUSTER_INTEGRATION.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
-    INTEGRATION_CLUSTERS_COMPARE ( CLUSTER_INTEGRATION.out ) // Examine the relationship between clusters and labels
+    CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
     
     //emit integrated ArchR objects:
     emit:
