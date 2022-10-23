@@ -13,7 +13,7 @@ workflow PEAK_CALLING {
 
     main:
     // Cluster data
-    CLUSTER( input_ch )
+    CLUSTER( input )
 
     // Calculate gene scores and plot heatmaps of marker genes
     GENE_SCORES( CLUSTER.out )
