@@ -187,7 +187,8 @@ png(paste0(plot_path, 'Volcano_plots/all_FDR_Log2FC_scatterplot.png'), height = 
 ggplot(all_data, aes(x = -log(FDR), y = LogFC, colour = Passed)) + 
   geom_point(alpha = 0.5) + 
   theme_minimal() +
-  facet_wrap(~ stage)
+  facet_grid(. ~ stage) + 
+  theme(text = element_text(size = 20)) 
 graphics.off()
 
 # ###################### Plots showing how many features pass different thresholds #############################
