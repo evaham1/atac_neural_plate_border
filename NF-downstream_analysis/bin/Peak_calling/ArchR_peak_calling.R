@@ -39,14 +39,8 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    #plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/plots/"
-    #rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/FullData/rds_files/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_peak_calling/ss8/plots/"
-    
-    # peaks already called
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FILTERING/ss8/postfiltering/peak_calling/rds_files/"
-    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
+    # peaks already called FullData
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/PEAK_CALLING/peak_call/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -224,23 +218,22 @@ peaks_df <- peaks_df %>% mutate(ID = ids)
 
 counts <- as.data.frame(table(peaks_df$ID))
 colnames(counts) <- c("ID", "nPeaks")
-print(counts)
 
 # order rows by cluster number or scHelper cell state
 if (opt$group_by == "clusters") {
   counts <- counts %>%
     mutate(ID = substr(counts$ID, 2, nchar(as.character(counts$ID)))) %>%
     mutate(ID = as.numeric(as.character(ID))) %>%
-    arrange(ID)
+    arrange(ID) %>%
+    mutate(ID = as.character(ID))
 }
 if (opt$group_by == "scHelper_cell_type_old") {
   order <- intersect(scHelper_cell_type_order, counts$ID)
   counts <- counts[match(order, counts$ID),]
 }
 
-print(counts)
 # Add total peak counts
-counts <- counts %>% add_row(ID = "Total", nPeaks = sum(counts$nPeaks))
+counts <- counts %>% tibble::add_row(ID = "Total", nPeaks = sum(counts$nPeaks))
 print(counts)
 
 ## Plot how many peaks found per cluster
