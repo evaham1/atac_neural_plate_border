@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 
-print("ArchR cell state plots")
+print("ArchR cell state plots and assign identities based on label proportions")
+#### still need to finish working on labelling clusters based on label proportions, and see if this 
+# works even when subset contam / cluster at higher res
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -33,11 +35,7 @@ opt = getopt(spec)
     
     ncores = 8
 
-    #data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
-    #data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/1_unconstrained_integration/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/ArchR_integration/FullData/2_identify_clusters/rds_files/"
-    
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/INTEGRATING/1_unconstrained_integration/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -205,7 +203,6 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo')
 # set colour palettes for UMAPs
-atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
 atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
 
 ############################## Integration scores plots #######################################
@@ -218,9 +215,9 @@ plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, 
               legendSize = 10)
 graphics.off()
 
-png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "Integration_Scores_Vln.png"), width=40, height=10, units = 'cm', res = 200)
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-           name = "predictedScore_Un", plotAs = "Violin")
+           name = "predictedScore_Un", plotAs = "Violin", baseSize = 20)
 graphics.off()
 
 ##################### Distribution of labels across clusters ##################################
@@ -228,14 +225,23 @@ graphics.off()
 plot_path = "./plots/label_by_cluster_distribution/"
 dir.create(plot_path, recursive = T)
 
-# visualise distribution across clusters: table
-png(paste0(plot_path, 'label_by_cluster_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
-graphics.off()
-
 # visualise distribution across clusters: confusion matrix
 png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
 cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
+graphics.off()
+
+# visualise distribution across clusters: table of cell counts
+png(paste0(plot_path, 'label_by_cluster_cell_number_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
+graphics.off()
+
+# visualise distribution across clusters: table of cell percentages
+cell_counts <- cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+percentage_counts <- as.data.frame(lapply(cell_counts, function(x) x / sum(x)))
+rownames(percentage_counts) <- rownames(cell_counts)
+
+png(paste0(plot_path, 'label_by_cluster_cell_percentage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+grid.arrange(tableGrob(round(percentage_counts, 2), theme = ttheme_minimal()))
 graphics.off()
 
 # visualise distribution across clusters: piecharts
@@ -243,6 +249,31 @@ counts <- cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2
 png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
 cell_counts_piecharts(counts, col = scHelper_cell_type_colours)
 graphics.off()
+
+##################### Label clusters based on thresholds ##################################
+##### WORK IN PROGRESS!
+
+
+threshold <- 0.25
+
+for(i in 1:ncol(percentage_counts)) {       # for-loop over columns
+  column <- percentage_counts[ , i]
+  names(column) <- rownames(percentage_counts)
+  
+  if (sum(column > threshold) == 0) {
+    print("mixed identity - no prominent label")
+    identity <- "MIXED"} 
+  if (nLabels <- sum(column > threshold) == 1){
+    print("mono identity - one label")
+    identity <- names( column[column > 0.25] ) } else {
+      print("mixed identity - multiple prominent labels")
+      labels <- names( sort(column[column > 0.25], decreasing = TRUE) )
+      identity <- paste(labels,collapse='/')
+    }
+  
+}
+
+
 
 # assign cluster labels
 cM <- as.matrix(confusionMatrix(ArchR$clusters, ArchR$scHelper_cell_type_old))
