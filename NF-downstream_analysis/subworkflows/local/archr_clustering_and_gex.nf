@@ -7,7 +7,7 @@ include {R as HEATMAP_GEX} from "$baseDir/modules/local/r/main"               ad
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-workflow PEAK_CALLING {
+workflow CLUSTERING {
     take:
     input
 
