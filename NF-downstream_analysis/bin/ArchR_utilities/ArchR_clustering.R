@@ -108,7 +108,7 @@ ArchR_IdentifyOutliers <- function(ArchR, group_by = 'clusters', metrics, inters
   }
 }
 
-ArchR_ClustRes <- function(ArchR, by = 0.1, starting_res = 0){
+ArchR_ClustRes <- function(ArchR, starting_res = 0, by = 0.1){
   plots <- list()
   resolutions <- c(seq(starting_res, starting_res+9*by, by=by))
   print(paste0("resolutions: ", resolutions))
@@ -116,7 +116,7 @@ ArchR_ClustRes <- function(ArchR, by = 0.1, starting_res = 0){
   
   if(length(ArchR@reducedDims) == 0){stop("Carry out dimensionality reduction before clustering")}
   
-  for(res in resolutions[2:length(resolutions)]){
+  for(res in resolutions[1:length(resolutions)]){
     print(paste0("resolution: ", res))
     ArchR_clustered <- addClusters(input = ArchR, name = "clusters", force = TRUE, resolution = res)
     plots[[paste(res)]] <- plotEmbedding(ArchR_clustered, name = "clusters") +
@@ -124,6 +124,8 @@ ArchR_ClustRes <- function(ArchR, by = 0.1, starting_res = 0){
     title <- paste0("clustering_res_", res)
     cluster_df <- cluster_df %>% mutate(!!title := ArchR_clustered@cellColData$clusters)
   }
+
+  print(cluster_df) # for debugging
   
   plots[["clustree"]] <- clustree(cluster_df, prefix = "clustering_res_")
   lay <- rbind(c(1,1,1,2,3,4),
