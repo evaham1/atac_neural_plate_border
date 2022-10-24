@@ -26,7 +26,7 @@ workflow INTEGRATING {
 
     // Examine the resulting integration
     CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
-    INTEGRATION_CLUSTERS_COMPARE ( UNCON_INTEGRATE.out ) // Examine the relationship between clusters and labels
+    //INTEGRATION_CLUSTERS_COMPARE ( UNCON_INTEGRATE.out ) // Examine the relationship between clusters and labels
     
 ////////////    FILTER OUT CONTAMINATION    ///////////////////////
 
