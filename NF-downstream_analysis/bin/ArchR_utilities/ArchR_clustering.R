@@ -304,12 +304,12 @@ if (isTRUE(opt$clustree)) {
 
   if (length(unique(ArchR$stage)) == 1){
     png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-    print(ArchR_ClustRes(ArchR, by = opt$stage_clustree_by, starting_res = -opt$stage_clustree_by))
+    print(ArchR_ClustRes(ArchR, by = opt$stage_clustree_by))
     graphics.off()
     print("clustree plot ran")
 } else {
     png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-    print(ArchR_ClustRes(ArchR, by = opt$full_clustree_by, starting_res = -opt$full_clustree_by))
+    print(ArchR_ClustRes(ArchR, by = opt$full_clustree_by))
     graphics.off()
     print("clustree plot ran")
 }}
