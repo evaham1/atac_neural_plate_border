@@ -45,15 +45,12 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/plots/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ArchR_split/rds_files/"
 
     # already clustered
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/ArchR_clustering/rds_files/"
     
-    # NPB subset
-    data_path = "./output/NF-downstream_analysis/ArchR_peak_exploration/NPB/subset/rds_files/"
+    # After contam removed
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/INTEGRATING/3_removed_contaminaion/rds_files/"
 
     addArchRThreads(threads = 1) 
     
@@ -110,7 +107,7 @@ ArchR_IdentifyOutliers <- function(ArchR, group_by = 'clusters', metrics, inters
 
 ArchR_ClustRes <- function(ArchR, starting_res = 0, by = 0.1){
   plots <- list()
-  resolutions <- c(seq(starting_res, starting_res+9*by, by=by))
+  resolutions <- c(seq(starting_res, 8*by + starting_res, by=by))
   print(paste0("resolutions: ", resolutions))
   cluster_df <- data.frame(ArchR$cellNames)
   
@@ -122,20 +119,16 @@ ArchR_ClustRes <- function(ArchR, starting_res = 0, by = 0.1){
     plots[[paste(res)]] <- plotEmbedding(ArchR_clustered, name = "clusters") +
       ggtitle(paste("resolution = ", res))
     title <- paste0("clustering_res_", res)
-    cluster_df <- cluster_df %>% mutate(!!title := ArchR_clustered@cellColData$clusters)
+    cluster_df[, title] <- ArchR_clustered@cellColData$clusters
   }
-
-  print(cluster_df) # for debugging
-  
   plots[["clustree"]] <- clustree(cluster_df, prefix = "clustering_res_")
-  lay <- rbind(c(1,1,1,2,3,4),
-             c(1,1,1,5,6,7),
-             c(1,1,1,8,9,10))
+  
   lay <- rbind(c(10,10,10,1,2,3),
                c(10,10,10,4,5,6),
                c(10,10,10,7,8,9))
   plots2 <- gridExtra::arrangeGrob(grobs = plots, layout_matrix = lay)
-  return(gridExtra::grid.arrange(plots2))
+  
+  return(plots2)
 }
 
 # function to make heatmap showing contribution of cell groups to other cell groups
@@ -306,12 +299,12 @@ if (isTRUE(opt$clustree)) {
 
   if (length(unique(ArchR$stage)) == 1){
     png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-    print(ArchR_ClustRes(ArchR, by = opt$stage_clustree_by))
+    plot(ArchR_ClustRes(ArchR, by = opt$stage_clustree_by))
     graphics.off()
     print("clustree plot ran")
 } else {
     png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-    print(ArchR_ClustRes(ArchR, by = opt$full_clustree_by))
+    plot(ArchR_ClustRes(ArchR, by = opt$full_clustree_by))
     graphics.off()
     print("clustree plot ran")
 }}
