@@ -36,6 +36,10 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
+    
+    # ss8 object
+    data_path <- "./output/NF-downstream_analysis/Processing/ss8/PEAK_CALLING/peak_call/rds_files/ss8_Save-ArchR/"
+    ArchR <- loadArchRProject(path = data_path, force = FALSE, showLogo = TRUE)
 
     # transfer_labels object
     data_path <- "./output/NF-downstream_analysis/Downstream_processing/transfer_labels/peak_call/rds_files/FullData_Save-ArchR/"
@@ -205,5 +209,59 @@ graphics.off()
 
 correlation_matrix <- fast_cor(mat = f2_matrix[1:100, 1:100], chunk_size = 1000)
 save(correlation_matrix, file = paste0(rds_path, "correlation_matrix.RData"))
+
+
+
+######################
+#################################################################################
+############################## Different clustering approach on just ss8  #####################################
+
+peak_data <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix", threads = 1)
+matrix <- t(assays(peak_data)[[1]])
+colnames(matrix) <- rowData(peak_data)$name
+
+#### extract LSI dimensions fo cell (30 for each cell)
+dims <- getReducedDims(ArchRProj = ArchR)
+
+## build a nearest neighbour graph from these dims
+install.packages("FNN")
+library(FNN)
+
+
+iterative_NN_clustering <- function(dims, k, seed = 123){
+  set.seed(seed)
+  
+  clusters <- data.frame()
+  
+  while(nrow(dims) > k){
+    random <- sample(1:nrow(dims), 1)
+    cell_IDs <- as.vector(get.knnx(data = dims, query = dims[random, , drop = FALSE], k = k)$nn.index)
+    cell_names <- rownames(dims)[cell_IDs]
+    
+    clusters <- rbind(cell_names, clusters)
+    
+    dims <- dims[-cell_IDs, ]
+  }
+  
+  return(clusters)
+}
+
+clusters <- iterative_NN_clustering(dims, k = 100)
+
+
+# normalise so each peak has same range
+# sum fragments per pseudocell, divide each peak count by this sum and then times by 1000
+
+rownames(matrix)
+
+# remove cells that are not clustered
+filtered_matrix <- matrix[unlist(clusters), ]
+
+# make cluster df long
+rownames_to_column(clusters, var = "cluster_id")
+pivot_longer(clusters, cols = colnames(clusters))
+
+matrix %>% mutate()
+
 
 
