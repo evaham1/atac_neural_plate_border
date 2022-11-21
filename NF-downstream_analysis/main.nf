@@ -72,7 +72,7 @@ workflow A {
         PREPROCESSING ( ch_metadata ) // create ArchR object
 
         FILTERING ( PREPROCESSING.out.output ) // iterative filtering
-        ch_atac = FILTERING.out.output
+        ch_upstream_processed = FILTERING.out.output
         
     } else {
        
