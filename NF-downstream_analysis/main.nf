@@ -95,7 +95,7 @@ workflow A {
                                             // etc
    
     // combine ATAC and RNA data
-    CLUSTERING.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+    CLUSTERING_WITH_CONTAM.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
         .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
         .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
         .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
