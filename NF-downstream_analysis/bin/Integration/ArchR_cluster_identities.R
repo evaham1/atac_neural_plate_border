@@ -250,23 +250,21 @@ graphics.off()
 
 ##################### Label clusters based on thresholds ##################################
 
-threshold <- 0.25
+min_threshold = 0.2
+max_label = 3
 identities <- c()
-
-# column <- percentage_counts[,5] # condition 1 test
-# column <- percentage_counts[,1] # condition 2 test
-# column <- percentage_counts[,4] # condition 3 test
-# names(column) <- rownames(percentage_counts)
 
 for(i in 1:ncol(percentage_counts)) {       # for-loop over columns
   column <- percentage_counts[ , i]
   names(column) <- rownames(percentage_counts)
   
-  identity <- ifelse(sum(column > threshold) == 0, "MIXED", # condition 1
-                   ifelse(sum(column > threshold) == 1, names(column[column > threshold]), # condition 2
-                          paste(names( sort(column[column > threshold], decreasing = TRUE) ), collapse='/') # condition 3
-                          ) 
-                   )
+  identity <- ifelse(
+    any(sum(column > min_threshold) == 0 | sum(column > min_threshold) > max_label), "MIXED", # condition - mixed
+                     ifelse(
+                       sum(column > min_threshold) == 1, names(column[column > min_threshold]), # condition 2 - monolabel
+                            paste(names( sort(column[column > threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
+                     ) 
+  )
   identities <- c(identities, identity)
   
 }
