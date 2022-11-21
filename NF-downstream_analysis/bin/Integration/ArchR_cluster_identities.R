@@ -250,7 +250,7 @@ graphics.off()
 
 ##################### Label clusters based on thresholds ##################################
 
-min_threshold = 0.2
+min_threshold = 0.15
 max_label = 3
 identities <- c()
 
