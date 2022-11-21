@@ -262,7 +262,7 @@ for(i in 1:ncol(percentage_counts)) {       # for-loop over columns
     any(sum(column > min_threshold) == 0 | sum(column > min_threshold) > max_label), "MIXED", # condition - mixed
                      ifelse(
                        sum(column > min_threshold) == 1, names(column[column > min_threshold]), # condition 2 - monolabel
-                            paste(names( sort(column[column > threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
+                            paste(names( sort(column[column > min_threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
                      ) 
   )
   identities <- c(identities, identity)
