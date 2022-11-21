@@ -250,7 +250,7 @@ graphics.off()
 
 ##################### Label clusters based on thresholds ##################################
 
-threshold <- 0.20
+threshold <- 0.25
 identities <- c()
 
 # column <- percentage_counts[,5] # condition 1 test
