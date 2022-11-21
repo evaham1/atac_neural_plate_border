@@ -17,6 +17,7 @@ export NXF_VER=21.10.3
 ##nextflow run ./main.nf -dump-hashes \
 nextflow run ./main.nf \
 --outdir ../output/NF-downstream_analysis \
---skip_QC false \
+--skip_upstream_processing false \
+--skip_processing false \
 -profile crick_full \
 -resume

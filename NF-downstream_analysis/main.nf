@@ -17,6 +17,10 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
+// METADATA WORKFLOWS FOR CHANNEL SWITCHES
+include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+
 // UPSTREAM PROCESSING WORKFLOWS
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/Processing/Preprocessing"
@@ -24,7 +28,6 @@ include { FILTERING } from "$baseDir/subworkflows/local/Processing/Filtering"
 
 // PROCESSING WORKFLOWS
 include { CLUSTERING as CLUSTERING_WITH_CONTAM } from "$baseDir/subworkflows/local/archr_clustering_and_gex"
-include { METADATA as METADATA_ATAC } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
 include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
@@ -33,7 +36,8 @@ include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
 include { PEAK_EXPLORING } from "$baseDir/subworkflows/local/archr_peak_exploring"
 
 // PARAMS
-def skip_QC = params.skip_QC ? true : false
+def skip_upstream_processing = params.skip_upstream_processing ? true : false
+def skip_processing = params.skip_processing ? true : false
 
 //
 // SET CHANNELS
@@ -57,7 +61,7 @@ Channel
 
 workflow A {
 
-    if(!skip_QC){
+    if(!skip_upstream_processing){
 
         METADATA( params.sample_sheet )    
         METADATA.out // METADATA.out: [[meta], [cellranger_output]]
@@ -72,10 +76,10 @@ workflow A {
         
     } else {
        
-       METADATA_ATAC( params.atac_sample_sheet )
-       ch_atac = METADATA_ATAC.out.metadata // [[sample_id:HH5], [HH5_Save-ArchR]]
-                                            // [[sample_id:HH6], [HH6_Save-ArchR]]
-                                            // etc
+       METADATA_UPSTREAM_PROCESSED( params.upstream_processed_sample_sheet )
+       ch_upstream_processed = METADATA_UPSTREAM_PROCESSED.out.metadata     // [[sample_id:HH5], [HH5_Save-ArchR]]
+                                                                            // [[sample_id:HH6], [HH6_Save-ArchR]]
+                                                                            // etc
 
     }
 
@@ -86,27 +90,40 @@ workflow A {
     // clusters
     // calls peaks
 
-    // Cluster QC'd atac cells
-    CLUSTERING_WITH_CONTAM( ch_atac )
+    if(!skip_processing){
 
-    // read in RNA data
-    METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        // Cluster QC'd atac cells
+        CLUSTERING_WITH_CONTAM( ch_upstream_processed )
+
+        // read in RNA data
+        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
    
-    // combine ATAC and RNA data
-    CLUSTERING_WITH_CONTAM.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-        .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
-        .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
-        .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
-        .view()
-        .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+        // combine ATAC and RNA data
+        CLUSTERING_WITH_CONTAM.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+            .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+            .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
+            .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
+            .view()
+            .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-    // ARCHR: Integrate + filter out contaminating cells
-    INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        // ARCHR: Integrate + filter out contaminating cells
+        INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
-    // Call peaks on resulting data
-    PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+        // Call peaks on resulting data
+        PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+
+        ch_processed = PEAK_CALLING.out
+
+    } else {
+       
+       METADATA_PROCESSED( params.processed_sample_sheet )
+       ch_processed = METADATA_PROCESSED.out.metadata                       // [[sample_id:HH5], [HH5_Save-ArchR]]
+                                                                            // [[sample_id:HH6], [HH6_Save-ArchR]]
+                                                                            // etc
+
+    }
 
 
     ///////////////////////////////////////////////////////////////
@@ -117,7 +134,7 @@ workflow A {
     // WORK IN PROGRESS
     
     // IN PROCESS: peak exploring
-    PEAK_EXPLORING( PEAK_CALLING.out )
+    PEAK_EXPLORING( ch_processed )
 }
 
 /*
