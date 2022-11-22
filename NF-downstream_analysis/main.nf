@@ -23,17 +23,19 @@ include { METADATA as METADATA_PROCESSED } from "$baseDir/subworkflows/local/met
 
 // UPSTREAM PROCESSING WORKFLOWS
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
-include { PREPROCESSING } from "$baseDir/subworkflows/local/Processing/Preprocessing"
-include { FILTERING } from "$baseDir/subworkflows/local/Processing/Filtering"
+include { PREPROCESSING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Preprocessing"
+include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filtering"
 
 // PROCESSING WORKFLOWS
-include { CLUSTERING as CLUSTERING_WITH_CONTAM } from "$baseDir/subworkflows/local/archr_clustering_and_gex"
+include { CLUSTERING as CLUSTERING_WITH_CONTAM } from "$baseDir/subworkflows/local/PROCESSING/archr_clustering_and_gex"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
-include { INTEGRATING } from "$baseDir/subworkflows/local/archr_integration"
-include { PEAK_CALLING } from "$baseDir/subworkflows/local/archr_peak_calling"
+include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration"
+include { PEAK_CALLING } from "$baseDir/subworkflows/local/PROCESSING/archr_peak_calling"
 
 // DOWNSTREAM PROCESSING WORKFLOWS
-include { PEAK_EXPLORING } from "$baseDir/subworkflows/local/archr_peak_exploring"
+include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
+include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_transfer_labels"
+include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
 // PARAMS
 def skip_upstream_processing = params.skip_upstream_processing ? true : false
@@ -135,8 +137,15 @@ workflow A {
     // making transfer_labels full object and working on that
     // WORK IN PROGRESS
     
-    // IN PROCESS: peak exploring
-    PEAK_EXPLORING( ch_processed )
+    // IN PROGRESS: compare variability of clusters between stages
+    COMPARE_VARIABILITY( ch_processed )
+
+    // IN PROGRESS: combine individual stages integrated objects into full transferlabels object and look for enhancers/study peaks over time
+    //TRANSFER_LABELS( ch_processed )
+
+    // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
+    //NPB_SUBSET( TRANSFER_LABELS? )
+
 }
 
 /*
