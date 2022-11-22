@@ -16,8 +16,8 @@ workflow CLUSTERING {
     CLUSTER( input )
 
     // Calculate gene scores and plot heatmaps of marker genes
-    //GENE_SCORES( CLUSTER.out )
-    //HEATMAP_GEX( CLUSTER.out )
+    GENE_SCORES( CLUSTER.out )
+    HEATMAP_GEX( CLUSTER.out )
 
     //emit clustered and peak-called objects:
     emit:
