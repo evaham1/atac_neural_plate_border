@@ -31,7 +31,7 @@ workflow TRANSFER_LABELS {
     input_ch
 
     main:
-    // // collect all integrated rds objects into a single element in channel
+    // collect all integrated rds objects into a single element in channel
     ch_combined = input_ch
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
@@ -60,8 +60,6 @@ workflow TRANSFER_LABELS {
 //     FINDING_ENHANCERS( SE_CALCULATE_TL.out )
 //     PLOT_MANUALLY_FILTERED_ENHANCERS( SE_CALCULATE_TL.out )
 
-
-    
     emit:
     transfer_label_peaks = PEAK_CALL_TL.out
 
