@@ -48,7 +48,7 @@ workflow TRANSFER_LABELS {
     //         .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
     // visualise clusters from individual stages on full dataset
-    TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
+    //TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
     // HEATMAP_GEX_TL( TRANSFER_LABELS.out )
     // PEAK_CALL_TL( TRANSFER_LABELS.out )
     // HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
