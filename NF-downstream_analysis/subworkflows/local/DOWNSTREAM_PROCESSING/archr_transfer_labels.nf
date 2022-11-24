@@ -28,16 +28,20 @@ include {R as CLUSTER_PEAKS} from "$baseDir/modules/local/r/main"               
 
 workflow TRANSFER_LABELS {
     take:
-    input_ch
+    input_ch    // [[sample_id:HH5], [/rds_files/HH5_Save-ArchR]]
+                // [[sample_id:HH6], [/rds_files/HH6_Save-ArchR]]
+                // etc
 
     main:
-    input_ch.view()
+
+    input_ch.map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}.view()
+
+    
     // collect all integrated rds objects into a single element in channel
     ch_combined = input_ch
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            .view()
 
     // visualise clusters from individual stages on full dataset
     // TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
