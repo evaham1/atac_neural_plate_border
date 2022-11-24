@@ -137,7 +137,7 @@ workflow A {
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way
-    COMPARE_VARIABILITY( ch_processed )
+    //COMPARE_VARIABILITY( ch_processed )
 
     // IN PROGRESS: combine individual stages integrated objects into full transferlabels object and look for enhancers/study peaks over time
     TRANSFER_LABELS( ch_processed )
