@@ -34,24 +34,24 @@ workflow TRANSFER_LABELS {
 
     main:
 
-    input_ch
+    ch_combined = input_ch
         .map{it[1]}
-        .view()
         .collect()
+        .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
         .view()
 
     
     // collect all integrated rds objects into a single element in channel
-    ch_combined = input_ch
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+    // ch_combined = input_ch
+    //         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+    //         .collect()
+    //         .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
     // visualise clusters from individual stages on full dataset
-    // TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
-    // HEATMAP_GEX_TL( TRANSFER_LABELS.out )
-    // PEAK_CALL_TL( TRANSFER_LABELS.out )
-    // HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
+    TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
+    HEATMAP_GEX_TL( TRANSFER_LABELS.out )
+    PEAK_CALL_TL( TRANSFER_LABELS.out )
+    HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
 
     // // visualise differential peaks across full data
     // DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
