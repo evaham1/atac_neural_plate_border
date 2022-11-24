@@ -40,17 +40,17 @@ workflow TRANSFER_LABELS {
             .view()
 
     // visualise clusters from individual stages on full dataset
-    TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
-    HEATMAP_GEX_TL( TRANSFER_LABELS.out )
-    PEAK_CALL_TL( TRANSFER_LABELS.out )
-    HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
+    // TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
+    // HEATMAP_GEX_TL( TRANSFER_LABELS.out )
+    // PEAK_CALL_TL( TRANSFER_LABELS.out )
+    // HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
 
-    // visualise differential peaks across full data
-    DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
-    DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
+    // // visualise differential peaks across full data
+    // DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
+    // DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
 
-    // cluster peaks into modules
-    CLUSTER_PEAKS( PEAK_CALL_TL.out )
+    // // cluster peaks into modules
+    // CLUSTER_PEAKS( PEAK_CALL_TL.out )
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,6 +62,7 @@ workflow TRANSFER_LABELS {
 //     PLOT_MANUALLY_FILTERED_ENHANCERS( SE_CALCULATE_TL.out )
 
     emit:
-    transfer_label_peaks = PEAK_CALL_TL.out
+    //transfer_label_peaks = PEAK_CALL_TL.out
+    ch_combined = ch_combined
 
 }
