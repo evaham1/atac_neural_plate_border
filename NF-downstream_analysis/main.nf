@@ -127,8 +127,6 @@ workflow A {
 
     }
 
-    ch_processed.view()
-
 
     ///////////////////////////////////////////////////////////////
     ///////////////////// DOWNSTREAM PROCESSING ///////////////////
@@ -138,10 +136,11 @@ workflow A {
     // WORK IN PROGRESS
     
     // IN PROGRESS: compare variability of clusters between stages
+    // currently just uses differential peak tests, would be better to measure in another way
     COMPARE_VARIABILITY( ch_processed )
 
     // IN PROGRESS: combine individual stages integrated objects into full transferlabels object and look for enhancers/study peaks over time
-    //TRANSFER_LABELS( ch_processed )
+    TRANSFER_LABELS( ch_processed )
 
     // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
     //NPB_SUBSET( TRANSFER_LABELS? )

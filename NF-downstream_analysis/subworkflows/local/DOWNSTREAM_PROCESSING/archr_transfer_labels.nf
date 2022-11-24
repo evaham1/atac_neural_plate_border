@@ -31,6 +31,7 @@ workflow TRANSFER_LABELS {
     input_ch
 
     main:
+    input_ch.view()
     // collect all integrated rds objects into a single element in channel
     ch_combined = input_ch
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}

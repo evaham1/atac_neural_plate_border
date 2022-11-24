@@ -24,7 +24,6 @@ workflow COMPARE_VARIABILITY {
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            .view()
 
     // compare variability/how many differential peaks we have at different stages
     COMPARE_INTERCLUSTER_VARIABILITY( ch_se_combined )
