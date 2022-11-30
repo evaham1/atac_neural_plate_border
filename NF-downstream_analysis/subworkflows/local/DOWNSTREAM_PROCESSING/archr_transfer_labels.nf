@@ -35,18 +35,15 @@ workflow TRANSFER_LABELS {
     main:
 
     ch_combined = input_ch
-        .map{it[1]}
+        .map{meta, output -> output}
         .collect()
-        .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        .map { output -> [[sample_id:'FullData'], output] } // [[meta], [rds1, rds2, rds3, ...]]
         .view()
 
+    //debugging
+    ch_combined = ch_combined.map{meta, output -> [meta, output[0]]}
+    ch_combined.view()
     
-    // collect all integrated rds objects into a single element in channel
-    // ch_combined = input_ch
-    //         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-    //         .collect()
-    //         .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-
     // visualise clusters from individual stages on full dataset
     TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
     // HEATMAP_GEX_TL( TRANSFER_LABELS.out )
