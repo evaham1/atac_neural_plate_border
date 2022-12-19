@@ -11,14 +11,9 @@ library(tidyverse)
 library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
-library(hexbin)
-library(pheatmap)
 library(gridExtra)
 library(grid)
 library(parallel)
-library(clustree)
-library(plyr)
-library(ComplexHeatmap)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -45,6 +40,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     data_path = "./input/"
+    rds_path = "./rds_files/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores) 
@@ -55,9 +51,17 @@ if(opt$verbose) print(opt)
   
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
+  dir.create(rds_path, recursive = T)
 }
 
 ############################## Read in ArchR projects #######################################
 # Read in all data
 files <- list.files(data_path, full.names = TRUE)
-print(files)
+print(paste0("All input files: ", files))
+
+stages_data <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
+print(paste0("Stages data: ", stages_data))
+
+full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
+print(paste0("Destination data: ", full_data))
+ArchR_full <- loadArchRProject(path = full_data, force = FALSE, showLogo = TRUE)
