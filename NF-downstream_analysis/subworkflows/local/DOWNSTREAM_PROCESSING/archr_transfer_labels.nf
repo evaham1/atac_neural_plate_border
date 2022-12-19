@@ -43,6 +43,10 @@ workflow TRANSFER_LABELS {
         .view() // [[sample_id:FullData], [/rds_files/HH5_Save-ArchR, /rds_files/HH6_Save-ArchR, /rds_files/HH7_Save-ArchR, /rds_files/ss4_Save-ArchR, /rds_files/ss8_Save-ArchR, /rds_files/FullData_Save-ArchR] ]
 
 
+    // 1) first need to filter the full data based on the stage data - because stage data has been filtered for contam
+    // 2) then can transfer labels from stage onto full
+    // 3) then will want to recluster and call peaks
+
     //debugging
     //ch_combined_test = ch_combined.map{meta, output -> [meta, output[0]]}
     //ch_combined_test.view() //[[sample_id:FullData], /rds_files/HH5_Save-ArchR]
