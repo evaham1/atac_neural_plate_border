@@ -93,7 +93,8 @@ saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, 
 ### Plot cell counts before and after subsetting per stage
 unfiltered <- table(ArchR_full$stage)
 filtered <- table(ArchR_filtered$stage)
-cell_counts <- rbind(unfiltered, filtered)
+cell_counts <- as_tibble(rbind(unfiltered, filtered))
+cell_counts <- cbind(cell_counts, Total = rowSums(cell_counts))
 
 png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 10, width = 20, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
