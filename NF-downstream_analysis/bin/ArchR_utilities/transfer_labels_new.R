@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("transfer labels")
+print("ArchR transfer cluster IDs from stage data to full data")
 # transfer labels new
 
 ############################## Load libraries #######################################
@@ -65,3 +65,51 @@ print(paste0("Stages data: ", stages_data))
 full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
 print(paste0("Destination data: ", full_data))
 ArchR_full <- loadArchRProject(path = full_data, force = FALSE, showLogo = TRUE)
+
+################## Transfer info from stages onto full data #######################################
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_cluster_ids <- c()
+for (i in 1:5) {
+  print(i)
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(length(cell_ids))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  stage <- unique(ArchR$stage)
+  cluster_ids <- paste0(stage, "_", ArchR$clusters)
+  print(length(cluster_ids))
+  all_cluster_ids <- c(all_cluster_ids, cluster_ids)
+}
+
+ArchR <- addCellColData(ArchR_full, data = all_cluster_ids, cells = all_cell_ids, name = "stage_clusters")
+
+print(table(ArchR$stage_clusters))
+
+# save filtered data
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
+
+
+#####################################################################################
+############################## Visualisations #######################################
+###### stage colours
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
+
+p1 <- plotEmbedding(ArchR, 
+                    name = "stage",
+                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0, 
+                    pal = stage_colours, randomize = TRUE)
+p2 <- plotEmbedding(ArchR, 
+                    name = "stage_clusters",
+                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0,
+                    randomize = TRUE)
+
+png(paste0(plot_path, "UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+ggAlignPlots(p1, p2, type = "h")
+graphics.off()
