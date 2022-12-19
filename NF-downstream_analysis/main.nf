@@ -141,6 +141,8 @@ workflow A {
 
     // IN PROGRESS: combine individual stages integrated objects into full transferlabels object and look for enhancers/study peaks over time
     TRANSFER_LABELS( ch_processed )
+    //Unexpected error [StackOverflowError]
+    //-- Check script 'subworkflows/local/DOWNSTREAM_PROCESSING/archr_transfer_labels.nf' at line: 48 or see '.nextflow.log' file for more details
 
     // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
     //NPB_SUBSET( TRANSFER_LABELS? )

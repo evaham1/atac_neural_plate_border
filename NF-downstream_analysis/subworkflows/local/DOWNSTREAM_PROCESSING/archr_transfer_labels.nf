@@ -68,6 +68,6 @@ workflow TRANSFER_LABELS {
 
     emit:
     //transfer_label_peaks = PEAK_CALL_TL.out
-    ch_combined = ch_combined
+    ch_combined_output = ch_combined
 
 }
