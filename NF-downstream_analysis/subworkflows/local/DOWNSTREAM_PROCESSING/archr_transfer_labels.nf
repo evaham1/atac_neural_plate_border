@@ -45,7 +45,9 @@ workflow TRANSFER_LABELS {
     ch_combined.view()
     
     // visualise clusters from individual stages on full dataset
-    TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
+    // THIS IS WHERE THE STACK OVERFLOW ERROR IS:
+    //TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
+    
     // HEATMAP_GEX_TL( TRANSFER_LABELS.out )
     // PEAK_CALL_TL( TRANSFER_LABELS.out )
     // HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
