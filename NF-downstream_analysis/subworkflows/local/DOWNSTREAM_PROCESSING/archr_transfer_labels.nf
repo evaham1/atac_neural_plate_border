@@ -44,11 +44,11 @@ workflow TRANSFER_LABELS {
 
 
     //debugging
-    ch_combined_test = ch_combined.map{meta, output -> [meta, output[0]]}
-    ch_combined_test.view() //[[sample_id:FullData], /rds_files/HH5_Save-ArchR]
+    //ch_combined_test = ch_combined.map{meta, output -> [meta, output[0]]}
+    //ch_combined_test.view() //[[sample_id:FullData], /rds_files/HH5_Save-ArchR]
     //TRANSFER_LABELS( ch_combined_test )
     //HEATMAP_GEX_TL( ch_combined_test )
-    TRANSFER_LABELS_NEW( ch_combined_test )
+    TRANSFER_LABELS_NEW( ch_combined )
     
     // visualise clusters from individual stages on full dataset
     // THIS IS WHERE THE STACK OVERFLOW ERROR IS:
