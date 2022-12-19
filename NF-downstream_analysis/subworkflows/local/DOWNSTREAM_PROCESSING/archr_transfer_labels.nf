@@ -4,6 +4,8 @@ nextflow.enable.dsl = 2
 //////////////////        Transfer labels       ///////////////////
 // peak call and visualise on full dataset (transfer labels object)
 include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_utilities/transfer_labels.R", checkIfExists: true) )
+include {R as TRANSFER_LABELS_NEW} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_utilities/transfer_labels_new.R", checkIfExists: true) )
+
 include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as HEATMAP_PEAKS_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_marker_heatmaps.R", checkIfExists: true) )
 include {R as HEATMAP_GEX_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_marker_heatmaps.R", checkIfExists: true) )
@@ -44,8 +46,9 @@ workflow TRANSFER_LABELS {
     //debugging
     ch_combined_test = ch_combined.map{meta, output -> [meta, output[0]]}
     ch_combined_test.view() //[[sample_id:FullData], /rds_files/HH5_Save-ArchR]
-    TRANSFER_LABELS( ch_combined_test )
+    //TRANSFER_LABELS( ch_combined_test )
     HEATMAP_GEX_TL( ch_combined_test )
+    TRANSFER_LABELS_NEW( ch_combined_test )
     
     // visualise clusters from individual stages on full dataset
     // THIS IS WHERE THE STACK OVERFLOW ERROR IS:
