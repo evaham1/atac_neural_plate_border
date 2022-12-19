@@ -35,6 +35,8 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1) 
     
+    data_path = "./output/NF-downstream_analysis/test_inputs/test_input_transfer_labels/"
+    
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
@@ -71,11 +73,13 @@ ArchR_full <- loadArchRProject(path = full_data, force = FALSE, showLogo = TRUE)
 all_cell_ids <- c()
 all_cluster_ids <- c()
 for (i in 1:5) {
-  print(i)
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
   ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
   
   cell_ids <- ArchR$cellNames
-  print(length(cell_ids))
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
   all_cell_ids <- c(all_cell_ids, cell_ids)
   
   stage <- unique(ArchR$stage)
@@ -84,7 +88,25 @@ for (i in 1:5) {
   all_cluster_ids <- c(all_cluster_ids, cluster_ids)
 }
 
-ArchR <- addCellColData(ArchR_full, data = all_cluster_ids, cells = all_cell_ids, name = "stage_clusters")
+print(paste0("Length of all cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all cluster ids: ", length(all_cluster_ids)))
+
+data <- as.vector(all_cluster_ids)
+cells <- as.vector(all_cell_ids)
+
+ArchR <- addCellColData(ArchRProj = ArchR_full, 
+                        data = data,
+                        cells = cells, 
+                        name = "stage_clusters",
+                        force = TRUE)
+ArchR <- ArchR_full
+ArchR@cellColData[name] <- NA
+ArchR@cellColData[cells, name] <- data
+ArchR@cellColData[cells, "stage"]
+
+ArchR@cellColData$stage
+sum(is.na(ArchR$cellNames))
+length(ArchR$cellNames)
 
 print(table(ArchR$stage_clusters))
 
