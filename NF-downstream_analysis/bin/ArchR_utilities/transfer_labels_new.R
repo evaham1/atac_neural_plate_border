@@ -44,7 +44,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores) 
