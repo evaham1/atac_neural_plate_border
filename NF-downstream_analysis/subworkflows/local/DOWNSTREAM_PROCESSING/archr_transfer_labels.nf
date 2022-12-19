@@ -37,17 +37,19 @@ workflow TRANSFER_LABELS {
     ch_combined = input_ch
         .map{meta, output -> output}
         .collect()
-        .map { output -> [[sample_id:'FullData'], output] } // [[meta], [rds1, rds2, rds3, ...]]
-        .view()
+        .map { output -> [[sample_id:'FullData'], output] } 
+        .view() // [[sample_id:FullData], [/rds_files/HH5_Save-ArchR, /rds_files/HH6_Save-ArchR, /rds_files/HH7_Save-ArchR, /rds_files/ss4_Save-ArchR, /rds_files/ss8_Save-ArchR, /rds_files/FullData_Save-ArchR] ]
+
 
     //debugging
-    ch_combined = ch_combined.map{meta, output -> [meta, output[0]]}
-    ch_combined.view()
+    ch_combined_test = ch_combined.map{meta, output -> [meta, output[0]]}
+    ch_combined_test.view() //[[sample_id:FullData], /rds_files/HH5_Save-ArchR]
+    TRANSFER_LABELS( ch_combined_test )
     
     // visualise clusters from individual stages on full dataset
     // THIS IS WHERE THE STACK OVERFLOW ERROR IS:
     //TRANSFER_LABELS( ch_combined ) // transfers cluster labels from stage data onto full data
-    
+
     // HEATMAP_GEX_TL( TRANSFER_LABELS.out )
     // PEAK_CALL_TL( TRANSFER_LABELS.out )
     // HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
