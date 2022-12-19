@@ -45,13 +45,9 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-
     # already clustered
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/ArchR_clustering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/CLUSTERING_WITH_CONTAM/clustering/rds_files/"
     
-    # After contam removed
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/INTEGRATING/3_removed_contaminaion/rds_files/"
-
     addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
@@ -323,7 +319,9 @@ print(cluster_cell_counts)
 cluster_cell_counts <- cluster_cell_counts %>% 
   dplyr::rename(Cell_count = Freq, Cluster_number = Var1) %>%
   dplyr::mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
-  dplyr::arrange(Cluster_number)
+  dplyr::arrange(Cluster_number) 
+cluster_cell_counts <- cluster_cell_counts %>%
+  rbind(c("Total", sum(cluster_cell_counts$Cell_count)))
 print(cluster_cell_counts)
 
 png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 25, width = 10, units = 'cm', res = 400)
