@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
 ### Script to preprocess in ArchR
-print("2_filtering_ArchR")
+print("global filtering")
 # generates TSS enrichment, nucleosome score and number of fragment plots for each sample in dataset
-# optionally filters nFrags using user-defined parameters
+# optionally filters whole ArchR object on nFrags using user-defined parameters
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -20,12 +20,12 @@ library(grid)
 ############################## Set up script options #######################################
 # Read in command line opts
 option_list <- list(
-    make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
-    make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-    make_option(c("-f", "--filter"), action = "store", type = "logical", help = "whether to filter data", default = FALSE),
-    make_option(c("-m", "--factor"), action = "store", type = "double", help = "how many times to multiply SD by to create upper limit", default = 1),
-    make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
-    )
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-f", "--filter"), action = "store", type = "logical", help = "whether to filter data", default = FALSE),
+  make_option(c("-m", "--factor"), action = "store", type = "double", help = "how many times to multiply SD by to create upper limit", default = 1),
+  make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
+)
 
 opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
@@ -38,10 +38,8 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_HIGH/filter"
-    #rds_path = "./output/NF-downstream_analysis/2_ArchR_filtering/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/1_PREPROCESS/rds_files/"
-
+    data_path = "./output/NF-downstream_analysis/Upstream_processing/PREPROCESSING/preprocess/rds_files/"
+    
     addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
@@ -249,9 +247,9 @@ if (opt$filter == FALSE) {
   
   print("data not filtered")
   ArchR_filtered <- ArchR
-
+  
 } else {
-
+  
   ## plot thresholds
   p <- plotGroups(
     ArchRProj = ArchR, groupBy = "stage", colorBy = "cellColData", alpha = 0.4,
@@ -265,7 +263,7 @@ if (opt$filter == FALSE) {
   png(paste0(plot_path, 'fragment_count_violin_thresholds.png'), height = 25, width = 25, units = 'cm', res = 400)
   print(p1)
   graphics.off()
-
+  
   # filter cells using stage-specific upper threshold
   cell_ids <- c()
   for (i in c(1:5)) {
@@ -279,7 +277,7 @@ if (opt$filter == FALSE) {
     cell_ids <- c(cell_ids, df_stage$cell_ids)
   }
   ArchR_filtered <- ArchR[cell_ids, ]
-
+  
 }
 
 # save ArchR project
@@ -315,7 +313,8 @@ graphics.off()
 
 unfiltered <- table(ArchR$stage)
 filtered <- table(ArchR_filtered$stage)
-cell_counts <- rbind(unfiltered, filtered)
+cell_counts <- as_tibble(rbind(unfiltered, filtered))
+cell_counts <- cbind(cell_counts, Total = rowSums(cell_counts))
 
 png(paste0(plot_path, 'cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
