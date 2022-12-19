@@ -272,7 +272,8 @@ while ( length(outliers) > 0 ) {
   # how many cells filtered total
   unfiltered <- table(ArchR$stage)
   filtered <- table(ArchR_filtered$stage)
-  cell_counts <- rbind(unfiltered, filtered)
+  cell_counts <- as_tibble(rbind(unfiltered, filtered))
+  cell_counts <- cbind(cell_counts, Total = rowSums(cell_counts))
   
   png(paste0(plot_path, 'stage_cell_counts_table.png'), height = 10, width = 10, units = 'cm', res = 400)
   grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
