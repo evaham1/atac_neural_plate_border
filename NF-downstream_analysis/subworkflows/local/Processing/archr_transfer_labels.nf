@@ -35,12 +35,6 @@ workflow TRANSFER_LABELS {
 
     main:
 
-    ch_combined = input_ch
-        .map{meta, output -> output}
-        .collect()
-        .map { output -> [[sample_id:'FullData'], output] } 
-        .view() // [[sample_id:FullData], [/rds_files/HH5_Save-ArchR, /rds_files/HH6_Save-ArchR, /rds_files/HH7_Save-ArchR, /rds_files/ss4_Save-ArchR, /rds_files/ss8_Save-ArchR, /rds_files/FullData_Save-ArchR] ]
-
 ////TEMP
     //debugging
     //ch_combined_test = ch_combined.map{meta, output -> [meta, output[0]]}
@@ -52,7 +46,7 @@ workflow TRANSFER_LABELS {
 
     // transfer over the cluster and integrated labels from stages onto filtered full data
     // for cell ids in full data which are not in stage data (ie contamination) - filter them
-    TRANSFER_LABELS_NEW( ch_combined )
+    TRANSFER_LABELS_NEW( input_ch )
 
     // recluster data now that some cells have been removed
     // CLUSTERING_TL( TRANSFER_LABELS_NEW.out )
