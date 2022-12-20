@@ -72,8 +72,8 @@ opt = getopt(spec)
 print("Files: ")
 print(list.files(data_path))
 print("label: ")
-labels <- sub('_.*', '', list.files(data_path))
-print(unique(labels))
+label <- unique(sub('_.*', '', list.files(data_path)))
+print(label)
 
 # Load atac data in rds_files
 ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
