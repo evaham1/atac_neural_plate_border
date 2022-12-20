@@ -155,7 +155,7 @@ workflow A {
         //ch_processed = PEAK_CALLING.out
         //ch_processed_transfer_labels = TRANSFER_LABELS.out
 
-    // } else {
+    } //else {
        
     //    METADATA_PROCESSED( params.processed_sample_sheet )
     //    // ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
@@ -185,7 +185,7 @@ workflow A {
     // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
     //NPB_SUBSET( TRANSFER_LABELS? )
 
-//}
+}
 
 /*
 ========================================================================================
