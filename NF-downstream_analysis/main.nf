@@ -119,9 +119,8 @@ workflow A {
         ch_stages
             .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 )
+            .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
             .view()
-            //.map{ meta, atac, rna -> [meta, [atac[0], rna]]}
-            //.view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         
