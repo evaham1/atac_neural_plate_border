@@ -185,7 +185,7 @@ workflow A {
     // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
     //NPB_SUBSET( TRANSFER_LABELS? )
 
-}
+//}
 
 /*
 ========================================================================================
