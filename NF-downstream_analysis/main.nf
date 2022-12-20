@@ -96,17 +96,19 @@ workflow A {
 
     if(!skip_processing){
 
-        ch_upstream_processed.view()
+        //ch_upstream_processed.view()
 
         // Cluster QC'd atac cells
         CLUSTERING_WITH_CONTAM( ch_upstream_processed )
-        CLUSTERING_WITH_CONTAM.out.output.view()
+        //CLUSTERING_WITH_CONTAM.out.output.view()
 
         // Extract the stages to run integration on them
-        // CLUSTERING_WITH_CONTAM.out.output
-        //      .filter{ meta, data -> meta.sample_id != 'FullData'}
-        //      .set{ ch_stages }
-        //      //.view()
+        CLUSTERING_WITH_CONTAM.out.output
+            .view()
+            .filter{ meta, data -> meta.sample_id != 'FullData'}
+            .view()
+            .set{ ch_stages }
+             
 
         // // read in RNA data
         // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
