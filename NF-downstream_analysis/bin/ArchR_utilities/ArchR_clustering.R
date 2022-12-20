@@ -315,17 +315,19 @@ print("ArchR object saved")
 
 # Plot number of cells in each cluster
 cluster_cell_counts <- as.data.frame(table(substr(ArchR$clusters, 2, nchar(ArchR$clusters))))
-print(cluster_cell_counts)
 cluster_cell_counts <- cluster_cell_counts %>% 
   dplyr::rename(Cell_count = Freq, Cluster_number = Var1) %>%
   dplyr::mutate(Cluster_number = as.numeric(as.character(Cluster_number))) %>%
-  dplyr::arrange(Cluster_number) 
-cluster_cell_counts <- cluster_cell_counts %>%
-  rbind(c("Total", sum(cluster_cell_counts$Cell_count)))
+  dplyr::arrange(Cluster_number)
+print("Cluster cell counts: ")
 print(cluster_cell_counts)
 
+cluster_cell_counts_totals <- cluster_cell_counts %>%
+  rbind(c("Total", sum(cluster_cell_counts$Cell_count)))
+print("Cluster cell counts with totals: ")
+print(cluster_cell_counts_totals)
 png(paste0(plot_path, 'cluster_cell_counts_table.png'), height = 25, width = 10, units = 'cm', res = 400)
-grid.arrange(tableGrob(cluster_cell_counts, rows=NULL, theme = ttheme_minimal()))
+grid.arrange(tableGrob(cluster_cell_counts_totals, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
 p<-ggplot(data=cluster_cell_counts, aes(x=`Cluster_number`, y=`Cell_count`)) +
