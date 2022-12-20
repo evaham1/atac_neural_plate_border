@@ -32,9 +32,10 @@ include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration"
 include { PEAK_CALLING } from "$baseDir/subworkflows/local/PROCESSING/archr_peak_calling"
 
+include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_transfer_labels"
+
 // DOWNSTREAM PROCESSING WORKFLOWS
 include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
-include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_transfer_labels"
 include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
 // PARAMS
@@ -91,6 +92,7 @@ workflow A {
     // integrates with scRNA, filters out contam
     // clusters
     // calls peaks
+    // creates transfer labels object
 
     if(!skip_processing){
 
@@ -114,17 +116,19 @@ workflow A {
         INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
         // Call peaks on resulting data (stages + full filtered for contamination)
-        PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+        //PEAK_CALLING( INTEGRATING.out.integrated_filtered ) //TEMP COMMENTED OUT
 
-        // Transfer labels from stages onto full data
+        /////////////// Transfer labels from stages onto full data  //////////////////////////
 
         // // need to take the full data from here
+        CLUSTERING_WITH_CONTAM.out.view()
         // CLUSTERING_WITH_CONTAM.out
         //     .filter{ meta, data -> meta.sample_id == 'FullData'}
         //     .set{ ch_fulldata_clustered }
         //     .view()
 
         // // and the stages data from here
+        INTEGRATING.out.integrated_filtered.view()
         // INTEGRATING.out.integrated_filtered
         //     .filter{ meta, data -> meta.sample_id != 'FullData'}
         //     .set{ ch_stages_integrated }
