@@ -143,7 +143,8 @@ workflow A {
         //     .set{ ch_transfer_labels_input }
         // //TRANSFER_LABELS( ch_transfer_labels_input )
 
-        ch_processed = PEAK_CALLING.out
+        ch_processed = INTEGRATING.out.integrated_filtered //TEMP
+        //ch_processed = PEAK_CALLING.out
         //ch_processed_transfer_labels = TRANSFER_LABELS.out
 
     } else {
