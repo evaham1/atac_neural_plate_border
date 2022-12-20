@@ -113,14 +113,39 @@ workflow A {
         // ARCHR: Integrate + filter out contaminating cells
         INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
-        // Call peaks on resulting data
+        // Call peaks on resulting data (stages + full filtered for contamination)
         PEAK_CALLING( INTEGRATING.out.integrated_filtered )
 
+        // Transfer labels from stages onto full data
+
+        // need to take the full data from here
+        CLUSTERING_WITH_CONTAM.out
+            .filter{ meta, data -> meta.sample_id == 'FullData'}
+            .set{ ch_fulldata_clustered }
+            .view()
+
+        // and the stages data from here
+        INTEGRATING.out.integrated_filtered
+            .filter{ meta, data -> meta.sample_id != 'FullData'}
+            .set{ ch_stages_integrated }
+            .view()
+        // and combine to do transfer labels
+
+        ch_fulldata_clustered
+            .concat{ ch_stages_integrated }
+            .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] } //removes all metadata and list files in rds_files
+            .collect() //channel of length 6 turns into channel length 1
+            .map{ data -> [[sample_id:'transfer_labels'], [data]] }
+            .set{ ch_transfer_labels_input }
+        //TRANSFER_LABELS( ch_transfer_labels_input )
+
         ch_processed = PEAK_CALLING.out
+        //ch_processed_transfer_labels = TRANSFER_LABELS.out
 
     } else {
        
        METADATA_PROCESSED( params.processed_sample_sheet )
+       // ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
        ch_processed = METADATA_PROCESSED.out.metadata                       // [[sample_id:HH5], [HH5_Save-ArchR]]
                                                                             // [[sample_id:HH6], [HH6_Save-ArchR]]
                                                                             // etc
@@ -140,7 +165,7 @@ workflow A {
     //COMPARE_VARIABILITY( ch_processed )
 
     // IN PROGRESS: combine individual stages integrated objects into full transferlabels object and look for enhancers/study peaks over time
-    TRANSFER_LABELS( ch_processed )
+    //TRANSFER_LABELS( ch_processed )
     //Unexpected error [StackOverflowError]
     //-- Check script 'subworkflows/local/DOWNSTREAM_PROCESSING/archr_transfer_labels.nf' at line: 48 or see '.nextflow.log' file for more details
 
