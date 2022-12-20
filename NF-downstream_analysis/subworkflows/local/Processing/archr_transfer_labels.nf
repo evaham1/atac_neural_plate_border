@@ -35,33 +35,24 @@ workflow TRANSFER_LABELS {
 
     main:
 
-////TEMP
-    //debugging
-    //ch_combined_test = ch_combined.map{meta, output -> [meta, output[0]]}
-    //ch_combined_test.view() //[[sample_id:FullData], /rds_files/HH5_Save-ArchR]
-    //TRANSFER_LABELS( ch_combined_test )
-    //HEATMAP_GEX_TL( ch_combined_test )
-    //TRANSFER_LABELS_NEW( ch_combined )
-///TEMP
-
     // transfer over the cluster and integrated labels from stages onto filtered full data
-    // for cell ids in full data which are not in stage data (ie contamination) - filter them
+    // for cell ids in full data which are not in stage data (ie contamination) - filter them - NEED TO EDIT SCRIPT TO DO THIS TOO
     TRANSFER_LABELS_NEW( input_ch )
 
     // recluster data now that some cells have been removed
-    // CLUSTERING_TL( TRANSFER_LABELS_NEW.out )
+    CLUSTERING_TL( TRANSFER_LABELS_NEW.out )
 
     // call peaks
-    // PEAK_CALL_TL( CLUSTERING_TL.out )
+    PEAK_CALL_TL( CLUSTERING_TL.out )
 
     // visualise the transfer_labels object 
-    // HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
-    // DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
-    // DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
+    HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
+    DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
+    DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
 
 
     emit:
-    //transfer_label_peaks = PEAK_CALL_TL.out
-    ch_combined_output = ch_combined
+    transfer_label_peaks = PEAK_CALL_TL.out
+    ch_combined_output = input_ch
 
 }
