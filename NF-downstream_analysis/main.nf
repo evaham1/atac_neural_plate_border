@@ -140,7 +140,7 @@ workflow A {
             .set{ ch_fulldata_clustered }
             //.view()
 
-        INTEGRATING.out
+        INTEGRATING.out.integrated_filtered
             .concat( ch_fulldata_clustered )
             .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] } //removes all metadata and list files in rds_files
             .collect()
