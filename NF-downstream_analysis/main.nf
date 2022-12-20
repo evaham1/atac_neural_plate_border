@@ -118,26 +118,26 @@ workflow A {
 
         // Transfer labels from stages onto full data
 
-        // need to take the full data from here
-        CLUSTERING_WITH_CONTAM.out
-            .filter{ meta, data -> meta.sample_id == 'FullData'}
-            .set{ ch_fulldata_clustered }
-            .view()
+        // // need to take the full data from here
+        // CLUSTERING_WITH_CONTAM.out
+        //     .filter{ meta, data -> meta.sample_id == 'FullData'}
+        //     .set{ ch_fulldata_clustered }
+        //     .view()
 
-        // and the stages data from here
-        INTEGRATING.out.integrated_filtered
-            .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .set{ ch_stages_integrated }
-            .view()
-        // and combine to do transfer labels
+        // // and the stages data from here
+        // INTEGRATING.out.integrated_filtered
+        //     .filter{ meta, data -> meta.sample_id != 'FullData'}
+        //     .set{ ch_stages_integrated }
+        //     .view()
+        // // and combine to do transfer labels
 
-        ch_fulldata_clustered
-            .concat{ ch_stages_integrated }
-            .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] } //removes all metadata and list files in rds_files
-            .collect() //channel of length 6 turns into channel length 1
-            .map{ data -> [[sample_id:'transfer_labels'], [data]] }
-            .set{ ch_transfer_labels_input }
-        //TRANSFER_LABELS( ch_transfer_labels_input )
+        // ch_fulldata_clustered
+        //     .concat{ ch_stages_integrated }
+        //     .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] } //removes all metadata and list files in rds_files
+        //     .collect() //channel of length 6 turns into channel length 1
+        //     .map{ data -> [[sample_id:'transfer_labels'], [data]] }
+        //     .set{ ch_transfer_labels_input }
+        // //TRANSFER_LABELS( ch_transfer_labels_input )
 
         ch_processed = PEAK_CALLING.out
         //ch_processed_transfer_labels = TRANSFER_LABELS.out
