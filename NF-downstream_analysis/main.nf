@@ -143,7 +143,7 @@ workflow A {
             .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] } //removes all metadata and list files in rds_files
             .collect()
             .map{data -> [[sample_id:'transfer_labels'], [data]] }
-            //.view()
+            //.view() [[sample_id:'transfer_labels'], [HH5, HH6, HH7, ss4, ss8, FullData]]
             .set{ ch_transfer_labels_input }
 
         TRANSFER_LABELS( ch_transfer_labels_input )
