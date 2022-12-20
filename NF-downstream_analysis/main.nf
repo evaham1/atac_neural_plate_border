@@ -101,27 +101,27 @@ workflow A {
         CLUSTERING_WITH_CONTAM.out.output.view()
 
         // Extract the stages to run integration on them
-        CLUSTERING_WITH_CONTAM.out.output
-             .filter{ meta, data -> meta.sample_id != 'FullData'}
-             .set{ ch_stages }
-             //.view()
+        // CLUSTERING_WITH_CONTAM.out.output
+        //      .filter{ meta, data -> meta.sample_id != 'FullData'}
+        //      .set{ ch_stages }
+        //      //.view()
 
-        // read in RNA data
-        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-                                            // etc
+        // // read in RNA data
+        // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        //                                     // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+        //                                     // etc
    
 
-        // combine ATAC and RNA data
-        ch_stages // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-            .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
-            .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
-            .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
-            .view()
-            .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+        // // combine ATAC and RNA data
+        // ch_stages // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        //     .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+        //     .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
+        //     .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
+        //     .view()
+        //     .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        // ARCHR: Integrate + filter out contaminating cells
-        INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        // // ARCHR: Integrate + filter out contaminating cells
+        // INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
         // Call peaks on resulting data (stages + full filtered for contamination)
         //PEAK_CALLING( INTEGRATING.out.integrated_filtered ) //TEMP COMMENTED OUT
