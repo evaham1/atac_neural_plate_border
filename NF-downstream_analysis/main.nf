@@ -96,9 +96,11 @@ workflow A {
 
     if(!skip_processing){
 
+        ch_upstream_processed.view()
+
         // Cluster QC'd atac cells
         CLUSTERING_WITH_CONTAM( ch_upstream_processed )
-        CLUSTERING_WITH_CONTAM.out.output.view()
+        //CLUSTERING_WITH_CONTAM.out.output.view()
 
         // Extract the stages to run integration on them
         // CLUSTERING_WITH_CONTAM.out.output
