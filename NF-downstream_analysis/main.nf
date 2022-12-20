@@ -125,8 +125,8 @@ workflow A {
 
         
 
-        // // ARCHR: Integrate + filter out contaminating cells
-        // INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        // ARCHR: Integrate + filter out contaminating cells
+        INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
         // Call peaks on resulting data (stages + full filtered for contamination)
         //PEAK_CALLING( INTEGRATING.out.integrated_filtered ) //TEMP COMMENTED OUT
@@ -140,7 +140,7 @@ workflow A {
             .set{ ch_fulldata_clustered }
             //.view()
 
-        ch_stages
+        INTEGRATING.out
             .concat( ch_fulldata_clustered )
             .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] } //removes all metadata and list files in rds_files
             .collect()
