@@ -120,7 +120,7 @@ workflow A {
             .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 )
             .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
-            .view()
+            //.view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         
@@ -134,19 +134,23 @@ workflow A {
         /////////////// Transfer labels from stages onto full data  //////////////////////////
 
         // extract the full data
-        //CLUSTERING_WITH_CONTAM.out.view()
-        // CLUSTERING_WITH_CONTAM.out
-        //     .filter{ meta, data -> meta.sample_id == 'FullData'}
-        //     .set{ ch_fulldata_clustered }
-        //     .view()
+        CLUSTERING_WITH_CONTAM.out.view()
+        CLUSTERING_WITH_CONTAM.out
+            .filter{ meta, data -> meta.sample_id == 'FullData'}
+            .set{ ch_fulldata_clustered }
+            //.view()
 
-        // // and the stages data from here
-        //INTEGRATING.out.integrated_filtered.view()
-        // INTEGRATING.out.integrated_filtered
-        //     .filter{ meta, data -> meta.sample_id != 'FullData'}
-        //     .set{ ch_stages_integrated }
-        //     .view()
-        // // and combine to do transfer labels
+        ch_stages
+            .concat( ch_fulldata_clustered )
+            .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] } //removes all metadata and list files in rds_files
+            .collect()
+            .map{data -> [[sample_id:'transfer_labels'], [data]] }
+            .view()
+            .set{ ch_transfer_labels_input }
+
+
+
+        // and combine to do transfer labels
 
         // ch_fulldata_clustered
         //     .concat{ ch_stages_integrated }
