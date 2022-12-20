@@ -106,26 +106,22 @@ workflow A {
         CLUSTERING_WITH_CONTAM.out.output
             .filter{ meta, data -> meta.sample_id != 'FullData'} // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()]}
-            .view()
-            .set{ ch_stages }
-
+            .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
              
 
-        // // read in RNA data
-        // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-        //                                      // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-        //                                      // etc
+        // read in RNA data
+        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                             // etc
    
 
-        // // combine ATAC and RNA data
-        // ch_stages // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-        //     .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
-        //     .groupTuple( by:0 ) //[ [sample_id:HH5], [ [ArchRLogs, Rplots.pdf, plots, rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
-        //     .map
-        //     //.map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
-        //     //.map{ meta, data }
-        //     .view()
-        //     .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+        // combine ATAC and RNA data
+        ch_stages
+            .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+            .groupTuple( by:0 )
+            .map{ meta, atac, rna -> [meta, [atac[0], rna]]}
+            .view()
+            .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         
 
