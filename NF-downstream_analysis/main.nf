@@ -98,14 +98,22 @@ workflow A {
 
         // Cluster QC'd atac cells
         CLUSTERING_WITH_CONTAM( ch_upstream_processed )
+        CLUSTERING_WITH_CONTAM.out.output.view()
+
+        // Extract the stages to run integration on them
+        CLUSTERING_WITH_CONTAM.out.output
+             .filter{ meta, data -> meta.sample_id != 'FullData'}
+             .set{ ch_stages }
+             .view()
 
         // read in RNA data
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
    
+
         // combine ATAC and RNA data
-        CLUSTERING_WITH_CONTAM.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        ch_stages // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
             .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
@@ -120,15 +128,15 @@ workflow A {
 
         /////////////// Transfer labels from stages onto full data  //////////////////////////
 
-        // // need to take the full data from here
-        CLUSTERING_WITH_CONTAM.out.view()
+        // extract the full data
+        //CLUSTERING_WITH_CONTAM.out.view()
         // CLUSTERING_WITH_CONTAM.out
         //     .filter{ meta, data -> meta.sample_id == 'FullData'}
         //     .set{ ch_fulldata_clustered }
         //     .view()
 
         // // and the stages data from here
-        INTEGRATING.out.integrated_filtered.view()
+        //INTEGRATING.out.integrated_filtered.view()
         // INTEGRATING.out.integrated_filtered
         //     .filter{ meta, data -> meta.sample_id != 'FullData'}
         //     .set{ ch_stages_integrated }
