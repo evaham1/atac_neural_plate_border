@@ -104,7 +104,7 @@ workflow A {
         CLUSTERING_WITH_CONTAM.out.output
              .filter{ meta, data -> meta.sample_id != 'FullData'}
              .set{ ch_stages }
-             .view()
+             //.view()
 
         // read in RNA data
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
