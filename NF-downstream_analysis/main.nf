@@ -151,19 +151,19 @@ workflow A {
         //     .set{ ch_transfer_labels_input }
         // //TRANSFER_LABELS( ch_transfer_labels_input )
 
-        ch_processed = INTEGRATING.out.integrated_filtered //TEMP
+        //ch_processed = INTEGRATING.out.integrated_filtered //TEMP
         //ch_processed = PEAK_CALLING.out
         //ch_processed_transfer_labels = TRANSFER_LABELS.out
 
-    } else {
+    // } else {
        
-       METADATA_PROCESSED( params.processed_sample_sheet )
-       // ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
-       ch_processed = METADATA_PROCESSED.out.metadata                       // [[sample_id:HH5], [HH5_Save-ArchR]]
-                                                                            // [[sample_id:HH6], [HH6_Save-ArchR]]
-                                                                            // etc
+    //    METADATA_PROCESSED( params.processed_sample_sheet )
+    //    // ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
+    //    ch_processed = METADATA_PROCESSED.out.metadata                       // [[sample_id:HH5], [HH5_Save-ArchR]]
+    //                                                                         // [[sample_id:HH6], [HH6_Save-ArchR]]
+    //                                                                         // etc
 
-    }
+    // }
 
 
     ///////////////////////////////////////////////////////////////
