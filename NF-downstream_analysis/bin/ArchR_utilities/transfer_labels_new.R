@@ -87,35 +87,34 @@ for (i in 1:5) {
   cluster_ids <- paste0(stage, "_", ArchR$clusters)
   print(length(cluster_ids))
   all_cluster_ids <- c(all_cluster_ids, cluster_ids)
+  
 }
+ArchR <- null # remove temp ArchR stage object
 
 print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
 print(paste0("Length of all stage cluster ids: ", length(all_cluster_ids)))
 
-data <- as.vector(all_cluster_ids)
-cells <- as.vector(all_cell_ids)
-
 # check that the stage cell ids are all found in the fulldata object
-intersect_cell_id_length <- sum(cells %in% rownames(ArchR@cellColData))
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
 print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
 if (intersect_cell_id_length != length(all_cell_ids)){
-  print("Error! Not all stage cell ids match with cell ids in Full data")
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
 }
 
 # add the stage_clusters to the full dataset
-ArchR <- addCellColData(ArchRProj = ArchR_full, 
-                        data = data,
-                        cells = cells, 
+ArchR_full <- addCellColData(ArchRProj = ArchR_full, 
+                        data = all_cluster_ids,
+                        cells = all_cell_ids, 
                         name = "stage_clusters",
                         force = TRUE)
-print(table(ArchR$stage_clusters))
+print(table(ArchR_full$stage_clusters))
 
 # filter out cells that have NA in the stage_clusters (ie have been removed from stages because they are contam)
-print(paste0("number of NA cell ids: ", sum(is.na(ArchR$stage_clusters))))
+print(paste0("number of NA cell ids: ", sum(is.na(ArchR_full$stage_clusters))))
 
-idxSample <- BiocGenerics::which(!is.na(ArchR$stage_clusters))
-cellsSample <- ArchR$cellNames[idxSample]
-ArchR_filtered <- ArchR[cellsSample, ]
+idxSample <- BiocGenerics::which(!is.na(ArchR_full$stage_clusters))
+cellsSample <- ArchR_full$cellNames[idxSample]
+ArchR_filtered <- ArchR_full[cellsSample, ]
 
 # save transfer_labels data
 saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)

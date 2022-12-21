@@ -71,6 +71,7 @@ print(paste0("Destination data: ", full_data))
 
 # load full data
 ArchR_full <- loadArchRProject(path = full_data, force = FALSE, showLogo = TRUE)
+print(paste0("Number of cells in fulldata: ", length(rownames(ArchR_full@cellColData))))
 
 # extract cell IDs from each of the stages datasets
 all_cell_ids <- c()
@@ -81,7 +82,16 @@ for (i in 1:5) {
   print(length(cell_ids))
   all_cell_ids <- c(all_cell_ids, cell_ids)
 }
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
 
+# check cell counts and IDs match between full data and stages
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# filter full data based on cell IDs from filtered stages
 ArchR_filtered <- ArchR_full[all_cell_ids, ]
 
 # save filtered data
