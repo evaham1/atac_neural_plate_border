@@ -33,7 +33,7 @@ workflow TRANSFER_LABELS {
 
     main:
 
-    //input_ch.view()
+    input_ch.view()
 
     // transfer over the cluster and integrated labels from stages onto filtered full data
     // for cell ids in full data which are not in stage data (ie contamination) - filter them - NEED TO EDIT SCRIPT TO DO THIS TOO

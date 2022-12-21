@@ -159,7 +159,7 @@ workflow A {
             .set{ ch_transfer_labels_input }
 
         //ch_transfer_labels_input.view()
-        //TRANSFER_LABELS( ch_transfer_labels_input )
+        TRANSFER_LABELS( ch_transfer_labels_input )
 
         /// - !!NEED TO ADJUST TO COMBINE THESE SO THEY MATCH THE SWITCH READING IN SAMPLESHEET
         ch_processed = INTEGRATING.out.integrated_filtered //TEMP
