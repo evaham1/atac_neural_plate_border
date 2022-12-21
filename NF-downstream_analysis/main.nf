@@ -75,7 +75,10 @@ workflow A {
         PREPROCESSING ( ch_metadata ) // create ArchR object
 
         FILTERING ( PREPROCESSING.out.output ) // iterative filtering
+
+        ///
         ch_upstream_processed = FILTERING.out.output
+        ///
         
     } else {
        
@@ -96,9 +99,13 @@ workflow A {
 
     if(!skip_processing){
 
+        /////////////// Cluster individual stages and full data  //////////////////////////
+
         // Cluster QC'd atac cells
         CLUSTERING_WITH_CONTAM( ch_upstream_processed )
         //CLUSTERING_WITH_CONTAM.out.output.view()
+
+        /////////////// Integrate stages data with RNA stages data  //////////////////////////
 
         // Extract the stages to run integration on them
         CLUSTERING_WITH_CONTAM.out.output
@@ -106,12 +113,10 @@ workflow A {
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()]}
             .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
              
-
         // read in RNA data
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                              // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                              // etc
-   
 
         // combine ATAC and RNA data
         ch_stages
@@ -121,15 +126,15 @@ workflow A {
             //.view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        
-
         // ARCHR: Integrate + filter out contaminating cells
         INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
-        // Call peaks on resulting data (stages + full filtered for contamination)
-        PEAK_CALLING( INTEGRATING.out.integrated_filtered ) //TEMP COMMENTED OUT
+        /////////////// Call peaks on integrated, contam filtered stages data  //////////////////////////
 
-        /////////////// Transfer labels from stages onto full data  //////////////////////////
+        // Call peaks on resulting data (stages + full filtered for contamination)
+        PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+
+        /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
         // extract the full data
         CLUSTERING_WITH_CONTAM.out
@@ -141,22 +146,31 @@ workflow A {
         INTEGRATING.out.integrated_filtered
             .concat( ch_fulldata_clustered )
             .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] } //removes all metadata and list files in rds_files
-            .view()
+            //.view()
+                    //[HH5_Save-ArchR]
+                    //[HH7_Save-ArchR]
+                    //[ss4_Save-ArchR]
+                    //[ss8_Save-ArchR]
+                    //[HH6_Save-ArchR]
+                    //[FullData_Save-ArchR]
             .collect()
             .map{data -> [[sample_id:'transfer_labels'], [data]] }
-            .view() //[[sample_id:'transfer_labels'], [HH5, HH6, HH7, ss4, ss8, FullData]]
+            //.view() //[[sample_id:transfer_labels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
             .set{ ch_transfer_labels_input }
 
-        TRANSFER_LABELS( ch_transfer_labels_input )
+        //TRANSFER_LABELS( ch_transfer_labels_input )
 
+
+        /// - !!NEED TO ADJUST TO COMBINE THESE SO THEY MATCH THE SWITCH READING IN SAMPLESHEET
         ch_processed = INTEGRATING.out.integrated_filtered //TEMP
         ch_processed = PEAK_CALLING.out
         ch_processed_transfer_labels = TRANSFER_LABELS.out
+        ///
 
     } else {
        
        METADATA_PROCESSED( params.processed_sample_sheet )
-       // ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
+       // !! NEED TO ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
        ch_processed = METADATA_PROCESSED.out.metadata                       // [[sample_id:HH5], [HH5_Save-ArchR]]
                                                                             // [[sample_id:HH6], [HH6_Save-ArchR]]
                                                                             // etc
