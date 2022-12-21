@@ -139,7 +139,7 @@ workflow A {
         // extract the full data
         CLUSTERING_WITH_CONTAM.out
             .filter{ meta, data -> meta.sample_id == 'FullData'}
-            .view()
+            //.view() //[[sample_id:FullData], [./rds_files]]
             .set{ ch_fulldata_clustered }
 
         // combine clustered full data with integrated stage data into one channel
@@ -157,6 +157,8 @@ workflow A {
             .map{data -> [[sample_id:'transfer_labels'], [data]] }
             //.view() //[[sample_id:transfer_labels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
             .set{ ch_transfer_labels_input }
+
+        ch_transfer_labels_input.view()
 
         //TRANSFER_LABELS( ch_transfer_labels_input )
 
