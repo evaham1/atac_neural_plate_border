@@ -101,9 +101,8 @@ workflow A {
 
         /////////////// Cluster individual stages and full data  //////////////////////////
 
-        // Cluster QC'd atac cells
+        // Cluster stages + full data
         CLUSTERING_WITH_CONTAM( ch_upstream_processed )
-        //CLUSTERING_WITH_CONTAM.out.output.view()
 
         /////////////// Integrate stages data with RNA stages data  //////////////////////////
 
@@ -113,12 +112,12 @@ workflow A {
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()]}
             .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
              
-        // read in RNA data
+        // read in RNA data (stages only)
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                              // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                              // etc
 
-        // combine ATAC and RNA data
+        // combine ATAC and RNA data (stages only)
         ch_stages
             .concat( METADATA_RNA.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 )
@@ -126,13 +125,13 @@ workflow A {
             //.view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        // ARCHR: Integrate + filter out contaminating cells
+        // Integrate + filter out contaminating cells (stages only)
         INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
         /////////////// Call peaks on integrated, contam filtered stages data  //////////////////////////
 
-        // Call peaks on resulting data (stages + full filtered for contamination)
-        //PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+        // Call peaks on resulting data (stages only)
+        PEAK_CALLING( INTEGRATING.out.integrated_filtered )
 
         /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
@@ -158,7 +157,6 @@ workflow A {
             //.view() //[[sample_id:transfer_labels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
             .set{ ch_transfer_labels_input }
 
-        //ch_transfer_labels_input.view()
         TRANSFER_LABELS( ch_transfer_labels_input )
 
         /// - !!NEED TO ADJUST TO COMBINE THESE SO THEY MATCH THE SWITCH READING IN SAMPLESHEET
