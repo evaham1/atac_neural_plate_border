@@ -139,7 +139,7 @@ workflow A {
         // extract the full data
         CLUSTERING_WITH_CONTAM.out
             .filter{ meta, data -> meta.sample_id == 'FullData'}
-            //.view()
+            .view()
             .set{ ch_fulldata_clustered }
 
         // combine clustered full data with integrated stage data into one channel
