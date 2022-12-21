@@ -132,7 +132,7 @@ workflow A {
         /////////////// Call peaks on integrated, contam filtered stages data  //////////////////////////
 
         // Call peaks on resulting data (stages + full filtered for contamination)
-        PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+        //PEAK_CALLING( INTEGRATING.out.integrated_filtered )
 
         /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
@@ -163,8 +163,8 @@ workflow A {
 
         /// - !!NEED TO ADJUST TO COMBINE THESE SO THEY MATCH THE SWITCH READING IN SAMPLESHEET
         ch_processed = INTEGRATING.out.integrated_filtered //TEMP
-        ch_processed = PEAK_CALLING.out
-        ch_processed_transfer_labels = TRANSFER_LABELS.out
+        //ch_processed = PEAK_CALLING.out
+        //ch_processed_transfer_labels = TRANSFER_LABELS.out
         ///
 
     } else {
