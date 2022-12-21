@@ -26,17 +26,22 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Preprocessing"
 include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filtering"
 
-// PROCESSING WORKFLOWS
-include { CLUSTERING as CLUSTERING_WITH_CONTAM } from "$baseDir/subworkflows/local/PROCESSING/archr_clustering_and_gex"
+// PROCESSING WORKFLOWS AND MODULES
+//MODULES
+include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as CLUSTER_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+
+//WORKFLOWS
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration"
-include { PEAK_CALLING } from "$baseDir/subworkflows/local/PROCESSING/archr_peak_calling"
-
 include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_transfer_labels"
 
+
 // DOWNSTREAM PROCESSING WORKFLOWS
-include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
-include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
+//include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
+//include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
 // PARAMS
 def skip_upstream_processing = params.skip_upstream_processing ? true : false
@@ -102,12 +107,12 @@ workflow A {
         /////////////// Cluster individual stages and full data  //////////////////////////
 
         // Cluster stages + full data
-        CLUSTERING_WITH_CONTAM( ch_upstream_processed )
+        CLUSTER( ch_upstream_processed )
 
         /////////////// Integrate stages data with RNA stages data  //////////////////////////
 
         // Extract the stages to run integration on them
-        CLUSTERING_WITH_CONTAM.out.output
+        CLUSTER.out
             .filter{ meta, data -> meta.sample_id != 'FullData'} // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()]}
             .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
@@ -131,12 +136,12 @@ workflow A {
         /////////////// Call peaks on integrated, contam filtered stages data  //////////////////////////
 
         // Call peaks on resulting data (stages only)
-        PEAK_CALLING( INTEGRATING.out.integrated_filtered )
+        PEAK_CALL( INTEGRATING.out.integrated_filtered )
 
         /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
         // extract the full data
-        CLUSTERING_WITH_CONTAM.out
+        CLUSTER.out
             .filter{ meta, data -> meta.sample_id == 'FullData'}
             //.view() //[[sample_id:FullData], [./rds_files]]
             .set{ ch_fulldata_clustered }
