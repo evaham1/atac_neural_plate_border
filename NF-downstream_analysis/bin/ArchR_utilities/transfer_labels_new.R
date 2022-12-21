@@ -89,7 +89,6 @@ for (i in 1:5) {
   all_cluster_ids <- c(all_cluster_ids, cluster_ids)
   
 }
-ArchR <- null # remove temp ArchR stage object
 
 print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
 print(paste0("Length of all stage cluster ids: ", length(all_cluster_ids)))
