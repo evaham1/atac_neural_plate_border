@@ -29,12 +29,12 @@ include {R as CLUSTER_PEAKS} from "$baseDir/modules/local/r/main"               
 
 workflow TRANSFER_LABELS {
     take:
-    input_ch    // [[sample_id:HH5], [/rds_files/HH5_Save-ArchR]]
-                // [[sample_id:HH6], [/rds_files/HH6_Save-ArchR]]
-                // etc
+    input_ch
 
     main:
 
+    input_ch.view()
+    
     // transfer over the cluster and integrated labels from stages onto filtered full data
     // for cell ids in full data which are not in stage data (ie contamination) - filter them - NEED TO EDIT SCRIPT TO DO THIS TOO
     TRANSFER_LABELS_NEW( input_ch )
