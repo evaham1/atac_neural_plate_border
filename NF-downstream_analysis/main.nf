@@ -158,8 +158,8 @@ workflow A {
             //.view() //[[sample_id:transfer_labels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
             .set{ ch_transfer_labels_input }
 
+        ch_transfer_labels_input.view()
         TRANSFER_LABELS( ch_transfer_labels_input )
-
 
         /// - !!NEED TO ADJUST TO COMBINE THESE SO THEY MATCH THE SWITCH READING IN SAMPLESHEET
         ch_processed = INTEGRATING.out.integrated_filtered //TEMP
