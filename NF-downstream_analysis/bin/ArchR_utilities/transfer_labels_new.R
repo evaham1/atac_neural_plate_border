@@ -111,29 +111,43 @@ ArchR <- addCellColData(ArchRProj = ArchR_full,
 print(table(ArchR$stage_clusters))
 
 # filter out cells that have NA in the stage_clusters (ie have been removed from stages because they are contam)
-idxSample <- BiocGenerics::which(is.na(ArchR$stage_clusters))
+print(paste0("number of NA cell ids: ", sum(is.na(ArchR$stage_clusters))))
+
+idxSample <- BiocGenerics::which(!is.na(ArchR$stage_clusters))
 cellsSample <- ArchR$cellNames[idxSample]
-ArchR <- ArchR[cellsSample, ]
+ArchR_filtered <- ArchR[cellsSample, ]
 
 # save transfer_labels data
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
 
 
 #####################################################################################
 ############################## Visualisations #######################################
+
+### Plot cell counts before and after subsetting per stage
+unfiltered <- table(ArchR$stage)
+filtered <- table(ArchR_filtered$stage)
+cell_counts <- as_tibble(rbind(unfiltered, filtered))
+cell_counts <- cbind(cell_counts, Total = rowSums(cell_counts))
+
+png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 10, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
 ###### stage colours
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
-p1 <- plotEmbedding(ArchR, 
+p1 <- plotEmbedding(ArchR_filtered, 
                     name = "stage",
-                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0, 
                     pal = stage_colours, randomize = TRUE)
-p2 <- plotEmbedding(ArchR, 
+p2 <- plotEmbedding(ArchR_filtered, 
                     name = "stage_clusters",
-                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
                     randomize = TRUE)
 
