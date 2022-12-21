@@ -67,6 +67,7 @@ print(paste0("Stages data: ", stages_data))
 full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
 print(paste0("Destination data: ", full_data))
 ArchR_full <- loadArchRProject(path = full_data, force = FALSE, showLogo = TRUE)
+print(paste0("Number of cells in fulldata: ", length(rownames(ArchR_full@cellColData))))
 
 ################## Transfer info from stages onto full data #######################################
 # extract cell IDs from each of the stages datasets
@@ -88,29 +89,33 @@ for (i in 1:5) {
   all_cluster_ids <- c(all_cluster_ids, cluster_ids)
 }
 
-print(paste0("Length of all cell ids: ", length(all_cell_ids)))
-print(paste0("Length of all cluster ids: ", length(all_cluster_ids)))
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage cluster ids: ", length(all_cluster_ids)))
 
 data <- as.vector(all_cluster_ids)
 cells <- as.vector(all_cell_ids)
 
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(cells %in% rownames(ArchR@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  print("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
 ArchR <- addCellColData(ArchRProj = ArchR_full, 
                         data = data,
                         cells = cells, 
                         name = "stage_clusters",
                         force = TRUE)
-ArchR <- ArchR_full
-ArchR@cellColData[name] <- NA
-ArchR@cellColData[cells, name] <- data
-ArchR@cellColData[cells, "stage"]
-
-ArchR@cellColData$stage
-sum(is.na(ArchR$cellNames))
-length(ArchR$cellNames)
-
 print(table(ArchR$stage_clusters))
 
-# save filtered data
+# filter out cells that have NA in the stage_clusters (ie have been removed from stages because they are contam)
+idxSample <- BiocGenerics::which(is.na(ArchR$stage_clusters))
+cellsSample <- ArchR$cellNames[idxSample]
+ArchR <- ArchR[cellsSample, ]
+
+# save transfer_labels data
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
 
 
