@@ -5,7 +5,7 @@ include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addPar
 include {R as GENE_SCORES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_gex_featureplots.R", checkIfExists: true) )
 include {R as HEATMAP_GEX} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/plot_marker_heatmaps.R", checkIfExists: true) )
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 workflow CLUSTERING {
     take:
