@@ -30,8 +30,6 @@ include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filt
 //MODULES
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as CLUSTER_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
-include {R as PEAK_CALL_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 
 //WORKFLOWS
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
@@ -162,6 +160,7 @@ workflow A {
             //.view() //[[sample_id:transfer_labels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
             .set{ ch_transfer_labels_input }
 
+        // transfers labels to full object, clusters and call peaks on stage_clusters of transferlabels object
         TRANSFER_LABELS( ch_transfer_labels_input )
 
         /////////////// Create output channel  //////////////////////////
