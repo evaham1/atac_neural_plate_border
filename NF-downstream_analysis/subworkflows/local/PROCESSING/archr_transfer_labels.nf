@@ -27,7 +27,7 @@ workflow TRANSFER_LABELS {
     CLUSTER_TL( TRANSFER_LABELS_NEW.out )
 
     // call peaks
-    PEAK_CALL_TL( CLUSTERING_TL.out )
+    PEAK_CALL_TL( CLUSTER_TL.out )
 
     emit:
     transfer_label_peaks = PEAK_CALL_TL.out
