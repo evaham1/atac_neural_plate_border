@@ -156,7 +156,7 @@ workflow A {
                     //[HH6_Save-ArchR]
                     //[FullData_Save-ArchR]
             .collect()
-            .map{data -> [[sample_id:'transfer_labels'], data] }
+            .map{data -> [[sample_id:'TransferLabels'], data] }
             //.view() //[[sample_id:transfer_labels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
             .set{ ch_transfer_labels_input }
 
