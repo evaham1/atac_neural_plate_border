@@ -157,17 +157,20 @@ workflow A {
                     //[FullData_Save-ArchR]
             .collect()
             .map{data -> [[sample_id:'TransferLabels'], data] }
-            //.view() //[[sample_id:transfer_labels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
+            //.view() //[[sample_id:TransferLabels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
             .set{ ch_transfer_labels_input }
 
         // transfers labels to full object, clusters and call peaks on stage_clusters of transferlabels object
         TRANSFER_LABELS( ch_transfer_labels_input )
 
+        TRANSFER_LABELS.out.transfer_label_peaks.view()
+        //CLUSTER.out.view()
+
         /////////////// Create output channel  //////////////////////////
-        CLUSTER.out
-            .concat( TRANSFER_LABELS.out.transfer_label_peaks )
-            .view()
-            .set{ ch_processed }
+        // CLUSTER.out
+        //     .concat( TRANSFER_LABELS.out.transfer_label_peaks )
+        //     .view()
+        //     .set{ ch_processed }
 
     } else {
        
