@@ -44,9 +44,9 @@ workflow TRANSFER_LABELS {
     PEAK_CALL_TL( CLUSTERING_TL.out )
 
     // visualise the transfer_labels object 
-    HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
-    DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
-    DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
+    //HEATMAP_PEAKS_TL( PEAK_CALL_TL.out )
+    //DIFF_PEAKS_STAGES( PEAK_CALL_TL.out )
+    //DIFF_PEAKS_CLUSTERS( PEAK_CALL_TL.out )
 
 
     emit:
