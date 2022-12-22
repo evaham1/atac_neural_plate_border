@@ -164,11 +164,11 @@ workflow A {
 
         TRANSFER_LABELS( ch_transfer_labels_input )
 
-        /// - !!NEED TO ADJUST TO COMBINE THESE SO THEY MATCH THE SWITCH READING IN SAMPLESHEET
-        ch_processed = INTEGRATING.out.integrated_filtered //TEMP
-        //ch_processed = PEAK_CALLING.out
-        //ch_processed_transfer_labels = TRANSFER_LABELS.out
-        ///
+        /////////////// Create output channel  //////////////////////////
+        CLUSTER.out
+            .concat( TRANSFER_LABELS.out.transfer_label_peaks )
+            .view()
+            .set{ ch_processed }
 
     } else {
        
