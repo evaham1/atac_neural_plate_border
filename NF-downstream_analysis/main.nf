@@ -163,9 +163,6 @@ workflow A {
         // transfers labels to full object, clusters and call peaks on stage_clusters of transferlabels object
         TRANSFER_LABELS( ch_transfer_labels_input )
 
-        //TRANSFER_LABELS.out.transfer_label_peaks.view()
-        //CLUSTER.out.view()
-
         /////////////// Create output channel  //////////////////////////
         CLUSTER.out
             .concat( TRANSFER_LABELS.out.transfer_label_peaks )
