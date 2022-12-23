@@ -12,6 +12,7 @@ include {R as SUBSET_INTEGRATION} from "$baseDir/modules/local/r/main"          
 // rerun clustering and check integration on subset
 include {R as CLUSTER_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as CLUSTER_IDENTIFY_FILTERED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_cluster_identities.R", checkIfExists: true) )
+include {R as INTEGRATION_CLUSTERS_COMPARE_FILTERED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_compare_clusters_and_labels.R", checkIfExists: true) )
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,8 +26,8 @@ workflow INTEGRATING {
     UNCON_INTEGRATE ( input )
 
     // Examine the resulting integration
-    //CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
-    //INTEGRATION_CLUSTERS_COMPARE ( UNCON_INTEGRATE.out ) // Examine the relationship between clusters and labels
+    CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
+    INTEGRATION_CLUSTERS_COMPARE ( UNCON_INTEGRATE.out ) // Examine the relationship between clusters and labels
     
 ////////////    FILTER OUT CONTAMINATION    ///////////////////////
 
@@ -36,9 +37,10 @@ workflow INTEGRATING {
 
     // Examine the resulting integration
     CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
-    
+    INTEGRATION_CLUSTERS_COMPARE_FILTERED ( CLUSTER_INTEGRATION.out ) // Examine the relationship between clusters and labels
+
     //emit integrated ArchR objects:
     emit:
     integrated = UNCON_INTEGRATE.out
-    integrated_filtered = CLUSTER_INTEGRATION.out
+    integrated_filtered = CLUSTER_IDENTIFY_FILTERED.out
 }

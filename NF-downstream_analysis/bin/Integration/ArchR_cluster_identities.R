@@ -218,6 +218,64 @@ plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData",
            name = "predictedScore_Un", plotAs = "Violin", baseSize = 20)
 graphics.off()
 
+
+#### compare gene scores with integrated gene exp values
+
+ArchR <- addImputeWeights(ArchR)
+
+# look for late marker genes
+late_markers <- c(
+  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
+  "MSX1", "TFAP2A", "TFAP2B", #mix
+  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
+  "SOX2", "SOX21" # neural
+)
+p1 <- plotEmbedding(
+  ArchRProj = ArchR, 
+  colorBy = "GeneScoreMatrix", 
+  name = late_markers, 
+  embedding = "UMAP"
+)
+p2 <- plotEmbedding(
+  ArchRProj = ArchR, 
+  colorBy = "GeneIntegrationMatrix", 
+  name = late_markers, 
+  embedding = "UMAP"
+)
+
+p1c <- lapply(p1, function(x){
+  x + guides(color = FALSE, fill = FALSE) + 
+    theme_ArchR(baseSize = 6.5) +
+    theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) +
+    theme(
+      axis.text.x=element_blank(), 
+      axis.ticks.x=element_blank(), 
+      axis.text.y=element_blank(), 
+      axis.ticks.y=element_blank()
+    )
+})
+
+p2c <- lapply(p2, function(x){
+  x + guides(color = FALSE, fill = FALSE) + 
+    theme_ArchR(baseSize = 6.5) +
+    theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) +
+    theme(
+      axis.text.x=element_blank(), 
+      axis.ticks.x=element_blank(), 
+      axis.text.y=element_blank(), 
+      axis.ticks.y=element_blank()
+    )
+})
+
+png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+do.call(cowplot::plot_grid, c(list(ncol = 3), p1c))
+graphics.off()
+
+png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+do.call(cowplot::plot_grid, c(list(ncol = 3), p2c))
+graphics.off()
+
+
 ##################### Distribution of labels across clusters ##################################
 
 plot_path = "./plots/label_by_cluster_distribution/"
