@@ -29,10 +29,12 @@ option_list <- list(
     make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
     make_option(c("", "--stage_clust_res"), action = "store", type = "double", help = "clustering resolution for stage data", default = 1),
     make_option(c("", "--full_clust_res"), action = "store", type = "double", help = "clustering resolution for full data", default = 2),
-    make_option(c("", "--clustree"), action = "store", type = "logical", help = "whether to run clustree plot", default = TRUE),
+    make_option(c("", "--clustree_stage"), action = "store", type = "logical", help = "whether to run clustree plot on stage data", default = FALSE),
+    make_option(c("", "--clustree_full"), action = "store", type = "logical", help = "whether to run clustree plot on full data", default = FALSE),
     make_option(c("", "--stage_clustree_by"), action = "store", type = "double", help = "clustering res intervals for clustree for stages", default = 0.1),
     make_option(c("", "--full_clustree_by"), action = "store", type = "double", help = "clustering res intervals for clustree for full data", default = 0.2),
-    make_option(c("", "--GeneScore_heatmaps"), action = "store", type = "logical", help = "whether to run gene score heatmaps", default = TRUE),
+    make_option(c("", "--GeneScore_heatmaps_stage"), action = "store", type = "logical", help = "whether to run gene score heatmaps on stage data", default = FALSE),
+    make_option(c("", "--GeneScore_heatmaps_full"), action = "store", type = "logical", help = "whether to run gene score heatmaps on full data", default = FALSE),
     make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
     )
 
@@ -408,21 +410,23 @@ if (length(unique(ArchR$stage)) == 1){
 }
 print("clustering ran")
 
-# Plot Clustree
-if (isTRUE(opt$clustree)) {
-  print("running clustree plot...")
+# Plot Clustree (optional)
+if (length(unique(ArchR$stage)) == 1){
+  if (isTRUE(opt$clustree_stage)) {
+    print("running clustree plot...")
+    png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+      plot(ArchR_ClustRes(ArchR, by = opt$stage_clustree_by))
+      graphics.off()
+    print("clustree plot ran") }
 
-  if (length(unique(ArchR$stage)) == 1){
-    png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-    plot(ArchR_ClustRes(ArchR, by = opt$stage_clustree_by))
-    graphics.off()
-    print("clustree plot ran")
 } else {
+  if (isTRUE(opt$clustree_full)) {
+    print("running clustree plot...")
     png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-    plot(ArchR_ClustRes(ArchR, by = opt$full_clustree_by))
-    graphics.off()
-    print("clustree plot ran")
-}}
+      plot(ArchR_ClustRes(ArchR, by = opt$full_clustree_by))
+      graphics.off()
+    print("clustree plot ran") }
+}
 
 ################## Save clustered ArchR project #################################
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
@@ -552,7 +556,6 @@ contaminating_markers <- c(
   'CDX2', 'GATA6', 'ALX1', 'PITX2', 'TWIST1', 'TBXT', 'MESP1', #mesoderm
   'SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6' #endoderm
 )
-
 # Late marker genes
 late_markers <- c(
   "GATA3", "DLX5", "SIX1", "EYA2", #PPR
@@ -560,33 +563,16 @@ late_markers <- c(
   "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
   "SOX2", "SOX21" # neural
 )
-
 # look for ap marker genes
 ap_markers <- c(
   "PAX2", "WNT4", "SIX3", "SHH" # no GBX2 in matrix
 )
-
 # look for early markers
 early_markers <- c(
   "EPAS1", "BMP4", "YEATS4", "SOX3", "HOXB1", "ADMP", "EOMES"
 )
-
-dotplot_1_genes <- c("EPAS1", "GATA3", "SIX1", "EYA2",
-                     "DLX5", "BMP4", "MSX1", "TFAP2A", "TFAP2B",
-                     "PAX3", "PAX7", "SOX2", "OTX2", "YEATS4",
-                     "SOX11", "SOX3", "SOX21", "HOXB1", "GBX2",
-                     "SIX3", "ADMP", "EOMES")
-
-dotplot_2_genes <- c("GATA3", "DLX5", "SIX1", "EYA2",
-                     "MSX1", "TFAP2A", "TFAP2B", "PAX3",
-                     "PAX7", "CSRNP1", "SNAI2", "SOX10",
-                     "SOX2", "SOX21", "GBX2", "PAX2",
-                     "WNT4", "SIX3", "SHH")
-
 feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
                         "SOX21", "SOX2", "BMP4", "HOXB1")
-
-all_genes <- unique(c(contaminating_markers, late_markers, early_markers, ap_markers, dotplot_1_genes, dotplot_2_genes))
 
 png(paste0(plot_path_temp, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
 feature_plot_grid(ArchR, gene_list = contaminating_markers)
@@ -610,9 +596,12 @@ graphics.off()
 
 print("Feature plots done")
 
-##########    Heatmaps
+##########    Heatmaps (optional)
 
-if (isTRUE(opt$GeneScore_heatmaps)) {
+run_heatmaps <- ifelse(length(unique(ArchR$stage)) == 1 & isTRUE(opt$GeneScore_heatmaps_stage) | length(unique(ArchR$stage)) > 1 & isTRUE(opt$GeneScore_heatmaps_full),
+       TRUE, FALSE)
+
+if (isTRUE(run_heatmaps)) {
 
   seMarker <- getMarkerFeatures(
     ArchRProj = ArchR, 
