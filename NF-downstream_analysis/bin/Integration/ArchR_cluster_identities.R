@@ -33,7 +33,7 @@ opt = getopt(spec)
     
     ncores = 8
 
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/INTEGRATING/1_unconstrained_integration/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/2_unconstrained_integration/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -215,10 +215,11 @@ graphics.off()
 
 png(paste0(plot_path, "Integration_Scores_Vln.png"), width=40, height=10, units = 'cm', res = 200)
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-           name = "predictedScore_Un", plotAs = "Violin", baseSize = 20)
+           name = "predictedScore_Un", plotAs = "Violin", baseSize = 20, alpha = 0.4)
 graphics.off()
 
 
+############################## Gene scores plots #######################################
 #### compare gene scores with integrated gene exp values
 
 ArchR <- addImputeWeights(ArchR)
@@ -281,14 +282,14 @@ graphics.off()
 plot_path = "./plots/label_by_cluster_distribution/"
 dir.create(plot_path, recursive = T)
 
-# visualise distribution across clusters: confusion matrix
-png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
-graphics.off()
-
 # visualise distribution across clusters: table of cell counts
 png(paste0(plot_path, 'label_by_cluster_cell_number_table.png'), height = 25, width = 40, units = 'cm', res = 400)
 cell_counting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
+graphics.off()
+
+# visualise distribution across clusters: confusion matrix
+png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+cell_counts_heatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
 graphics.off()
 
 # visualise distribution across clusters: table of cell percentages
@@ -307,6 +308,9 @@ cell_counts_piecharts(counts, col = scHelper_cell_type_colours)
 graphics.off()
 
 ##################### Label clusters based on thresholds ##################################
+
+plot_path = "./plots/label_by_cluster_distribution/assigned_cluster_labels/"
+dir.create(plot_path, recursive = T)
 
 min_threshold = 0.15
 max_label = 3
