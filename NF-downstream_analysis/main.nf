@@ -190,19 +190,20 @@ workflow A {
     ///////////////////////////////////////////////////////////////
     ///////////////////// DOWNSTREAM PROCESSING ///////////////////
     ///////////////////////////////////////////////////////////////
-    // comparing stages
-    // making transfer_labels full object and working on that
+
     // WORK IN PROGRESS
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way
     //COMPARE_VARIABILITY( ch_processed )
 
-    // IN PROGRESS: combine individual stages integrated objects into full transferlabels object and look for enhancers/study peaks over time
-    //TRANSFER_LABELS( ch_processed )
-    //Unexpected error [StackOverflowError]
-    //-- Check script 'subworkflows/local/DOWNSTREAM_PROCESSING/archr_transfer_labels.nf' at line: 48 or see '.nextflow.log' file for more details
+    // IN PROGRESS: check validity of cell state labels
+    // can try reclustering on differet peak sets and see if get more distinct label separation
+    // script in integration/compare_clusters_and_labels
+    // predict enhancers using diff accessibility and validate them
+    // findenhancers script
 
+    
     // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
     //NPB_SUBSET( TRANSFER_LABELS? )
 
