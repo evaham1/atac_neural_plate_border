@@ -241,5 +241,5 @@ graphics.off()
 
 png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-  name = "predictedScore_Un", plotAs = "Violin")
+  name = "predictedScore_Un", plotAs = "Violin", alpha = 0.4)
 graphics.off()
