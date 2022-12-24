@@ -69,7 +69,9 @@ print(paste0("Destination data: ", full_data))
 ArchR_full <- loadArchRProject(path = full_data, force = FALSE, showLogo = TRUE)
 print(paste0("Number of cells in fulldata: ", length(rownames(ArchR_full@cellColData))))
 
-################## Transfer info from stages onto full data #######################################
+################## Transfer cluster info from stages onto full data #######################################
+######## stages: 'clusters' -> TransferLabels: 'stage_clusters'
+
 # extract cell IDs from each of the stages datasets
 all_cell_ids <- c()
 all_cluster_ids <- c()
@@ -89,7 +91,6 @@ for (i in 1:5) {
   all_cluster_ids <- c(all_cluster_ids, cluster_ids)
   
 }
-
 print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
 print(paste0("Length of all stage cluster ids: ", length(all_cluster_ids)))
 
@@ -114,6 +115,46 @@ print(paste0("number of NA cell ids: ", sum(is.na(ArchR_full$stage_clusters))))
 idxSample <- BiocGenerics::which(!is.na(ArchR_full$stage_clusters))
 cellsSample <- ArchR_full$cellNames[idxSample]
 ArchR_filtered <- ArchR_full[cellsSample, ]
+
+################## Transfer cluster identity info from stages onto full data #######################################
+######## stages: 'cluster_labels' -> TransferLabels: 'stage_cluster_labels'
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_cluster_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  stage <- unique(ArchR$stage)
+  cluster_ids <- paste0(stage, "_", ArchR$cluster_labels)
+  print(length(cluster_ids))
+  all_cluster_ids <- c(all_cluster_ids, cluster_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage cluster labels: ", length(all_cluster_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
+                        data = all_cluster_ids,
+                        cells = all_cell_ids, 
+                        name = "stage_cluster_labels",
+                        force = TRUE)
+print(table(ArchR_filtered$stage_cluster_labels))
 
 # save transfer_labels data
 saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
