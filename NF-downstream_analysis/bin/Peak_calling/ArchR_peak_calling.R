@@ -541,6 +541,9 @@ run_heatmaps <- ifelse(length(unique(ArchR_peaks$stage)) == 1 & isTRUE(opt$heatm
                        TRUE, FALSE)
 
 if (isTRUE(run_heatmaps)) {
+
+  plot_path_temp <- paste0(plot_path, "diff_peaks_heatmaps/")
+  dir.create(plot_path_temp, recursive = T)
   
   seMarker <- getMarkerFeatures(
     ArchRProj = ArchR_peaks, 
@@ -569,10 +572,11 @@ if (isTRUE(run_heatmaps)) {
   
   # Heatmap of positive markers top 10 per cell group
   ids <- extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
+  print(paste0(length(ids), " features passed cutoff for top 10 heatmap"))
   subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
   
   png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-  marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE)
+  print(marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
   graphics.off()
   
 }
