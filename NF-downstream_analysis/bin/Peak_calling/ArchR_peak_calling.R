@@ -557,10 +557,12 @@ if (isTRUE(run_heatmaps)) {
     useMatrix = "PeakMatrix", 
     groupBy = opt$group_by)
   seMarker <- add_unique_ids_to_se(seMarker, ArchR, matrix_type = "PeakMatrix")
+  print("seMarker object made")
   
   # prepare for plotting
   matrix <- extract_means_from_se(seMarker) # extract means df from se object
   normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
+  print("matrix for plotting made")
   
   pal <- paletteContinuous(set = "solarExtra", n = 100)
   
