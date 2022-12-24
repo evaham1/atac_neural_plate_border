@@ -145,36 +145,36 @@ workflow A {
 
         /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
-        // // extract the full data
-        // CLUSTER.out
-        //     .filter{ meta, data -> meta.sample_id == 'FullData'}
-        //     //.view() //[[sample_id:FullData], [./rds_files]]
-        //     .set{ ch_fulldata_clustered }
+        // extract the full data
+        CLUSTER.out
+            .filter{ meta, data -> meta.sample_id == 'FullData'}
+            //.view() //[[sample_id:FullData], [./rds_files]]
+            .set{ ch_fulldata_clustered }
 
-        // // combine clustered full data with integrated stage data into one channel
-        // INTEGRATING.out.integrated_filtered
-        //     .concat( ch_fulldata_clustered )
-        //     .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] } //removes all metadata and list files in rds_files
-        //     //.view()
-        //             //[HH5_Save-ArchR]
-        //             //[HH7_Save-ArchR]
-        //             //[ss4_Save-ArchR]
-        //             //[ss8_Save-ArchR]
-        //             //[HH6_Save-ArchR]
-        //             //[FullData_Save-ArchR]
-        //     .collect()
-        //     .map{data -> [[sample_id:'TransferLabels'], data] }
-        //     //.view() //[[sample_id:TransferLabels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
-        //     .set{ ch_transfer_labels_input }
+        // combine clustered full data with integrated stage data into one channel
+        INTEGRATING.out.integrated_filtered
+            .concat( ch_fulldata_clustered )
+            .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] } //removes all metadata and list files in rds_files
+            //.view()
+                    //[HH5_Save-ArchR]
+                    //[HH7_Save-ArchR]
+                    //[ss4_Save-ArchR]
+                    //[ss8_Save-ArchR]
+                    //[HH6_Save-ArchR]
+                    //[FullData_Save-ArchR]
+            .collect()
+            .map{data -> [[sample_id:'TransferLabels'], data] }
+            //.view() //[[sample_id:TransferLabels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
+            .set{ ch_transfer_labels_input }
 
-        // // transfers labels to full object, clusters and call peaks on stage_clusters of transferlabels object
-        // TRANSFER_LABELS( ch_transfer_labels_input )
+        // transfers labels to full object, clusters and call peaks on stage_clusters of transferlabels object
+        TRANSFER_LABELS( ch_transfer_labels_input )
 
-        // /////////////// Create output channel  //////////////////////////
-        // CLUSTER.out
-        //     .concat( TRANSFER_LABELS.out.transfer_label_peaks )
-        //     .view()
-        //     .set{ ch_processed }
+        /////////////// Create output channel  //////////////////////////
+        CLUSTER.out
+            .concat( TRANSFER_LABELS.out.transfer_label_peaks )
+            .view()
+            .set{ ch_processed }
 
     } else {
        
