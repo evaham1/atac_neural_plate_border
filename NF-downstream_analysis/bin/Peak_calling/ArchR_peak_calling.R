@@ -39,8 +39,8 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    # peaks already called FullData
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/PEAK_CALLING/peak_call/rds_files/"
+    # peaks already called on ss8
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/6_peak_call/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -102,37 +102,35 @@ cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
 }
 
 
-pseudoreplicate_counts <- function(ArchR = ArchR, pseudo_replicates) {
-  unlisted <- unlist(pseudo_replicates, recursive=FALSE)
+## function to print table of how many cells in each pseudoreplicate and how many samples and clusters are in them
+pseudoreplicate_counts <- function(ArchR = ArchR, pseudo_replicates, group_by = "Sample") {
   
-  pseudoreplicate_cell_counts_samples <- data.frame()
-  for (i in c(1:length(unlisted))){
+  unlisted <- unlist(pseudo_replicates, recursive=FALSE)
+  print(paste0("Number of pseudoreplicates: ", length(unlisted)))
+  group_cell_counts <- data.frame()
+  
+  # iterate through each pseudoreplicate
+  for (i in c(1:length(unlisted))) {
+    #print(paste0("Pseudoreplicate number: ", i))
     group_name <- names(unlisted[i])
     cell_IDs <- unlisted[i][[1]]
     ArchR_pseudo_replicate <- ArchR[cell_IDs, ]
-    sample_cell_counts <- as.data.frame(table(ArchR_pseudo_replicate$Sample)) %>%
+    
+    # add up contributions of each group to pseudoreplicates
+    group_cell_count <- as.data.frame(table(getCellColData(ArchR_pseudo_replicate, select = group_by))) %>%
       pivot_wider(names_from = Var1, values_from = Freq) %>% 
       add_column(pseudo_replicate_ID = group_name)
-    pseudoreplicate_cell_counts_samples <- rbind.fill(pseudoreplicate_cell_counts_samples, sample_cell_counts)
+    group_cell_counts <- rbind.fill(group_cell_counts, group_cell_count)
+    
   }
-
-  pseudoreplicate_cell_counts_samples <- pseudoreplicate_cell_counts_samples %>%
-    mutate(Cluster_ID = gsub("\\..*","", pseudo_replicate_ID)) %>%
-    mutate(Cluster_ID = as.numeric(parse_number(Cluster_ID))) %>%
-    arrange(Cluster_ID) %>% 
-    mutate(sum_contributing_samples = rowSums(is.na(pseudoreplicate_cell_counts_samples[-which(names(pseudoreplicate_cell_counts_samples) %in% c("Cluster_ID", "pseudo_replicate_ID"))]) == FALSE))
   
-  pseudoreplicate_cell_counts_samples <- pseudoreplicate_cell_counts_samples[,order(colnames(pseudoreplicate_cell_counts_samples))]
-  pseudoreplicate_cell_counts_samples[is.na(pseudoreplicate_cell_counts_samples)] <- 0
+  # format table
+  group_cell_counts[is.na(group_cell_counts)] <- 0
+  group_cell_counts <- group_cell_counts %>% relocate(pseudo_replicate_ID)
   
-  grid.arrange(tableGrob(pseudoreplicate_cell_counts_samples, rows=NULL, theme = ttheme_minimal()))
+  grid.arrange(tableGrob(group_cell_counts, rows=NULL, theme = ttheme_minimal()))
+  
 }
-
-scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
-                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
-                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
-                              'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo')
 
 ############################## Read in ArchR project #######################################
 
@@ -144,7 +142,7 @@ if (length(label) == 0){
   print("ArchR object not in rds_files folder, checking input folder...")
   data_path = "./input/"
   label <- sub('_.*', '', list.files(data_path))
-  print(paste0("Label: ", label)
+  print(paste0("Label: ", label))
   ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
   paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 } else {
@@ -166,11 +164,15 @@ png(paste0(plot_path_1, 'cell_counts_by_sample_table.png'), height = 25, width =
 cell_counts(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
 graphics.off()
 
-# Make pseudo replicates and see which samples these cells come from
+# Make pseudo replicates and see which samples these cells come from + which groups they come from
 pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE, force = TRUE)
 
-png(paste0(plot_path_1, 'cell_counts_by_pseudoreplicate_table.png'), height = 80, width = 30, units = 'cm', res = 400)
-pseudoreplicate_counts(ArchR, pseudo_replicates)
+png(paste0(plot_path_1, 'pseudoreplicate_cell_counts_per_sample_table.png'), height = 80, width = 30, units = 'cm', res = 400)
+pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = "Sample")
+graphics.off()
+
+png(paste0(plot_path_1, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 80, width = 30, units = 'cm', res = 400)
+pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = opt$group_by)
 graphics.off()
 
 #####  Make actual pseudo-replicates for peak calling:
