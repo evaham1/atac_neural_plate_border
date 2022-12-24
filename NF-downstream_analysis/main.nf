@@ -173,7 +173,7 @@ workflow A {
         /////////////// Create output channel  //////////////////////////
         CLUSTER.out
             .concat( TRANSFER_LABELS.out.transfer_label_peaks )
-            .view()
+            //.view()
             .set{ ch_processed }
 
     } else {

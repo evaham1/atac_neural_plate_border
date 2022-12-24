@@ -78,8 +78,6 @@ workflow NFCORE_DOWNSTREAM {
     // SIGNAC: run rna integration on individual stages
     //INTEGRATE_SPLIT_PROCESS( ch_atac , ch_rna, ch_cellranger )
 
-    //INTEGRATE_SPLIT_PROCESS.out.signac_integrated.view()
-
 
     // ARCHR: run preprocessing
     ARCHR_PROCESSING ( ch_metadata )
