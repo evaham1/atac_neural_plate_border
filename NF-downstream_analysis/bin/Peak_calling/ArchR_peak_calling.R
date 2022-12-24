@@ -303,7 +303,7 @@ png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_sample_table.png'), 
 pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = "Sample")
 graphics.off()
 
-png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 40, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 40, width = 70, units = 'cm', res = 400)
 pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = opt$group_by)
 graphics.off()
 
@@ -584,7 +584,7 @@ if (isTRUE(run_heatmaps)) {
   print(paste0(length(ids), " features passed cutoff for top 10 heatmap"))
   subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
   
-  png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
+  png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 70, width = 20, units = 'cm', res = 400)
   print(marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
   graphics.off()
   
