@@ -207,6 +207,9 @@ atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_
 ############################## Gene scores plots #######################################
 #### compare gene scores with integrated gene exp values
 
+plot_path = "./plots/gene_scores_vs_integrated_gex/"
+dir.create(plot_path, recursive = T)
+
 ArchR <- addImputeWeights(ArchR)
 
 # look for late marker genes
