@@ -138,7 +138,7 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
 
 # If files are not in rds_files subdirectory look in input dir
 label <- sub('_.*', '', list.files(data_path))
-print(paste0("Label: ", label)
+print(paste0("Label: ", label))
 
 if (length(label) == 0){
   print("ArchR object not in rds_files folder, checking input folder...")
