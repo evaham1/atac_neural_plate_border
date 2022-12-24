@@ -141,7 +141,7 @@ workflow A {
         /////////////// Call peaks on integrated, contam filtered stages data  //////////////////////////
 
         // Call peaks on resulting data (stages only)
-        //PEAK_CALL( INTEGRATING.out.integrated_filtered )
+        PEAK_CALL( INTEGRATING.out.integrated_filtered )
 
         /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
