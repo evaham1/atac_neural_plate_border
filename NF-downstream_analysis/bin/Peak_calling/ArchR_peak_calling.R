@@ -378,6 +378,8 @@ grid.arrange(top=textGrob("Peak Counts per group", gp=gpar(fontsize=12, fontface
              tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+print("peaks per group calculated")
+
 ########################################################################
 ##################### How many cut sites per peak ######################
 
@@ -404,6 +406,8 @@ png(paste0(plot_path_temp, 'cutsites_per_peak_table.png'), height = 30, width = 
 grid.arrange(top=textGrob("Cut sites per peak", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
+
+print("cut sites per peak calculated")
 
 
 ##############################################################################
@@ -533,6 +537,7 @@ png(paste0(plot_path_temp, 'Exonic_1000bp_TSS_threshold.png'), height = 20, widt
 pie(counts, main = "Exonic peaks more or less than 1000bp from TSS")
 graphics.off
 
+print("annotation plots made")
 
 ##############################################################################
 ############################# Peak Heatmaps ###############################
@@ -541,6 +546,8 @@ run_heatmaps <- ifelse(length(unique(ArchR_peaks$stage)) == 1 & isTRUE(opt$heatm
                        TRUE, FALSE)
 
 if (isTRUE(run_heatmaps)) {
+
+  print("Running peak heatmaps...")
 
   plot_path_temp <- paste0(plot_path, "diff_peaks_heatmaps/")
   dir.create(plot_path_temp, recursive = T)
@@ -580,3 +587,5 @@ if (isTRUE(run_heatmaps)) {
   graphics.off()
   
 }
+
+print("heatmaps made")
