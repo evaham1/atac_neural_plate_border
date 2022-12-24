@@ -31,6 +31,7 @@ workflow INTEGRATING {
     // Filter contaminating cells from all channels and re-cluster all channels
     SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
     CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
+    CLUSTER_INTEGRATION.out.view()
 
     // Examine the resulting integration
     CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this

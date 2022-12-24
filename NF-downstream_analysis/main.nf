@@ -124,8 +124,8 @@ workflow A {
              
         // read in RNA data (stages only)
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-                                             // etc
+                                                // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                                // etc
 
         // combine ATAC and RNA data (stages only)
         ch_stages
@@ -141,7 +141,7 @@ workflow A {
         /////////////// Call peaks on integrated, contam filtered stages data  //////////////////////////
 
         // Call peaks on resulting data (stages only)
-        PEAK_CALL( INTEGRATING.out.integrated_filtered )
+        //PEAK_CALL( INTEGRATING.out.integrated_filtered )
 
         /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
