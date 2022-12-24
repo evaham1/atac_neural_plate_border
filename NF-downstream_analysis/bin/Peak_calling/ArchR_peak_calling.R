@@ -299,11 +299,11 @@ graphics.off()
 # Make pseudo replicates and see which samples these cells come from + which groups they come from
 pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE, force = TRUE)
 
-png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_sample_table.png'), height = 80, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_sample_table.png'), height = 40, width = 30, units = 'cm', res = 400)
 pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = "Sample")
 graphics.off()
 
-png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 80, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 40, width = 30, units = 'cm', res = 400)
 pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = opt$group_by)
 graphics.off()
 
