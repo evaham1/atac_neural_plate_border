@@ -199,7 +199,7 @@ workflow A {
     // Extract just TransferLabels object from ch_processed
     ch_processed
             .filter{ meta, data -> meta.sample_id == 'TransferLabels'}
-            .view() //[[sample_id:FullData], [./rds_files]]
+            .view() //[[sample_id:TransferLabels], [./TransferLabels_Save-ArchR]]
             .set{ ch_TL }
 
     CLUSTER_PEAKS( ch_TL )
