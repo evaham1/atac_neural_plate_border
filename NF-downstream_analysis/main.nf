@@ -42,6 +42,9 @@ include { CLUSTER_PEAKS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSIN
 //include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
 //include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
+
+include {PYTHON as PYTHON_TEST} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/test_python.py", checkIfExists: true) )
+
 // PARAMS
 def skip_upstream_processing = params.skip_upstream_processing ? true : false
 def skip_processing = params.skip_processing ? true : false
@@ -196,13 +199,18 @@ workflow A {
     ///////////////////// DOWNSTREAM PROCESSING ///////////////////
     ///////////////////////////////////////////////////////////////
 
-    // Extract just TransferLabels object from ch_processed
+
+    //Extract just TransferLabels object from ch_processed
     ch_processed
             .filter{ meta, data -> meta.sample_id == 'TransferLabels'}
             .view() //[[sample_id:TransferLabels], [./TransferLabels_Save-ArchR]]
             .set{ ch_TL }
 
-    CLUSTER_PEAKS( ch_TL )
+    // Subworkflow to create metacells and cluster peaks
+    //CLUSTER_PEAKS( ch_TL )
+
+    // testing out new python module
+    PYTHON_TEST( ch_TL )
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way
