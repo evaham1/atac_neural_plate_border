@@ -2,4 +2,6 @@
  
 print('Hello, World!')
 
-os.listdir()
+import os
+arr = os.listdir()
+print(arr)
