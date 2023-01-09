@@ -17,7 +17,6 @@ workflow CLUSTER_PEAKS {
     //////// Run SEACells /////////
     EXPORT_DATA_FOR_SEACELLS( input_ch ) // R script to export data to run seacells computation
 
-
     emit:
     test_output = EXPORT_DATA_FOR_SEACELLS.out
 }
