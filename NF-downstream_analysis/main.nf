@@ -196,7 +196,7 @@ workflow A {
     ch_processed
             .view()
             .filter{ meta, data -> meta.sample_id == 'TransferLabels'}
-            .view() //[[sample_id:FullData], [./rds_files]]
+            //.view() //[[sample_id:FullData], [./rds_files]]
             .set{ ch_TL }
 
     //CLUSTER_PEAKS( ch_TL )
