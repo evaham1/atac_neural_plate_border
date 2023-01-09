@@ -181,9 +181,13 @@ workflow A {
        
        METADATA_PROCESSED( params.processed_sample_sheet )
        // !! NEED TO ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
-       ch_processed = METADATA_PROCESSED.out.metadata                       // [[sample_id:HH5], [HH5_Save-ArchR]]
-                                                                            // [[sample_id:HH6], [HH6_Save-ArchR]]
-                                                                            // etc
+       ch_processed = METADATA_PROCESSED.out.metadata                       
+                                                                            //[[sample_id:HH5], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH5/7_peak_call/rds_files/HH5_Save-ArchR]]
+                                                                            //[[sample_id:HH6], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH6/7_peak_call/rds_files/HH6_Save-ArchR]]
+                                                                            //[[sample_id:HH7], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH7/7_peak_call/rds_files/HH7_Save-ArchR]]
+                                                                            //[[sample_id:ss4], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss4/7_peak_call/rds_files/ss4_Save-ArchR]]
+                                                                            //[[sample_id:ss8], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss8/7_peak_call/rds_files/ss8_Save-ArchR]]
+                                                                            //[[sample_id:TransferLabels], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
 
     }
 
@@ -194,9 +198,8 @@ workflow A {
 
     // Extract just TransferLabels object from ch_processed
     ch_processed
-            .view()
             .filter{ meta, data -> meta.sample_id == 'TransferLabels'}
-            //.view() //[[sample_id:FullData], [./rds_files]]
+            .view() //[[sample_id:FullData], [./rds_files]]
             .set{ ch_TL }
 
     //CLUSTER_PEAKS( ch_TL )
