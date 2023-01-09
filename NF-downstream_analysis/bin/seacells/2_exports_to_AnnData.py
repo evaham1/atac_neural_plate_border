@@ -1,4 +1,6 @@
-# load libraries
+#!/usr/bin/env python
+
+# # load libraries
 import os
 import pandas as pd
 import numpy as np
