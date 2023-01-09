@@ -38,6 +38,7 @@ include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_t
 
 
 // DOWNSTREAM PROCESSING WORKFLOWS
+include { CLUSTER_PEAKS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks"
 //include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
 //include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
@@ -191,7 +192,10 @@ workflow A {
     ///////////////////// DOWNSTREAM PROCESSING ///////////////////
     ///////////////////////////////////////////////////////////////
 
-    // WORK IN PROGRESS
+    // Extract just TransferLabels object from ch_processed
+    
+
+    CLUSTER_PEAKS( ch_processed )
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way
@@ -203,7 +207,6 @@ workflow A {
     // predict enhancers using diff accessibility and validate them
     // findenhancers script
 
-    
     // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
     //NPB_SUBSET( TRANSFER_LABELS? )
 
