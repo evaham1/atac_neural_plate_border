@@ -194,11 +194,12 @@ workflow A {
 
     // Extract just TransferLabels object from ch_processed
     ch_processed
+            .view()
             .filter{ meta, data -> meta.sample_id == 'TransferLabels'}
-            //.view() //[[sample_id:FullData], [./rds_files]]
+            .view() //[[sample_id:FullData], [./rds_files]]
             .set{ ch_TL }
 
-    CLUSTER_PEAKS( ch_TL )
+    //CLUSTER_PEAKS( ch_TL )
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way
