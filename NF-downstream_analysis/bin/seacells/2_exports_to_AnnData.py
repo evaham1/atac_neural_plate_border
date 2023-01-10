@@ -20,15 +20,25 @@ import matplotlib.pyplot as plt
 plt.plot([0, 1, 2, 3, 4], [0, 3, 5, 9, 11])
 plt.ylabel('Books Read')
 plt.savefig('books_read.png')
+print('Test plot generated')
 ###
 
 # Choose which GUI matplotlib uses to print out plots - for notebook only
 #matplotlib.use('TkAgg') # prints them in a separate window
 #%matplotlib notebook
 
+# testing printing inputs
+print('Look at files in input:')
+arr = os.listdir('./input/')
+print('files in input:')
+print(arr)
+
 # set data path and check contents
+print('Look at files in input/rds_files:')
 data_dir = os.path.expanduser('./input/rds_files/')
+print('data_path made')
 arr = os.listdir(data_dir)
+print('files in input/rds_files:')
 print(arr)
 
 # Counts data - sparse COO matrix
