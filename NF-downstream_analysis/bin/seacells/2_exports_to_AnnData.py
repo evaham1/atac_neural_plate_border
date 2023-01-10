@@ -20,7 +20,7 @@ print("Libraries loaded")
 #%matplotlib notebook
 
 # set data path and check contents
-data_dir = os.path.expanduser('./ArchR_exported_data/')
+data_dir = os.path.expanduser('./input/rds_files/')
 arr = os.listdir(data_dir)
 print(arr)
 
