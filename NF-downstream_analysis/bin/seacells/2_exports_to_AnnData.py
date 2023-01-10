@@ -13,11 +13,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import SEACells
 
+print("Libraries loaded")
+
 # Choose which GUI matplotlib uses to print out plots
 #matplotlib.use('TkAgg') # prints them in a separate window
 %matplotlib notebook
 
+# set data path and check contents
 data_dir = os.path.expanduser('./ArchR_exported_data/')
+arr = os.listdir(data_dir)
+print(arr)
 
 # Counts data - sparse COO matrix
 from scipy.io import mmread
