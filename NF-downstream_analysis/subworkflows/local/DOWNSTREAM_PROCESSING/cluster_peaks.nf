@@ -30,5 +30,5 @@ workflow CLUSTER_PEAKS {
     //CALCULATE_SEACELLS( CREATE_ANNDATA ) // Python script to calculate seacells on AnnData object
 
     emit:
-    test_output = CREATE_ANNDATA.out
+    test_output = PYTHON_TEST.out
 }
