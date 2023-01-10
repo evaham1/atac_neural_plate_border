@@ -26,7 +26,7 @@ workflow CLUSTER_PEAKS {
     
     //////// Run SEACells /////////
     EXPORT_DATA_FOR_SEACELLS( input_ch ) // R script to export data to run seacells computation
-    //CREATE_ANNDATA( EXPORT_DATA_FOR_SEACELLS.out ) // Python script to read exported data into an Anndata object
+    CREATE_ANNDATA( EXPORT_DATA_FOR_SEACELLS.out ) // Python script to read exported data into an Anndata object
     //CALCULATE_SEACELLS( CREATE_ANNDATA ) // Python script to calculate seacells on AnnData object
 
     emit:

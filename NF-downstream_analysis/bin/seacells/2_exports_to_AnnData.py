@@ -13,7 +13,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import SEACells
 
-print("Libraries loaded")
+print('Libraries loaded')
+
+### for testing
+import matplotlib.pyplot as plt
+plt.plot([0, 1, 2, 3, 4], [0, 3, 5, 9, 11])
+plt.ylabel('Books Read')
+plt.savefig('books_read.png')
+###
 
 # Choose which GUI matplotlib uses to print out plots - for notebook only
 #matplotlib.use('TkAgg') # prints them in a separate window
