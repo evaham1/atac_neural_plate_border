@@ -209,7 +209,7 @@ workflow A {
     CLUSTER_PEAKS( ch_TL )
 
     // testing out new python module
-    PYTHON_TEST( ch_TL )
+    PYTHON_TEST( ch_processed )
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way
