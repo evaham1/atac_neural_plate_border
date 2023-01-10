@@ -26,19 +26,19 @@ plt.savefig('books_read.png')
 #matplotlib.use('TkAgg') # prints them in a separate window
 #%matplotlib notebook
 
-# # set data path and check contents
-# data_dir = os.path.expanduser('./input/rds_files/')
-# arr = os.listdir(data_dir)
-# print(arr)
+# set data path and check contents
+data_dir = os.path.expanduser('./input/rds_files/')
+arr = os.listdir(data_dir)
+print(arr)
 
-# # Counts data - sparse COO matrix
-# from scipy.io import mmread
-# counts = mmread(data_dir + 'peak_counts/counts.mtx')
-# print(counts.todense()[:10])
+# Counts data - sparse COO matrix
+from scipy.io import mmread
+counts = mmread(data_dir + 'peak_counts/counts.mtx')
+print(counts.todense()[:10])
 
-# # Cell information
-# cells = pd.read_csv(data_dir + 'peak_counts/cells.csv', index_col=0).iloc[:, 0]
-# print(cells.head())
+# Cell information
+cells = pd.read_csv(data_dir + 'peak_counts/cells.csv', index_col=0).iloc[:, 0]
+print(cells.head())
 
 # # Peaks information
 # peaks = pd.read_csv(data_dir + 'peak_counts/peaks.csv', index_col=0)
@@ -78,9 +78,10 @@ plt.savefig('books_read.png')
 # warnings.filterwarnings('default')
 
 # # Plots to check - need to get these to print??
-# sc.pl.scatter(ad, basis='umap', color= "#fe57a1")
+# plt = sc.pl.scatter(ad, basis='umap', color= "#fe57a1")
+# plt.savefig('plots/UMAP.png')
 
 # sc.pl.scatter(ad, basis='umap', color='leiden')
 
 # # Save AnnData object
-# ad.write(data_dir + '../ss8.h5ad')
+# ad.write('rds_files/AnnData.h5ad')
