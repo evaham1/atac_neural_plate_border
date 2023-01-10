@@ -15,9 +15,9 @@ import SEACells
 
 print("Libraries loaded")
 
-# Choose which GUI matplotlib uses to print out plots
+# Choose which GUI matplotlib uses to print out plots - for notebook only
 #matplotlib.use('TkAgg') # prints them in a separate window
-%matplotlib notebook
+#%matplotlib notebook
 
 # set data path and check contents
 data_dir = os.path.expanduser('./ArchR_exported_data/')
