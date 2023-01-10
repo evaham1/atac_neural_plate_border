@@ -27,6 +27,9 @@ print('Test plot generated')
 #matplotlib.use('TkAgg') # prints them in a separate window
 #%matplotlib notebook
 
+arr = os.listdir('./input/')
+print(arr)
+
 # testing printing inputs
 print('Look at files in input:')
 arr = os.listdir('./input/')
@@ -35,20 +38,20 @@ print(arr)
 
 # set data path and check contents
 print('Look at files in input/rds_files:')
-data_dir = os.path.expanduser('./input/rds_files/')
-print('data_path made')
-arr = os.listdir(data_dir)
+arr = os.listdir('./input/rds_files/')
 print('files in input/rds_files:')
 print(arr)
 
-# Counts data - sparse COO matrix
-from scipy.io import mmread
-counts = mmread(data_dir + 'peak_counts/counts.mtx')
-print(counts.todense()[:10])
+data_dir = './input/rds_files/'
 
-# Cell information
-cells = pd.read_csv(data_dir + 'peak_counts/cells.csv', index_col=0).iloc[:, 0]
-print(cells.head())
+# # Counts data - sparse COO matrix
+# from scipy.io import mmread
+# counts = mmread(data_dir + 'peak_counts/counts.mtx')
+# print(counts.todense()[:10])
+
+# # Cell information
+# cells = pd.read_csv(data_dir + 'peak_counts/cells.csv', index_col=0).iloc[:, 0]
+# print(cells.head())
 
 # # Peaks information
 # peaks = pd.read_csv(data_dir + 'peak_counts/peaks.csv', index_col=0)
