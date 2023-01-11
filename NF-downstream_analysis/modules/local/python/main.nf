@@ -16,7 +16,7 @@ process PYTHON {
     //def prefix = task.ext.prefix ?: "${meta.id}"
     """
     export HDF5_USE_FILE_LOCKING=FALSE
-    ${params.script} --ncores ${task.cpus} ${args} 
+    ${params.script} --input input --ncores ${task.cpus} ${args} 
     rm -r input
     """
 }

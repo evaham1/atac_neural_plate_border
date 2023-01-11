@@ -17,3 +17,4 @@ temp
 .devcontainer
 .vscode
 notebooks
+local_test_data
