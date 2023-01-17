@@ -237,7 +237,7 @@ graphics.off()
 
 ### Plot stage_scHelper_cell_type and stage_cluster_labels
 p1 <- plotEmbedding(ArchR_filtered, 
-                    name = "stage_scHelper_cell_type",
+                    name = "stage_scHelper_cell_type_old",
                     plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0, 
                     pal = stage_colours, randomize = TRUE)
@@ -247,6 +247,6 @@ p2 <- plotEmbedding(ArchR_filtered,
                     baseSize = 0, labelSize = 0, legendSize = 0,
                     randomize = TRUE)
 
-png(paste0(plot_path, "cell_type_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+png(paste0(plot_path, "stage_scHelper_cell_type_old_cell_type_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
 graphics.off()
