@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("ArchR transfer cluster IDs from stage data to full data")
+print("ArchR transfer cell metadata from stage data to full data")
 # transfer labels new
 
 ############################## Load libraries #######################################
@@ -117,6 +117,46 @@ cellsSample <- ArchR_full$cellNames[idxSample]
 ArchR_filtered <- ArchR_full[cellsSample, ]
 
 ################## Transfer cluster identity info from stages onto full data #######################################
+######## stages: 'scHelper_cell_type_old' -> TransferLabels: 'stage_scHelper_cell_type_old'
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_cluster_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  stage <- unique(ArchR$stage)
+  cluster_ids <- paste0(stage, "_", ArchR$scHelper_cell_type_old)
+  print(length(cluster_ids))
+  all_cluster_ids <- c(all_cluster_ids, cluster_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage cluster labels: ", length(all_cluster_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
+                        data = all_cluster_ids,
+                        cells = all_cell_ids, 
+                        name = "stage_scHelper_cell_type_old",
+                        force = TRUE)
+print(table(ArchR_filtered$stage_scHelper_cell_type_old))
+
+################## Transfer cluster identity info from stages onto full data #######################################
 ######## stages: 'cluster_labels' -> TransferLabels: 'stage_cluster_labels'
 
 # extract cell IDs from each of the stages datasets
@@ -174,11 +214,12 @@ grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface 
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-###### stage colours
+#### Stage colours
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
+### Plot stages and stage clusters
 p1 <- plotEmbedding(ArchR_filtered, 
                     name = "stage",
                     plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
@@ -190,6 +231,22 @@ p2 <- plotEmbedding(ArchR_filtered,
                     baseSize = 0, labelSize = 0, legendSize = 0,
                     randomize = TRUE)
 
-png(paste0(plot_path, "UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+png(paste0(plot_path, "cluster_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+ggAlignPlots(p1, p2, type = "h")
+graphics.off()
+
+### Plot stage_scHelper_cell_type and stage_cluster_labels
+p1 <- plotEmbedding(ArchR_filtered, 
+                    name = "stage_scHelper_cell_type",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0, 
+                    pal = stage_colours, randomize = TRUE)
+p2 <- plotEmbedding(ArchR_filtered, 
+                    name = "stage_cluster_labels",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0,
+                    randomize = TRUE)
+
+png(paste0(plot_path, "cell_type_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
 graphics.off()
