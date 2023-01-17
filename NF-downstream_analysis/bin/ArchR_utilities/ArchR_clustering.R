@@ -472,8 +472,8 @@ if (length(unique(ArchR$stage)) > 1){
 
 print("cell counts calculated")
 
-#######################################################################################
-################################### UMAPS #############################################
+###############################################################################################
+################################### cluster UMAPS #############################################
 plot_path_temp = "./plots/UMAPs/"
 dir.create(plot_path_temp, recursive = T)
 
@@ -496,6 +496,15 @@ png(paste0(plot_path_temp, 'UMAP_clusters.png'), height = 20, width = 20, units 
 plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1), baseSize = 0, 
               labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
 graphics.off()
+
+if ( !(is.null(ArchR$stage_clusters)) ) {
+  
+  png(paste0(plot_path_temp, 'UMAP_stage_clusters.png'), height = 20, width = 20, units = 'cm', res = 400)
+  plotEmbedding(ArchR, name = "stage_clusters", plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1), baseSize = 0, 
+              labelSize = 10, legendSize = 0, randomize = TRUE, labelAsFactors = FALSE)
+  graphics.off()
+
+}
 
 #################################################################################
 ############################### QC PLOTS ########################################
@@ -663,13 +672,64 @@ if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
   plot_path_temp <- "./plots/RNA_label_plots/"
   dir.create(plot_path_temp, recursive = T)
   
-  png(paste0(plot_path_temp, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
+  png(paste0(plot_path_temp, 'UMAP_scHelper_cell_type.png'), height = 20, width = 20, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
   graphics.off()
 
-  png(paste0(plot_path_temp, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+  png(paste0(plot_path_temp, 'UMAP_scHelper_cell_type_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+  graphics.off()
+
+}
+
+if ( !(is.null(ArchR$stage_scHelper_cell_type_old)) ) {
+
+  plot_path_temp <- "./plots/RNA_label_plots/"
+  dir.create(plot_path_temp, recursive = T)
+  
+  png(paste0(plot_path_temp, 'UMAP_stage_scHelper_cell_type.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "stage_scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+  graphics.off()
+
+  png(paste0(plot_path_temp, 'UMAP_stage_scHelper_cell_type_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "stage_scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+  graphics.off()
+
+}
+
+if ( !(is.null(ArchR$cluster_labels)) ) {
+
+  plot_path_temp <- "./plots/RNA_label_plots/"
+  dir.create(plot_path_temp, recursive = T)
+  
+  png(paste0(plot_path_temp, 'UMAP_cluster_labels.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+  graphics.off()
+
+  png(paste0(plot_path_temp, 'UMAP_cluster_labels_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+  graphics.off()
+
+}
+
+if ( !(is.null(ArchR$stage_cluster_labels)) ) {
+
+  plot_path_temp <- "./plots/RNA_label_plots/"
+  dir.create(plot_path_temp, recursive = T)
+  
+  png(paste0(plot_path_temp, 'UMAP_stage_cluster_labels.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "stage_cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+  graphics.off()
+
+  png(paste0(plot_path_temp, 'UMAP_stage_cluster_labels_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = "stage_cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
   graphics.off()
 
