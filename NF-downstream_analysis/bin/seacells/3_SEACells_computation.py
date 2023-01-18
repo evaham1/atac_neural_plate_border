@@ -167,17 +167,7 @@ def main(args=None):
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
 
-    # purity of metacells - scHelper cell type
-    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'scHelper_cell_type_old')
-    SEACell_purity.head()
-    plt.figure(figsize=(5,5))
-    sns.boxplot(data=SEACell_purity, y='scHelper_cell_type_old_purity')
-    plt.title('scHelper cell type Purity')
-    sns.despine()
-    plt.savefig(os.path.join(plot_path, "Metacell_scHelper_cell_type_purity.png"), bbox_inches="tight")
-    plt.close()
-
-    # purity of metacells - ArchR clusters
+    # purity of metacells - clusters on full data
     SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'clusters')
     SEACell_purity.head()
     plt.figure(figsize=(5,5))
@@ -187,6 +177,26 @@ def main(args=None):
     plt.savefig(os.path.join(plot_path, "Metacell_ArchR_clusters_purity.png"), bbox_inches="tight")
     plt.close()
 
+    # purity of metacells - scHelper cell type from individual stages
+    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'stage_scHelper_cell_type_old')
+    SEACell_purity.head()
+    plt.figure(figsize=(5,5))
+    sns.boxplot(data=SEACell_purity, y='stage_scHelper_cell_type_old_purity')
+    plt.title('scHelper cell type Purity')
+    sns.despine()
+    plt.savefig(os.path.join(plot_path, "Metacell_stage_scHelper_cell_type_purity.png"), bbox_inches="tight")
+    plt.close()
+
+    # purity of metacells - clusters on individual stages
+    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'stage_clusters')
+    SEACell_purity.head()
+    plt.figure(figsize=(5,5))
+    sns.boxplot(data=SEACell_purity, y='stage_clusters_purity')
+    plt.title('ArchR clusters Purity')
+    sns.despine()
+    plt.savefig(os.path.join(plot_path, "Metacell_ArchR_stage_clusters_purity.png"), bbox_inches="tight")
+    plt.close()
+    
     # compactness
     compactness = SEACells.evaluate.compactness(ad, 'X_svd')
     plt.figure(figsize=(5,5))
