@@ -50,8 +50,8 @@ def main(args=None):
 
     # Plot cell-types for reference
     plt.figure(figsize=(8,8))
-    sc.pl.scatter(ad, basis='umap', color='scHelper_cell_type_old', frameon=False)
-    plt.savefig(os.path.join(plot_path, "UMAP_scHelper_cell_type_old.png"))
+    sc.pl.scatter(ad, basis='umap', color='stage_scHelper_cell_type_old', frameon=False)
+    plt.savefig(os.path.join(plot_path, "UMAP_stage_scHelper_cell_type_old.png"))
     plt.close()
 
     plt.figure(figsize=(8,8))
@@ -143,7 +143,7 @@ def main(args=None):
 
     # summarise counts by soft labels -> SEACell_soft_ad
     # print("Summarising counts for soft labels...")
-    # SEACell_soft_ad = SEACells.core.summarize_by_soft_SEACell(ad, model.A_, celltype_label='scHelper_cell_type_old',summarize_layer='raw', minimum_weight=0.05)
+    # SEACell_soft_ad = SEACells.core.summarize_by_soft_SEACell(ad, model.A_, celltype_label='stage_scHelper_cell_type_old',summarize_layer='raw', minimum_weight=0.05)
     # SEACell_soft_ad.obs.head()
 
     ### Do we need to normalise??
