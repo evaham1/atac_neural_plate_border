@@ -2,6 +2,8 @@
 
 print("clustering ArchR")
 
+#### need to fix plotting for transfer labels object: stage_clusters, stage_scHelper_cell_type, stage_cluster_labels
+
 ############################## Load libraries #######################################
 library(getopt)
 library(optparse)
