@@ -70,7 +70,8 @@ def main(args=None):
     build_kernel_on = 'X_svd' 
     n_waypoint_eigs = 10 # Number of eigenvalues to consider when initializing metacells
 
-    # Run SEACells computation
+    # Build SEACells model
+    print("initializing SEACElls model...")
     model = SEACells.core.SEACells(ad, 
                   build_kernel_on=build_kernel_on, 
                   n_SEACells=n_SEACells, 
@@ -78,7 +79,7 @@ def main(args=None):
                   convergence_epsilon = 1e-5)
     model.construct_kernel_matrix()
     M = model.kernel_matrix
-    print("SEACElls computed")
+    print("SEACElls model made")
 
     # Plot correlation heatmap
     plt.figure(figsize=(8,8))
@@ -93,6 +94,7 @@ def main(args=None):
     SEACells.plot.plot_initialization(ad, model, save_as = os.path.join(plot_path, "Initialisations_UMAP.png"))
 
     # Iterate with different initialisations
+    print("Fitting SEACElls model...")
     model.fit(min_iter=10, max_iter=100) # for TL data
     #model.fit(min_iter=1, max_iter=20) # to speed up for testing
     print(f'Ran for {len(model.RSS_iters)} iterations')
