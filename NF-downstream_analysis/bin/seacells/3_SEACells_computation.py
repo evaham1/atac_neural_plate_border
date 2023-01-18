@@ -66,7 +66,7 @@ def main(args=None):
 
     # Set parameters 
     #n_SEACells = 10 # for s8 data that has 7,409 cells should use 90, use less for now to speed up
-    n_SEACells = 1000 # for TL data that has 80,232 cells
+    n_SEACells = 90 # for TL data that has 80,232 cells
     build_kernel_on = 'X_svd' 
     n_waypoint_eigs = 10 # Number of eigenvalues to consider when initializing metacells
 
