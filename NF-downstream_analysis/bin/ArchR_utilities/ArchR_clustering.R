@@ -665,9 +665,10 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo')
-atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
 
 if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
+
+  atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
 
   plot_path_temp <- "./plots/RNA_label_plots/"
   dir.create(plot_path_temp, recursive = T)
@@ -685,6 +686,8 @@ if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
 }
 
 if ( !(is.null(ArchR$stage_scHelper_cell_type_old)) ) {
+
+  atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$stage_scHelper_cell_type_old)]
 
   plot_path_temp <- "./plots/RNA_label_plots/"
   dir.create(plot_path_temp, recursive = T)
