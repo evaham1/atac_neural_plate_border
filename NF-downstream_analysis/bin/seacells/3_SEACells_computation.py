@@ -66,7 +66,7 @@ def main(args=None):
 
     # Set parameters 
     #n_SEACells = 10 # for s8 data that has 7,409 cells should use 90, use less for now to speed up
-    n_SEACells = 1000 # for TL data that has 80,232 cells
+    n_SEACells = 100 # for TL data that has 80,232 cells should be 1000 to get one metacell per 80 cells
     build_kernel_on = 'X_svd' 
     n_waypoint_eigs = 10 # Number of eigenvalues to consider when initializing metacells
 
@@ -79,7 +79,7 @@ def main(args=None):
                   convergence_epsilon = 1e-5)
     model.construct_kernel_matrix()
     M = model.kernel_matrix
-    print("SEACElls model made")
+    print("SEACElls model made!")
 
     # Plot correlation heatmap
     plt.figure(figsize=(8,8))
@@ -88,7 +88,9 @@ def main(args=None):
     plt.close()
 
     # Initialize archetypes
+    print("Initializing archetypes...")
     model.initialize_archetypes()
+    print("Archetypes initialized!")
 
     # Plot the initilization to ensure they are spread across phenotypic space
     SEACells.plot.plot_initialization(ad, model, save_as = os.path.join(plot_path, "Initialisations_UMAP.png"))
@@ -101,6 +103,7 @@ def main(args=None):
     for _ in range(5):
         model.step()
     print(f'Ran for {len(model.RSS_iters)} iterations')
+    print("SEACells model fitted!")
 
     # Check for convergence 
     model.plot_convergence(save_as = os.path.join(plot_path, "Convergence_plot.png"))
