@@ -38,7 +38,7 @@ include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_t
 
 
 // DOWNSTREAM PROCESSING WORKFLOWS
-include { CLUSTER_PEAKS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks"
+include { CALCULATE_SEACELLS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/calculate_seacells"
 //include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
 //include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
@@ -207,7 +207,7 @@ workflow A {
     CALCULATE_SEACELLS( ch_TL )
 
     // Subworkflow to cluster peaks using metacells
-    
+
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way
