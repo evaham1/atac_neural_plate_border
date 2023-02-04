@@ -3,7 +3,7 @@ nextflow.enable.dsl = 2
 
 //////////////////        Transfer labels       ///////////////////
 // transfer labels
-include {R as TRANSFER_LABELS_NEW} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_utilities/transfer_labels_new.R", checkIfExists: true) )
+include {R as TRANSFER_LABELS_NEW} from "$baseDir/modules/local/r/main"                addParams(script: file("$baseDir/bin/ArchR_utilities/transfer_labels.R", checkIfExists: true) )
 
 // cluster
 include {R as CLUSTER_TL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )

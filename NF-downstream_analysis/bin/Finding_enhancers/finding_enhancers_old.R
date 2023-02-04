@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 print("finding enhancers")
-# look for peaks which are differentially upregulated in the NC or PPR clusters at ss8/ss4 and are also open earlier
+# takes transfer labels obect and look for peaks which are differentially upregulated in the NC or PPR clusters at ss8/ss4 and are also open earlier
 
 ##### NB: THIS SCRIPT RUNS DIFFERENTLY INTERACTIVELY AND THROUGH PIPELINE!!!!
 ##### DIFFERENT PEAKS AT END, DIFFERENT NUMBERS AND IDENTITIES
