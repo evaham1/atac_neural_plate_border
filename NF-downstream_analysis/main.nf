@@ -203,8 +203,11 @@ workflow A {
             .view() //[[sample_id:TransferLabels], [./TransferLabels_Save-ArchR]]
             .set{ ch_TL }
 
-    // Subworkflow to create metacells and cluster peaks
-    CLUSTER_PEAKS( ch_TL )
+    // Subworkflow to create metacells
+    CALCULATE_SEACELLS( ch_TL )
+
+    // Subworkflow to cluster peaks using metacells
+    
     
     // IN PROGRESS: compare variability of clusters between stages
     // currently just uses differential peak tests, would be better to measure in another way

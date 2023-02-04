@@ -10,20 +10,18 @@ include {R as EXPORT_DATA_FOR_SEACELLS} from "$baseDir/modules/local/r/main"    
 include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/2_exports_to_AnnData.py", checkIfExists: true) )
 include {PYTHON as CALCULATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/3_SEACells_computation.py", checkIfExists: true) )
 include {PYTHON as EXPORT_DATA_FROM_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/4_export_data_from_AnnData.py", checkIfExists: true) )
+include {R as CHECK_SEACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/5_check_seacell_purity.R", checkIfExists: true) )
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// clustering peaks together
+// calculate metacells
 
-workflow CLUSTER_PEAKS {
+workflow CALCULATE_SEACELLS {
     take:
     input_ch //should just be TransferLabels object
 
     main:
-
-    // testing out new python module
-    PYTHON_TEST( input_ch )
     
     //////// Run SEACells /////////
     EXPORT_DATA_FOR_SEACELLS( input_ch ) // R script to export data to run seacells computation
@@ -31,6 +29,15 @@ workflow CLUSTER_PEAKS {
     CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
     EXPORT_DATA_FROM_SEACELLS( CALCULATE_SEACELLS.out ) //Python script to export data from Anndata objects as .csv
 
+    //////// Check SEACells and add labels to TL object /////////
+    CALCULATE_SEACELLS.out
+            .combine(input_ch)
+            .map{[it[0], it[1] + it[2]]}
+            .view()
+            .set {ch_combined} // combine the transferlabels object and the output from seacells calculation
+    CHECK_SEACELLS( ch_combined )
+
     emit:
-    test_output = PYTHON_TEST.out
+    seacells_output = CALCULATE_SEACELLS.out
+    seacells_output_combined = CHECK_SEACELLS.out
 }
