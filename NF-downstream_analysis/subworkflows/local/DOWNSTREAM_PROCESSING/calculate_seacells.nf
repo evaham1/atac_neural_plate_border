@@ -28,7 +28,7 @@ workflow CALCULATE_SEACELLS {
     // EXPORT_DATA_FROM_SEACELLS( CALCULATE_SEACELLS.out ) //Python script to export data from Anndata objects as .csv
 
     //////// Check SEACells and add labels to TL object /////////
-    // CALCULATE_SEACELLS.out
+    // EXPORT_DATA_FROM_SEACELLS.out
     //         .combine(input_ch)
     //         .map{[it[0], it[1] + it[2]]}
     //         .view()

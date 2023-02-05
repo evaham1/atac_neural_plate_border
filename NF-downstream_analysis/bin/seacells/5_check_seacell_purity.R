@@ -47,6 +47,9 @@ if(opt$verbose) print(opt)
     data_path = "./output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/"
     # for metacell assignments
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
+    # output from SEACells - summarised by metacells
+    data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
+    label = "AnnData_summarised_by_metacells_peak_counts.csv"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -165,6 +168,17 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(
 
 print("Cell metadata added to ArchR object!")
 print(getCellColData(ArchR))
+
+############################## Save ArchR with new obs #######################################
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
+print("ArchR object saved")
+
+############################## Read and write summarised counts by metacells #######################################
+
+SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
+write.csv(SEACells_summarised, paste0(rds_path, "SEACells_summarised.csv"))
+
 
 ############################## Visualise how metacells spread across data #######################################
 
