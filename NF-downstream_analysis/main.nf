@@ -200,11 +200,11 @@ workflow A {
     //Extract just TransferLabels object from ch_processed
     ch_processed
             .filter{ meta, data -> meta.sample_id == 'TransferLabels'}
-            .view() //[[sample_id:TransferLabels], [./TransferLabels_Save-ArchR]]
+            //.view() //[[sample_id:TransferLabels], [./TransferLabels_Save-ArchR]]
             .set{ ch_TL }
 
     // Subworkflow to create metacells
-    //CALCULATE_SEACELLS( ch_TL )
+    CALCULATE_SEACELLS( ch_TL )
 
     // Subworkflow to cluster peaks using metacells
 
