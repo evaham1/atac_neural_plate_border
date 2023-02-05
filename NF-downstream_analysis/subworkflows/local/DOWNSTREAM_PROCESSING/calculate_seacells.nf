@@ -18,6 +18,8 @@ workflow CALCULATE_SEACELLS {
     input_ch //should just be TransferLabels object
 
     main:
+
+    input_ch.view()
     
     //////// Run SEACells /////////
     EXPORT_DATA_FOR_SEACELLS( input_ch ) // R script to export data to run seacells computation
