@@ -39,5 +39,5 @@ workflow CALCULATE_SEACELLS {
     // seacells_output = CALCULATE_SEACELLS.out
     // seacells_output_combined = CHECK_SEACELLS.out
 
-    test_output = EXPORT_DATA_FOR_SEACELLS.out
+    test_output = input
 }
