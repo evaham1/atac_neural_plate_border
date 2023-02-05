@@ -22,7 +22,7 @@ workflow CALCULATE_SEACELLS {
     input.view()
     
     //////// Run SEACells /////////
-    EXPORT_DATA_FOR_SEACELLS( input ) // R script to export data to run seacells computation
+    //EXPORT_DATA_FOR_SEACELLS( input ) // R script to export data to run seacells computation
     // CREATE_ANNDATA( EXPORT_DATA_FOR_SEACELLS.out ) // Python script to read exported data into an Anndata object
     // CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
     // EXPORT_DATA_FROM_SEACELLS( CALCULATE_SEACELLS.out ) //Python script to export data from Anndata objects as .csv
