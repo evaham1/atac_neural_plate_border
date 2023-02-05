@@ -1,10 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-//test script
-include {PYTHON as PYTHON_TEST} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/test_python.py", checkIfExists: true) )
-
-
 // R and Python scripts to run SEACells computation
 include {R as EXPORT_DATA_FOR_SEACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/1_export_data_from_ArchR.R", checkIfExists: true) )
 include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/2_exports_to_AnnData.py", checkIfExists: true) )

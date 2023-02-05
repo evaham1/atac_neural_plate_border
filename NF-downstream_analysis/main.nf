@@ -204,7 +204,7 @@ workflow A {
             .set{ ch_TL }
 
     // Subworkflow to create metacells
-    CALCULATE_SEACELLS( ch_TL )
+    //CALCULATE_SEACELLS( ch_TL )
 
     // Subworkflow to cluster peaks using metacells
 
