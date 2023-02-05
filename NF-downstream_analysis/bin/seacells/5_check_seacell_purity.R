@@ -70,19 +70,31 @@ if(opt$verbose) print(opt)
 
 ############################## Functions #######################################
 
-# function to make heatmap showing contribution of cell groups to other cell groups
-cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters") {
-  group1_data <- getCellColData(ArchR, select = group1)[,1]
-  group2_data <- getCellColData(ArchR, select = group2)[,1]
-  cM <- confusionMatrix(paste0(group2_data), paste0(group1_data))
-  cM <- cM / Matrix::rowSums(cM)
+# function to take ArchR object and a category and make a freq table of how frequently metacells found in each category
+calculate_seacells_frequencies <- function(ArchR, metacell_slot = "SEACell_ID", category = "stage"){
   
-  p <- pheatmap::pheatmap(
-    mat = cM,
-    color = paletteContinuous("whiteBlue"), 
-    border_color = "black"
-  )
+  df <- data.frame(getCellColData(ArchR, select = metacell_slot), getCellColData(ArchR, select = category))
+  colnames(df) <- c("Metacell", "Category")
+  
+  freq <- df %>%
+    group_by(Metacell, Category) %>% 
+    dplyr::summarize(count = n())
+  
+  print(paste0("Number of metacells: ", length(unique(freq$Metacell))))
+  print(paste0("Number of categories: ", length(unique(freq$Category))))
+  
+  return(freq)
 }
+
+# function to plot a piechart showing how many cells are mixed identity and how many are not
+mixed_metacells_piechart <- function(mixed_metacell_number, total_metacell_number = 1000, plot_path = plot_path){
+  slices <- c(mixed_metacell_number, total_metacell_number-mixed_metacell_number)
+  lbls <- c(paste0("Mixed: ", slices[1]), paste0("Not mixed: ", slices[2]))
+  png(paste0(plot_path, "Pie_number_of_mixed_metacells.png"), width=25, height=20, units = 'cm', res = 200)
+  pie(slices, labels = lbls, main="How many metacells with mixed identities")
+  graphics.off()
+}
+
 
 ############################## Set colours #######################################
 
@@ -137,7 +149,22 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = SEACells_cell_assignments_and_
 ArchR <- addCellColData(ArchRProj = ArchR, data = sub(".*_", "", getCellColData(ArchR)$stage_scHelper_cell_type_old),
                         cells = rownames(getCellColData(ArchR)), name = "scHelper_cell_type")
 
-getCellColData(ArchR)
+# add more general scHelpercelltype labels (ie group together all PPRs, neurals, etc)
+scHelper_cell_types <- data.frame(getCellColData(ArchR, select = "scHelper_cell_type"))
+broad <- scHelper_cell_types %>%
+  mutate(broad = mapvalues(scHelper_cell_type, 
+                                               from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB",
+                                                      'PPR', 'aPPR', 'pPPR',
+                                                      'eNPB', 'NPB', 'aNPB', 'pNPB',
+                                                      'NC', 'dNC'),
+                                               to=c(rep("Neural", 9), rep("Placodal", 3), rep("NPB", 4), rep("NC", 2))))
+
+
+ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(getCellColData(ArchR)), name = "scHelper_cell_type_broad")
+
+
+print("Cell metadata added to ArchR object!")
+print(getCellColData(ArchR))
 
 ############################## Visualise how metacells spread across data #######################################
 
@@ -162,59 +189,75 @@ png(paste0(plot_path_temp, "UMAPs.png"), width=100, height=40, units = 'cm', res
 ggAlignPlots(p1, p2, p3, type = "h")
 graphics.off()
 
-############################## Visualise seacell purity - confusion matrices #######################################
-
-png(paste0(plot_path, "SEACell_by_stage_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "SEACell", group2 = "stage")
-graphics.off()
-
-png(paste0(plot_path, "SEACell_by_cell_type_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-cell_counts_heatmap(ArchR = ArchR, group1 = "SEACell", group2 = "scHelper_cell_type")
-graphics.off()
-
 
 ############################## Explore seacell purity - stages #######################################
+plot_path = "./plots/stages/"
+dir.create(plot_path)
 
-SEACells_stages <- data.frame(getCellColData(ArchR)$SEACell_ID, getCellColData(ArchR)$stage)
-colnames(SEACells_stages) <- c("SEACell_ID", "stage")
-dim(SEACells_stages)
-length(unique(SEACells_stages$SEACell_ID))
-length(unique(SEACells_stages$stage))
-
-stages_freq <- SEACells_stages %>%
-  group_by(SEACell_ID, stage) %>% 
-  dplyr::summarize(count = n())
-dim(stages_freq)
-length(unique(stages_freq$SEACell_ID))
-length(unique(stages_freq$stage))
+# calculate frequencies in which metacells are in each stage
+stage_freq <- calculate_seacells_frequencies(ArchR, metacell_slot = "SEACell_ID", category = "stage")
 
 # these are the metacells that include cells of more than one stage - theres only 4!
-mixed_metacells <- stages_freq$SEACell_ID[duplicated(stages_freq$SEACell_ID)]
+mixed_metacells_stages <- stage_freq$Metacell[duplicated(stage_freq$Metacell)]
+print(paste0("Number of metacells that have mixed stage identity: ", length(unique(mixed_metacells_stages))))
 
-# and these are their relative distributions - they are generally of neibouring stages and mainly one stage
-subset(stages_freq, SEACell_ID %in% mixed_metacells)
+mixed_metacells_piechart(mixed_metacell_number = length(unique(mixed_metacells_stages)), plot_path = plot_path)
+
+# and these are their relative distributions - they are generally of neighbouring stages and mainly one stage
+print(subset(stage_freq, Metacell %in% mixed_metacells_stages))
+mixed_cell_table_stages <- subset(stage_freq, Metacell %in% mixed_metacells_stages)
+how_many_cell_types_stages <- table(mixed_cell_table_stages$Metacell)
+print(how_many_cell_types_stages)
+
+png(paste0(plot_path, "Hist_mixed_stages.png"), width=25, height=20, units = 'cm', res = 200)
+hist(how_many_cell_types_stages)
+graphics.off()
 
 ############################## Explore seacell purity - scHelper_cell_type #######################################
 
-SEACells_cell_type <- data.frame(getCellColData(ArchR)$SEACell_ID, getCellColData(ArchR)$scHelper_cell_type)
-colnames(SEACells_cell_type) <- c("SEACell_ID", "cell_type")
-dim(SEACells_cell_type)
-length(unique(SEACells_cell_type$SEACell_ID))
-length(unique(SEACells_cell_type$cell_type))
+plot_path = "./plots/scHelper_cell_type/"
+dir.create(plot_path)
 
-cell_type_freq <- SEACells_cell_type %>%
-  group_by(SEACell_ID, cell_type) %>% 
-  dplyr::summarize(count = n())
-dim(cell_type_freq)
-length(unique(cell_type_freq$SEACell_ID))
-length(unique(cell_type_freq$cell_type))
+# calculate frequencies in which metacells are in each stage
+celltype_freq <- calculate_seacells_frequencies(ArchR, metacell_slot = "SEACell_ID", category = "scHelper_cell_type")
 
-# these are the metacells that include cells of more than one stage - theres only 4!
-mixed_metacells <- cell_type_freq$SEACell_ID[duplicated(cell_type_freq$SEACell_ID)]
-length(unique(mixed_metacells))
+# these are the metacells that include cells of more than one cell type - its all 1000 of them!
+mixed_metacells_celltype <- celltype_freq$Metacell[duplicated(celltype_freq$Metacell)]
+print(paste0("Number of metacells that have mixed scHelper_cell_type identity: ", length(unique(mixed_metacells_celltype))))
+
+mixed_metacells_piechart(mixed_metacell_number = length(unique(mixed_metacells_celltype)), plot_path = plot_path)
 
 # and these are their relative distributions - they are generally of neibouring stages and mainly one stage
-subset(cell_type_freq, SEACell_ID %in% mixed_metacells)
+mixed_cell_table_celltype <- subset(celltype_freq, Metacell %in% mixed_metacells_celltype)
+how_many_cell_types_celltype <- table(mixed_cell_table_celltype$Metacell)
+
+png(paste0(plot_path, "Hist_mixed_cell_types.png"), width=25, height=20, units = 'cm', res = 200)
+hist(how_many_cell_types_celltype)
+graphics.off()
+
+# they are pretty mixed by cell type!!
+
+############################## Explore seacell purity - scHelper_cell_type #######################################
+
+plot_path = "./plots/scHelper_cell_type_broad/"
+dir.create(plot_path)
+
+# calculate frequencies in which metacells are in each stage
+celltype_broad_freq <- calculate_seacells_frequencies(ArchR, metacell_slot = "SEACell_ID", category = "scHelper_cell_type_broad")
+
+# these are the metacells that include cells of more than one cell type - its all 1000 of them!
+mixed_metacells_celltype_broad <- celltype_broad_freq$Metacell[duplicated(celltype_broad_freq$Metacell)]
+print(paste0("Number of metacells that have mixed scHelper_cell_type_broad identity: ", length(unique(mixed_metacells_celltype_broad))))
+
+mixed_metacells_piechart(mixed_metacell_number = length(unique(mixed_metacells_celltype_broad)), plot_path = plot_path)
+
+# and these are their relative distributions - they are generally of neibouring stages and mainly one stage
+mixed_cell_broad_table_celltype <- subset(celltype_broad_freq, Metacell %in% mixed_metacells_celltype_broad)
+how_many_cell_types_celltype <- table(mixed_cell_broad_table_celltype$Metacell)
+
+png(paste0(plot_path, "Hist_mixed_cell_types.png"), width=25, height=20, units = 'cm', res = 200)
+hist(how_many_cell_types_celltype)
+graphics.off()
 
 # they are pretty mixed by cell type!!
 
