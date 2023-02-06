@@ -10,7 +10,7 @@ include {R as CLUSTER_PEAKS} from "$baseDir/modules/local/r/main"               
 
 // cluster peaks
 
-workflow CLUSTERING_PEAKS {
+workflow CLUSTER_PEAKS_WF {
     take:
     input //should be TransferLabels object with metacells labelled + summarise_counts.csv
 

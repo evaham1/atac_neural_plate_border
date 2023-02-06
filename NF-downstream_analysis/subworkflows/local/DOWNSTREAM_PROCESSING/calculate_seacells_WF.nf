@@ -13,7 +13,7 @@ include {R as CHECK_SEACELLS} from "$baseDir/modules/local/r/main"              
 
 // calculate metacells
 
-workflow SEACELLS {
+workflow CALCULATE_SEACELLS_WF {
     take:
     input //[[sample_id:TransferLabels], [Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
 
