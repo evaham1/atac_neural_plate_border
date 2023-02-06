@@ -13,7 +13,7 @@ include {R as CHECK_SEACELLS} from "$baseDir/modules/local/r/main"              
 
 // calculate metacells
 
-workflow CALCULATE_SEACELLS_WF {
+workflow SEACELLS_WF {
     take:
     input //[[sample_id:TransferLabels], [Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
 
@@ -27,7 +27,7 @@ workflow CALCULATE_SEACELLS_WF {
 
     //////// Check SEACells and add labels to TL object /////////
     EXPORT_DATA_FROM_SEACELLS.out
-            .combine(input_ch)
+            .combine(input)
             .map{[it[0], it[1] + it[2]]}
             .view()
             .set {ch_combined} // combine the transferlabels object and the output from seacells calculation
