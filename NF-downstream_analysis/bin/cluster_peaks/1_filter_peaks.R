@@ -37,8 +37,10 @@ if(opt$verbose) print(opt)
 
     # output from SEACells - summarised by metacells -> should change to output of seacells purity script
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
-    label = "AnnData_summarised_by_metacells_peak_counts.csv"
     label = "summarised_counts_1000.csv"
+    # for transfer labels archr object -> should change to output of seacells purity script which will include extra cell metadata
+    data_path = "./output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/"
+    n = 100
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -46,6 +48,8 @@ if(opt$verbose) print(opt)
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/rds_files/"
+    label = "AnnData_summarised_by_metacells_peak_counts.csv"
+    n = 20000
     ncores = opt$cores
     
     addArchRThreads(threads = ncores)
@@ -59,55 +63,7 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
-
-############################## Read in SEACells summarised data #######################################
-data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
-SEACells_summarised <- read_csv(paste0(data_path, "AnnData_summarised_by_metacells_peak_counts.csv"))
-dim(SEACells_summarised)
-
-SEACells_summarised <- as.matrix(fread(paste0(data_path, "summarised_counts_1000.csv"), header = TRUE), rownames = 1)
-
-hist(colSums(SEACells_summarised), breaks = 1000)
-summary(colSums(SEACells_summarised))
-dim(SEACells_summarised)
-
-############################## 1) Normalise #######################################
-
-## normalise each metacell by the total number of cut sites
-normalised_counts <- t(apply(SEACells_summarised, 1, function(x) x/sum(x))) * 1000
-normalised_counts[1:2, 1:2]
-dim(normalised_counts)
-
-
-## could add a minimum number of total cut sites here
-
-
-# variance <- apply(SEACells_summarised, 2, var)
-# hist(variance, breaks = 1000)
-# summary(variance)
-
-
-################ 2) Filter peaks by annotation #########################
-
-peak_set <- getPeakSet(ArchR)
-print(unique(peak_set$peakType))
-included_peak_set <- peak_set[which(peak_set$peakType %in% c("Distal", "Intronic")), ]
-print(length(included_peak_set$name))
-
-# need to do this for the test matrix, for full matrix should return all peaks
-included_peaks <- included_peak_set$name[included_peak_set$name %in% colnames(matrix)]
-print(length(included_peaks))
-
-# filter matrix to only include these peaks -> f1_matrix
-f1_matrix <- matrix[, included_peaks]
-print(paste0("Peak number before filtering: ", ncol(matrix)))
-print(paste0("Peak number after filtering: ", ncol(f1_matrix)))
-# 
-
-############## 3) Filter peaks by variance #######################################
-
-## pick peaks with top 10,000 variance
-# as test do top 100
+############################## Functions #######################################
 
 # function to calculate variance and pick out top n features
 calc_top_variable_features <- function(counts, n = 1000){
@@ -119,16 +75,71 @@ calc_top_variable_features <- function(counts, n = 1000){
   return(features)
 }
 
-# variance <- apply(SEACells_summarised, 2, var)
-# hist(variance, breaks = 1000)
+############################## Read in SEACells summarised data + ArchR object #######################################
+SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
+dim(SEACells_summarised)
 
-top_features <- calc_top_variable_features(normalised_counts, n = 100)
-length(top_features)
-filtered_normalised_counts <- normalised_counts[, top_features]
-dim(filtered_normalised_counts)
-# variance <- apply(filtered_counts, 2, var)
-# hist(variance, breaks = 1000)
-# summary(variance)
+ArchR <- loadArchRProject(path = paste0(data_path, "TransferLabels_Save-ArchR"), force = FALSE, showLogo = TRUE)
+
+############################## 1) Normalise #######################################
+
+## normalise each metacell by the total number of cut sites
+normalised_counts <- t(apply(SEACells_summarised, 1, function(x) x/sum(x))) * 1000
+normalised_counts[1:2, 1:2]
+dim(normalised_counts)
+
+## calculate new variance and plot 
+variance <- apply(SEACells_summarised, 2, var)
+print("Before normalising:")
+print(summary(variance))
+
+png(paste0(plot_path, "hist_variance_before_normalising.png"), width=60, height=40, units = 'cm', res = 200)
+hist(variance, breaks = 1000)
+graphics.off()
+
+variance <- apply(normalised_counts, 2, var)
+print("After normalising:")
+print(summary(variance))
+
+png(paste0(plot_path, "hist_variance_after_normalising.png"), width=60, height=40, units = 'cm', res = 200)
+hist(variance, breaks = 1000)
+graphics.off()
 
 
-############################## Subset summarised count data and save #######################################
+################ 2) Filter peaks by annotation #########################
+
+peak_set <- getPeakSet(ArchR)
+print(unique(peak_set$peakType))
+
+included_peak_set <- peak_set[which(peak_set$peakType %in% c("Distal", "Intronic")), ]
+print(paste0("Number of total peaks: ", length(peak_set$name)))
+print(paste0("Number of peaks that are distal or intronic: ", length(included_peak_set$name)))
+
+included_peaks <- included_peak_set$name
+
+# filter summarised counts to only include these peaks
+colnames(normalised_counts) <- gsub(':', '-', colnames(normalised_counts))
+annot_filtered_matrix <- normalised_counts[, which(colnames(normalised_counts) %in% included_peaks)]
+dim(annot_filtered_matrix)
+
+############## 3) Filter peaks by variance #######################################
+
+## pick peaks with top 10,000 variance (as test do top 100) determined by n param
+top_features <- calc_top_variable_features(annot_filtered_matrix, n = n)
+print(paste0("Number of top variable features: ", length(top_features)))
+
+## filter matrix based on these features
+variable_filtered_matrix <- annot_filtered_matrix[, top_features]
+dim(variable_filtered_matrix)
+
+variance <- apply(variable_filtered_matrix, 2, var)
+print(summary(variance))
+
+png(paste0(plot_path, "hist_variance_after_normalising_after_filtering.png"), width=60, height=40, units = 'cm', res = 200)
+hist(variance, breaks = 1000)
+graphics.off()
+
+
+############################## Save filtered normalised summarised count data #######################################
+
+write.csv(variable_filtered_matrix, paste0(rds_path, "Filtered_summarised_counts.csv"), row.names = TRUE)
