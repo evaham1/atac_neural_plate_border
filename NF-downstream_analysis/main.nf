@@ -208,7 +208,7 @@ workflow A {
     CALCULATE_SEACELLS( ch_TL )
 
     // Subworkflow to cluster peaks using metacells
-    CLUSTERING_PEAKS( CALCULATE_SEACELLS.out.seacells_output_combined )
+    //CLUSTERING_PEAKS( CALCULATE_SEACELLS.out.seacells_output_combined )
 
     
     // IN PROGRESS: compare variability of clusters between stages
