@@ -38,7 +38,7 @@ include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_t
 
 
 // DOWNSTREAM PROCESSING WORKFLOWS
-include { CALCULATE_SEACELLS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/calculate_seacells"
+include { SEACELLS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells"
 include { CLUSTERING_PEAKS } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks"
 //include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
 //include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
@@ -205,7 +205,7 @@ workflow A {
             .set{ ch_TL }
 
     // Subworkflow to create metacells
-    CALCULATE_SEACELLS( ch_TL )
+    SEACELLS( ch_TL )
 
     // Subworkflow to cluster peaks using metacells
     //CLUSTERING_PEAKS( CALCULATE_SEACELLS.out.seacells_output_combined )
