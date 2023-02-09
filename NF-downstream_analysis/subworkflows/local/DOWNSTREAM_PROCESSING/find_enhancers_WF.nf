@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 
 // R scripts to run differential expression tests to find NC and PPR-specific enhancers
-include {R as CALCULATE_SE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_Calling/calculate_se.R", checkIfExists: true) )
+include {R as CALCULATE_SE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/calculate_se.R", checkIfExists: true) )
 include {R as FIND_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Finding_enhancers/finding_enhancers.R", checkIfExists: true) )
 
 
