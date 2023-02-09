@@ -40,6 +40,7 @@ include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_t
 // DOWNSTREAM PROCESSING WORKFLOWS
 include { SEACELLS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
 include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
+include { FIND_ENHANCERS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/find_enhancers_WF"
 //include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
 //include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
@@ -209,6 +210,9 @@ workflow A {
 
     // Subworkflow to cluster peaks using metacells
     //CLUSTER_PEAKS_WF( CALCULATE_SEACELLS.out.seacells_output_combined )
+
+    // Subworkflow to identify NC and PPR specific enhancers ~ maybe don't need if can find these in the peak modules?
+    FIND_ENHANCERS_WF( ch_TL )
 
     
     // IN PROGRESS: compare variability of clusters between stages
