@@ -29,8 +29,7 @@ workflow SEACELLS_WF {
     EXPORT_DATA_FROM_SEACELLS.out
             .combine(input)
             .map{[it[0], it[1] + it[3]]}
-            .view()
-            //[[sample_id:TransferLabels], [plots, rds_files, [sample_id:TransferLabels]]]
+            //.view() //[[sample_id:TransferLabels], [plots, rds_files, TransferLabels_Save-ArchR]]
             .set {ch_combined} // combine the transferlabels object and the output from seacells calculation
     CHECK_SEACELLS( ch_combined )
 

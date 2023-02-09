@@ -21,7 +21,6 @@ library(gridExtra)
 library(grid)
 library(parallel)
 library(data.table)
-library(doSNOW)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -56,7 +55,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     label = "AnnData_summarised_by_metacells_peak_counts.csv"
     
@@ -136,7 +135,7 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
 
 ArchR <- loadArchRProject(path = paste0(data_path, "TransferLabels_Save-ArchR"), force = FALSE, showLogo = TRUE)
 
-SEACells_metadata <- read_csv(paste0(data_path, "AnnData_metacells_assigned_cell_metadata.csv"))
+SEACells_metadata <- read_csv(paste0(data_path, "rds_files/AnnData_metacells_assigned_cell_metadata.csv"))
 
 ############################## Read in SEACells assignments and add to ArchR object #######################################
 
@@ -187,7 +186,7 @@ print("ArchR object saved")
 ############################## Read and write summarised counts by metacells #######################################
 
 SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
-write.csv(SEACells_summarised, paste0(rds_path, "SEACells_summarised.csv"))
+write.csv(SEACells_summarised, paste0(rds_path, "rds_files/SEACells_summarised.csv"))
 
 
 ############################## Explore individual seacell purity #######################################
