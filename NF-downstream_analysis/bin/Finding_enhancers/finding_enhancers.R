@@ -273,35 +273,61 @@ make_gr_object <- function(id, extend = TRUE, extend_by = 50000){
   return(gr)
 }
 
-#################################################################################
-############################## Read in data #####################################
+############################## Set colours #######################################
 
+###### stage colours
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
+###### schelper cell type colours ~ 29 cell states
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
+                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                       'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo')
+
 pal = paletteContinuous(set = "solarExtra", n = 100)
 
-# Read in ArchR project data
-files <- list.files(data_path, full.names = TRUE)
-print(files)
+###########################################################################################
+############################## Read in data #####################################
 
-full_data <- grep("FullData", files, invert = F, value = TRUE)
-FullData <- loadArchRProject(path = full_data, force = TRUE, showLogo = FALSE)
+# If files are not in rds_files subdirectory look in input dir
+label <- sub('_.*', '', list.files(data_path))
+print(label)
 
-getAvailableMatrices(FullData)
-FullData@peakSet
+if (length(label) == 0){
+  data_path = "./input/"
+  label <- sub('_.*', '', list.files(data_path))
+  print(label)
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+} else {
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+}
+
+getAvailableMatrices(ArchR)
+ArchR@peakSet
 
 # Read in calculated summarised exp object across all data
-se_data <- grep("Full_se", files, invert = F, value = TRUE)
+se_data <- readRDS(paste0(rds_path, label, "_SE.RDS"))
 print(se_data)
-Full_se <- readRDS(se_data)
 
 # when running interactively:
 #Full_se <- readRDS(se_path)
 
 # Extract matrix for heatmap plotting
-matrix <- extract_means_from_se(Full_se)
+matrix <- extract_means_from_se(se_data)
 normalised_matrix <- Log2norm(matrix)
 
 #############################################################################
@@ -312,22 +338,22 @@ normalised_matrix <- Log2norm(matrix)
 
 ## Diff accessibility test to find ap differences in PPR clusters at ss4 and ss8 so can filter these out
 ss8_ap_filter_se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("ss8_C7"),
   bgdGroups = c("ss8_C8"))
-ss8_ap_filter_se <- add_unique_ids_to_se(ss8_ap_filter_se, FullData, matrix_type = "PeakMatrix")
+ss8_ap_filter_se <- add_unique_ids_to_se(ss8_ap_filter_se, ArchR, matrix_type = "PeakMatrix")
 ss8_ap_filter_ids <- unique(extract_ids(ss8_ap_filter_se, cutOff = "FDR <= 0.1", top_n = FALSE))
 print(paste0("length of ss8_ap_filter_ids: ", length(ss8_ap_filter_ids))) # 5675
 
 ss4_ap_filter_se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("ss4_C2"),
   bgdGroups = c("ss4_C3"))
-ss4_ap_filter_se <- add_unique_ids_to_se(ss4_ap_filter_se, FullData, matrix_type = "PeakMatrix")
+ss4_ap_filter_se <- add_unique_ids_to_se(ss4_ap_filter_se, ArchR, matrix_type = "PeakMatrix")
 ss4_ap_filter_ids <- unique(extract_ids(ss4_ap_filter_se, cutOff = "FDR <= 0.1", top_n = FALSE))
 print(paste0("length of ss4_ap_filter_ids: ", length(ss4_ap_filter_ids))) # 5675
 
@@ -337,11 +363,11 @@ dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in ss8 PPR clusters vs everything else
 se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("ss8_C7", "ss8_C8"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 5", top_n = FALSE))
 print(paste0("length of ids_1: ", length(ids_1))) # 55
 
@@ -390,7 +416,7 @@ dir.create(plot_path, recursive = T)
 for (id in ids_3){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+  p <- plotBrowserTrack(ArchR, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
@@ -406,11 +432,11 @@ dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in ss8 PPR clusters vs everything else
 se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("ss4_C2", "ss4_C3", "ss8_C7", "ss8_C8"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 5", top_n = FALSE))
 print(paste0("length of ids_1: ", length(ids_1))) # 52
 
@@ -464,7 +490,7 @@ dir.create(plot_path, recursive = T)
 for (id in ids_3){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+  p <- plotBrowserTrack(ArchR, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
@@ -480,11 +506,11 @@ dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in ss8 PPR clusters vs everything else
 se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("HH7_C4", "ss4_C2", "ss4_C3", "ss8_C7", "ss8_C8"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 5", top_n = FALSE))
 print(paste0("length of ids_1: ", length(ids_1))) # 52
 
@@ -538,7 +564,7 @@ dir.create(plot_path, recursive = T)
 for (id in ids_3){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+  p <- plotBrowserTrack(ArchR, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
@@ -554,11 +580,11 @@ dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in ss8 PPR clusters vs everything else
 se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("HH7_C4", "ss4_C2", "ss4_C3", "ss8_C7", "ss8_C8"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
 print(paste0("length of ids_1: ", length(ids_1)))
 
@@ -626,7 +652,7 @@ dir.create(plot_path, recursive = T)
 for (id in ids_4){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+  p <- plotBrowserTrack(ArchR, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
@@ -647,11 +673,11 @@ dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in ss8 NC clusters vs everything else
 se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("ss8_C1"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 5.5", top_n = FALSE))
 print(paste0("length of ids_1: ", length(ids_1))) # 33
 
@@ -687,7 +713,7 @@ dir.create(plot_path, recursive = T)
 for (id in ids_2){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+  p <- plotBrowserTrack(ArchR, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
@@ -703,11 +729,11 @@ dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in ss8 NC clusters vs everything else
 se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("ss4_C6", "ss8_C1"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 2", top_n = FALSE))
 print(paste0("length of ids_1: ", length(ids_1))) # 37
 
@@ -756,7 +782,7 @@ dir.create(plot_path, recursive = T)
 for (id in ids_3){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+  p <- plotBrowserTrack(ArchR, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
@@ -772,11 +798,11 @@ dir.create(plot_path, recursive = T)
 
 ### Step 1: differentially accessible in ss8 NC clusters vs everything else
 se <- getMarkerFeatures(
-  ArchRProj = FullData, 
+  ArchRProj = ArchR, 
   useMatrix = "PeakMatrix", 
   groupBy = "stage_clusters",
   useGroups = c("HH7_C5", "ss4_C6", "ss8_C1"))
-se <- add_unique_ids_to_se(se, FullData, matrix_type = "PeakMatrix")
+se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE))
 print(paste0("length of ids_1: ", length(ids_1))) # 37
 
@@ -825,7 +851,7 @@ dir.create(plot_path, recursive = T)
 for (id in ids_3){
   print(id)
   gr <- make_gr_object(id = id, extend = TRUE, extend_by = 10000)
-  p <- plotBrowserTrack(FullData, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
+  p <- plotBrowserTrack(ArchR, region = gr, groupBy = "stage_clusters", baseSize = 20, facetbaseSize = 20,
                         plotSummary = c("bulkTrack", "featureTrack", "geneTrack"), sizes = c(10, 1.5, 2),
                         title = paste0("Peak ID:", id))
   
