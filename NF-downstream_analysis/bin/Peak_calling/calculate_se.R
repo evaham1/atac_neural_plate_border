@@ -2,6 +2,7 @@
 
 print("calculates SE object by running 'getMarkerFeatures'")
 # calculates SE object by running 'getMarkerFeatures', this is useful to save time downstream!
+# outputs the se object and the original ArchR object
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -118,6 +119,13 @@ if (length(label) == 0){
 
 getAvailableMatrices(ArchR)
 ArchR@peakSet
+
+###########################################################################################
+############################## Write out ArchR project #####################################
+
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(data_path, label, "_Save-ArchR"), load = FALSE)
+print("ArchR object saved")
 
 ###########################################################################################
 ########################## Calculate se across all clusters ###############################
