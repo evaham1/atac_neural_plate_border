@@ -178,16 +178,12 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(
 print("Cell metadata added to ArchR object!")
 print(getCellColData(ArchR))
 
-############################## Save ArchR with new obs #######################################
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
-print("ArchR object saved")
-
 ############################## Read and write summarised counts by metacells #######################################
 
 SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
+print("Summarised count data read in!")
 write.csv(SEACells_summarised, paste0(rds_path, "SEACells_summarised.csv"))
-
+print("Summarised count data written out!")
 
 ############################## Explore individual seacell purity #######################################
 
@@ -266,12 +262,7 @@ high_proportion_cells <- clusters_prop_table %>%
   filter(prop > 0.5)
 print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell)))
 
-
-#######################################################################################################
-####################################  Read in summarised counts #######################################
-
-SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
-dim(SEACells_summarised)
+print("SEACell purity plots made!")
 
 ####################################  Cluster metacells #######################################
 
@@ -319,6 +310,7 @@ metacell_clusters <- merge(metacell_clusters, SEACells_cell_assignments)
 ArchR <- addCellColData(ArchRProj = ArchR, data = metacell_clusters$SEACell_cluster,
                         cells = SEACells_cell_assignments$index, name = "SEACell_cluster", force = TRUE)
 
+print("SEACells clustered!")
 
 ############################## Plot seacell clusters on UMAP #######################################
 
@@ -332,7 +324,7 @@ p1 <- plotEmbedding(ArchR,
                     randomize = TRUE)
 
 png(paste0(plot_path_temp, "SEACell_cluster_UMAP.png"), width=60, height=40, units = 'cm', res = 200)
-p1
+print(p1)
 graphics.off()
 
 ############################## Plot seacell clusters size distribution #######################################
@@ -422,5 +414,10 @@ high_proportion_cells <- clusters_prop_table %>%
   filter(prop > 0.5)
 print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell)))
 
+print("SEACells clusters purity plots made!")
 
+############################## Save ArchR with new obs #######################################
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
+print("ArchR object saved")
 
