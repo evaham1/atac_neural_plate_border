@@ -185,8 +185,8 @@ print("ArchR object saved")
 
 ############################## Read and write summarised counts by metacells #######################################
 
-SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
-write.csv(SEACells_summarised, paste0(rds_path, "rds_files/SEACells_summarised.csv"))
+SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
+write.csv(SEACells_summarised, paste0(rds_path, "SEACells_summarised.csv"))
 
 
 ############################## Explore individual seacell purity #######################################
