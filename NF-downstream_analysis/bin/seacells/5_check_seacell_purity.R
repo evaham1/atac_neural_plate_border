@@ -242,9 +242,9 @@ hist(broad_celltype_prop_table$prop)
 graphics.off()
 
 ## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- broad_celltype_prop_table %>%
-  filter(prop > 0.5)
-print(paste0("Number of metacells with more than 50% of their cells from same broad_scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell)))
+high_proportion_cells <- broad_celltype_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
+print(paste0("Number of metacells with more than 50% of their cells from same broad_scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
 
 ########### clusters
 
