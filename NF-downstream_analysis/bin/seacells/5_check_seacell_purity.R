@@ -178,16 +178,16 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(
 print("Cell metadata added to ArchR object!")
 print(getCellColData(ArchR))
 
-############################## Read and write summarised counts by metacells #######################################
+############################## Read summarised counts by metacells #######################################
 
 SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
 print("Summarised count data read in!")
-write.csv(SEACells_summarised, paste0(rds_path, "SEACells_summarised.csv"))
-print("Summarised count data written out!")
 
 ############################## Explore individual seacell purity #######################################
 
 ########### Stages
+
+print("Stages purity...")
 
 # calculate frequencies in which metacells are in each stage
 stage_freq_table <- calculate_metacell_frequencies(ArchR, category = "stage")
@@ -204,6 +204,8 @@ graphics.off()
 
 ########### scHelper_cell_type
 
+print("scHelper_cell_type purity...")
+
 # calculate frequencies in which metacells are in each stage
 celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type")
 head(celltype_freq_table)
@@ -218,11 +220,13 @@ hist(celltype_prop_table$prop)
 graphics.off()
 
 ## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- celltype_prop_table %>%
-  filter(prop > 0.5)
+high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
 print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell)))
 
 ########### scHelper_cell_type_broad
+
+print("scHelper_cell_type_broad purity...")
 
 # calculate frequencies in which metacells are in each stage
 broad_celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type_broad")
@@ -417,7 +421,13 @@ print(paste0("Number of metacells with more than 50% of their cells from same cl
 print("SEACells clusters purity plots made!")
 
 ############################## Save ArchR with new obs #######################################
+
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
 print("ArchR object saved")
+
+############################## Write summarised counts by metacells (unchanged) #######################################
+
+write.csv(SEACells_summarised, paste0(rds_path, "SEACells_summarised.csv"))
+print("Summarised count data written out!")
 
