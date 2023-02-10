@@ -222,7 +222,7 @@ graphics.off()
 ## how many metacells have > 50% of their cells from same label
 high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
 head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell)))
+print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
 
 ########### scHelper_cell_type_broad
 
