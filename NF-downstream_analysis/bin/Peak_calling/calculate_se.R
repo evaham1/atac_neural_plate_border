@@ -124,7 +124,7 @@ ArchR@peakSet
 ############################## Write out ArchR project #####################################
 
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(data_path, label, "_Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
 print("ArchR object saved")
 
 ###########################################################################################
