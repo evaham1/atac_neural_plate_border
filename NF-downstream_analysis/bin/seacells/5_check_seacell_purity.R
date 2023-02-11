@@ -178,10 +178,7 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(
 print("Cell metadata added to ArchR object!")
 print(getCellColData(ArchR))
 
-############################## Read summarised counts by metacells #######################################
 
-SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
-print("Summarised count data read in!")
 
 ############################## Explore individual seacell purity #######################################
 
@@ -248,6 +245,8 @@ print(paste0("Number of metacells with more than 50% of their cells from same br
 
 ########### clusters
 
+print("clusters purity...")
+
 # calculate frequencies in which metacells are in each stage
 clusters_freq_table <- calculate_metacell_frequencies(ArchR, category = "clusters")
 head(clusters_freq_table)
@@ -262,9 +261,9 @@ hist(clusters_prop_table$prop)
 graphics.off()
 
 ## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- clusters_prop_table %>%
-  filter(prop > 0.5)
-print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell)))
+high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
+print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell))))
 
 print("SEACell purity plots made!")
 
@@ -425,6 +424,11 @@ print("SEACells clusters purity plots made!")
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
 print("ArchR object saved")
+
+############################## Read summarised counts by metacells #######################################
+
+SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
+print("Summarised count data read in!")
 
 ############################## Write summarised counts by metacells (unchanged) #######################################
 
