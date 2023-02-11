@@ -53,6 +53,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
+    rds_path = "./rds_files/"
     data_path = "./input/rds_files/"
     ncores = opt$cores
     
@@ -64,6 +65,7 @@ if(opt$verbose) print(opt)
   
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
+  dir.create(rds_path, recursive = T)
 }
 
 ############################### FUNCTIONS ####################################
