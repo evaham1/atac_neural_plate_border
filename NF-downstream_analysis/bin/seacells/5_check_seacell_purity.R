@@ -267,6 +267,11 @@ print(paste0("Number of metacells with more than 50% of their cells from same cl
 
 print("SEACell purity plots made!")
 
+############################## Read summarised counts by metacells #######################################
+
+SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
+print("Summarised count data read in!")
+
 ####################################  Cluster metacells #######################################
 
 ## normalise each metacell by the total number of cut sites
@@ -424,11 +429,6 @@ print("SEACells clusters purity plots made!")
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
 print("ArchR object saved")
-
-############################## Read summarised counts by metacells #######################################
-
-SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
-print("Summarised count data read in!")
 
 ############################## Write summarised counts by metacells (unchanged) #######################################
 
