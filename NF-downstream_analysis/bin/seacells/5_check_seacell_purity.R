@@ -199,6 +199,11 @@ png(paste0(plot_path, "Hist_mixed_stages_proportions.png"), width=25, height=20,
 hist(stage_prop_table$prop)
 graphics.off()
 
+## how many metacells have > 50% of their cells from same label
+high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
+print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
+
 ########### scHelper_cell_type
 
 print("scHelper_cell_type purity...")
@@ -331,7 +336,7 @@ p1 <- plotEmbedding(ArchR,
                     baseSize = 0, labelSize = 0, legendSize = 0, 
                     randomize = TRUE)
 
-png(paste0(plot_path_temp, "SEACell_cluster_UMAP.png"), width=60, height=40, units = 'cm', res = 200)
+png(paste0(plot_path, "SEACell_cluster_UMAP.png"), width=60, height=40, units = 'cm', res = 200)
 print(p1)
 graphics.off()
 
@@ -340,7 +345,7 @@ graphics.off()
 seacell_cluster_sizes <- as.data.frame(table(getCellColData(ArchR, select = "SEACell_cluster"))) %>%
   mutate(Freq = as.numeric(Freq))
 
-png(paste0(plot_path_temp, "SEACell_cluster_sizes_hist.png"), width=60, height=40, units = 'cm', res = 200)
+png(paste0(plot_path, "SEACell_cluster_sizes_hist.png"), width=60, height=40, units = 'cm', res = 200)
 hist(seacell_cluster_sizes$Freq, breaks = 30)
 graphics.off()
 
@@ -361,6 +366,11 @@ png(paste0(plot_path, "Hist_mixed_stages_proportions.png"), width=25, height=20,
 hist(stage_prop_table$prop)
 graphics.off()
 
+## how many metacell clusters have > 50% of their cells from same label
+high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
+print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
+
 ########### scHelper_cell_type
 
 # calculate frequencies in which metacells are in each stage
@@ -376,10 +386,10 @@ png(paste0(plot_path, "Hist_mixed_celltype_proportions.png"), width=25, height=2
 hist(celltype_prop_table$prop)
 graphics.off()
 
-## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- celltype_prop_table %>%
-  filter(prop > 0.5)
-print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell)))
+## how many metacell clusters have > 50% of their cells from same label
+high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
+print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
 
 ########### scHelper_cell_type_broad
 
@@ -396,11 +406,10 @@ png(paste0(plot_path, "Hist_mixed_broad_celltype_proportions.png"), width=25, he
 hist(broad_celltype_prop_table$prop)
 graphics.off()
 
-## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- broad_celltype_prop_table %>%
-  filter(prop > 0.5)
-print(paste0("Number of metacells with more than 50% of their cells from same broad_scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell)))
-
+## how many metacell clusters have > 50% of their cells from same label
+high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
+print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type_broad: ", length(unique(high_proportion_cells$Metacell))))
 
 ########### clusters
 
@@ -417,10 +426,10 @@ png(paste0(plot_path, "Hist_mixed_clusters_proportions.png"), width=25, height=2
 hist(clusters_prop_table$prop)
 graphics.off()
 
-## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- clusters_prop_table %>%
-  filter(prop > 0.5)
-print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell)))
+## how many metacell clusters have > 50% of their cells from same label
+high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+head(high_proportion_cells)
+print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell))))
 
 print("SEACells clusters purity plots made!")
 
