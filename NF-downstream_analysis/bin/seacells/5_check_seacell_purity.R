@@ -279,6 +279,9 @@ print("Summarised count data read in!")
 
 ####################################  Cluster metacells #######################################
 
+plot_path = "plots/seacell_clusters/"
+dir.create(plot_path, recursive = T)
+
 ## normalise each metacell by the total number of cut sites
 normalised_counts <- t(apply(SEACells_summarised, 1, function(x) x/sum(x))) * 1000
 normalised_counts[1:2, 1:2]
@@ -307,7 +310,10 @@ dim(corr_mat)
 
 diss_matrix <- as.dist(1 - corr_mat)
 tree <- hclust(diss_matrix, method="complete")
+
+png(paste0(plot_path, "hclust_tree.png"), width=60, height=40, units = 'cm', res = 200)
 plot(tree)
+graphics.off()
 
 # split tree into clusters based on k
 metacell_clusters <- as.data.frame(cutree(tree, k = 29))
@@ -326,9 +332,6 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = metacell_clusters$SEACell_clus
 print("SEACells clustered!")
 
 ############################## Plot seacell clusters on UMAP #######################################
-
-plot_path = "plot_path/seacell_clusters/"
-dir.create(plot_path, recursive = T)
 
 p1 <- plotEmbedding(ArchR, 
                     name = "SEACell_cluster",
