@@ -322,7 +322,7 @@ getAvailableMatrices(ArchR)
 ArchR@peakSet
 
 # Read in calculated summarised exp object across all data
-se_data <- readRDS(paste0(rds_path, label, "_SE.RDS"))
+se_data <- readRDS(paste0(data_path, label, "_SE.RDS"))
 print(se_data)
 
 # when running interactively:
