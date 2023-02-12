@@ -370,8 +370,8 @@ se <- getMarkerFeatures(
   groupBy = "stage_clusters",
   useGroups = c("ss8_C7", "ss8_C8"))
 se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
-ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 5", top_n = FALSE))
-print(paste0("length of ids_1: ", length(ids_1))) # 55
+ids_1 <- unique(extract_ids(se, cutOff = "FDR <= 0.01 & Log2FC >= 3", top_n = FALSE))
+print(paste0("length of ids_1: ", length(ids_1))) 
 
 subsetted_matrix <- subset_matrix(normalised_matrix, ids_1)
 png(paste0(plot_path, '1_diff_accessible.png'), height = 20, width = 30, units = 'cm', res = 400)
