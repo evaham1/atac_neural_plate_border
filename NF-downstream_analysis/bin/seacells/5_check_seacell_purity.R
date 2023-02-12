@@ -200,7 +200,7 @@ hist(stage_prop_table$prop)
 graphics.off()
 
 ## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
+high_proportion_cells <- stage_prop_table %>% filter(prop > 0.5)
 head(high_proportion_cells)
 print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
 
@@ -367,7 +367,7 @@ hist(stage_prop_table$prop)
 graphics.off()
 
 ## how many metacell clusters have > 50% of their cells from same label
-high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+high_proportion_cells <- stage_prop_table %>% filter(prop > 0.5)
 head(high_proportion_cells)
 print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
 
@@ -407,7 +407,7 @@ hist(broad_celltype_prop_table$prop)
 graphics.off()
 
 ## how many metacell clusters have > 50% of their cells from same label
-high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+high_proportion_cells <- broad_celltype_prop_table %>% filter(prop > 0.5)
 head(high_proportion_cells)
 print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type_broad: ", length(unique(high_proportion_cells$Metacell))))
 
@@ -427,7 +427,7 @@ hist(clusters_prop_table$prop)
 graphics.off()
 
 ## how many metacell clusters have > 50% of their cells from same label
-high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
 head(high_proportion_cells)
 print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell))))
 
