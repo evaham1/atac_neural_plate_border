@@ -352,89 +352,89 @@ png(paste0(plot_path, "SEACell_cluster_sizes_hist.png"), width=60, height=40, un
 hist(seacell_cluster_sizes$Freq, breaks = 30)
 graphics.off()
 
-############################## Explore seacell cluster purity #######################################
+# ############################## Explore seacell cluster purity #######################################
 
-########### Stages
+# ########### Stages
 
-# calculate frequencies in which metacells are in each stage
-stage_freq_table <- calculate_metacell_frequencies(ArchR, category = "stage", metacell_slot = "SEACell_cluster")
-head(stage_freq_table)
+# # calculate frequencies in which metacells are in each stage
+# stage_freq_table <- calculate_metacell_frequencies(ArchR, category = "stage", metacell_slot = "SEACell_cluster")
+# head(stage_freq_table)
 
-# calculate proportions of labels in metacells
-stage_prop_table <- calculate_metacell_proportions(stage_freq_table)
-head(stage_prop_table)
+# # calculate proportions of labels in metacells
+# stage_prop_table <- calculate_metacell_proportions(stage_freq_table)
+# head(stage_prop_table)
 
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_stages_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(stage_prop_table$prop)
-graphics.off()
+# # plot the relative proportions of labels in each metacell
+# png(paste0(plot_path, "Hist_mixed_stages_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+# hist(stage_prop_table$prop)
+# graphics.off()
 
-## how many metacell clusters have > 50% of their cells from same label
-high_proportion_cells <- stage_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
+# ## how many metacell clusters have > 50% of their cells from same label
+# high_proportion_cells <- stage_prop_table %>% filter(prop > 0.5)
+# head(high_proportion_cells)
+# print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
 
-########### scHelper_cell_type
+# ########### scHelper_cell_type
 
-# calculate frequencies in which metacells are in each stage
-celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type")
-head(celltype_freq_table)
+# # calculate frequencies in which metacells are in each stage
+# celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type")
+# head(celltype_freq_table)
 
-# calculate proportions of labels in metacells
-celltype_prop_table <- calculate_metacell_proportions(celltype_freq_table)
-head(celltype_prop_table)
+# # calculate proportions of labels in metacells
+# celltype_prop_table <- calculate_metacell_proportions(celltype_freq_table)
+# head(celltype_prop_table)
 
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(celltype_prop_table$prop)
-graphics.off()
+# # plot the relative proportions of labels in each metacell
+# png(paste0(plot_path, "Hist_mixed_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+# hist(celltype_prop_table$prop)
+# graphics.off()
 
-## how many metacell clusters have > 50% of their cells from same label
-high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
+# ## how many metacell clusters have > 50% of their cells from same label
+# high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
+# head(high_proportion_cells)
+# print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
 
-########### scHelper_cell_type_broad
+# ########### scHelper_cell_type_broad
 
-# calculate frequencies in which metacells are in each stage
-broad_celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type_broad")
-head(broad_celltype_freq_table)
+# # calculate frequencies in which metacells are in each stage
+# broad_celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type_broad")
+# head(broad_celltype_freq_table)
 
-# calculate proportions of labels in metacells
-broad_celltype_prop_table <- calculate_metacell_proportions(broad_celltype_freq_table)
-head(broad_celltype_prop_table)
+# # calculate proportions of labels in metacells
+# broad_celltype_prop_table <- calculate_metacell_proportions(broad_celltype_freq_table)
+# head(broad_celltype_prop_table)
 
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_broad_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(broad_celltype_prop_table$prop)
-graphics.off()
+# # plot the relative proportions of labels in each metacell
+# png(paste0(plot_path, "Hist_mixed_broad_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+# hist(broad_celltype_prop_table$prop)
+# graphics.off()
 
-## how many metacell clusters have > 50% of their cells from same label
-high_proportion_cells <- broad_celltype_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type_broad: ", length(unique(high_proportion_cells$Metacell))))
+# ## how many metacell clusters have > 50% of their cells from same label
+# high_proportion_cells <- broad_celltype_prop_table %>% filter(prop > 0.5)
+# head(high_proportion_cells)
+# print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type_broad: ", length(unique(high_proportion_cells$Metacell))))
 
-########### clusters
+# ########### clusters
 
-# calculate frequencies in which metacells are in each stage
-clusters_freq_table <- calculate_metacell_frequencies(ArchR, category = "clusters")
-head(clusters_freq_table)
+# # calculate frequencies in which metacells are in each stage
+# clusters_freq_table <- calculate_metacell_frequencies(ArchR, category = "clusters")
+# head(clusters_freq_table)
 
-# calculate proportions of labels in metacells
-clusters_prop_table <- calculate_metacell_proportions(clusters_freq_table)
-head(clusters_prop_table)
+# # calculate proportions of labels in metacells
+# clusters_prop_table <- calculate_metacell_proportions(clusters_freq_table)
+# head(clusters_prop_table)
 
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_clusters_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(clusters_prop_table$prop)
-graphics.off()
+# # plot the relative proportions of labels in each metacell
+# png(paste0(plot_path, "Hist_mixed_clusters_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+# hist(clusters_prop_table$prop)
+# graphics.off()
 
-## how many metacell clusters have > 50% of their cells from same label
-high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell))))
+# ## how many metacell clusters have > 50% of their cells from same label
+# high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
+# head(high_proportion_cells)
+# print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell))))
 
-print("SEACells clusters purity plots made!")
+# print("SEACells clusters purity plots made!")
 
 ############################## Save ArchR with new obs #######################################
 
