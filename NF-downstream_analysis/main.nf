@@ -209,7 +209,7 @@ workflow A {
     SEACELLS_WF( ch_TL )
 
     // Subworkflow to cluster peaks using metacells
-    //CLUSTER_PEAKS_WF( CALCULATE_SEACELLS.out.seacells_output_combined )
+    CLUSTER_PEAKS_WF( CALCULATE_SEACELLS.out.seacells_output_combined )
 
     // Subworkflow to identify NC and PPR specific enhancers ~ maybe don't need if can find these in the peak modules?
     FIND_ENHANCERS_WF( ch_TL )

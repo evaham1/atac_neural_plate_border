@@ -25,8 +25,5 @@ workflow CLUSTER_PEAKS_WF {
     CLUSTER_PEAKS( FILTER_PEAKS.out )
 
     emit:
-    // seacells_output = CALCULATE_SEACELLS.out
-    // seacells_output_combined = CHECK_SEACELLS.out
-
     test_output = input
 }
