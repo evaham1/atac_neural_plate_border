@@ -1,13 +1,6 @@
 ##### Putting the SEACell assignments onto ArchR and checking their purity
 # also adding metadata to the SEACells themselves and exporting this for visualisations of peak modules
 
-
-## basically it looks like the metacells are pretty pure in terms of stage but mixed in terms of cell type
-# is this reflected in the purity plots made by seacells in python?
-# can we explore this further, eg if combine PPR cell states are metacells pretty pure?
-# does this mean we shouldnt use them or need to be careful?? need to look into this
-
-
 # load libraries
 library(getopt)
 library(optparse)
@@ -27,7 +20,9 @@ library(data.table)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+  make_option(c("-k", "--k"), action = "store", type = "integer", help = "How many clusters to split metacells into"),
+  make_option(c("-t", "--categories"), action = "store", type = "character", help = "Which categories to use to check for purity", default = "stage,clusters,scHelper_cell_type,scHelper_cell_type_broad"),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
 opt_parser = OptionParser(option_list = option_list)
@@ -79,12 +74,26 @@ calculate_metacell_frequencies <- function(ArchR, metacell_slot = "SEACell_ID", 
   df <- data.frame(getCellColData(ArchR, select = metacell_slot), getCellColData(ArchR, select = category))
   colnames(df) <- c("Metacell", "Category")
   
-  freq <- df %>%
-    group_by(Metacell, Category) %>% 
-    dplyr::summarize(count = n()) %>%
-    mutate(Metacell = as.numeric(Metacell)) %>% 
-    arrange(Metacell) %>% 
-    mutate(count = as.numeric(count))
+  if (metacell_slot == "SEACell_ID"){
+    freq <- df %>%
+      group_by(Metacell, Category) %>% 
+      dplyr::summarize(count = n()) %>%
+      mutate(Metacell = as.numeric(Metacell)) %>% 
+      arrange(Metacell) %>% 
+      mutate(count = as.numeric(count))
+  } else {
+    if (metacell_slot == "SEACell_cluster"){
+      freq <- df %>%
+        group_by(Metacell, Category) %>% 
+        dplyr::summarize(count = n()) %>%
+        mutate(Metacell = str_split(Metacell, "_", simplify = TRUE)[ , 3]) %>%
+        mutate(Metacell = as.numeric(Metacell)) %>% 
+        arrange(Metacell) %>% 
+        mutate(count = as.numeric(count))
+    } else {
+      stop("metacell_slot must be either SEACell_ID or SEACell_cluster!")
+    }
+  }
   
   print(paste0("Number of metacells: ", length(unique(freq$Metacell))))
   print(paste0("Number of categories: ", length(unique(freq$Category))))
@@ -106,6 +115,23 @@ calculate_metacell_proportions <- function(freq_table){
   
   return(prop_table)
 }
+
+## Function to plot piechart of how many metacells pass threshold for proportion of cells coming from one label
+piechart_proportion_threshold <- function(prop_table, threshold = 0.5){
+  
+  # filter cells to only include those that pass threshold
+  passed_cells <- prop_table %>% filter(prop > threshold)
+  # number of cells that pass threshold:
+  passed_cells <- length(unique(passed_cells$Metacell))
+  # number of cells that didn't pass threshold:
+  failed_cells <- length(unique(prop_table$Metacell)) - passed_cells
+  # plot piechart
+  slices <- c(passed_cells, failed_cells)
+  lbls <- c(paste0("Passed: ", passed_cells), paste0("Didn't pass: ", failed_cells))
+  
+  return(pie(slices, labels = lbls, main = paste0("Number of cells that passed threshold (", threshold, ") of label proportions")))
+}
+
 
 
 ############################## Set colours #######################################
@@ -135,7 +161,7 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
 
 ArchR <- loadArchRProject(path = paste0(data_path, "TransferLabels_Save-ArchR"), force = FALSE, showLogo = TRUE)
 
-SEACells_metadata <- read_csv(paste0(data_path, "rds_files/AnnData_metacells_assigned_cell_metadata.csv"))
+SEACells_metadata <- read_csv(paste0(data_path, "AnnData_metacells_assigned_cell_metadata.csv"))
 
 ############################## Read in SEACells assignments and add to ArchR object #######################################
 
@@ -182,99 +208,55 @@ print(getCellColData(ArchR))
 
 ############################## Explore individual seacell purity #######################################
 
-########### Stages
+categories <- strsplit(opt$categories, ",")[[1]]
 
-print("Stages purity...")
-
-# calculate frequencies in which metacells are in each stage
-stage_freq_table <- calculate_metacell_frequencies(ArchR, category = "stage")
-head(stage_freq_table)
-
-# calculate proportions of labels in metacells
-stage_prop_table <- calculate_metacell_proportions(stage_freq_table)
-head(stage_prop_table)
-
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_stages_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(stage_prop_table$prop)
-graphics.off()
-
-## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- stage_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
-
-########### scHelper_cell_type
-
-print("scHelper_cell_type purity...")
-
-# calculate frequencies in which metacells are in each stage
-celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type")
-head(celltype_freq_table)
-
-# calculate proportions of labels in metacells
-celltype_prop_table <- calculate_metacell_proportions(celltype_freq_table)
-head(celltype_prop_table)
-
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(celltype_prop_table$prop)
-graphics.off()
-
-## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
-
-########### scHelper_cell_type_broad
-
-print("scHelper_cell_type_broad purity...")
-
-# calculate frequencies in which metacells are in each stage
-broad_celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type_broad")
-head(broad_celltype_freq_table)
-
-# calculate proportions of labels in metacells
-broad_celltype_prop_table <- calculate_metacell_proportions(broad_celltype_freq_table)
-head(broad_celltype_prop_table)
-
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_broad_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(broad_celltype_prop_table$prop)
-graphics.off()
-
-## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- broad_celltype_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same broad_scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
-
-########### clusters
-
-print("clusters purity...")
-
-# calculate frequencies in which metacells are in each stage
-clusters_freq_table <- calculate_metacell_frequencies(ArchR, category = "clusters")
-head(clusters_freq_table)
-
-# calculate proportions of labels in metacells
-clusters_prop_table <- calculate_metacell_proportions(clusters_freq_table)
-head(clusters_prop_table)
-
-# plot the relative proportions of labels in each metacell
-png(paste0(plot_path, "Hist_mixed_clusters_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-hist(clusters_prop_table$prop)
-graphics.off()
-
-## how many metacells have > 50% of their cells from same label
-high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
-head(high_proportion_cells)
-print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell))))
-
-print("SEACell purity plots made!")
+## loop through categories and check each of them for purity in metacells
+for (cat in categories) {
+  
+  print(paste0("Checking purity of ", cat))
+  if (!(cat %in% colnames(getCellColData(ArchR)))){
+    stop("Category not in ArchR cell col data!")}
+  
+  plot_path_temp = paste0(plot_path, cat, "/")
+  dir.create(plot_path_temp, recursive = T)
+  
+  # calculate frequencies
+  freq_table <- calculate_metacell_frequencies(ArchR, metacell_slot = "SEACell_ID", category = cat)
+  
+  # calculate proportions of labels in metacells
+  prop_table <- calculate_metacell_proportions(freq_table)
+  
+  # plot the relative proportions of labels in each metacell
+  png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+  hist(prop_table$prop)
+  graphics.off()
+  
+  # plot the max relative proportions of labels in each metacell
+  max_prop_table <- prop_table %>% group_by(Metacell) %>% dplyr::summarise(prop = max(prop))
+  png(paste0(plot_path_temp, "Hist_max_proportions_per_metacell.png"), width=25, height=20, units = 'cm', res = 200)
+  hist(max_prop_table$prop)
+  graphics.off()
+  
+  ## how many metacells have > 50% of their cells from same label
+  png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
+  piechart_proportion_threshold(prop_table, threshold = 0.5)
+  graphics.off()
+  
+  ## how many metacells have > 75% of their cells from same label
+  png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
+  piechart_proportion_threshold(prop_table, threshold = 0.75)
+  graphics.off()
+  
+  ## how many metacells have > 90% of their cells from same label
+  png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
+  piechart_proportion_threshold(prop_table, threshold = 0.9)
+  graphics.off()
+  
+}
 
 ############################## Read summarised counts by metacells #######################################
 
-SEACells_summarised <- as.matrix(fread(paste0(data_path, "rds_files/", label), header = TRUE), rownames = 1)
+SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
 print("Summarised count data read in!")
 
 ####################################  Cluster metacells #######################################
@@ -284,8 +266,6 @@ dir.create(plot_path, recursive = T)
 
 ## normalise each metacell by the total number of cut sites
 normalised_counts <- t(apply(SEACells_summarised, 1, function(x) x/sum(x))) * 1000
-normalised_counts[1:2, 1:2]
-dim(normalised_counts)
 
 ## calculate new variance and plot 
 variance <- apply(SEACells_summarised, 2, var)
@@ -311,12 +291,12 @@ dim(corr_mat)
 diss_matrix <- as.dist(1 - corr_mat)
 tree <- hclust(diss_matrix, method="complete")
 
-png(paste0(plot_path, "hclust_tree.png"), width=60, height=40, units = 'cm', res = 200)
+png(paste0(plot_path, "hclust_tree.png"), width=100, height=40, units = 'cm', res = 200)
 plot(tree)
 graphics.off()
 
 # split tree into clusters based on k
-metacell_clusters <- as.data.frame(cutree(tree, k = 29))
+metacell_clusters <- as.data.frame(cutree(tree, k = opt$k))
 metacell_clusters <- rownames_to_column(metacell_clusters)
 colnames(metacell_clusters) <- c("SEACell", "SEACell_cluster")
 metacell_clusters <- metacell_clusters %>%
@@ -330,6 +310,7 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = metacell_clusters$SEACell_clus
                         cells = SEACells_cell_assignments$index, name = "SEACell_cluster", force = TRUE)
 
 print("SEACells clustered!")
+print(paste0("Number of clusters made: ", length(unique(metacell_clusters$SEACell_cluster))))
 
 ############################## Plot seacell clusters on UMAP #######################################
 
@@ -349,92 +330,54 @@ seacell_cluster_sizes <- as.data.frame(table(getCellColData(ArchR, select = "SEA
   mutate(Freq = as.numeric(Freq))
 
 png(paste0(plot_path, "SEACell_cluster_sizes_hist.png"), width=60, height=40, units = 'cm', res = 200)
-hist(seacell_cluster_sizes$Freq, breaks = 30)
+hist(seacell_cluster_sizes$Freq, breaks = opt$k+10)
 graphics.off()
 
-# ############################## Explore seacell cluster purity #######################################
+############################## Explore seacell cluster purity #######################################
 
-# ########### Stages
-
-# # calculate frequencies in which metacells are in each stage
-# stage_freq_table <- calculate_metacell_frequencies(ArchR, category = "stage", metacell_slot = "SEACell_cluster")
-# head(stage_freq_table)
-
-# # calculate proportions of labels in metacells
-# stage_prop_table <- calculate_metacell_proportions(stage_freq_table)
-# head(stage_prop_table)
-
-# # plot the relative proportions of labels in each metacell
-# png(paste0(plot_path, "Hist_mixed_stages_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-# hist(stage_prop_table$prop)
-# graphics.off()
-
-# ## how many metacell clusters have > 50% of their cells from same label
-# high_proportion_cells <- stage_prop_table %>% filter(prop > 0.5)
-# head(high_proportion_cells)
-# print(paste0("Number of metacells with more than 50% of their cells from same stage: ", length(unique(high_proportion_cells$Metacell))))
-
-# ########### scHelper_cell_type
-
-# # calculate frequencies in which metacells are in each stage
-# celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type")
-# head(celltype_freq_table)
-
-# # calculate proportions of labels in metacells
-# celltype_prop_table <- calculate_metacell_proportions(celltype_freq_table)
-# head(celltype_prop_table)
-
-# # plot the relative proportions of labels in each metacell
-# png(paste0(plot_path, "Hist_mixed_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-# hist(celltype_prop_table$prop)
-# graphics.off()
-
-# ## how many metacell clusters have > 50% of their cells from same label
-# high_proportion_cells <- celltype_prop_table %>% filter(prop > 0.5)
-# head(high_proportion_cells)
-# print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type: ", length(unique(high_proportion_cells$Metacell))))
-
-# ########### scHelper_cell_type_broad
-
-# # calculate frequencies in which metacells are in each stage
-# broad_celltype_freq_table <- calculate_metacell_frequencies(ArchR, category = "scHelper_cell_type_broad")
-# head(broad_celltype_freq_table)
-
-# # calculate proportions of labels in metacells
-# broad_celltype_prop_table <- calculate_metacell_proportions(broad_celltype_freq_table)
-# head(broad_celltype_prop_table)
-
-# # plot the relative proportions of labels in each metacell
-# png(paste0(plot_path, "Hist_mixed_broad_celltype_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-# hist(broad_celltype_prop_table$prop)
-# graphics.off()
-
-# ## how many metacell clusters have > 50% of their cells from same label
-# high_proportion_cells <- broad_celltype_prop_table %>% filter(prop > 0.5)
-# head(high_proportion_cells)
-# print(paste0("Number of metacells with more than 50% of their cells from same scHelper_cell_type_broad: ", length(unique(high_proportion_cells$Metacell))))
-
-# ########### clusters
-
-# # calculate frequencies in which metacells are in each stage
-# clusters_freq_table <- calculate_metacell_frequencies(ArchR, category = "clusters")
-# head(clusters_freq_table)
-
-# # calculate proportions of labels in metacells
-# clusters_prop_table <- calculate_metacell_proportions(clusters_freq_table)
-# head(clusters_prop_table)
-
-# # plot the relative proportions of labels in each metacell
-# png(paste0(plot_path, "Hist_mixed_clusters_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-# hist(clusters_prop_table$prop)
-# graphics.off()
-
-# ## how many metacell clusters have > 50% of their cells from same label
-# high_proportion_cells <- clusters_prop_table %>% filter(prop > 0.5)
-# head(high_proportion_cells)
-# print(paste0("Number of metacells with more than 50% of their cells from same cluster: ", length(unique(high_proportion_cells$Metacell))))
-
-# print("SEACells clusters purity plots made!")
+## loop through categories and check each of them for purity in metacells
+for (cat in categories) {
+  
+  print(paste0("Checking purity of ", cat))
+  if (!(cat %in% colnames(getCellColData(ArchR)))){
+    stop("Category not in ArchR cell col data!")}
+  
+  plot_path_temp = paste0(plot_path, cat, "/")
+  dir.create(plot_path_temp, recursive = T)
+  
+  # calculate frequencies
+  freq_table <- calculate_metacell_frequencies(ArchR, category = cat, metacell_slot = "SEACell_cluster")
+  
+  # calculate proportions of labels in metacells
+  prop_table <- calculate_metacell_proportions(freq_table)
+  
+  # plot the relative proportions of labels in each metacell
+  png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+  hist(prop_table$prop)
+  graphics.off()
+  
+  # plot the max relative proportions of labels in each metacell
+  max_prop_table <- prop_table %>% group_by(Metacell) %>% dplyr::summarise(prop = max(prop))
+  png(paste0(plot_path_temp, "Hist_max_proportions_per_metacell.png"), width=25, height=20, units = 'cm', res = 200)
+  hist(max_prop_table$prop)
+  graphics.off()
+  
+  ## how many metacells have > 50% of their cells from same label
+  png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
+  piechart_proportion_threshold(prop_table, threshold = 0.5)
+  graphics.off()
+  
+  ## how many metacells have > 75% of their cells from same label
+  png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
+  piechart_proportion_threshold(prop_table, threshold = 0.75)
+  graphics.off()
+  
+  ## how many metacells have > 90% of their cells from same label
+  png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
+  piechart_proportion_threshold(prop_table, threshold = 0.9)
+  graphics.off()
+  
+}
 
 ############################## Save ArchR with new obs #######################################
 
@@ -446,4 +389,3 @@ print("ArchR object saved")
 
 write.csv(SEACells_summarised, paste0(rds_path, "SEACells_summarised.csv"))
 print("Summarised count data written out!")
-
