@@ -259,125 +259,128 @@ for (cat in categories) {
 SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
 print("Summarised count data read in!")
 
+
+
+########    !!! NOT DOING THIS ANYMORE AS DOESNT SEEM TO WORK WITH HCLUST, WOULD HAVE TO USE OTHER CLUSTERING APPROACH  ########
 ####################################  Cluster metacells #######################################
 
-plot_path = "plots/seacell_clusters/"
-dir.create(plot_path, recursive = T)
+# plot_path = "plots/seacell_clusters/"
+# dir.create(plot_path, recursive = T)
 
-## normalise each metacell by the total number of cut sites
-normalised_counts <- t(apply(SEACells_summarised, 1, function(x) x/sum(x))) * 1000
+# ## normalise each metacell by the total number of cut sites
+# normalised_counts <- t(apply(SEACells_summarised, 1, function(x) x/sum(x))) * 1000
 
-## calculate new variance and plot 
-variance <- apply(SEACells_summarised, 2, var)
-print("Before normalising:")
-print(summary(variance))
+# ## calculate new variance and plot 
+# variance <- apply(SEACells_summarised, 2, var)
+# print("Before normalising:")
+# print(summary(variance))
 
-png(paste0(plot_path, "hist_variance_before_normalising.png"), width=60, height=40, units = 'cm', res = 200)
-hist(variance, breaks = 1000)
-graphics.off()
+# png(paste0(plot_path, "hist_variance_before_normalising.png"), width=60, height=40, units = 'cm', res = 200)
+# hist(variance, breaks = 1000)
+# graphics.off()
 
-variance <- apply(normalised_counts, 2, var)
-print("After normalising:")
-print(summary(variance))
+# variance <- apply(normalised_counts, 2, var)
+# print("After normalising:")
+# print(summary(variance))
 
-png(paste0(plot_path, "hist_variance_after_normalising.png"), width=60, height=40, units = 'cm', res = 200)
-hist(variance, breaks = 1000)
-graphics.off()
+# png(paste0(plot_path, "hist_variance_after_normalising.png"), width=60, height=40, units = 'cm', res = 200)
+# hist(variance, breaks = 1000)
+# graphics.off()
 
-## cluster metacells by hclust
-corr_mat <- cor(t(normalised_counts), method = "spearman")
-dim(corr_mat)
+# ## cluster metacells by hclust
+# corr_mat <- cor(t(normalised_counts), method = "spearman")
+# dim(corr_mat)
 
-diss_matrix <- as.dist(1 - corr_mat)
-tree <- hclust(diss_matrix, method="complete")
+# diss_matrix <- as.dist(1 - corr_mat)
+# tree <- hclust(diss_matrix, method="complete")
 
-png(paste0(plot_path, "hclust_tree.png"), width=100, height=40, units = 'cm', res = 200)
-plot(tree)
-graphics.off()
+# png(paste0(plot_path, "hclust_tree.png"), width=100, height=40, units = 'cm', res = 200)
+# plot(tree)
+# graphics.off()
 
-# split tree into clusters based on k
-metacell_clusters <- as.data.frame(cutree(tree, k = opt$k))
-metacell_clusters <- rownames_to_column(metacell_clusters)
-colnames(metacell_clusters) <- c("SEACell", "SEACell_cluster")
-metacell_clusters <- metacell_clusters %>%
-  mutate(SEACell_cluster = paste0("seacell_cluster_", SEACell_cluster))
-head(metacell_clusters)
-dim(metacell_clusters)
+# # split tree into clusters based on k
+# metacell_clusters <- as.data.frame(cutree(tree, k = opt$k))
+# metacell_clusters <- rownames_to_column(metacell_clusters)
+# colnames(metacell_clusters) <- c("SEACell", "SEACell_cluster")
+# metacell_clusters <- metacell_clusters %>%
+#   mutate(SEACell_cluster = paste0("seacell_cluster_", SEACell_cluster))
+# head(metacell_clusters)
+# dim(metacell_clusters)
 
-# add new metacell cluster IDs to ArchR object
-metacell_clusters <- merge(metacell_clusters, SEACells_cell_assignments)
-ArchR <- addCellColData(ArchRProj = ArchR, data = metacell_clusters$SEACell_cluster,
-                        cells = SEACells_cell_assignments$index, name = "SEACell_cluster", force = TRUE)
+# # add new metacell cluster IDs to ArchR object
+# metacell_clusters <- merge(metacell_clusters, SEACells_cell_assignments)
+# ArchR <- addCellColData(ArchRProj = ArchR, data = metacell_clusters$SEACell_cluster,
+#                         cells = SEACells_cell_assignments$index, name = "SEACell_cluster", force = TRUE)
 
-print("SEACells clustered!")
-print(paste0("Number of clusters made: ", length(unique(metacell_clusters$SEACell_cluster))))
+# print("SEACells clustered!")
+# print(paste0("Number of clusters made: ", length(unique(metacell_clusters$SEACell_cluster))))
 
-############################## Plot seacell clusters on UMAP #######################################
+# ############################## Plot seacell clusters on UMAP #######################################
 
-p1 <- plotEmbedding(ArchR, 
-                    name = "SEACell_cluster",
-                    plotAs = "points", size = 1,
-                    baseSize = 0, labelSize = 0, legendSize = 0, 
-                    randomize = TRUE)
+# p1 <- plotEmbedding(ArchR, 
+#                     name = "SEACell_cluster",
+#                     plotAs = "points", size = 1,
+#                     baseSize = 0, labelSize = 0, legendSize = 0, 
+#                     randomize = TRUE)
 
-png(paste0(plot_path, "SEACell_cluster_UMAP.png"), width=60, height=40, units = 'cm', res = 200)
-print(p1)
-graphics.off()
+# png(paste0(plot_path, "SEACell_cluster_UMAP.png"), width=60, height=40, units = 'cm', res = 200)
+# print(p1)
+# graphics.off()
 
-############################## Plot seacell clusters size distribution #######################################
+# ############################## Plot seacell clusters size distribution #######################################
 
-seacell_cluster_sizes <- as.data.frame(table(getCellColData(ArchR, select = "SEACell_cluster"))) %>%
-  mutate(Freq = as.numeric(Freq))
+# seacell_cluster_sizes <- as.data.frame(table(getCellColData(ArchR, select = "SEACell_cluster"))) %>%
+#   mutate(Freq = as.numeric(Freq))
 
-png(paste0(plot_path, "SEACell_cluster_sizes_hist.png"), width=60, height=40, units = 'cm', res = 200)
-hist(seacell_cluster_sizes$Freq, breaks = opt$k+10)
-graphics.off()
+# png(paste0(plot_path, "SEACell_cluster_sizes_hist.png"), width=60, height=40, units = 'cm', res = 200)
+# hist(seacell_cluster_sizes$Freq, breaks = opt$k+10)
+# graphics.off()
 
-############################## Explore seacell cluster purity #######################################
+# ############################## Explore seacell cluster purity #######################################
 
-## loop through categories and check each of them for purity in metacells
-for (cat in categories) {
+# ## loop through categories and check each of them for purity in metacells
+# for (cat in categories) {
   
-  print(paste0("Checking purity of ", cat))
-  if (!(cat %in% colnames(getCellColData(ArchR)))){
-    stop("Category not in ArchR cell col data!")}
+#   print(paste0("Checking purity of ", cat))
+#   if (!(cat %in% colnames(getCellColData(ArchR)))){
+#     stop("Category not in ArchR cell col data!")}
   
-  plot_path_temp = paste0(plot_path, cat, "/")
-  dir.create(plot_path_temp, recursive = T)
+#   plot_path_temp = paste0(plot_path, cat, "/")
+#   dir.create(plot_path_temp, recursive = T)
   
-  # calculate frequencies
-  freq_table <- calculate_metacell_frequencies(ArchR, category = cat, metacell_slot = "SEACell_cluster")
+#   # calculate frequencies
+#   freq_table <- calculate_metacell_frequencies(ArchR, category = cat, metacell_slot = "SEACell_cluster")
   
-  # calculate proportions of labels in metacells
-  prop_table <- calculate_metacell_proportions(freq_table)
+#   # calculate proportions of labels in metacells
+#   prop_table <- calculate_metacell_proportions(freq_table)
   
-  # plot the relative proportions of labels in each metacell
-  png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-  hist(prop_table$prop)
-  graphics.off()
+#   # plot the relative proportions of labels in each metacell
+#   png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+#   hist(prop_table$prop)
+#   graphics.off()
   
-  # plot the max relative proportions of labels in each metacell
-  max_prop_table <- prop_table %>% group_by(Metacell) %>% dplyr::summarise(prop = max(prop))
-  png(paste0(plot_path_temp, "Hist_max_proportions_per_metacell.png"), width=25, height=20, units = 'cm', res = 200)
-  hist(max_prop_table$prop)
-  graphics.off()
+#   # plot the max relative proportions of labels in each metacell
+#   max_prop_table <- prop_table %>% group_by(Metacell) %>% dplyr::summarise(prop = max(prop))
+#   png(paste0(plot_path_temp, "Hist_max_proportions_per_metacell.png"), width=25, height=20, units = 'cm', res = 200)
+#   hist(max_prop_table$prop)
+#   graphics.off()
   
-  ## how many metacells have > 50% of their cells from same label
-  png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.5)
-  graphics.off()
+#   ## how many metacells have > 50% of their cells from same label
+#   png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
+#   piechart_proportion_threshold(prop_table, threshold = 0.5)
+#   graphics.off()
   
-  ## how many metacells have > 75% of their cells from same label
-  png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.75)
-  graphics.off()
+#   ## how many metacells have > 75% of their cells from same label
+#   png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
+#   piechart_proportion_threshold(prop_table, threshold = 0.75)
+#   graphics.off()
   
-  ## how many metacells have > 90% of their cells from same label
-  png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.9)
-  graphics.off()
+#   ## how many metacells have > 90% of their cells from same label
+#   png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
+#   piechart_proportion_threshold(prop_table, threshold = 0.9)
+#   graphics.off()
   
-}
+# }
 
 ############################## Save ArchR with new obs #######################################
 
