@@ -31,10 +31,15 @@ include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filt
 // include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 // include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 
-//WORKFLOWS
+//CALCULATING SEACELL WFs
+
+include { ARCHR_TO_ANNDATA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_to_anndata_WF"
+include { SEACELLS_WF as SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
+
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
-include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
-include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
+include {R as SEAURAT_TO_ANNDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/seurat_h5ad.R", checkIfExists: true) )
+include { SEACELLS_WF as SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
+
 // include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration"
 // include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_transfer_labels"
 
@@ -117,13 +122,14 @@ workflow A {
         /////////////// Run SEACells on individual stages  //////////////////////////
 
         // Extract the stages (ie remove FullData object)
-        ch_upstream_processed.out
+        ch_upstream_processed
             .filter{ meta, data -> meta.sample_id != 'FullData'} // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()]}
             .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
 
         // Run Metacells on ATAC stages
-        SEACELLS_ATAC_WF( ch_TL )
+        ARCHR_TO_ANNDATA_WF( ch_stages )
+        SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
              
         // read in RNA data (stages only)
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -131,7 +137,8 @@ workflow A {
                                                 // etc
 
         // Run Metacells on RNA stages
-        SEACELLS_RNA_WF( METADATA_RNA.out.metadata )
+        SEAURAT_TO_ANNDATA( METADATA_RNA.out.metadata )
+        SEACELLS_RNA_WF( SEAURAT_TO_ANNDATA.out )
 
         // // combine ATAC and RNA data (stages only)
         // ch_stages
