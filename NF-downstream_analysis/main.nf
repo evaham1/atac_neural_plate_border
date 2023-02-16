@@ -128,7 +128,7 @@ workflow A {
             .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
 
         // Run Metacells on ATAC stages
-        //ch_stages.view()
+        ch_stages.view()
         ARCHR_TO_ANNDATA_WF( ch_stages )
         SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
              
