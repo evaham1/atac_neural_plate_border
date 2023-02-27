@@ -45,6 +45,7 @@ def main(args=None):
         os.mkdir(rds_path)
 
     # Load data
+    print(os.listdir(args.input))
     ad = sc.read(args.input + '/AnnData.h5ad')
     print(ad)
 
