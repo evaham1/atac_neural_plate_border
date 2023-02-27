@@ -123,14 +123,12 @@ workflow A {
 
         // Extract the stages (ie remove FullData object)
         ch_upstream_processed
-            .filter{ meta, data -> meta.sample_id != 'FullData'} // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-            .view()
-            .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()]}
+            .filter{ meta, data -> meta.sample_id != 'FullData'}
             .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
 
         // Run Metacells on ATAC stages
-        //ch_stages.view()
-        //ARCHR_TO_ANNDATA_WF( ch_stages )
+        ch_stages.view()
+        ARCHR_TO_ANNDATA_WF( ch_stages )
         //SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
              
         // read in RNA data (stages only)
