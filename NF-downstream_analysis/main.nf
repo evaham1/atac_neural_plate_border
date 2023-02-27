@@ -102,7 +102,8 @@ workflow A {
         
     } else {
        
-       METADATA_UPSTREAM_PROCESSED( params.upstream_processed_sample_sheet )
+       //METADATA_UPSTREAM_PROCESSED( params.upstream_processed_sample_sheet )
+       METADATA_UPSTREAM_PROCESSED( params.upstream_processed_sample_sheet_temp )
        ch_upstream_processed = METADATA_UPSTREAM_PROCESSED.out.metadata     // [[sample_id:HH5], [HH5_Save-ArchR]]
                                                                             // [[sample_id:HH6], [HH6_Save-ArchR]]
                                                                             // etc
@@ -127,12 +128,13 @@ workflow A {
                                 // etc
 
         // Call peaks on stages
-        PEAK_CALL( ch_stages )
+        //PEAK_CALL( ch_stages )
 
         ///////     Run Metacells      ///////
 
         // Run Metacells on ATAC stages
-        ARCHR_TO_ANNDATA_WF( PEAK_CALL.out )
+        //ARCHR_TO_ANNDATA_WF( PEAK_CALL.out )
+        ARCHR_TO_ANNDATA_WF( ch_stages )
         SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
              
         // read in RNA data (stages only)
