@@ -1,10 +1,14 @@
 #!/usr/bin/env Rscript
 
+##### Convert seurat object to h5ad AnnData object for python processing
+
 # Load packages
 library(Seurat)
 library(SeuratDisk)
 library(scHelper)
 library(optparse)
+
+############################## Set up script options #######################################
 
 # Read in command line opts
 option_list <- list(
@@ -21,17 +25,36 @@ opt <- parse_args(opt_parser)
 if(opt$verbose) print(opt)
 
 # Set paths and load data
-cat('pipeline running through Nextflow\n')
-data_path = "./input/"
+{
+  if(length(commandArgs(trailingOnly = TRUE)) == 0){
+    cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
+    
+    ncores = 8
+    
+    # interative path goes here
+    
+  } else if (opt$runtype == "nextflow"){
+    cat('pipeline running through Nextflow\n')
+    
+    plot_path = "./plots/"
+    rds_path = "./rds_files/"
+    data_path = "./input/"
+    ncores = opt$cores
+    
+  } else {
+    stop("--runtype must be set to 'nextflow'")
+  }
+  
+  cat(paste0("script ran with ", ncores, " cores\n")) 
+  dir.create(plot_path, recursive = T)
+  dir.create(rds_path, recursive = T)
+}
 
-# # Options for testing
-# opt <- list()
-# opt$assay = 'integrated'
-# opt$outfile = 'seurat'
-# opt$group_by = 'scHelper_cell_type'
-# seurat_object <- readRDS("./output/NF-downstream_analysis_stacas/transfer_labels/seurat/rds_files/seurat_label_transfer.RDS")
+############################## Read in data #######################################
 
 seurat_object <- readRDS(list.files(data_path, full.names = TRUE, recursive = TRUE))
+
+############################## Convert to H5ad #######################################
 
 DefaultAssay(seurat_object) <- opt$assay
 seurat_object <- DietSeurat(seurat_object, counts = TRUE, assays = opt$assay, dimreducs = c('pca', 'umap'))
@@ -73,14 +96,15 @@ seurat_object@meta.data[['cell_colours']] <- unname(colours[cell_state])
 # If any na values are present in seurat identities, set colour to grey
 seurat_object@meta.data[['cell_colours']][is.na(seurat_object@meta.data[['cell_colours']])] <- '#AAAAAA'
 
-
 # Convert factor columns to character before converting to h5ad
 i <- sapply(seurat_object@meta.data, is.factor)
 seurat_object@meta.data[i] <- lapply(seurat_object@meta.data[i], as.character)
 
+############################## Save #######################################
+
 # SaveH5Seurat sometimes encounters a recursion error. File is already written by this point so error can be ignored with try().
 # try(SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, '.h5Seurat')), silent = TRUE)
-SaveH5Seurat(seurat_object, filename = 'AnnData.h5ad')
+SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, 'AnnData.h5ad'))
 Convert(paste0(opt$outfile, '.h5Seurat'), dest = "h5ad")
 
 # Remove intermediate h5Seurat file
