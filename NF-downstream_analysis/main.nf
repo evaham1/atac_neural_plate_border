@@ -29,7 +29,7 @@ include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filt
 // PROCESSING WORKFLOWS AND MODULES
 //MODULES
 // include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
-// include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 
 //CALCULATING SEACELL WFs
 
@@ -119,27 +119,30 @@ workflow A {
 
     if(!skip_processing){
 
-        /////////////// Run SEACells on individual stages  //////////////////////////
-
         // Extract the stages (ie remove FullData object)
         ch_upstream_processed
             .filter{ meta, data -> meta.sample_id != 'FullData'}
             .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
 
+        // Call peaks on stages
+        PEAK_CALL( ch_stages )
+
+        ///////     Run Metacells      ///////
+
         // Run Metacells on ATAC stages
-        ch_stages.view()
-        ARCHR_TO_ANNDATA_WF( ch_stages )
-        //SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
+        ARCHR_TO_ANNDATA_WF( PEAK_CALL.out )
+        SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
              
         // read in RNA data (stages only)
-        // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-        //                                         // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-        //                                         // etc
+        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                                // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                                // etc
+        // Run Metacells on RNA stages
+        METADATA_RNA.out.metadata.view()
+        SEAURAT_TO_ANNDATA( METADATA_RNA.out.metadata )
+        SEACELLS_RNA_WF( SEAURAT_TO_ANNDATA.out )
 
-        // // Run Metacells on RNA stages
-        // METADATA_RNA.out.metadata.view()
-        // SEAURAT_TO_ANNDATA( METADATA_RNA.out.metadata )
-        // SEACELLS_RNA_WF( SEAURAT_TO_ANNDATA.out )
+        ///////     Integrate      ///////
 
         // // combine ATAC and RNA data (stages only)
         // ch_stages
@@ -152,11 +155,7 @@ workflow A {
         // // Integrate + filter out contaminating cells (stages only)
         // INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
-        // /////////////// Call peaks on integrated, contam filtered stages data  //////////////////////////
-
-        // // Call peaks on resulting data (stages only)
-        // PEAK_CALL( INTEGRATING.out.integrated_filtered )
-
+        
         // /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
         // // extract the full data
