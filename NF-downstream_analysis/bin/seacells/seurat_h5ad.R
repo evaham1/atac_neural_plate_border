@@ -22,7 +22,7 @@ if(opt$verbose) print(opt)
 
 # Set paths and load data
 cat('pipeline running through Nextflow\n')
-data_path = "./input/rds_files/"
+data_path = "./input/"
 
 # # Options for testing
 # opt <- list()
