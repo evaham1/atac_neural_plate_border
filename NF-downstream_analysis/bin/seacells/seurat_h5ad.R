@@ -111,4 +111,4 @@ Convert(paste0(opt$outfile, '.h5seurat'), dest = "h5ad")
 file.remove(paste0(opt$outfile, '.h5seurat'))
 
 # Move .h5ad file to ./rds_fles/
-file.move(paste0(opt$outfile, '.h5seurat'), rds_path)
+system(paste0("mv ", opt$outfile, ".h5ad ./rds_files/"))
