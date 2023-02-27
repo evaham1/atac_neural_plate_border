@@ -49,12 +49,6 @@ def main(args=None):
     ad = sc.read(args.input + 'AnnData.h5ad')
     print(ad)
 
-    # Plot cell-types for reference
-    plt.figure(figsize=(8,8))
-    sc.pl.scatter(ad, basis='umap', color='scHelper_cell_type', frameon=False)
-    plt.savefig(os.path.join(plot_path, "UMAP_scHelper_cell_type.png"))
-    plt.close()
-
     plt.figure(figsize=(8,8))
     sc.pl.scatter(ad, basis='umap', color='clusters', frameon=False)
     plt.savefig(os.path.join(plot_path, "UMAP_clusters.png"))
@@ -152,7 +146,7 @@ def main(args=None):
 
     # summarise counts by soft labels -> SEACell_soft_ad
     # print("Summarising counts for soft labels...")
-    # SEACell_soft_ad = SEACells.core.summarize_by_soft_SEACell(ad, model.A_, celltype_label='stage_scHelper_cell_type_old',summarize_layer='raw', minimum_weight=0.05)
+    # SEACell_soft_ad = SEACells.core.summarize_by_soft_SEACell(ad, model.A_,summarize_layer='raw', minimum_weight=0.05)
     # SEACell_soft_ad.obs.head()
 
     ### Do we need to normalise??
@@ -176,34 +170,14 @@ def main(args=None):
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
 
-    # purity of metacells - clusters on full data
+    # purity of metacells - clusters
     SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'clusters')
     SEACell_purity.head()
     plt.figure(figsize=(5,5))
     sns.boxplot(data=SEACell_purity, y='clusters_purity')
     plt.title('ArchR clusters Purity')
     sns.despine()
-    plt.savefig(os.path.join(plot_path, "Metacell_ArchR_clusters_purity.png"), bbox_inches="tight")
-    plt.close()
-
-    # purity of metacells - scHelper cell type from individual stages
-    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'scHelper_cell_type')
-    SEACell_purity.head()
-    plt.figure(figsize=(5,5))
-    sns.boxplot(data=SEACell_purity, y='scHelper_cell_type_purity')
-    plt.title('scHelper cell type Purity')
-    sns.despine()
-    plt.savefig(os.path.join(plot_path, "Metacell_scHelper_cell_type_purity.png"), bbox_inches="tight")
-    plt.close()
-
-    # purity of metacells - clusters on individual stages
-    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'clusters')
-    SEACell_purity.head()
-    plt.figure(figsize=(5,5))
-    sns.boxplot(data=SEACell_purity, y='clusters_purity')
-    plt.title('ArchR clusters Purity')
-    sns.despine()
-    plt.savefig(os.path.join(plot_path, "Metacell_ArchR_clusters_purity.png"), bbox_inches="tight")
+    plt.savefig(os.path.join(plot_path, "Metacell_clusters_purity.png"), bbox_inches="tight")
     plt.close()
     
     # compactness
