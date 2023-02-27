@@ -122,7 +122,9 @@ workflow A {
         // Extract the stages (ie remove FullData object)
         ch_upstream_processed
             .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .set{ ch_stages } // [ [sample_id:HH5], [HH5-ArchR] ]
+            .set{ ch_stages } // [[sample_id:HH5], [HH5-ArchR]]
+                                // [[sample_id:HH6], [HH6-ArchR]]
+                                // etc
 
         // Call peaks on stages
         PEAK_CALL( ch_stages )
@@ -138,7 +140,6 @@ workflow A {
                                                 // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                                 // etc
         // Run Metacells on RNA stages
-        METADATA_RNA.out.metadata.view()
         SEAURAT_TO_ANNDATA( METADATA_RNA.out.metadata )
         SEACELLS_RNA_WF( SEAURAT_TO_ANNDATA.out )
 
@@ -155,7 +156,7 @@ workflow A {
         // // Integrate + filter out contaminating cells (stages only)
         // INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
-        
+
         // /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
 
         // // extract the full data
