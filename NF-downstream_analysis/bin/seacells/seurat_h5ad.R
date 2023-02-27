@@ -104,8 +104,8 @@ seurat_object@meta.data[i] <- lapply(seurat_object@meta.data[i], as.character)
 
 # SaveH5Seurat sometimes encounters a recursion error. File is already written by this point so error can be ignored with try().
 # try(SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, '.h5Seurat')), silent = TRUE)
-SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, 'AnnData.h5ad'))
-Convert(paste0(opt$outfile, '.h5Seurat'), dest = "h5ad")
+SaveH5Seurat(seurat_object, filename = paste0(rds_path, opt$outfile))
+Convert(paste0(rds_path, opt$outfile, '.h5Seurat'), dest = "h5ad")
 
 # Remove intermediate h5Seurat file
-file.remove(paste0(opt$outfile, '.h5Seurat'))
+file.remove(paste0(rds_path, opt$outfile, '.h5Seurat'))
