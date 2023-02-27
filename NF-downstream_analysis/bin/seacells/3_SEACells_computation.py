@@ -51,8 +51,8 @@ def main(args=None):
 
     # Plot cell-types for reference
     plt.figure(figsize=(8,8))
-    sc.pl.scatter(ad, basis='umap', color='stage_scHelper_cell_type_old', frameon=False)
-    plt.savefig(os.path.join(plot_path, "UMAP_stage_scHelper_cell_type_old.png"))
+    sc.pl.scatter(ad, basis='umap', color='scHelper_cell_type', frameon=False)
+    plt.savefig(os.path.join(plot_path, "UMAP_scHelper_cell_type.png"))
     plt.close()
 
     plt.figure(figsize=(8,8))
@@ -187,23 +187,23 @@ def main(args=None):
     plt.close()
 
     # purity of metacells - scHelper cell type from individual stages
-    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'stage_scHelper_cell_type_old')
+    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'scHelper_cell_type')
     SEACell_purity.head()
     plt.figure(figsize=(5,5))
-    sns.boxplot(data=SEACell_purity, y='stage_scHelper_cell_type_old_purity')
+    sns.boxplot(data=SEACell_purity, y='scHelper_cell_type_purity')
     plt.title('scHelper cell type Purity')
     sns.despine()
-    plt.savefig(os.path.join(plot_path, "Metacell_stage_scHelper_cell_type_purity.png"), bbox_inches="tight")
+    plt.savefig(os.path.join(plot_path, "Metacell_scHelper_cell_type_purity.png"), bbox_inches="tight")
     plt.close()
 
     # purity of metacells - clusters on individual stages
-    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'stage_clusters')
+    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'clusters')
     SEACell_purity.head()
     plt.figure(figsize=(5,5))
-    sns.boxplot(data=SEACell_purity, y='stage_clusters_purity')
+    sns.boxplot(data=SEACell_purity, y='clusters_purity')
     plt.title('ArchR clusters Purity')
     sns.despine()
-    plt.savefig(os.path.join(plot_path, "Metacell_ArchR_stage_clusters_purity.png"), bbox_inches="tight")
+    plt.savefig(os.path.join(plot_path, "Metacell_ArchR_clusters_purity.png"), bbox_inches="tight")
     plt.close()
     
     # compactness
