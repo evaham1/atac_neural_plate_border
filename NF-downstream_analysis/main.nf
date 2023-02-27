@@ -130,7 +130,7 @@ workflow A {
         // Run Metacells on ATAC stages
         ch_stages.view()
         ARCHR_TO_ANNDATA_WF( ch_stages )
-        SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
+        //SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
              
         // read in RNA data (stages only)
         // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
