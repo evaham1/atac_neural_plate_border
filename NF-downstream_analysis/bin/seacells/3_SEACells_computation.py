@@ -46,7 +46,7 @@ def main(args=None):
 
     # Load data
     print(os.listdir(args.input))
-    ad = sc.read(args.input + '/AnnData.h5ad')
+    ad = sc.read(args.input + 'AnnData.h5ad')
     print(ad)
 
     # Plot cell-types for reference
