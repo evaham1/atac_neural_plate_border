@@ -61,6 +61,13 @@ def main(args=None):
     plt.savefig(os.path.join(plot_path, "UMAP_clusters.png"))
     plt.close()
 
+    # For RNA data plot scHelper_cell_types on UMAP
+    if "scHelper_cell_type" in list(ad.obs.columns):
+        plt.figure(figsize=(8,8))
+        sc.pl.scatter(ad, basis='umap', color="scHelper_cell_type", frameon=False)
+        plt.savefig(os.path.join(plot_path, "UMAP_scHelper_cell_type.png"))
+        plt.close()
+
     #####   Run SEACells
     plot_path = "./plots/computing_SEACells/"
     if not os.path.exists(plot_path):
@@ -197,6 +204,18 @@ def main(args=None):
     sns.despine()
     plt.savefig(os.path.join(plot_path, "Metacell_clusters_purity.png"), bbox_inches="tight")
     plt.close()
+
+    # For RNA data purity of scHelper_cell_types
+    if "scHelper_cell_type" in list(ad.obs.columns):
+        SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, "scHelper_cell_type")
+        SEACell_purity.head()
+        y = "scHelper_cell_type_purity"
+        plt.figure(figsize=(5,5))
+        sns.boxplot(data=SEACell_purity, y=y)
+        plt.title('scHelper_cell_type Purity')
+        sns.despine()
+        plt.savefig(os.path.join(plot_path, "Metacell_scHelper_cell_type_purity.png"), bbox_inches="tight")
+        plt.close()
     
     # compactness
     compactness = SEACells.evaluate.compactness(ad, dim_red)
@@ -217,7 +236,7 @@ def main(args=None):
     plt.close()
 
     ### Saving data
-    
+
     # Save AnnData object with metacell assignments
     del ad.var['_index']
     ad.write(os.path.join(rds_path, 'AnnData_metacells_assigned.h5ad'))
