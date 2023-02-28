@@ -75,7 +75,11 @@ def main(args=None):
     # Set parameters 
     #n_SEACells = 10 # for s8 data that has 7,409 cells should use 90, use less for now to speed up
     cell_number = ad.obs.shape[0]
-    n_SEACells = round(cell_number/80)
+    if dim_red == "X_svd":
+        SEACell_size = 80
+    elif dim_red == "X_pca":
+        SEACell_size = 40
+    n_SEACells = round(cell_number/SEACell_size)
     print("Number of SEACells to calculate: ")
     print(n_SEACells)
     build_kernel_on = dim_red 
