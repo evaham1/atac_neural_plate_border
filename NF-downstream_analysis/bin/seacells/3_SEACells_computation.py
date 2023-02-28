@@ -213,7 +213,7 @@ def main(args=None):
         plt.close()
     
     # compactness
-    compactness = SEACells.evaluate.compactness(ad, dim_red)
+    compactness = SEACells.evaluate.compactness(ad, build_kernel_on)
     plt.figure(figsize=(5,5))
     sns.boxplot(data=compactness, y='compactness')
     plt.title('Compactness')
@@ -222,7 +222,7 @@ def main(args=None):
     plt.close()
 
     # separation
-    separation = SEACells.evaluate.separation(ad, dim_red, nth_nbr=1)
+    separation = SEACells.evaluate.separation(ad, build_kernel_on, nth_nbr=1)
     plt.figure(figsize=(5,5))
     sns.boxplot(data=separation, y='separation')
     plt.title('Separation')
