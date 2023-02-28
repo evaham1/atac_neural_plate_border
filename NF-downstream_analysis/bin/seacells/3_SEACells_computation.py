@@ -49,11 +49,17 @@ def main(args=None):
     ad = sc.read(args.input + 'AnnData.h5ad')
     print(ad)
 
-    # Identify if cluster slot is called 'clusters' (ATAC) or 'seurat_clusters' (RNA)
+    # Identify data is ATAC or RNA ('clusters' = ATAC, 'seurat_clusters' = RNA)
     if "clusters" in list(ad.obs.columns):
+        data_type = "ATAC"
         category = "clusters"
+        build_kernel_on = "X_svd"
+        SEACell_size = 80
     elif "seurat_clusters" in list(ad.obs.columns):
+        data_type = "RNA"
         category = "seurat_clusters"
+        build_kernel_on = "X_pca"
+        SEACell_size = 40
 
     # Plot clusters
     plt.figure(figsize=(8,8))
@@ -73,23 +79,12 @@ def main(args=None):
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
 
-    # Identify if dim reduction is 'PCA' (RNA) or 'X_svd' (ATAC)
-    if "X_svd" in ad.obsm:
-        dim_red = "X_svd"
-    elif "X_pca" in ad.obsm:
-        dim_red = "X_pca"
-
     # Set parameters 
-    #n_SEACells = 10 # for s8 data that has 7,409 cells should use 90, use less for now to speed up
+    #n_SEACells = 10 # for ss8 data that has 7,409 cells should use 90, use less for now to speed up
     cell_number = ad.obs.shape[0]
-    if dim_red == "X_svd":
-        SEACell_size = 80
-    elif dim_red == "X_pca":
-        SEACell_size = 40
     n_SEACells = round(cell_number/SEACell_size)
     print("Number of SEACells to calculate: ")
     print(n_SEACells)
-    build_kernel_on = dim_red 
     n_waypoint_eigs = 10 # Number of eigenvalues to consider when initializing metacells
 
     # Build SEACells model
@@ -161,7 +156,7 @@ def main(args=None):
     #####   Summarise counts by metacells
     # summarising needs to be run on a layer so copy the matrix to a layer called raw
     ad.layers["raw"] = ad.X
-    ad.layers.keys() # in RNA ad only one layer: raw
+    ad.layers.keys() # ad only one layer: raw
 
     # summarise counts by hard labels -> SEACell_ad
     print("Summarising counts for hard labels...")
@@ -237,8 +232,11 @@ def main(args=None):
 
     ### Saving data
 
+    # For RNA need to remove extra layer otherwise it doesn't save
+    if data_type == "RNA":
+        del ad.var['_index']
+
     # Save AnnData object with metacell assignments
-    del ad.var['_index']
     ad.write(os.path.join(rds_path, 'AnnData_metacells_assigned.h5ad'))
 
     # Save summarised AnnData object 
