@@ -66,13 +66,19 @@ def main(args=None):
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
 
+    # Identify if dim reduction is 'PCA' (RNA) or 'X_svd' (ATAC)
+    if "X_svd" in ad.obsm:
+        dim_red = "X_svd"
+    elif "X_pca" in ad.obsm:
+        dim_red = "X_pca"
+
     # Set parameters 
     #n_SEACells = 10 # for s8 data that has 7,409 cells should use 90, use less for now to speed up
     cell_number = ad.obs.shape[0]
     n_SEACells = round(cell_number/80)
     print("Number of SEACells to calculate: ")
     print(n_SEACells)
-    build_kernel_on = 'X_svd' 
+    build_kernel_on = dim_red 
     n_waypoint_eigs = 10 # Number of eigenvalues to consider when initializing metacells
 
     # Build SEACells model
