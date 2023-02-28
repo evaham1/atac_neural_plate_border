@@ -217,7 +217,9 @@ def main(args=None):
     plt.close()
 
     ### Saving data
+    
     # Save AnnData object with metacell assignments
+    del ad.var['_index']
     ad.write(os.path.join(rds_path, 'AnnData_metacells_assigned.h5ad'))
 
     # Save summarised AnnData object 
