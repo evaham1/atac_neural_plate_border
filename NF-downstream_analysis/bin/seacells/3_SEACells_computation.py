@@ -108,7 +108,7 @@ def main(args=None):
 
     # Iterate with different initialisations
     print("Fitting SEACElls model...")
-    model.fit(min_iter=10, max_iter=100) # for TL data
+    model.fit(min_iter=10, max_iter=100) # for real computation
     #model.fit(min_iter=1, max_iter=20) # to speed up for testing
     print(f'Ran for {len(model.RSS_iters)} iterations')
     for _ in range(5):
@@ -150,7 +150,7 @@ def main(args=None):
     #####   Summarise counts by metacells
     # summarising needs to be run on a layer so copy the matrix to a layer called raw
     ad.layers["raw"] = ad.X
-    ad.layers.keys()
+    ad.layers.keys() # in RNA ad only one layer: raw
 
     # summarise counts by hard labels -> SEACell_ad
     print("Summarising counts for hard labels...")
@@ -186,15 +186,16 @@ def main(args=None):
     # purity of metacells - clusters
     SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, category)
     SEACell_purity.head()
+    y = category + "_purity"
     plt.figure(figsize=(5,5))
-    sns.boxplot(data=SEACell_purity, y='clusters_purity')
+    sns.boxplot(data=SEACell_purity, y=y)
     plt.title('Clusters Purity')
     sns.despine()
     plt.savefig(os.path.join(plot_path, "Metacell_clusters_purity.png"), bbox_inches="tight")
     plt.close()
     
     # compactness
-    compactness = SEACells.evaluate.compactness(ad, 'X_svd')
+    compactness = SEACells.evaluate.compactness(ad, dim_red)
     plt.figure(figsize=(5,5))
     sns.boxplot(data=compactness, y='compactness')
     plt.title('Compactness')
@@ -203,7 +204,7 @@ def main(args=None):
     plt.close()
 
     # separation
-    separation = SEACells.evaluate.separation(ad, 'X_svd',nth_nbr=1)
+    separation = SEACells.evaluate.separation(ad, dim_red, nth_nbr=1)
     plt.figure(figsize=(5,5))
     sns.boxplot(data=separation, y='separation')
     plt.title('Separation')
@@ -212,7 +213,6 @@ def main(args=None):
     plt.close()
 
     ### Saving data
-
     # Save AnnData object with metacell assignments
     ad.write(os.path.join(rds_path, 'AnnData_metacells_assigned.h5ad'))
 
