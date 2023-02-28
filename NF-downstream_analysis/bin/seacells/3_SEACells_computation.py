@@ -49,8 +49,15 @@ def main(args=None):
     ad = sc.read(args.input + 'AnnData.h5ad')
     print(ad)
 
+    # Identify if cluster slot is called 'clusters' (ATAC) or 'seurat_clusters' (RNA)
+    if "clusters" in list(ad.obs.columns):
+        category = "clusters"
+    elif "seurat_clusters" in list(ad.obs.columns):
+        category = "seurat_clusters"
+
+    # Plot clusters
     plt.figure(figsize=(8,8))
-    sc.pl.scatter(ad, basis='umap', color='clusters', frameon=False)
+    sc.pl.scatter(ad, basis='umap', color=category, frameon=False)
     plt.savefig(os.path.join(plot_path, "UMAP_clusters.png"))
     plt.close()
 
@@ -171,11 +178,11 @@ def main(args=None):
         os.mkdir(plot_path)
 
     # purity of metacells - clusters
-    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, 'clusters')
+    SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, category)
     SEACell_purity.head()
     plt.figure(figsize=(5,5))
     sns.boxplot(data=SEACell_purity, y='clusters_purity')
-    plt.title('ArchR clusters Purity')
+    plt.title('Clusters Purity')
     sns.despine()
     plt.savefig(os.path.join(plot_path, "Metacell_clusters_purity.png"), bbox_inches="tight")
     plt.close()
