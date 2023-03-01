@@ -37,7 +37,7 @@ include { ARCHR_TO_ANNDATA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PRO
 include { SEACELLS_WF as SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
 
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
-include {R as SEAURAT_TO_ANNDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/seurat_h5ad.R", checkIfExists: true) )
+include {R as SEAURAT_TO_ANNDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
 include { SEACELLS_WF as SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
 
 // include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration"

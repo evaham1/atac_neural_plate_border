@@ -2,8 +2,8 @@
 nextflow.enable.dsl = 2
 
 // R and Python scripts to convert ArchR data to Anndata object
-include {R as ARCHR_EXPORT_DATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/1_export_data_from_ArchR.R", checkIfExists: true) )
-include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/2_exports_to_AnnData.py", checkIfExists: true) )
+include {R as ARCHR_EXPORT_DATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Export_data_from_ArchR.R", checkIfExists: true) )
+include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/data_conversion/ATAC_exports_to_AnnData.py", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
