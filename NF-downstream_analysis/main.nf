@@ -34,11 +34,10 @@ include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addP
 //CALCULATING SEACELL WFs
 
 include { ARCHR_TO_ANNDATA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_to_anndata_WF"
-include { SEACELLS_WF as SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
+include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
 
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
-include {R as SEAURAT_TO_ANNDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
-include { SEACELLS_WF as SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/seacells_WF"
+include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_RNA_WF"
 
 // include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration"
 // include { TRANSFER_LABELS } from "$baseDir/subworkflows/local/PROCESSING/archr_transfer_labels"
@@ -133,17 +132,14 @@ workflow A {
         ///////     Run Metacells      ///////
 
         // Run Metacells on ATAC stages
-        //ARCHR_TO_ANNDATA_WF( PEAK_CALL.out )
-        ARCHR_TO_ANNDATA_WF( ch_stages )
-        SEACELLS_ATAC_WF( ARCHR_TO_ANNDATA_WF.out.anndata )
+        SEACELLS_ATAC_WF( ch_stages )
              
         // read in RNA data (stages only)
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                                 // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                                 // etc
         // Run Metacells on RNA stages
-        SEAURAT_TO_ANNDATA( METADATA_RNA.out.metadata )
-        SEACELLS_RNA_WF( SEAURAT_TO_ANNDATA.out )
+        SEACELLS_RNA_WF( METADATA_RNA.out.metadata )
 
         ///////     Integrate      ///////
 
