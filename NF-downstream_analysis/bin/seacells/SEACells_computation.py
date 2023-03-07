@@ -54,12 +54,12 @@ def main(args=None):
         data_type = "ATAC"
         category = "clusters"
         build_kernel_on = "X_svd"
-        SEACell_size = 80
+        SEACell_size = 40
     elif "seurat_clusters" in list(ad.obs.columns):
         data_type = "RNA"
         category = "seurat_clusters"
         build_kernel_on = "X_pca"
-        SEACell_size = 40
+        SEACell_size = 10
 
     # Plot clusters
     plt.figure(figsize=(8,8))
