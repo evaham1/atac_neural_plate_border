@@ -33,15 +33,20 @@ def main(args=None):
     if not os.path.exists(rds_path):
         os.mkdir(rds_path)
 
-    #####   1) export for the full anndata object, need cell_ids:seacell_ids dictionary
+    #####   1) Cell-level metadata (includes seacell assignments)
     # Load data
     ad_full = sc.read(args.input + '/AnnData_metacells_assigned.h5ad')
     print(ad_full)
     # Export data
-    ad_full.obs.to_csv(os.path.join(rds_path,'AnnData_metacells_assigned_cell_metadata.csv'))
+    ad_full.obs.to_csv(os.path.join(rds_path,'Cell_metadata.csv'))
 
-    #####   2) export for the summarised anndata object, need summarised peak count matrix
-    ad_sum = sc.read(args.input + '/AnnData_summarised_by_metacells.h5ad')
+    #####   2) Feature-level metadata
+    # Export data
+    ad_full.var.to_csv(os.path.join(rds_path,'Feature_metadata.csv'))
+
+    #####   3) Summarised count matrix
+    # Load data
+    ad_sum = sc.read(args.input + '/Counts_summarised_by_metacells.h5ad')
     print(ad_sum)
     # Export data
     ad_sum.to_df(layer="raw").to_csv(os.path.join(rds_path,"AnnData_summarised_by_metacells_peak_counts.csv"))
