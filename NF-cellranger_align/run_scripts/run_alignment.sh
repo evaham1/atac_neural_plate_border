@@ -12,7 +12,7 @@ ml Graphviz
 
 export TERM=xterm
 export NXF_VER=21.10.6
-export NXF_SINGULARITY_CACHEDIR=/camp/home/thierya/working/NF_singularity
+export NXF_SINGULARITY_CACHEDIR=/camp/home/hamrude/briscoej/working/hamrude/NF_singularity
 
 ## UPDATE PIPLINE
 nextflow pull luslab/cheshic-nf-multi-omic
