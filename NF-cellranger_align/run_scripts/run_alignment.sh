@@ -15,7 +15,7 @@ export NXF_VER=21.10.6
 export NXF_SINGULARITY_CACHEDIR=/camp/home/hamrude/briscoej/working/hamrude/NF_singularity
 
 ## UPDATE PIPLINE
-nextflow pull luslab/cheshic-nf-multi-omic
+nextflow pull Streit-lab/cellranger_multiomic
 
 nextflow run Streit-lab/cellranger_multiomic \
     -c ./conf/crick_params.config \
