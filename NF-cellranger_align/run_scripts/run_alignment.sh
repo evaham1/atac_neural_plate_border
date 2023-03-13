@@ -18,7 +18,6 @@ export NXF_SINGULARITY_CACHEDIR=/camp/home/hamrude/briscoej/working/hamrude/NF_s
 nextflow pull luslab/cheshic-nf-multi-omic
 
 nextflow run Streit-lab/cellranger_multiomic \
-    -r eva_run_alignment \
     -c ./conf/crick_params.config \
     --sample_sheet ./samplesheet.csv \
     --outdir ../output/NF-cellranger_align \
