@@ -21,7 +21,7 @@ nextflow pull Streit-lab/cellranger_multiomic
 nextflow run Streit-lab/cellranger_multiomic \
     -r test_release \
     -c ./conf/crick_params.config \
-    --sample_sheet ./samplesheet.csv \
+    --sample_sheet ./samplesheet_alex.csv \
     --outdir ../output/NF-cellranger_align \
     --email eva.hamrud@crick.ac.uk \
     -resume
