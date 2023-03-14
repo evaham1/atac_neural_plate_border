@@ -12,7 +12,7 @@ ml Graphviz
 
 export TERM=xterm
 export NXF_VER=21.10.6
-export NXF_SINGULARITY_CACHEDIR=/camp/home/hamrude/briscoej/working/hamrude/NF_singularity
+export NXF_SINGULARITY_CACHEDIR=/nemo/lab/briscoej/working/hamrude/NF_singularity
 export NXF_HOME=/nemo/lab/briscoej/working/hamrude/nextflow
 
 ## UPDATE PIPLINE
