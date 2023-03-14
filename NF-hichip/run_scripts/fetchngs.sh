@@ -23,6 +23,6 @@ nextflow run nf-core/fetchngs \
     -c ./conf/crick_params.config \
     --input SRR_Acc_List.txt \
     --outdir ../output/NF-hichip_fetchngs \
-    --nf_core_pipeline atacseq \
+    --nf_core_pipeline rnaseq \
     --email thierya@crick.ac.uk \
     -resume
