@@ -19,8 +19,10 @@ export NXF_HOME=/nemo/project/home/thierya/working/nextflow
 nextflow pull nf-core/fetchngs
 
 nextflow run nf-core/fetchngs \
+    -r 1.9 \
     -c ./conf/crick_params.config \
-    --input ids.csv \
+    --input SRR_Acc_List.txt \
     --outdir ../output/NF-hichip_fetchngs \
+    --nf_core_pipeline atacseq \
     --email thierya@crick.ac.uk \
     -resume
