@@ -6,7 +6,7 @@
 
 ## LOAD REQUIRED MODULES
 ml purge
-ml Nextflow/21.10.6
+ml Nextflow/22.10.3
 ml Singularity/3.6.4
 ml Graphviz
 
