@@ -16,10 +16,10 @@ export NXF_VER=21.10.6
 export NXF_SINGULARITY_CACHEDIR=/camp/home/thierya/working/singularity
 
 ## UPDATE PIPLINE
-nextflow pull nf-core/fetchngs
+nextflow pull nf-core/hic
 
-nextflow run nf-core/fetchngs \
-    -r 1.9 \
+nextflow run nf-core/hic \
+    -r 2.0.0 \
     -c ./conf/crick_params.config \
     --input SRR_Acc_List.txt \
     --outdir ../output/NF-hichip_fetchngs \
