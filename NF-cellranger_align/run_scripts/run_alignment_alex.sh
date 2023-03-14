@@ -8,11 +8,11 @@ export TERM=xterm
 
 ## LOAD REQUIRED MODULES
 ml purge
-ml Nextflow/22.10.3
+ml Nextflow/21.10.6
 ml Singularity/3.4.2
 ml Graphviz
 
-export NXF_VER=22.10.3
+export NXF_VER=21.10.6
 export NXF_SINGULARITY_CACHEDIR=/camp/home/thierya/working/singularity
 
 ## UPDATE PIPLINE

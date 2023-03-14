@@ -8,18 +8,18 @@ export TERM=xterm
 
 ## LOAD REQUIRED MODULES
 ml purge
-ml Nextflow/22.10.3
+ml Nextflow/21.10.6
 ml Singularity/3.4.2
 ml Graphviz
 
-export NXF_VER=22.10.3
+export NXF_VER=21.10.6
 export NXF_SINGULARITY_CACHEDIR=/camp/home/thierya/working/singularity
 
 ## UPDATE PIPLINE
 nextflow pull nf-core/fetchngs
 
 nextflow run nf-core/fetchngs \
-    -r 1.9 \
+    -r 1.8 \
     -c ./conf/crick_params.config \
     --input SRR_Acc_List.txt \
     --outdir ../output/NF-hichip_fetchngs \
