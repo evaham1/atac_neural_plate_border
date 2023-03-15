@@ -1,6 +1,6 @@
 #!/bin/sh
-#SBATCH --job-name=NF-hichip_fetchngs
-#SBATCH -t 6:00:00
+#SBATCH --job-name=NF-hichip_alignment
+#SBATCH -t 42:00:00
 #SBATCH --mail-type=ALL,ARRAY_TASKS
 #SBATCH --mail-user=thierya@crick.ac.uk
 
@@ -22,6 +22,7 @@ nextflow pull nf-core/hic
 nextflow run nf-core/hic \
     -r 2.0.0 \
     -c ./conf/crick_params.config \
+    --digestion 'mboi' \
     --input  ./data/samplesheet.csv \
     --outdir ../output/NF-hichip_alignment \
     --email thierya@crick.ac.uk \
