@@ -8,8 +8,9 @@ export TERM=xterm
 
 ## LOAD REQUIRED MODULES
 ml purge
+ml Java/11.0.2
 ml Nextflow/22.10.3
-ml Singularity/3.4.2
+ml Singularity/3.6.4
 ml Graphviz
 
 export NXF_VER=22.10.3
