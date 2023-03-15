@@ -13,8 +13,9 @@ ml Singularity/3.4.2
 ml Graphviz
 
 export NXF_VER=21.10.6
-export NXF_SINGULARITY_CACHEDIR=/camp/home/thierya/working/singularity
-export NXF_HOME=/nemo/project/home/thierya/.nextflow
+export NXF_SINGULARITY_CACHEDIR=/nemo/lab/briscoej/working/thierya/singularity
+export NXF_HOME=/nemo/lab/briscoej/working/thierya/nextflow
+export NXF_WORK=work/
 
 ## UPDATE PIPLINE
 nextflow pull Streit-lab/cellranger_multiomic
