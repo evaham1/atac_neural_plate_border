@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --job-name=NF-cellranger_atac_align
-#SBATCH -t 2:00:00
+#SBATCH -t 48:00:00
 #SBATCH --mail-type=ALL,ARRAY_TASKS
 #SBATCH --mail-user=thierya@crick.ac.uk
 
