@@ -20,7 +20,7 @@ export NXF_WORK=work/
 nextflow pull Streit-lab/cellranger_multiomic
 
 nextflow run Streit-lab/cellranger_multiomic \
-    -r test_release \
+    -r main \
     -c ./conf/crick_params.config \
     --sample_sheet ./samplesheet.csv \
     --outdir ../output/NF-cellranger_align \
