@@ -20,7 +20,6 @@ export NXF_HOME=/nemo/project/home/thierya/.nextflow
 nextflow pull Streit-lab/cellranger_multiomic
 
 nextflow run Streit-lab/cellranger_multiomic \
-    -r test_release \
     -c ./conf/crick_params_alex.config \
     --sample_sheet ./samplesheet_alex.csv \
     --outdir ../output/NF-cellranger_align \
