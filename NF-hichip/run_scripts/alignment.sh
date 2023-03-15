@@ -22,8 +22,7 @@ nextflow pull nf-core/hic
 nextflow run nf-core/hic \
     -r 2.0.0 \
     -c ./conf/crick_params.config \
-    --input SRR_Acc_List.txt \
-    --outdir ../output/NF-hichip_fetchngs \
-    --nf_core_pipeline atacseq \
+    --input  ./data/samplesheet.csv \
+    --outdir ../output/NF-hichip_alignment \
     --email thierya@crick.ac.uk \
     -resume
