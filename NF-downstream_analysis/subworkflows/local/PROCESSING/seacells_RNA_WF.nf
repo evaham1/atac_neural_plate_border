@@ -29,7 +29,7 @@ workflow SEACELLS_RNA_WF {
     SEURAT_TO_ANNDATA( input )
 
     //////// Run SEACells /////////
-    CALCULATE_SEACELLS( input ) // Python script to calculate seacells on AnnData object
+    CALCULATE_SEACELLS( SEURAT_TO_ANNDATA.out ) // Python script to calculate seacells on AnnData object
     EXPORT_DATA_FROM_SEACELLS( CALCULATE_SEACELLS.out ) //Python script to export data from Anndata objects as .csv
 
     // Process resulting metacells - need to input original seurat object and the anndata exported data
