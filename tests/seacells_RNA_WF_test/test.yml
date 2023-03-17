@@ -1,0 +1,6 @@
+- name: seacells RNA WF
+  command: nextflow run ./tests/seacells_RNA_WF_test -c ./tests/config/nextflow.config -c ./tests/seacells_RNA_WF_test/nextflow.config -entry test_seacells_RNA_WF
+  tags:
+    - seacells_RNA_WF_test
+  files:
+    - path: ./output/seacells_RNA_WF_test/
