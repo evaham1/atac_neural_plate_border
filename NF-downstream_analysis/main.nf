@@ -31,8 +31,6 @@ include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filt
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 
 //CALCULATING SEACELL WFs
-
-include { ARCHR_TO_ANNDATA_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_to_anndata_WF"
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
 
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
