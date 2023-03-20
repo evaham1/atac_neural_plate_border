@@ -135,11 +135,11 @@ workflow A {
         // SEACELLS_ATAC_WF( ch_stages )
              
         // read in RNA data (stages only)
-        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-                                                // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-                                                // etc
-        // Run Metacells on RNA stages
-        SEACELLS_RNA_WF( METADATA_RNA.out.metadata )
+        // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        //                                         // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+        //                                         // etc
+        // // Run Metacells on RNA stages
+        // SEACELLS_RNA_WF( METADATA_RNA.out.metadata )
 
         ///////     Integrate      ///////
 
