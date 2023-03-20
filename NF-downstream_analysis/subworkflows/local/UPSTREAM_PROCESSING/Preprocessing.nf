@@ -16,6 +16,8 @@ workflow PREPROCESSING {
     input // [[meta], [cellranger_output, galgal_reference]]
         .set {ch_input}
 
+    input.view()
+
     EDIT_GTF ( input ) //edits the gtf file to add 'chr' to chromosome names
 
     EDIT_GTF.out 
