@@ -81,8 +81,6 @@ workflow A {
             .map{[it[0], it[1] + it[2]]}
             .set {ch_metadata} // add gtf to cellranger output so can add annotations
 
-        ch_metadata.view()
-
         PREPROCESSING ( ch_metadata ) // create ArchR object
 
         FILTERING ( PREPROCESSING.out.output ) // iterative filtering
