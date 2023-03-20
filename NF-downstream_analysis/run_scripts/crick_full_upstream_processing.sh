@@ -5,10 +5,14 @@
 #SBATCH --mail-user=eva.hamrud@crick.ac.uk
 
 export TERM=xterm
+export NXF_VER=21.10.6
+export NXF_SINGULARITY_CACHEDIR=/nemo/lab/briscoej/working/hamrude/NF_singularity
+export NXF_HOME=/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-downstream_analysis
+export NXF_WORK=work/
 
 ## LOAD REQUIRED MODULES
 ml purge
-ml Nextflow/21.10.3
+ml Nextflow/21.10.6
 ml Singularity/3.4.2
 ml Graphviz
 
