@@ -25,6 +25,8 @@ workflow SEACELLS_RNA_WF {
 
     input.set { ch_seurat }
 
+    input.view()
+
     // Convert seurat to Anndata object
     SEURAT_TO_ANNDATA( input )
 
