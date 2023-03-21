@@ -16,8 +16,6 @@ ml Nextflow/21.10.6
 ml Singularity/3.4.2
 ml Graphviz
 
-export NXF_VER=21.10.3
-
 ##nextflow run ./main.nf -dump-hashes \
 nextflow run ./main.nf \
 --outdir ../output/NF-downstream_analysis \
