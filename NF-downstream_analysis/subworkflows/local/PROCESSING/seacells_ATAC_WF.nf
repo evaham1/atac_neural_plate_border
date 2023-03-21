@@ -29,7 +29,7 @@ workflow SEACELLS_ATAC_WF {
     CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
     EXPORT_DATA_FROM_SEACELLS( CALCULATE_SEACELLS.out ) //Python script to export data from Anndata objects as .csv
 
-    // Downstream processing of Metacells
+    // Downstream processing of Metacells (manipulate channel to just extract summarised AnnData object for intergration)
 
 
     emit:
