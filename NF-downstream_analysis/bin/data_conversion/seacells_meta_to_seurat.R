@@ -26,7 +26,7 @@ option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
   make_option(c("-s", "--summarised_object_name"), action = "store", type = "character", help = "Name of summarised csv file from seacells", default = "Summarised_by_metacells_counts.csv"),
-  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
 opt_parser = OptionParser(option_list = option_list)
