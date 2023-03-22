@@ -52,11 +52,12 @@ workflow SEACELLS_RNA_WF {
     CLASSIFY_METACELLS( ch_state_classification )
 
     // Convert back into Anndata object for integration
-    //SEURAT_TO_ANNDATA_PROCESSED( ch )
+    SEURAT_TO_ANNDATA_PROCESSED( CLASSIFY_METACELLS.out )
 
     emit:
-    anndata = CALCULATE_SEACELLS.out
-    seurat = META_TO_SEURAT.out
-    //processed_anndata = SEURAT_TO_ANNDATA_PROCESSED.out
+    seacells_anndata = CALCULATE_SEACELLS.out
+    seacells_seurat = META_TO_SEURAT.out
+    seacells_seurat_classified = CLASSIFY_METACELLS.out
+    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
 
 }
