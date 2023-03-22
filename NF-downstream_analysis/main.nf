@@ -60,6 +60,11 @@ Channel
     .value(params.reference)
     .set{ch_reference}
 
+// Set channel for binary knowledge matrix for cell state classification
+Channel
+    .value("$baseDir/binary_knowledge_matrix_contam.csv")
+    .set{ch_binary_knowledge_matrix}
+
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
@@ -144,7 +149,7 @@ workflow A {
                                                 // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                                 // etc
         // Run Metacells on RNA stages
-        SEACELLS_RNA_WF( METADATA_RNA.out.metadata )
+        SEACELLS_RNA_WF( METADATA_RNA.out.metadata, ch_binary_knowledge_matrix )
 
         ///////     Integrate      ///////
 

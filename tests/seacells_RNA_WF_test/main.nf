@@ -5,10 +5,9 @@ nextflow.enable.dsl = 2
 include { SEACELLS_RNA_WF } from '../../NF-downstream_analysis/subworkflows/local/PROCESSING/seacells_RNA_WF'
 include { METADATA } from '../../NF-downstream_analysis/subworkflows/local/metadata'
 
-// Channel
-//     .fromPath(params.input)
-//     .map{ [['sample_id:test'], [it]]}
-//     .set{ch_input}
+Channel
+    .value("../../NF-downstream_analysis/binary_knowledge_matrix_contam.csv")
+    .set{ch_binary_knowledge_matrix}
 
 workflow test_seacells_RNA_WF {
 
@@ -17,5 +16,5 @@ workflow test_seacells_RNA_WF {
 
     ch_input.view()
 
-    SEACELLS_RNA_WF( ch_input )
+    SEACELLS_RNA_WF( ch_input, ch_binary_knowledge_matrix )
 }
