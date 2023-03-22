@@ -234,7 +234,7 @@ def main(args=None):
     plt.savefig(os.path.join(plot_path, "Separation.png"), bbox_inches="tight")
     plt.close()
 
-    ### Saving data
+    ### Saving Anndata objects - summarised and unsummarised
 
     print("Saving Anndata objects...")
 
@@ -247,6 +247,21 @@ def main(args=None):
 
     # Save summarised AnnData object 
     SEACell_ad.write(os.path.join(rds_path, 'AnnData_summarised_by_metacells.h5ad'))
+
+    ### Saving csv files of metadata and summarised count matrix
+
+    print("Exporting data into .csv files...")
+
+    rds_path = "./exported_data/"
+
+    # Cell-level metadata (includes seacell assignments)
+    ad.obs.to_csv(os.path.join(rds_path,'Cell_metadata.csv'))
+
+    # Feature-level metadata
+    ad.var.to_csv(os.path.join(rds_path,'Feature_metadata.csv'))
+
+    # Summarised count matrix
+    SEACell_ad.to_df(layer="raw").to_csv(os.path.join(rds_path,"Summarised_by_metacells_counts.csv"))
 
 
 if __name__ == '__main__':
