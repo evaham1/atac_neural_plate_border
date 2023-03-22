@@ -62,7 +62,7 @@ def main(args=None):
         build_kernel_on = "X_pca"
         SEACell_size = 10
 
-    print("Anndata modality detected: " + data_type)
+    print("Anndata modality detected: {}".format(data_type))
 
     # Plot clusters
     plt.figure(figsize=(8,8))
@@ -86,7 +86,7 @@ def main(args=None):
     #n_SEACells = 10 # for ss8 data that has 7,409 cells should use 90, use less for now to speed up
     cell_number = ad.obs.shape[0]
     n_SEACells = round(cell_number/SEACell_size)
-    print("Number of SEACells to calculate: " + n_SEACells)
+    print("Number of SEACells to calculate: {}".format(n_SEACells))
     n_waypoint_eigs = 10 # Number of eigenvalues to consider when initializing metacells
 
     # Build SEACells model
