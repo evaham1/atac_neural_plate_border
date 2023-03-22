@@ -44,6 +44,7 @@ if(opt$verbose) print(opt)
     ncores = 8
     data_path = "./local_test_data/test_inputs/test_input_seacells_meta_to_seurat/"
     rds_path = "./local_test_data/convert_seacells_to_seurat/"
+    plot_path = "./local_test_data/convert_seacells_to_seurat//plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -205,22 +206,6 @@ saveRDS(seurat, paste0(rds_path, "seurat.RDS"), compress = FALSE)
 ######################    Create summarised seurat object   #########################
 #####################################################################################
 
-#################### Add up counts across metacells #########################
-
-###### RNA slot: 3 assays: counts (raw), data (normalised), scale.data -> only add up raw 'counts'
-DefaultAssay(object = seurat) <- "RNA"
-DefaultAssay(object = seurat)
-summarised_RNA_counts <- summarise_seurat_data(seurat = seurat, data_slot = "counts", category = "SEACell")
-
-print("raw counts summarised")
-
-###### Integrated slot: 2 assays: data, scale.data -> only add up 'data'
-DefaultAssay(object = seurat) <- "integrated"
-DefaultAssay(object = seurat)
-summarised_integrated_data <- summarise_seurat_data(seurat = seurat, data_slot = "data", category = "SEACell")
-
-print("integrated counts summarised")
-
 ############################## Explore individual seacell purity #######################################
 
 categories <- strsplit(opt$categories, ",")[[1]]
@@ -323,6 +308,28 @@ seacells_seurat_metadata <- column_to_rownames(seacells_seurat_metadata, var = "
 
 head(seacells_seurat_metadata)
 
+#################### Add up counts across metacells #########################
+
+###### RNA slot: 3 assays: counts (raw), data (normalised), scale.data -> only add up raw 'counts'
+DefaultAssay(object = seurat) <- "RNA"
+DefaultAssay(object = seurat)
+summarised_RNA_counts <- summarise_seurat_data(seurat = seurat, data_slot = "counts", category = "SEACell")
+
+dim(summarised_RNA_counts) # 18683   215
+sum(is.na(summarised_RNA_counts)) # 0 NA values
+
+print("raw counts summarised")
+
+###### Integrated slot: 2 assays: data, scale.data -> only add up 'data'
+DefaultAssay(object = seurat) <- "integrated"
+DefaultAssay(object = seurat)
+summarised_integrated_data <- summarise_seurat_data(seurat = seurat, data_slot = "data", category = "SEACell")
+
+dim(summarised_integrated_data) # 18683   215
+sum(is.na(summarised_integrated_data)) # 0 NA values
+
+print("integrated counts summarised")
+
 #################### Create new seurat object #########################
 
 # Create object using summarised RNA counts and newly created cell metadata
@@ -336,17 +343,16 @@ seacells_seurat <- CreateSeuratObject(
 )
 
 # Add summarised integrated counts to seurat object
-integrated_assay <- CreateAssayObject(counts = summarised_integrated_data)
-seacells_seurat[["integrated"]] <- integrated_assay
+seacells_seurat[["integrated"]] <- CreateAssayObject(counts = summarised_integrated_data)
 
 # Validate that the object now contains multiple assays
 Assays(seacells_seurat)
 
+# Check metadata
+head(seacells_seurat@meta.data)
+
 # Print object
 print(seacells_seurat)
-
-# Check metadata
-seacells_seurat@meta.data
 
 print("created summarised seurat object!")
 
@@ -356,38 +362,54 @@ print("created summarised seurat object!")
 #####################################################################################
 
 DefaultAssay(object = seacells_seurat) <- "RNA"
+DefaultAssay(object = seacells_seurat)
 
-## Factors to regress out: MT percent, sex, cell cycle
+########## Remove genes expressed in fewer than 5 cells
+seacells_seurat <- DietSeurat(seacells_seurat, features = names(which(Matrix::rowSums(GetAssayData(seacells_seurat) > 0) >=5)))
+seacells_seurat
+
+
+########## Factors to regress out: MT percent, sex, cell cycle
+
+DefaultAssay(object = seacells_seurat) <- "RNA"
+DefaultAssay(object = seacells_seurat)
 
 # 1) MT percentage: re-calculate using raw counts
 seacells_seurat <- PercentageFeatureSet(seacells_seurat, pattern = "^MT-", col.name = "percent.mt")
+print("Added percent mt")
+head(seacells_seurat@meta.data)
 
-# 2) Sex: Seacells seem to be quite mixed for sex so decided not to regress for this again!
+# 2) Sex: Have already added proportion of male to column 'sex'
 
 # 3) Cell cycle: re-calculate using raw counts
 s.genes <- cc.genes$s.genes
 g2m.genes <- cc.genes$g2m.genes
 seacells_seurat <- CellCycleScoring(seacells_seurat, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+print("Added cell cycle score")
+head(seacells_seurat@meta.data)
 
-## Dim reduction and scaling
-
+## Normalising and Scaling
 seacells_seurat_processing <- NormalizeData(seacells_seurat, normalization.method = "LogNormalize", scale.factor = 10000)
 seacells_seurat_processing <- FindVariableFeatures(seacells_seurat_processing, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
-seacells_seurat_processing <- ScaleData(seacells_seurat_processing, features = rownames(seacells_seurat_processing), vars.to.regress = c("percent.mt", "S.Score", "G2M.Score"))
+seacells_seurat_processing <- ScaleData(seacells_seurat_processing, features = rownames(seacells_seurat_processing), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 
 print("raw counts re-processed")
+
+seacells_seurat_processing
 
 ############################################################################################
 ############################    Re-process 'Integrated' slot   #############################
 ############################################################################################
 
-DefaultAssay(object = seacells_seurat) <- "integrated"
+DefaultAssay(object = seacells_seurat_processing) <- "integrated"
 
-## Dim reduction and scaling
-
+## Normalising and Scaling
 seacells_seurat_processing <- NormalizeData(seacells_seurat, normalization.method = "LogNormalize", scale.factor = 10000)
-seacells_seurat_processing <- FindVariableFeatures(seacells_seurat_processing, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+seacells_seurat_processing <- FindVariableFeatures(seacells_seurat_processing, selection.method = "vst", nfeatures = 2000, assay = "integrated")
 seacells_seurat_processing <- ScaleData(seacells_seurat_processing, features = rownames(seacells_seurat_processing), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+
+## Dim reduction
+seacells_seurat_processing <- RunPCA(object = seacells_seurat_processing, verbose = FALSE)
 
 png(paste0(plot_path, "dimHM.png"), width=30, height=65, units = 'cm', res = 200)
 DimHeatmap(seacells_seurat_processing, dims = 1:20, balanced = TRUE, cells = 500)
@@ -400,7 +422,6 @@ graphics.off()
 pc_cutoff <- ElbowCutoff(seacells_seurat_processing)
 
 ## Find neighbours and calculate UMAP
-
 seacells_seurat_processing <- FindNeighbors(seacells_seurat_processing, dims = 1:pc_cutoff, verbose = FALSE)
 seacells_seurat_processing <- RunUMAP(seacells_seurat_processing, dims = 1:pc_cutoff, verbose = FALSE)
 
@@ -409,21 +430,21 @@ print("integrated counts re-processed")
 ## Visualise on UMAPs
 
 # Clusters
-png(paste0(plot_path, "UMAPs.png"), width=40, height=20, units = 'cm', res = 200)
-ClustStagePlot(seacells_seurat_processing)
+png(paste0(plot_path, "stage_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+DimPlot(seacells_seurat_processing, group.by = "stage", pt.size = 6)
 graphics.off()
 
 # QC metrics
 png(paste0(plot_path, "percent.mt_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(object = seacells_seurat_processing, features = "percent.mt", pt.size = 10)
+FeaturePlot(object = seacells_seurat_processing, features = "percent.mt", pt.size = 6)
 graphics.off()
 
 png(paste0(plot_path, "run_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-DimPlot(seacells_seurat_processing, group.by = "run", pt.size = 10)
+DimPlot(seacells_seurat_processing, group.by = "run", pt.size = 6)
 graphics.off()
 
 png(paste0(plot_path, "sex_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-DimPlot(seacells_seurat_processing, group.by = "sex", pt.size = 10)
+FeaturePlot(seacells_seurat_processing, features = "sex", pt.size = 6)
 graphics.off()
 
 # # scHelpercelltype
