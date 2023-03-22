@@ -253,6 +253,8 @@ def main(args=None):
     print("Exporting data into .csv files...")
 
     rds_path = "./exported_data/"
+    if not os.path.exists(rds_path):
+        os.mkdir(rds_path)
 
     # Cell-level metadata (includes seacell assignments)
     ad.obs.to_csv(os.path.join(rds_path,'Cell_metadata.csv'))
