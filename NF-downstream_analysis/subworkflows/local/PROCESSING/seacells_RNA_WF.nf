@@ -41,7 +41,7 @@ workflow SEACELLS_RNA_WF {
             //.collect()
             //.map { [[sample_id:'Input'], it] } // [[meta], [rds1, rds2, rds3, ...]]
     ch_combined.view() //[[sample_id:Test], [./plots, ./rds_files, ./ss8_clustered_data.RDS]]
-    META_TO_SEURAT( ch_combined ) // this outputs 2 seurat objects, one full object with metacells added and one summarised seurat
+    META_TO_SEURAT( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
     
     // need to filter to only the condensed seurat object to convert into anndata 
 
