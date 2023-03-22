@@ -56,6 +56,7 @@ if(opt$verbose) print(opt)
 # If there is only one object in data_path use this, if there is more than one need 'input' arg to define which one to use
 
 input_files <- list.files(data_path, full.names = TRUE, recursive = TRUE)
+print(paste0("Input files: ", input_files))
 
 if (length(input_files) > 1){
   print(paste0("Multiple input files detected, reading in only ", opt$input))
