@@ -214,8 +214,8 @@ summarised_RNA_counts <- summarise_seurat_data(seurat = seurat, data_slot = "cou
 print("raw counts summarised")
 
 ###### Integrated slot: 2 assays: data, scale.data -> only add up 'data'
-DefaultAssay(object = seacells_seurat) <- "integrated"
-DefaultAssay(object = seacells_seurat)
+DefaultAssay(object = seurat) <- "integrated"
+DefaultAssay(object = seurat)
 summarised_integrated_data <- summarise_seurat_data(seurat = seurat, data_slot = "data", category = "SEACell")
 
 print("integrated counts summarised")
