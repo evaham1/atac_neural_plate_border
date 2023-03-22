@@ -28,6 +28,7 @@ option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
   make_option(c("-m", "--metadata_file_name"), action = "store", type = "character", help = "Name of csv file which assigns cell ids to metacell ids", default = "exported_data/Cell_metadata.csv"),
+  make_option(c("-t", "--categories"), action = "store", type = "character", help = "Which categories to use to check for purity", default = "run,sex,stage,seurat_clusters,scHelper_cell_type"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
