@@ -25,8 +25,6 @@ workflow SEACELLS_RNA_WF {
 
     input.set { ch_seurat }
 
-    input.view()
-
     // Convert seurat to Anndata object
     SEURAT_TO_ANNDATA( input )
 
@@ -35,11 +33,15 @@ workflow SEACELLS_RNA_WF {
     EXPORT_DATA_FROM_SEACELLS( CALCULATE_SEACELLS.out ) //Python script to export data from Anndata objects as .csv
 
     // Process resulting metacells - need to input original seurat object and the anndata exported data
+    EXPORT_DATA_FROM_SEACELLS.out.view()
     ch_combined = EXPORT_DATA_FROM_SEACELLS.out
-            .concat( ch_seurat )
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'Input'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            .combine(ch_seurat)
+            .map{[it[0], it[1] + it[3]]}
+            //.concat( ch_seurat )
+            //.map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            //.collect()
+            //.map { [[sample_id:'Input'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+    ch_combined.view() //[[sample_id:Test], [./plots, ./rds_files, ./ss8_clustered_data.RDS]]
     META_TO_SEURAT( ch_combined ) // this outputs 2 seurat objects, one full object with metacells added and one summarised seurat
     
     // need to filter to only the condensed seurat object to convert into anndata 

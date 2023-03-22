@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("importing summarised by metacells counts into seurat object")
+print("script to transfer seacell ids to seurat object AND create and process seurat object summarised by seacells")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -25,7 +25,7 @@ library(tidyverse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of input file to convert"),
+  make_option(c("-s", "--summarised_object_name"), action = "store", type = "character", help = "Name of summarised csv file from seacells", default = "Summarised_by_metacells_counts.csv"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
@@ -40,7 +40,6 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     data_path = "./local_test_data/SEACells_from_camp/SEACELLS_RNA_WF/exported_SEACells_data/rds_files/"
-    opt$input = "AnnData_summarised_by_metacells_peak_counts.csv"
     rds_path = "./local_test_data/convert_seacells_to_seurat/"
     
   } else if (opt$runtype == "nextflow"){
@@ -49,7 +48,6 @@ if(opt$verbose) print(opt)
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/rds_files/"
-    label = "AnnData_summarised_by_metacells.h5ad"
     ncores = opt$cores
     
   } else {
@@ -97,18 +95,30 @@ summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEAC
 
 #################### Read in data and add metadata to seurat object #########################
 
-# Read in metdata
-metacell_metadata <- read.csv(paste0(data_path, "AnnData_metacells_assigned_cell_metadata.csv"))
+# Read in metadata (use summarised_object_name to find correct object, search only in /rds_files/ )
+metacell_metadata <- read.csv(paste0("./input/rds_files/", opt$summarised_object_name))
 metacell_dictionary <- select(metacell_metadata, c("index", "SEACell"))
 
-# Read in seurat object
-seurat <- readRDS("~/local_test_data/seurat_from_camp/ss8_clustered_data.RDS")
+print("Metacell IDs read in")
+print(head(metacell_dictionary))
+
+# Read in seurat object (identify label first, file needs to be named as [LABEL]_clustered_data.RDS, only looks in input not in /rds_files/)
+label <- sub('_.*', '', list.files("./input/"))
+print(label)
+seurat <- readRDS(paste0("./input/", label, "_clustered_data.RDS"))
+
+print("Seurat object read in")
+print(seurat)
 
 # Reorder seacells metadata to match cell order in seurat object
 metacell_dictionary <- metacell_dictionary[match(rownames(seurat@meta.data), metacell_dictionary$index),]
 
+print(head(metacell_dictionary))
+
 # Add seacells metadata to seurat object
 seurat <- AddMetaData(seurat, metacell_dictionary$SEACell, col.name = "SEACell")
+
+print("SEACell IDs added to seurat object")
 
 # Save seurat object
 saveRDS(seurat, paste0(rds_path, "seurat.RDS"), compress = FALSE)
@@ -117,6 +127,8 @@ saveRDS(seurat, paste0(rds_path, "seurat.RDS"), compress = FALSE)
 
 # Filter seurat object to only include SEACells
 seacells_seurat <- seurat[,colnames(seurat) %in% unique(metacell_dictionary$SEACell)]
+
+print("new seurat object creates with only seacells")
 
 #################### Add up counts across metacells #########################
 
@@ -127,12 +139,16 @@ DefaultAssay(object = seacells_seurat)
 summarised_RNA_counts <- summarise_seurat_data(seurat = seurat, data_slot = "counts", category = "SEACell")
 seacells_seurat <- SetAssayData(object = seacells_seurat, slot = "counts", new.data = summarised_RNA_counts, assay = "RNA")
 
+print("raw counts summarised")
+
 ###### Integrated slot: 2 assays: data, scale.data -> only add up 'data'
 DefaultAssay(object = seacells_seurat) <- "integrated"
 DefaultAssay(object = seacells_seurat)
 
 summarised_integrated_data <- summarise_seurat_data(seurat = seurat, data_slot = "data", category = "SEACell")
 seacells_seurat <- SetAssayData(object = seacells_seurat, slot = "data", new.data = summarised_integrated_data, assay = "integrated")
+
+print("integrated counts summarised")
 
 #####################################################################################
 ############################    Re-process 'RNA' slot   #############################
@@ -158,6 +174,7 @@ seacells_seurat_processing <- NormalizeData(seacells_seurat, normalization.metho
 seacells_seurat_processing <- FindVariableFeatures(seacells_seurat_processing, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
 seacells_seurat_processing <- ScaleData(seacells_seurat_processing, features = rownames(seacells_seurat_processing), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 
+print("raw counts re-processed")
 
 ############################################################################################
 ############################    Re-process 'Integrated' slot   #############################
@@ -207,6 +224,8 @@ graphics.off()
 png(paste0(plot_path, "percent.mt_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
 FeaturePlot(object = seacells_seurat_processing, features = "percent.mt", pt.size = 10)
 graphics.off()
+
+print("integrated counts re-processed")
 
 ## save seacells seurat object
 saveRDS(seacells_seurat, paste0(rds_path, "seacells_seurat.RDS"), compress = FALSE)
