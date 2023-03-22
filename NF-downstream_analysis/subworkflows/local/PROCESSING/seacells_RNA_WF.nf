@@ -24,7 +24,10 @@ workflow SEACELLS_RNA_WF {
 
     main:
 
-    input.set { ch_seurat }
+    input.view()
+    ch_BNM.view()
+
+    input.set{ch_seurat}
 
     // Convert seurat to Anndata object
     SEURAT_TO_ANNDATA( input )
@@ -40,7 +43,7 @@ workflow SEACELLS_RNA_WF {
     META_TO_SEURAT( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
 
     // Re-process summarised seurat object
-    PROCESS_METACELLS( META_TO_SEURAT )
+    PROCESS_METACELLS( META_TO_SEURAT.out )
 
     // Re-run cell state classification on metacells
     ch_state_classification = PROCESS_METACELLS.out
