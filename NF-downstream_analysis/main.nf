@@ -108,6 +108,11 @@ workflow A {
 
     }
 
+
+        //TEMP: just run from already peak-called objects so dont have to re-run that step - changed ch_upstream processed samplesheet to
+        // samplesheet_upstream_processed_temp.csv and comment out peak_call process
+
+
     ///////////////////////////////////////////////////////////////
     /////////////////////    PROCESSING      //////////////////////
     ///////////////////////////////////////////////////////////////
@@ -126,20 +131,19 @@ workflow A {
                                 // etc
 
         // Call peaks on stages
-        PEAK_CALL( ch_stages )
+        //PEAK_CALL( ch_stages )
 
         ///////     Run Metacells      ///////
 
         // Run Metacells on ATAC stages
         SEACELLS_ATAC_WF( PEAK_CALL.out )
-        // SEACELLS_ATAC_WF( ch_stages )
              
         // read in RNA data (stages only)
-        // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-        //                                         // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-        //                                         // etc
-        // // Run Metacells on RNA stages
-        // SEACELLS_RNA_WF( METADATA_RNA.out.metadata )
+        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                                // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                                // etc
+        // Run Metacells on RNA stages
+        SEACELLS_RNA_WF( METADATA_RNA.out.metadata )
 
         ///////     Integrate      ///////
 
