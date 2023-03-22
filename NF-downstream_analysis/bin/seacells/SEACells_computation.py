@@ -47,6 +47,7 @@ def main(args=None):
     # Load data
     print(os.listdir(args.input))
     ad = sc.read(args.input + 'AnnData.h5ad')
+    print("Anndata object loaded")
     print(ad)
 
     # Identify data is ATAC or RNA ('clusters' = ATAC, 'seurat_clusters' = RNA)
@@ -60,6 +61,8 @@ def main(args=None):
         category = "seurat_clusters"
         build_kernel_on = "X_pca"
         SEACell_size = 10
+
+    print("Anndata modality detected: " + data_type)
 
     # Plot clusters
     plt.figure(figsize=(8,8))
@@ -83,8 +86,7 @@ def main(args=None):
     #n_SEACells = 10 # for ss8 data that has 7,409 cells should use 90, use less for now to speed up
     cell_number = ad.obs.shape[0]
     n_SEACells = round(cell_number/SEACell_size)
-    print("Number of SEACells to calculate: ")
-    print(n_SEACells)
+    print("Number of SEACells to calculate: " + n_SEACells)
     n_waypoint_eigs = 10 # Number of eigenvalues to consider when initializing metacells
 
     # Build SEACells model
@@ -131,10 +133,12 @@ def main(args=None):
         os.mkdir(plot_path)
 
     # Visualise hard assignments
-    ad.obs[['SEACell']].head()
-    model.get_hard_assignments().head()
+    print("Visualising hard assignments..")
+    print(ad.obs[['SEACell']].head())
+    print(model.get_hard_assignments().head())
 
     # Visualise soft assignments
+    print("Visualising soft assignments..")
     plt.figure(figsize=(6,4))
     sns.distplot((model.A_.T > 0.1).sum(axis=1), kde=False)
     plt.title(f'Non-trivial (> 0.1) assignments per cell')
@@ -154,14 +158,14 @@ def main(args=None):
     labels,weights = model.get_soft_assignments()
 
     #####   Summarise counts by metacells
+    print("Summarising counts by metacells..")
     # summarising needs to be run on a layer so copy the matrix to a layer called raw
     ad.layers["raw"] = ad.X
     ad.layers.keys() # ad only one layer: raw
 
     # summarise counts by hard labels -> SEACell_ad
-    print("Summarising counts for hard labels...")
     SEACell_ad = SEACells.core.summarize_by_SEACell(ad, SEACells_label='SEACell', summarize_layer='raw')
-    SEACell_ad.obs.head()
+    print(SEACell_ad.obs.head())
 
     # summarise counts by soft labels -> SEACell_soft_ad
     # print("Summarising counts for soft labels...")
@@ -231,6 +235,8 @@ def main(args=None):
     plt.close()
 
     ### Saving data
+
+    print("Saving Anndata objects...")
 
     # For RNA need to remove extra layer otherwise it doesn't save
     if data_type == "RNA":
