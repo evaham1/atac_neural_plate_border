@@ -25,7 +25,7 @@ library(tidyverse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-s", "--summarised_object_name"), action = "store", type = "character", help = "Name of summarised csv file from seacells", default = "Summarised_by_metacells_counts.csv"),
+  make_option(c("-m", "--metadata_file_name"), action = "store", type = "character", help = "Name of csv file which assigns cell ids to metacell ids", default = "Cell_metadata.csv"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
@@ -39,7 +39,7 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-    data_path = "./local_test_data/SEACells_from_camp/SEACELLS_RNA_WF/exported_SEACells_data/rds_files/"
+    data_path = "./local_test_data/test_inputs/test_input_seacells_meta_to_seurat/"
     rds_path = "./local_test_data/convert_seacells_to_seurat/"
     
   } else if (opt$runtype == "nextflow"){
@@ -47,7 +47,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
   } else {
@@ -95,17 +95,17 @@ summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEAC
 
 #################### Read in data and add metadata to seurat object #########################
 
-# Read in metadata (use summarised_object_name to find correct object, search only in /rds_files/ )
-metacell_metadata <- read.csv(paste0("./input/rds_files/", opt$summarised_object_name))
+# Read in metadata (use metadata_file_name to find correct object, search only in /rds_files/ )
+metacell_metadata <- read.csv(paste0(data_path, "/rds_files/", opt$metadata_file_name))
 metacell_dictionary <- select(metacell_metadata, c("index", "SEACell"))
 
 print("Metacell IDs read in")
 print(head(metacell_dictionary))
 
 # Read in seurat object (identify label first, file needs to be named as [LABEL]_clustered_data.RDS, only looks in input not in /rds_files/)
-label <- sub('_.*', '', list.files("./input/"))
+label <- setdiff(sub('_.*', '', list.files(data_path)), "rds")
 print(label)
-seurat <- readRDS(paste0("./input/", label, "_clustered_data.RDS"))
+seurat <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))
 
 print("Seurat object read in")
 print(seurat)
