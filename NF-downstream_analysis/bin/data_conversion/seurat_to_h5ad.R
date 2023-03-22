@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-##### Convert seurat object to h5ad AnnData object for python processing
+print("Script to convert seurat object to h5ad AnnData object for python processing")
 
 # Load packages
 library(Seurat)
@@ -14,10 +14,11 @@ library(optparse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of inpuy seurat object"),
   make_option(c("-a", "--assay"), action = "store", type = "character", help = "Assay to export from seurat object ('integrated' or 'RNA')", default = 'integrated'),
   make_option(c("-o", "--outfile"), action = "store", type = "character", help = "Name of outfile"),
   make_option(c("-g", "--group_by"), action = "store", type = "character", help = "Name of metadata column containing groups to colour by", default = 'seurat_clusters'),
-  make_option(c("", "--verbose"), action = "store_true", type = "logical", help = "Verbose", default = FALSE)
+  make_option(c("", "--verbose"), action = "store_true", type = "logical", help = "Verbose", default = TRUE)
 )
 
 opt_parser = OptionParser(option_list = option_list)
@@ -52,7 +53,20 @@ if(opt$verbose) print(opt)
 
 ############################## Read in data #######################################
 
-seurat_object <- readRDS(list.files(data_path, full.names = TRUE, recursive = TRUE))
+# If there is only one object in data_path use this, if there is more than one need 'input' arg to define which one to use
+
+input_files <- list.files(data_path, full.names = TRUE, recursive = TRUE)
+
+if (length(input_files) > 1){
+  print(paste0("Multiple input files detected, reading in only ", opt$input))
+  if (is.null(opt$input)) {
+    stop("ERROR: input arg not defined!")
+    }
+  seurat_object <- readRDS(paste0(data_path, opt$input))
+} else {
+  print("Only one input file detected, reading in now...")
+  seurat_object <- readRDS(input_files)
+}
 
 ############################## Convert to H5ad #######################################
 
