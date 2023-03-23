@@ -41,13 +41,24 @@ workflow SEACELLS_RNA_WF {
     //////// Run SEACells /////////
     CALCULATE_SEACELLS( SEURAT_TO_ANNDATA.out ) // Python script to calculate seacells on AnnData object
 
-    CALCULATE_SEACELLS.out.view()
+    //CALCULATE_SEACELLS.out.view()
+    // [[sample_id:HH6], [./exported_data, ./plots, ./rds_files]]
 
     // Process resulting metacells - need to input original seurat object and the anndata exported data
-    ch_combined = CALCULATE_SEACELLS.out
-            .combine(ch_seurat)
-            .map{[it[0], it[1] + it[3]]}
-    ch_combined.view() //[[sample_id:Test], [./plots, ./rds_files, ./ss8_clustered_data.RDS]]
+    
+    // ch_combined = CALCULATE_SEACELLS.out
+    //         .combine(ch_seurat)
+    //         .map{[it[0], it[1] + it[3]]}
+    // ch_combined.view() //[[sample_id:Test], [./plots, ./rds_files, ./ss8_clustered_data.RDS]]
+    
+    CALCULATE_SEACELLS.out
+            .concat( ch_seurat )
+            .groupTuple( by:0 )
+            .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
+            .set {ch_combined}
+
+    ch_combined.view()
+
     META_TO_SEURAT( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
 
     // Re-process summarised seurat object
