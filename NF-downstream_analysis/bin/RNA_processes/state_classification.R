@@ -2,7 +2,13 @@
 
 # Load packages
 library(getopt)
+library(optparse)
+library(parallel)
 library(Seurat)
+library(dplyr)
+library(tibble)
+library(scHelper)
+library(ggplot2)
 library(future)
 library(cowplot)
 library(clustree)
@@ -11,13 +17,18 @@ library(grid)
 library(pheatmap)
 library(RColorBrewer)
 library(tidyverse)
-library(scHelper)
 
-spec = matrix(c(
-  'runtype', 'l', 2, "character",
-  'cores'   , 'c', 2, "integer"
-), byrow=TRUE, ncol=4)
-opt = getopt(spec)
+# Read in command line opts
+option_list <- list(
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of seurat input file to process", default = "seacells_seurat_integrated_processed.RDS"),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
+)
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
 ########################       CELL STATE COLOURS    ########################################
 scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
@@ -45,9 +56,9 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-    plot_path = "./test/state_classification/plots/"
-    rds_path = "./test/state_classification/rds_files/"
-    data_path = "./output/NF-downstream_analysis_stacas/seurat_filtering/6_contamination_filt/rds_files/"
+    plot_path = "./local_test_data/state_classification/plots/"
+    rds_path = "./local_test_data/state_classification/rds_files/"
+    data_path = "./local_test_data/test_inputs/test_input_seacells_classify/"
     
     ncores = 8
     
@@ -72,17 +83,9 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
   dir.create(rds_path, recursive = T)
 }
 
-# Retrieve seurat object label
-label <- sub('_.*', '', list.files(data_path, pattern = '*.RDS'))
-print(label)
-
-seurat_data <- readRDS(list.files(data_path, full.names = TRUE, pattern = '*.RDS'))
-# seurat_data <- readRDS('./output/NF-downstream_analysis_stacas/stage_split/HH4_splitstage_data/seurat/stage_cluster/rds_files/hh4_clustered_data.RDS')
-# seurat_data <- readRDS('./output/NF-downstream_analysis_stacas/stage_split/HH5_splitstage_data/seurat/stage_cluster/rds_files/hh5_clustered_data.RDS')
-# seurat_data <- readRDS('./output/NF-downstream_analysis_stacas/stage_split/HH6_splitstage_data/seurat/stage_cluster/rds_files/hh6_clustered_data.RDS')
-# seurat_data <- readRDS('./output/NF-downstream_analysis_stacas/stage_split/HH7_splitstage_data/seurat/stage_cluster/rds_files/hh7_clustered_data.RDS')
-# seurat_data <- readRDS('./output/NF-downstream_analysis_stacas/stage_split/ss4_splitstage_data/seurat/stage_cluster/rds_files/ss4_clustered_data.RDS')
-# seurat_data <- readRDS('./output/NF-downstream_analysis_stacas/stage_split/ss8_splitstage_data/seurat/stage_cluster/rds_files/ss8_clustered_data.RDS')
+# Read in seurat object using --input arg as file name in `.input/rds_files/`
+seurat_data <- readRDS(paste0(data_path, "rds_files/", opt$input))
+seurat_data
 
 ########################################################################################################
 #                                      Cell state classification                                    #
@@ -121,10 +124,11 @@ cell_states = list(
 )
 
 cell_state_markers <- lapply(cell_states, function(x) cell_state_markers[names(cell_state_markers) %in% x])
-
+print(cell_state_markers)
 
 # Run classification using different resolutions for different stages
 stage = unique(seurat_data@meta.data$stage)
+print(paste0("Stage: ", stage))
 
 if(length(stage) == 1){
   cell_state_markers = cell_state_markers[[stage]]
@@ -138,6 +142,7 @@ if(length(stage) == 1){
   # Set cluster res to 2 for run split subsets - 3 for integrated data
   cluster_res = ifelse(length(unique(seurat_data$run)) == 1, 2, 3)
 }
+print(paste0("Cluster_res: ", cluster_res))
 
 DefaultAssay(seurat_data) <- "integrated"
 
