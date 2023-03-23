@@ -92,6 +92,7 @@ sum(is.na(GetAssayData(object = seurat, slot = "scale.data"))) #<0 x 0 matrix>
 #####################################################################################
 
 plot_path = "./plots/RNA_assay/"
+dir.create(plot_path, recursive = T)
 
 ########## Factors to regress out: MT percent, sex, cell cycle
 
@@ -175,6 +176,7 @@ saveRDS(seurat, paste0(rds_path, "seacells_seurat_RNA_processed.RDS"), compress 
 seurat <- seurat_temp
 
 plot_path = "./plots/integrated_assay/"
+dir.create(plot_path, recursive = T)
 
 DefaultAssay(object = seurat) <- "integrated"
 DefaultAssay(object = seurat)
