@@ -34,6 +34,10 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # interative path goes here
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/rds_files/"
+    input = "Classified_metacells.RDS"
+    plot_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/6_RNA_Anndata_object_processed_classified/plots/"
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/6_RNA_Anndata_object_processed_classified/rds_files/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -63,12 +67,14 @@ if (length(input_files) > 1){
   print(paste0("Multiple input files detected, reading in only ", opt$input))
   if (is.null(opt$input)) {
     stop("ERROR: input arg not defined!")
-    }
+  }
   seurat_object <- readRDS(paste0(data_path, opt$input))
 } else {
   print("Only one input file detected, reading in now...")
   seurat_object <- readRDS(input_files)
 }
+
+print(seurat_object)
 
 ############################## Convert to H5ad #######################################
 
@@ -85,13 +91,13 @@ if(!opt[['group_by']] %in% colnames(seurat_object@meta.data)){
 
 if(opt$group_by == 'scHelper_cell_type'){
   colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                  "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                  "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3")
+               "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+               "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3")
   
   cell_state <- factor(seurat_object@meta.data[['scHelper_cell_type']], levels = c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
-                                                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                                                        'vFB', 'aNP', 'node', 'FB', 'pEpi'))
+                                                                                   'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                                                                   'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                                                                   'vFB', 'aNP', 'node', 'FB', 'pEpi'))
   names(colours) <- levels(cell_state)
   
 } else {
@@ -126,5 +132,5 @@ Convert(paste0(opt$outfile, '.h5seurat'), dest = "h5ad")
 # Remove intermediate h5Seurat file
 file.remove(paste0(opt$outfile, '.h5seurat'))
 
-# Move .h5ad file to ./rds_fles/
+# Move .h5ad file to ./rds_files/
 system(paste0("mv ", opt$outfile, ".h5ad ./rds_files/"))
