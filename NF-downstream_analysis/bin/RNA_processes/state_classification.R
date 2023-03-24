@@ -22,7 +22,7 @@ library(tidyverse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of seurat input file to process", default = "seacells_seurat_integrated_processed.RDS"),
+  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of seurat input file to process", default = "seacells_seurat_RNA_processed.RDS"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
@@ -56,9 +56,19 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-    plot_path = "./local_test_data/state_classification/plots/"
-    rds_path = "./local_test_data/state_classification/rds_files/"
-    data_path = "./local_test_data/test_inputs/test_input_seacells_classify/"
+    # paths for testing locally
+    #plot_path = "./local_test_data/state_classification/plots/"
+    #rds_path = "./local_test_data/state_classification/rds_files/"
+    #data_path = "./local_test_data/test_inputs/test_input_seacells_classify/"
+    
+    # paths for testing on nemo
+    plot_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/plots/"
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/4_Process_metacells/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss4/SEACELLS_RNA_WF/4_Process_metacells/"
+    data_path = "./output/NF-downstream_analysis/Processing/HH7/SEACELLS_RNA_WF/4_Process_metacells/"
+    data_path = "./output/NF-downstream_analysis/Processing/HH6/SEACELLS_RNA_WF/4_Process_metacells/"
+    data_path = "./output/NF-downstream_analysis/Processing/HH5/SEACELLS_RNA_WF/4_Process_metacells/"
     
     ncores = 8
     
@@ -83,31 +93,33 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
   dir.create(rds_path, recursive = T)
 }
 
-# Read in seurat object using --input arg as file name in `.input/rds_files/`
-seurat_data <- readRDS(paste0(data_path, "rds_files/", opt$input))
-seurat_data
+
 
 ########################################################################################################
 #                                      Cell state classification                                    #
 #######################################################################################
 
+# Read in seurat object using --input arg as file name in `.input/rds_files/`
+seurat_data <- readRDS(paste0(data_path, "rds_files/", opt$input))
+seurat_data
+
 # Convert knowledge matrix to gene list
 BNM <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE)
+# interactively:
+#BNM = "./NF-downstream_analysis/binary_knowledge_matrix_contam.csv"
 print(BNM)
 
 cell_state_markers <- read.csv(BNM, row.names = 1) %>% select(!c(evidence))
 cell_state_markers <- apply(cell_state_markers, 2, function(x) rownames(cell_state_markers)[x > 0])
 
 cell_states = list(
-  HH4 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN', 
-          'PGC', 'BI', 'meso', 'endo'),
 
   HH5 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN',
-          'NPB', 'aNPB', 'pNPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR', 'aPPR', 'pPPR',
+          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
           'PGC', 'BI', 'meso', 'endo'),
   
   HH6 = c('NNE', 'node', 'streak', 'eN', 'eCN',
-          'NPB', 'aNPB', 'pNPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR', 'aPPR', 'pPPR',
+          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
           'PGC', 'BI', 'meso', 'endo'),
 
   HH7 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
@@ -126,30 +138,45 @@ cell_states = list(
 cell_state_markers <- lapply(cell_states, function(x) cell_state_markers[names(cell_state_markers) %in% x])
 print(cell_state_markers)
 
+# Find optimal cluster resolution - want about 10 clusters
+png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+ClustRes(seurat_object = seurat_data, by = 0.4, prefix = "RNA_snn_res.")
+graphics.off()
+
 # Run classification using different resolutions for different stages
 stage = unique(seurat_data@meta.data$stage)
 print(paste0("Stage: ", stage))
 
-if(length(stage) == 1){
-  cell_state_markers = cell_state_markers[[stage]]
-  cluster_res = list(HH4 = 1.2, HH5 = 1.2, HH6 = 1.2, HH7 = 1.2, ss4 = 1.2, ss8 = 1.2)[[stage]]
-  metadata = c('scHelper_cell_type')
-} else {
-  cell_state_markers = flatten(cell_state_markers)
-  cell_state_markers = cell_state_markers[!duplicated(cell_state_markers)]
-  metadata = c('scHelper_cell_type', 'stage')
+cell_state_markers = cell_state_markers[[stage]]
+cluster_res = 2.4
+metadata = c('scHelper_cell_type')
+
+# if(length(stage) == 1){
+#   cell_state_markers = cell_state_markers[[stage]]
+#   cluster_res = list(HH4 = 2.4, HH5 = 2.4, HH6 = 2.4, HH7 = 2.4, ss4 = 2.4, ss8 = 2.4)[[stage]]
+#   metadata = c('scHelper_cell_type')
+# } else {
+#   cell_state_markers = flatten(cell_state_markers)
+#   cell_state_markers = cell_state_markers[!duplicated(cell_state_markers)]
+#   metadata = c('scHelper_cell_type', 'stage')
   
   # Set cluster res to 2 for run split subsets - 3 for integrated data
-  cluster_res = ifelse(length(unique(seurat_data$run)) == 1, 2, 3)
-}
+  #cluster_res = ifelse(length(unique(seurat_data$run)) == 1, 2, 3)
+#}
+
 print(paste0("Cluster_res: ", cluster_res))
-
-DefaultAssay(seurat_data) <- "integrated"
-
+DefaultAssay(seurat_data) <- "RNA"
 seurat_data <- FindClusters(seurat_data, resolution = cluster_res)
+
+png(paste0(plot_path, "clusters_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+DimPlot(seurat_data, group.by = "seurat_clusters", pt.size = 6)
+graphics.off()
 
 # Set RNA to default assay for plotting expression data
 DefaultAssay(seurat_data) <- "RNA"
+
+# temporary measure to make sure all marker genes are in the object
+cell_state_markers <- lapply(cell_state_markers, function(x) x[x %in% rownames(seurat_data)])
 
 cell_type_df <- lapply(cell_state_markers, function(x) t(GetAssayData(object = seurat_data, assay = 'RNA', slot = 'scale.data'))[,x] %>% as.data.frame(.) %>% rowSums(.)) %>%
   do.call('cbind', .) %>%
@@ -205,7 +232,7 @@ png(paste0(plot_path, "scHelper_celltype_umap.png"), width=12, height=12, units 
 DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE, 
         label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
         label.box = TRUE, repel = TRUE,
-        pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
+        pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 6, 6), 
         cols = scHelper_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
