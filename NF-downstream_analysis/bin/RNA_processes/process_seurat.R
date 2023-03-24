@@ -39,9 +39,16 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-    data_path = "./local_test_data/convert_seacells_to_seurat/rds_files/"
-    rds_path = "./local_test_data/processed_seurat/rds_files/"
-    plot_path = "./local_test_data/processed_seurat/plots/"
+    
+    # Paths for testing ss8 locally
+    #data_path = "./local_test_data/convert_seacells_to_seurat/rds_files/"
+    #rds_path = "./local_test_data/processed_seurat/rds_files/"
+    #plot_path = "./local_test_data/processed_seurat/plots/"
+    
+    # Paths for testing HH6 on NEMO
+    data_path = "./output/NF-downstream_analysis/Processing/HH6/SEACELLS_RNA_WF/3_SEACells_metadata_to_seurat/rds_files/"
+    rds_path = "./output/NF-downstream_analysis/Processing/HH6/SEACELLS_RNA_WF/4_Process_metacells/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Processing/HH6/SEACELLS_RNA_WF/4_Process_metacells/plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -90,147 +97,279 @@ sum(is.na(GetAssayData(object = seurat, slot = "scale.data"))) #<0 x 0 matrix>
 #####################################################################################
 ############################    Re-process 'RNA' slot   #############################
 #####################################################################################
+### Running everything on the 'RNA' slot only
 
-plot_path = "./plots/RNA_assay/"
-dir.create(plot_path, recursive = T)
-
-########## Factors to regress out: MT percent, sex, cell cycle
+################### Add potential factors to regress out: MT percent, sex, cell cycle, run #################
 
 DefaultAssay(object = seurat) <- "RNA"
 DefaultAssay(object = seurat)
 
-# 1) MT percentage: re-calculate using raw counts
+# MT percentage: re-calculate using raw counts
 seurat <- PercentageFeatureSet(seurat, pattern = "^MT-", col.name = "percent.mt")
 print("Added percent mt")
 head(seurat@meta.data)
 
-# 2) Sex: Have already added proportion of male to column 'sex'
-
-# 3) Cell cycle: re-calculate using raw counts
+# Cell cycle: re-calculate using raw counts
 s.genes <- cc.genes$s.genes
 g2m.genes <- cc.genes$g2m.genes
 seurat <- CellCycleScoring(seurat, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
 print("Added cell cycle score")
 head(seurat@meta.data)
 
-## Normalising and Scaling
+# Run: proportion of metacells from run 1 already in metadata
+
+# Sex: proportion of metacells from male already in metadata
+
+################### Normalise and find variable features #################
+
 seurat <- NormalizeData(seurat, normalization.method = "LogNormalize", scale.factor = 10000)
 seurat <- FindVariableFeatures(seurat, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
-seurat <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 
-print("raw counts re-processed")
+################### Dim reduction and clustering without regression #################
 
-seurat
-head(seurat@assays$RNA@scale.data)
+seurat <- ScaleData(seurat, features = rownames(seurat)) # scaling without regression
 
-seurat_temp <- seurat
-
-## Dim reduction
+# PCA + UMAP
 seurat <- RunPCA(object = seurat, verbose = FALSE)
-
-png(paste0(plot_path, "dimHM.png"), width=30, height=65, units = 'cm', res = 200)
-DimHeatmap(seurat, dims = 1:20, balanced = TRUE, cells = 500)
-graphics.off()
 
 png(paste0(plot_path, "ElbowCutoff.png"), width=30, height=20, units = 'cm', res = 200)
 ElbowCutoff(seurat, return = 'plot')
 graphics.off()
 
 pc_cutoff <- ElbowCutoff(seurat)
-
-## Find neighbours and calculate UMAP
 seurat <- FindNeighbors(seurat, dims = 1:pc_cutoff, verbose = FALSE)
 seurat <- RunUMAP(seurat, dims = 1:pc_cutoff, verbose = FALSE)
 
-print("dim reduction calculated on raw counts")
+# Cluster using default clustering resolution (0.5)
+seurat <- FindClusters(seurat, resolution = 0.5)
 
-############################    Visualise on UMAPs   #############################
+################### Check if need to regress for sex #################
+
+plot_path = "./plots/investigating_what_to_regress/"
+dir.create(plot_path, recursive = T)
+
+# Scale data and regress
+sex_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("sex"))
+
+# PCA + UMAP
+sex_data <- RunPCA(object = sex_data, verbose = FALSE)
+pc_cutoff <- ElbowCutoff(sex_data)
+sex_data <- FindNeighbors(sex_data, dims = 1:pc_cutoff, verbose = FALSE)
+sex_data <- RunUMAP(sex_data, dims = 1:pc_cutoff, verbose = FALSE)
+
+# UMAP before and after regressing out
+png(paste0(plot_path, "sex.png"), width=40, height=20, units = 'cm', res = 200)
+print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "sex", pt.size = 6),
+                              FeaturePlot(sex_data, features = "sex", pt.size = 6),
+                              ncol = 2))
+graphics.off()
+
+### No difference to regress out sex effect - don't do it!
+
+################### Check if need to regress for percent.mt #################
+
+# Scale data and regress
+mt_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("percent.mt"))
+
+# PCA + UMAP
+mt_data <- RunPCA(object = mt_data, verbose = FALSE)
+pc_cutoff <- ElbowCutoff(mt_data)
+mt_data <- FindNeighbors(mt_data, dims = 1:pc_cutoff, verbose = FALSE)
+mt_data <- RunUMAP(mt_data, dims = 1:pc_cutoff, verbose = FALSE)
+
+# UMAP before and after regressing out
+png(paste0(plot_path, "percent.mt.png"), width=40, height=20, units = 'cm', res = 200)
+print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "percent.mt", pt.size = 6),
+                              FeaturePlot(mt_data, features = "percent.mt", pt.size = 6),
+                              ncol = 2))
+graphics.off()
+
+### No difference to regress out percent.mt - don't do it!
+
+################### Check if need to regress for cell cycle #################
+
+# Scale data and regress
+cc_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("S.Score", "G2M.Score"))
+
+# PCA + UMAP
+cc_data <- RunPCA(object = cc_data, verbose = FALSE)
+pc_cutoff <- ElbowCutoff(cc_data)
+cc_data <- FindNeighbors(cc_data, dims = 1:pc_cutoff, verbose = FALSE)
+cc_data <- RunUMAP(cc_data, dims = 1:pc_cutoff, verbose = FALSE)
+
+# UMAP before and after regressing out
+png(paste0(plot_path, "S.Score.png"), width=40, height=20, units = 'cm', res = 200)
+print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "S.Score", pt.size = 6),
+                              FeaturePlot(cc_data, features = "S.Score", pt.size = 6),
+                              ncol = 2))
+graphics.off()
+
+png(paste0(plot_path, "G2M.Score"), width=40, height=20, units = 'cm', res = 200)
+print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "G2M.Score", pt.size = 6),
+                              FeaturePlot(cc_data, features = "G2M.Score", pt.size = 6),
+                              ncol = 2))
+graphics.off()
+
+### No difference to regress out cell cycle effect - don't do it!
+
+################### Check if need to regress for run #################
+
+# Scale data and regress
+run_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("run"))
+
+# PCA + UMAP
+run_data <- RunPCA(object = run_data, verbose = FALSE)
+pc_cutoff <- ElbowCutoff(run_data)
+run_data <- FindNeighbors(run_data, dims = 1:pc_cutoff, verbose = FALSE)
+run_data <- RunUMAP(run_data, dims = 1:pc_cutoff, verbose = FALSE)
+
+# UMAP before and after regressing out
+png(paste0(plot_path, "run.png"), width=40, height=20, units = 'cm', res = 200)
+print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "run", pt.size = 6),
+                              FeaturePlot(run_data, features = "run", pt.size = 6),
+                              ncol = 2))
+graphics.off()
+
+### There is a run effect - cluster to see how bad it is
+# Cluster using default clustering resolution (0.5)
+run_data <- FindClusters(run_data, resolution = 0.5)
+
+# Clusters before and after regressing out
+png(paste0(plot_path, "run_clusterst.png"), width=40, height=20, units = 'cm', res = 200)
+print(gridExtra::grid.arrange(DimPlot(seurat, group.by = "seurat_clusters", pt.size = 6),
+                              DimPlot(run_data, group.by = "seurat_clusters", pt.size = 6),
+                              ncol = 2))
+graphics.off()
+
+# Plot QC for each cluster - not regressed
+png(paste0(plot_path, "run_QCPlot_not_regressed.png"), width=28, height=28, units = 'cm', res = 200)
+QCPlot(seurat, plot_quantiles = TRUE, y_elements = "run")
+graphics.off()
+
+# Plot QC for each cluster - regressed
+png(paste0(plot_path, "run_QCPlot_regressed.png"), width=28, height=28, units = 'cm', res = 200)
+QCPlot(run_data, plot_quantiles = TRUE, y_elements = "run")
+graphics.off()
+
+# Run does impact clustering so need to regress for this
+
+
+######################################################################################################
+############################    Visualise final seurat object on UMAPs   #############################
+
+plot_path = "./plots/"
+dir.create(plot_path, recursive = T)
+
+final_seurat <- run_data
+
+# Find optimal cluster resolution
+png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
+ClustRes(seurat_object = final_seurat, by = 0.1, prefix = "RNA_snn_res.")
+graphics.off()
+
+# Use default clustering resolution (0.5)
+final_seurat <- FindClusters(final_seurat, resolution = 0.8)
 
 # Clusters
+png(paste0(plot_path, "clusters_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+DimPlot(final_seurat, group.by = "seurat_clusters", pt.size = 6)
+graphics.off()
+
+# Stage
 png(paste0(plot_path, "stage_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = "stage", pt.size = 6)
+DimPlot(final_seurat, group.by = "stage", pt.size = 6)
 graphics.off()
 
 # QC metrics
 png(paste0(plot_path, "percent.mt_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(object = seurat, features = "percent.mt", pt.size = 6)
+FeaturePlot(object = final_seurat, features = "percent.mt", pt.size = 6)
 graphics.off()
 
 png(paste0(plot_path, "run_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(seurat, features = "run", pt.size = 6)
+FeaturePlot(final_seurat, features = "run", pt.size = 6)
 graphics.off()
 
 png(paste0(plot_path, "sex_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(seurat, features = "sex", pt.size = 6)
+FeaturePlot(final_seurat, features = "sex", pt.size = 6)
 graphics.off()
+
+png(paste0(plot_path, "cell_cycle_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
+FeaturePlot(final_seurat, features = "S.Score", pt.size = 6)
+graphics.off()
+
+# QC for each cluster
+png(paste0(plot_path, "cluster_QCPlot.png"), width=28, height=28, units = 'cm', res = 200)
+QCPlot(final_seurat, plot_quantiles = TRUE, y_elements = c("run", "sex", "S.Score", "percent.mt"))
+graphics.off()
+
 
 ############################    Save seurat object   #############################
 
 ## save seacells seurat object
 saveRDS(seurat, paste0(rds_path, "seacells_seurat_RNA_processed.RDS"), compress = FALSE)
 
-############################################################################################
-############################    Re-process 'Integrated' slot   #############################
-############################################################################################
-
-seurat <- seurat_temp
-
-plot_path = "./plots/integrated_assay/"
-dir.create(plot_path, recursive = T)
-
-DefaultAssay(object = seurat) <- "integrated"
-DefaultAssay(object = seurat)
-
-## Normalising and Scaling
-seurat <- NormalizeData(seurat, normalization.method = "RC", scale.factor = 10000)
-seurat <- FindVariableFeatures(seurat, selection.method = "vst", nfeatures = 2000, assay = "integrated")
-seurat <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
-
-seurat
-head(seurat@assays$integrated@scale.data)
-
-print("integrated data re-processed")
-
-## Dim reduction
-seurat <- RunPCA(object = seurat, verbose = FALSE)
-
-png(paste0(plot_path, "dimHM.png"), width=30, height=65, units = 'cm', res = 200)
-DimHeatmap(seurat, dims = 1:20, balanced = TRUE, cells = 500)
-graphics.off()
-
-png(paste0(plot_path, "ElbowCutoff.png"), width=30, height=20, units = 'cm', res = 200)
-ElbowCutoff(seurat, return = 'plot')
-graphics.off()
-
-pc_cutoff <- ElbowCutoff(seurat)
-
-## Find neighbours and calculate UMAP
-seurat <- FindNeighbors(seurat, dims = 1:pc_cutoff, verbose = FALSE)
-seurat <- RunUMAP(seurat, dims = 1:pc_cutoff, verbose = FALSE)
-
-print("dim reduction calculated on integrated data")
-
-############################    Visualise on UMAPs   #############################
-
-# Clusters
-png(paste0(plot_path, "stage_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = "stage", pt.size = 6)
-graphics.off()
-
-# QC metrics
-png(paste0(plot_path, "percent.mt_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(object = seurat, features = "percent.mt", pt.size = 6)
-graphics.off()
-
-png(paste0(plot_path, "run_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(object = seurat, features = "run", pt.size = 6)
-graphics.off()
-
-png(paste0(plot_path, "sex_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(seurat, features = "sex", pt.size = 6)
-graphics.off()
-
-############################    Save seurat object   #############################
-
-## save seacells seurat object
-saveRDS(seurat, paste0(rds_path, "seacells_seurat_integrated_processed.RDS"), compress = FALSE)
+# ############################################################################################
+# ############################    Re-process 'Integrated' slot   #############################
+# ############################################################################################
+# 
+# seurat <- seurat_temp
+# 
+# plot_path = "./plots/integrated_assay/"
+# dir.create(plot_path, recursive = T)
+# 
+# DefaultAssay(object = seurat) <- "integrated"
+# DefaultAssay(object = seurat)
+# 
+# ## Normalising and Scaling
+# seurat <- NormalizeData(seurat, normalization.method = "RC", scale.factor = 10000)
+# seurat <- FindVariableFeatures(seurat, selection.method = "vst", nfeatures = 2000, assay = "integrated")
+# seurat <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+# 
+# seurat
+# head(seurat@assays$integrated@scale.data)
+# 
+# print("integrated data re-processed")
+# 
+# ## Dim reduction
+# seurat <- RunPCA(object = seurat, verbose = FALSE)
+# 
+# png(paste0(plot_path, "dimHM.png"), width=30, height=65, units = 'cm', res = 200)
+# DimHeatmap(seurat, dims = 1:20, balanced = TRUE, cells = 500)
+# graphics.off()
+# 
+# png(paste0(plot_path, "ElbowCutoff.png"), width=30, height=20, units = 'cm', res = 200)
+# ElbowCutoff(seurat, return = 'plot')
+# graphics.off()
+# 
+# pc_cutoff <- ElbowCutoff(seurat)
+# 
+# ## Find neighbours and calculate UMAP
+# seurat <- FindNeighbors(seurat, dims = 1:pc_cutoff, verbose = FALSE)
+# seurat <- RunUMAP(seurat, dims = 1:pc_cutoff, verbose = FALSE)
+# 
+# print("dim reduction calculated on integrated data")
+# 
+# ############################    Visualise on UMAPs   #############################
+# 
+# # Clusters
+# png(paste0(plot_path, "stage_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+# DimPlot(seurat, group.by = "stage", pt.size = 6)
+# graphics.off()
+# 
+# # QC metrics
+# png(paste0(plot_path, "percent.mt_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
+# FeaturePlot(object = seurat, features = "percent.mt", pt.size = 6)
+# graphics.off()
+# 
+# png(paste0(plot_path, "run_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
+# FeaturePlot(object = seurat, features = "run", pt.size = 6)
+# graphics.off()
+# 
+# png(paste0(plot_path, "sex_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
+# FeaturePlot(seurat, features = "sex", pt.size = 6)
+# graphics.off()
+# 
+# ############################    Save seurat object   #############################
+# 
+# ## save seacells seurat object
+# saveRDS(seurat, paste0(rds_path, "seacells_seurat_integrated_processed.RDS"), compress = FALSE)
