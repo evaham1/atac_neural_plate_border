@@ -65,10 +65,10 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
     plot_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/plots/"
     rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/rds_files/"
     data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/4_Process_metacells/"
-    data_path = "./output/NF-downstream_analysis/Processing/ss4/SEACELLS_RNA_WF/4_Process_metacells/"
-    data_path = "./output/NF-downstream_analysis/Processing/HH7/SEACELLS_RNA_WF/4_Process_metacells/"
-    data_path = "./output/NF-downstream_analysis/Processing/HH6/SEACELLS_RNA_WF/4_Process_metacells/"
-    data_path = "./output/NF-downstream_analysis/Processing/HH5/SEACELLS_RNA_WF/4_Process_metacells/"
+    #data_path = "./output/NF-downstream_analysis/Processing/ss4/SEACELLS_RNA_WF/4_Process_metacells/"
+    #data_path = "./output/NF-downstream_analysis/Processing/HH7/SEACELLS_RNA_WF/4_Process_metacells/"
+    #data_path = "./output/NF-downstream_analysis/Processing/HH6/SEACELLS_RNA_WF/4_Process_metacells/"
+    #data_path = "./output/NF-downstream_analysis/Processing/HH5/SEACELLS_RNA_WF/4_Process_metacells/"
     
     ncores = 8
     
@@ -239,7 +239,7 @@ DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE,
                  plot.title = element_blank())
 graphics.off()
 
-saveRDS(seurat_data, paste0(rds_path, label, "_cell_state_classification.RDS"), compress = FALSE)
+saveRDS(seurat_data, paste0(rds_path, "Classified_metacells.RDS"), compress = FALSE)
 
 
 # Plot stacked violins for each of the cell type classes to check genes used are good markers
