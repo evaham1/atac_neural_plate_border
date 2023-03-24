@@ -142,7 +142,7 @@ workflow A {
 
         // Run Metacells on ATAC stages
         //SEACELLS_ATAC_WF( PEAK_CALL.out )
-        //SEACELLS_ATAC_WF( ch_stages )
+        SEACELLS_ATAC_WF( ch_stages )
 
         ch_binary_knowledge_matrix.view()
              
