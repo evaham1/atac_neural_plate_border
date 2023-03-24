@@ -14,7 +14,8 @@ library(optparse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of inpuy seurat object"),
+  make_option(c("-d", "--data_path"), action = "store", type = "character", help = "Name of data path that seurat object is in", default = './input/'),
+  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of input seurat object if there is more than one in input"),
   make_option(c("-a", "--assay"), action = "store", type = "character", help = "Assay to export from seurat object ('integrated' or 'RNA')", default = 'integrated'),
   make_option(c("-o", "--outfile"), action = "store", type = "character", help = "Name of outfile"),
   make_option(c("-g", "--group_by"), action = "store", type = "character", help = "Name of metadata column containing groups to colour by", default = 'seurat_clusters'),
@@ -39,7 +40,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/"
+    data_path = opt$data_path
     ncores = opt$cores
     
   } else {
