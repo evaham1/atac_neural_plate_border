@@ -73,13 +73,10 @@ if(opt$verbose) print(opt)
 
 seurat <- readRDS(paste0(data_path, opt$input))
 print(seurat)
+print(paste0("Number of genes in seurat object: ", length(rownames(seurat))))
 
 DefaultAssay(object = seurat) <- "RNA"
 DefaultAssay(object = seurat)
-
-########## Remove genes expressed in fewer than 5 cells
-seurat <- DietSeurat(seurat, features = names(which(Matrix::rowSums(GetAssayData(seurat) > 0) >=5)))
-seurat
 
 ########## Check for NA values
 DefaultAssay(object = seurat) <- "RNA"
@@ -140,8 +137,8 @@ pc_cutoff <- ElbowCutoff(seurat)
 seurat <- FindNeighbors(seurat, dims = 1:pc_cutoff, verbose = FALSE)
 seurat <- RunUMAP(seurat, dims = 1:pc_cutoff, verbose = FALSE)
 
-# Cluster using default clustering resolution (0.5)
-seurat <- FindClusters(seurat, resolution = 0.5)
+# Cluster using default clustering resolution
+seurat <- FindClusters(seurat, resolution = 1)
 
 ################### Check if need to regress for sex #################
 
@@ -231,8 +228,8 @@ print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "run", pt.size = 6)
 graphics.off()
 
 ### There is a run effect - cluster to see how bad it is
-# Cluster using default clustering resolution (0.5)
-run_data <- FindClusters(run_data, resolution = 0.5)
+# Cluster using default clustering resolution
+run_data <- FindClusters(run_data, resolution = 1)
 
 # Clusters before and after regressing out
 png(paste0(plot_path, "run_clusterst.png"), width=40, height=20, units = 'cm', res = 200)
@@ -264,11 +261,11 @@ final_seurat <- run_data
 
 # Find optimal cluster resolution
 png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
-ClustRes(seurat_object = final_seurat, by = 0.1, prefix = "RNA_snn_res.")
+ClustRes(seurat_object = final_seurat, by = 0.2, prefix = "RNA_snn_res.")
 graphics.off()
 
-# Use default clustering resolution (0.5)
-final_seurat <- FindClusters(final_seurat, resolution = 0.8)
+# Use default clustering resolution (1)
+final_seurat <- FindClusters(final_seurat, resolution = 1)
 
 # Clusters
 png(paste0(plot_path, "clusters_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
