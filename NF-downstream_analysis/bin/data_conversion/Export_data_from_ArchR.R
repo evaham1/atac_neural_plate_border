@@ -44,8 +44,7 @@ if(opt$verbose) print(opt)
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
-    plot_path = "./plots/"
-    rds_path = "./rds_files/"
+    rds_path = "./exported_ArchR_data/"
     data_path = "./input/rds_files/"
     ncores = opt$cores
     
