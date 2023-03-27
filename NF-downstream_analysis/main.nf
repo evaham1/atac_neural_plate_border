@@ -141,6 +141,7 @@ workflow A {
         ///////     Run Metacells      ///////
 
         //ch_binary_knowledge_matrix.view()
+        ///flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-downstream_analysis/binary_knowledge_matrix_contam.csv
              
         //read in RNA data (stages only)
         // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
