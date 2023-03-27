@@ -140,10 +140,6 @@ workflow A {
 
         ///////     Run Metacells      ///////
 
-        // Run Metacells on ATAC stages
-        //SEACELLS_ATAC_WF( PEAK_CALL.out )
-        SEACELLS_ATAC_WF( ch_stages )
-
         ch_binary_knowledge_matrix.view()
              
         //read in RNA data (stages only)
@@ -152,6 +148,11 @@ workflow A {
                                                 // etc
         // Run Metacells on RNA stages
         SEACELLS_RNA_WF( METADATA_RNA.out.metadata, ch_binary_knowledge_matrix )
+
+        // Run Metacells on ATAC stages
+        //SEACELLS_ATAC_WF( PEAK_CALL.out )
+        //SEACELLS_ATAC_WF( ch_stages )
+
 
         ///////     Integrate      ///////
 
