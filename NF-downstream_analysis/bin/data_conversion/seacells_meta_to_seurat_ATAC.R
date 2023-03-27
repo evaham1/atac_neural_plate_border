@@ -129,6 +129,10 @@ print("gene score counts summarised by metacells")
 print(summarised_gene_score_counts[1:3, 1:3])
 rownames(summarised_gene_score_counts) <- gene_score_matrix$X
 
+#################### Create metdata: just stage #########################
+
+stage <- substr(metacell_dictionary$index[1], 8, 10)
+
 #################### Create new seurat object #########################
 
 # Create object using summarised RNA counts and newly created cell metadata
@@ -140,6 +144,10 @@ seacells_seurat <- CreateSeuratObject(
   names.delim = "-",
   meta.data = NULL
 )
+
+# Add stage metadata
+seacells_seurat <- AddMetaData(seacells_seurat, stage, col.name = "stage")
+print(seacells_seurat@meta.data$stage)
 
 # Print object
 print(seacells_seurat)

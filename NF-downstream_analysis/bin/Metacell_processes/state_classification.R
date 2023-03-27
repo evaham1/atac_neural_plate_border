@@ -22,7 +22,7 @@ library(tidyverse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of seurat input file to process", default = "seacells_seurat_RNA_processed.RDS"),
+  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of seurat input file to process", default = "seacells_seurat_ATAC_processed.RDS"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
@@ -56,15 +56,20 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
   if(length(commandArgs(trailingOnly = TRUE)) == 0){
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
-    # paths for testing locally
+    # paths for RNA metacells testing locally
     #plot_path = "./local_test_data/state_classification/plots/"
     #rds_path = "./local_test_data/state_classification/rds_files/"
     #data_path = "./local_test_data/test_inputs/test_input_seacells_classify/"
     
+    # paths for ATAC metacells testing locally
+    plot_path = "./local_test_data/state_classification_ATAC/plots/"
+    rds_path = "./local_test_data/state_classification_ATAC/rds_files/"
+    data_path = "./local_test_data/test_inputs/test_input_seacells_classify_ATAC/"
+    
     # paths for testing on nemo
-    plot_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/plots/"
-    rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/rds_files/"
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/4_Process_metacells/"
+    #plot_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/plots/"
+    #rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/rds_files/"
+    #data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/4_Process_metacells/"
     #data_path = "./output/NF-downstream_analysis/Processing/ss4/SEACELLS_RNA_WF/4_Process_metacells/"
     #data_path = "./output/NF-downstream_analysis/Processing/HH7/SEACELLS_RNA_WF/4_Process_metacells/"
     #data_path = "./output/NF-downstream_analysis/Processing/HH6/SEACELLS_RNA_WF/4_Process_metacells/"
@@ -188,8 +193,13 @@ graphics.off()
 # Set RNA to default assay for plotting expression data
 DefaultAssay(seurat_data) <- "RNA"
 
-# temporary measure to make sure all marker genes are in the object
+# Print how many cell state markers are not in the data
+print(paste0("Number of cell state markers: ", length(unlist(cell_state_markers))))
+
+# Filter cell state markers to remove those that aren't in seurat object
 cell_state_markers <- lapply(cell_state_markers, function(x) x[x %in% rownames(seurat_data)])
+print(paste0("Number of cell state markers in seurat object: ", length(unlist(cell_state_markers))))
+print(cell_state_markers)
 
 cell_type_df <- lapply(cell_state_markers, function(x) t(GetAssayData(object = seurat_data, assay = 'RNA', slot = 'scale.data'))[,x] %>% as.data.frame(.) %>% rowSums(.)) %>%
   do.call('cbind', .) %>%
