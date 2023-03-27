@@ -146,7 +146,7 @@ workflow A {
 
         ch_binary_knowledge_matrix.view()
              
-        read in RNA data (stages only)
+        //read in RNA data (stages only)
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                                 // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                                 // etc
