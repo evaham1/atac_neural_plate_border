@@ -35,7 +35,7 @@ workflow SEACELLS_RNA_WF {
 
     input.set{ch_seurat}
 
-    // Convert seurat to Anndata object
+    //////// Convert Seurat to AnnData /////////
     SEURAT_TO_ANNDATA( input )
 
     //////// Run SEACells /////////
@@ -43,7 +43,8 @@ workflow SEACELLS_RNA_WF {
 
     //CALCULATE_SEACELLS.out.view()
     // [[sample_id:HH6], [./exported_data, ./plots, ./rds_files]]
-    
+
+    //////// Convert AnnData to Seurat /////////
     CALCULATE_SEACELLS.out
             .concat( ch_seurat )
             .groupTuple( by:0 )
@@ -52,7 +53,7 @@ workflow SEACELLS_RNA_WF {
 
     META_TO_SEURAT_RNA( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
 
-    // Re-process summarised seurat object
+    //////// Process metacells Seurat object /////////
     PROCESS_METACELLS_RNA( META_TO_SEURAT_RNA.out )
 
     // Re-run cell state classification on metacells
@@ -62,7 +63,7 @@ workflow SEACELLS_RNA_WF {
     ch_state_classification.view()
     CLASSIFY_METACELLS( ch_state_classification )
 
-    // Convert back into Anndata object for integration
+    //////// Convert to Anndata /////////
     SEURAT_TO_ANNDATA_PROCESSED( CLASSIFY_METACELLS.out )
 
     emit:

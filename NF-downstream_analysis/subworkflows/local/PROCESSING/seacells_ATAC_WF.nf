@@ -17,20 +17,30 @@ include {PYTHON as CALCULATE_SEACELLS} from "$baseDir/modules/local/python/main"
 workflow SEACELLS_ATAC_WF {
     take:
     input //[[sample_id:TransferLabels], [Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
+    RNA_metacells // processed seurat object with RNA metacells
 
     main:
 
-    // Convert ArchR to Anndata object
+    //////// Convert ArchR to AnnData /////////
     ARCHR_EXPORT_DATA( input ) // R script to export data to run seacells computation
     CREATE_ANNDATA( ARCHR_EXPORT_DATA.out ) // Python script to read exported data into an Anndata object
     
     //////// Run SEACells /////////
     CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
 
-    // Downstream processing of Metacells (manipulate channel to just extract summarised AnnData object for intergration)
+    //////// Convert to Seurat using gene scores matrix /////////
+
+    //////// Process metacells Seurat object /////////
+    // run dimensionality reduction using the variable genes calculated from the RNA metacells object
+
+    //////// Convert to Anndata /////////
 
 
     emit:
-    anndata = CALCULATE_SEACELLS.out
+    seacells_anndata = CALCULATE_SEACELLS.out
+    seacells_seurat_objects = META_TO_SEURAT_ATAC.out
+    seacells_seurat_processed = PROCESS_METACELLS_ATAC.out
+    seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
+    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
 
 }
