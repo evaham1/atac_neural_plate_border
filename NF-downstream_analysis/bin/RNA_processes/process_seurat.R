@@ -106,12 +106,13 @@ seurat <- PercentageFeatureSet(seurat, pattern = "^MT-", col.name = "percent.mt"
 print("Added percent mt")
 head(seurat@meta.data)
 
-# Cell cycle: re-calculate using raw counts
-s.genes <- cc.genes$s.genes
-g2m.genes <- cc.genes$g2m.genes
-seurat <- CellCycleScoring(seurat, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
-print("Added cell cycle score")
-head(seurat@meta.data)
+# Cell cycle: re-calculate using raw counts - "Error: Insufficient data values to produce 24 bins."
+# as there was no cell cycle effect at ss8 anyway (or any other variable other than run) I'm just going to comment out for now
+# s.genes <- cc.genes$s.genes
+# g2m.genes <- cc.genes$g2m.genes
+# seurat <- CellCycleScoring(seurat, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+# print("Added cell cycle score")
+# head(seurat@meta.data)
 
 # Run: proportion of metacells from run 1 already in metadata
 
@@ -185,27 +186,27 @@ graphics.off()
 
 ################### Check if need to regress for cell cycle #################
 
-# Scale data and regress
-cc_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("S.Score", "G2M.Score"))
+# # Scale data and regress
+# cc_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("S.Score", "G2M.Score"))
 
-# PCA + UMAP
-cc_data <- RunPCA(object = cc_data, verbose = FALSE)
-pc_cutoff <- ElbowCutoff(cc_data)
-cc_data <- FindNeighbors(cc_data, dims = 1:pc_cutoff, verbose = FALSE)
-cc_data <- RunUMAP(cc_data, dims = 1:pc_cutoff, verbose = FALSE)
+# # PCA + UMAP
+# cc_data <- RunPCA(object = cc_data, verbose = FALSE)
+# pc_cutoff <- ElbowCutoff(cc_data)
+# cc_data <- FindNeighbors(cc_data, dims = 1:pc_cutoff, verbose = FALSE)
+# cc_data <- RunUMAP(cc_data, dims = 1:pc_cutoff, verbose = FALSE)
 
-# UMAP before and after regressing out
-png(paste0(plot_path, "S.Score.png"), width=40, height=20, units = 'cm', res = 200)
-print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "S.Score", pt.size = 6),
-                              FeaturePlot(cc_data, features = "S.Score", pt.size = 6),
-                              ncol = 2))
-graphics.off()
+# # UMAP before and after regressing out
+# png(paste0(plot_path, "S.Score.png"), width=40, height=20, units = 'cm', res = 200)
+# print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "S.Score", pt.size = 6),
+#                               FeaturePlot(cc_data, features = "S.Score", pt.size = 6),
+#                               ncol = 2))
+# graphics.off()
 
-png(paste0(plot_path, "G2M.Score"), width=40, height=20, units = 'cm', res = 200)
-print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "G2M.Score", pt.size = 6),
-                              FeaturePlot(cc_data, features = "G2M.Score", pt.size = 6),
-                              ncol = 2))
-graphics.off()
+# png(paste0(plot_path, "G2M.Score"), width=40, height=20, units = 'cm', res = 200)
+# print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "G2M.Score", pt.size = 6),
+#                               FeaturePlot(cc_data, features = "G2M.Score", pt.size = 6),
+#                               ncol = 2))
+# graphics.off()
 
 ### No difference to regress out cell cycle effect - don't do it!
 
