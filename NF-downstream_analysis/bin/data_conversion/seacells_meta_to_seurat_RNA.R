@@ -86,7 +86,7 @@ summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEAC
   return(df_summarised)
 }
 
-# function to take ArchR object and a category and make a freq table of how frequently metacells found in each category
+# function to take seurat object and a category and make a freq table of how frequently metacells found in each category
 calculate_metacell_frequencies <- function(seurat, metacell_slot = "SEACell", category = "stage"){
   
   df <- data.frame(FetchData(object = seurat, vars = c(metacell_slot, category)))
