@@ -145,31 +145,27 @@ cell_states = list(
 cell_state_markers <- lapply(cell_states, function(x) cell_state_markers[names(cell_state_markers) %in% x])
 print(cell_state_markers)
 
+############################################################################
+############################    Cluster data   #############################
+
 # Find optimal cluster resolution - want about 10 clusters
 png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 200)
 ClustRes(seurat_object = seurat_data, by = 0.4, prefix = "RNA_snn_res.")
 graphics.off()
 
-# Run classification using different resolutions for different stages
+# Run classification using different resolutions for different stages (from looking at clustree)
 stage = unique(seurat_data@meta.data$stage)
 print(paste0("Stage: ", stage))
 
-cell_state_markers = cell_state_markers[[stage]]
-cluster_res = 2.4
-metadata = c('scHelper_cell_type')
-
-# if(length(stage) == 1){
-#   cell_state_markers = cell_state_markers[[stage]]
-#   cluster_res = list(HH4 = 2.4, HH5 = 2.4, HH6 = 2.4, HH7 = 2.4, ss4 = 2.4, ss8 = 2.4)[[stage]]
-#   metadata = c('scHelper_cell_type')
-# } else {
-#   cell_state_markers = flatten(cell_state_markers)
-#   cell_state_markers = cell_state_markers[!duplicated(cell_state_markers)]
-#   metadata = c('scHelper_cell_type', 'stage')
-  
-  # Set cluster res to 2 for run split subsets - 3 for integrated data
-  #cluster_res = ifelse(length(unique(seurat_data$run)) == 1, 2, 3)
-#}
+if(length(stage) == 1){
+  cell_state_markers = cell_state_markers[[stage]]
+  cluster_res = list(HH5 = 3.2, HH6 = 2.8, HH7 = 2.4, ss4 = 3.2, ss8 = 3.6)[[stage]]
+  metadata = c('scHelper_cell_type')
+} else {
+  cell_state_markers = flatten(cell_state_markers)
+  cell_state_markers = cell_state_markers[!duplicated(cell_state_markers)]
+  metadata = c('scHelper_cell_type', 'stage')
+}
 
 print(paste0("Cluster_res: ", cluster_res))
 DefaultAssay(seurat_data) <- "RNA"
@@ -178,6 +174,16 @@ seurat_data <- FindClusters(seurat_data, resolution = cluster_res)
 png(paste0(plot_path, "clusters_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
 DimPlot(seurat_data, group.by = "seurat_clusters", pt.size = 6)
 graphics.off()
+
+df <- as.data.frame(table(seurat_data@meta.data$seurat_clusters))
+colnames(df) <- c("Cluster", "nCells")
+png(paste0(plot_path, 'cluster_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob("", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
+####################################################################################
+############################    Plot gene expression   #############################
 
 # Set RNA to default assay for plotting expression data
 DefaultAssay(seurat_data) <- "RNA"
@@ -223,9 +229,6 @@ cell_type_df <- cell_type_df %>%
 seurat_data@meta.data[['scHelper_cell_type']] <- unlist(apply(seurat_data@meta.data, 
                                                               1, function(x) ifelse(x[['seurat_clusters']] %in% cell_type_df[['seurat_clusters']], 
                                                                                     cell_type_df[cell_type_df[['seurat_clusters']] == x[['seurat_clusters']], "name"], NA)))
-
-# Old method
-# seurat_data <- ClusterClassification(seurat_obj = seurat_data, cell_state_markers = cell_state_markers, force_assign = FALSE, quantile = 0.5, plot_path = paste0(plot_path, "scHelper_log/"))
 
 #####################   Set levels
 seurat_data@meta.data$scHelper_cell_type <- factor(seurat_data@meta.data$scHelper_cell_type, levels = scHelper_cell_type_order)

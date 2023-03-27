@@ -78,6 +78,14 @@ print(paste0("Number of genes in seurat object: ", length(rownames(seurat))))
 DefaultAssay(object = seurat) <- "RNA"
 DefaultAssay(object = seurat)
 
+## Plot number of seacells and number of genes
+df <- data.frame(dim(seurat))
+rownames(df) <- c("Gene count: ", "SEACell cout: ")
+png(paste0(plot_path, 'metacell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Gene count and SEACell count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
 ########## Check for NA values
 DefaultAssay(object = seurat) <- "RNA"
 DefaultAssay(object = seurat)
@@ -271,6 +279,14 @@ final_seurat <- FindClusters(final_seurat, resolution = 1)
 # Clusters
 png(paste0(plot_path, "clusters_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
 DimPlot(final_seurat, group.by = "seurat_clusters", pt.size = 6)
+graphics.off()
+
+# Size of clusters
+df <- as.data.frame(table(final_seurat@meta.data$seurat_clusters))
+colnames(df) <- c("Cluster", "nCells")
+png(paste0(plot_path, 'cluster_metacell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob("", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
 
 # Stage
