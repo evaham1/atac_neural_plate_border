@@ -97,7 +97,14 @@ stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
 
 ########################################################################################################
 #                                      Cell state classification                                    #
-#######################################################################################
+########################################################################################################
+
+### For classification at a single cell level the following number of clusters and cell states were found:
+# HH5 - 10 clusters, 8 cell states
+# HH6 - 9 clusters, 8 cell states
+# HH7 - 11 clusters, 10 cell states
+# ss4 - 12 clusters, 9 cell states
+# ss8 - 10 clusters, 9 cell states
 
 # Read in seurat object using --input arg as file name in `.input/rds_files/`
 seurat_data <- readRDS(paste0(data_path, "rds_files/", opt$input))
