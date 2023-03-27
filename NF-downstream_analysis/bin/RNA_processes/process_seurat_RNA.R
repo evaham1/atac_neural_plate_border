@@ -291,13 +291,18 @@ png(paste0(plot_path, "sex_UMAP.png"), width=10, height=10, units = 'cm', res = 
 FeaturePlot(final_seurat, features = "sex", pt.size = 6)
 graphics.off()
 
-png(paste0(plot_path, "cell_cycle_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
-FeaturePlot(final_seurat, features = "S.Score", pt.size = 6)
-graphics.off()
+# png(paste0(plot_path, "cell_cycle_UMAP.png"), width=10, height=10, units = 'cm', res = 200)
+# FeaturePlot(final_seurat, features = "S.Score", pt.size = 6)
+# graphics.off()
+
+# # QC for each cluster
+# png(paste0(plot_path, "cluster_QCPlot.png"), width=28, height=28, units = 'cm', res = 200)
+# QCPlot(final_seurat, plot_quantiles = TRUE, y_elements = c("run", "sex", "S.Score", "percent.mt"))
+# graphics.off()
 
 # QC for each cluster
 png(paste0(plot_path, "cluster_QCPlot.png"), width=28, height=28, units = 'cm', res = 200)
-QCPlot(final_seurat, plot_quantiles = TRUE, y_elements = c("run", "sex", "S.Score", "percent.mt"))
+QCPlot(final_seurat, plot_quantiles = TRUE, y_elements = c("run", "sex", "percent.mt"))
 graphics.off()
 
 
