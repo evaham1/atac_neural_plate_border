@@ -309,7 +309,7 @@ graphics.off()
 ############################    Save seurat object   #############################
 
 ## save seacells seurat object
-saveRDS(seurat, paste0(rds_path, "seacells_seurat_RNA_processed.RDS"), compress = FALSE)
+saveRDS(final_seurat, paste0(rds_path, "seacells_seurat_RNA_processed.RDS"), compress = FALSE)
 
 # ############################################################################################
 # ############################    Re-process 'Integrated' slot   #############################
