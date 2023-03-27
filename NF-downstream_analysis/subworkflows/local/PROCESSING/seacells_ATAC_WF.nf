@@ -1,13 +1,17 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-// Python scripts to run SEACells computation
+// Convert to Anndata
 include {R as ARCHR_EXPORT_DATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Export_data_from_ArchR.R", checkIfExists: true) )
-
 include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/data_conversion/ATAC_exports_to_AnnData.py", checkIfExists: true) )
+// Run SEACells
 include {PYTHON as CALCULATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/SEACells_computation.py", checkIfExists: true) )
-
+// Re-process SEACells in R
 include {R as META_TO_SEURAT_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seacells_meta_to_seurat_ATAC.R", checkIfExists: true) )
+include {R as PROCESS_METACELLS_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/process_seurat_ATAC.R", checkIfExists: true) )
+include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/state_classification.R", checkIfExists: true) )
+// Convert back to Anndata
+include {R as SEURAT_TO_ANNDATA_PROCESSED} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +20,7 @@ include {R as META_TO_SEURAT_ATAC} from "$moduleDir/../../../modules/local/r/mai
 workflow SEACELLS_ATAC_WF {
     take:
     input //[[sample_id:TransferLabels], [Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
-    //RNA_metacells // processed seurat object with RNA metacells
+    //RNA_metacells // processed seurat object with RNA metacells?? maybe not needed
 
     main:
 
@@ -35,16 +39,17 @@ workflow SEACELLS_ATAC_WF {
     META_TO_SEURAT_ATAC( ch_combined ) // input needs to be ArchR exported gene score matrix and cell_metadata.csv from seacells computation
 
     //////// Process metacells Seurat object /////////
-    // run dimensionality reduction using the variable genes calculated from the RNA metacells object
+    PROCESS_METACELLS_ATAC( META_TO_SEURAT_ATAC.out )
+    CLASSIFY_METACELLS( PROCESS_METACELLS_ATAC )
 
     //////// Convert to Anndata /////////
-
+    SEURAT_TO_ANNDATA_PROCESSED( CLASSIFY_METACELLS.out )
 
     emit:
     seacells_anndata = CALCULATE_SEACELLS.out
     seacells_seurat_objects = META_TO_SEURAT_ATAC.out
-    //seacells_seurat_processed = PROCESS_METACELLS_ATAC.out
-    //seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
-    //seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
+    seacells_seurat_processed = PROCESS_METACELLS_ATAC.out
+    seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
+    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
 
 }
