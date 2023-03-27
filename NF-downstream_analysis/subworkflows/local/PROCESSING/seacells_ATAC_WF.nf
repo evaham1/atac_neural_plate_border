@@ -7,8 +7,7 @@ include {R as ARCHR_EXPORT_DATA} from "$baseDir/modules/local/r/main"           
 include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/data_conversion/ATAC_exports_to_AnnData.py", checkIfExists: true) )
 include {PYTHON as CALCULATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/SEACells_computation.py", checkIfExists: true) )
 
-//include {R as CHECK_SEACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/Check_seacell_purity.R", checkIfExists: true) )
-
+include {R as META_TO_SEURAT_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seacells_meta_to_seurat_ATAC.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -29,6 +28,11 @@ workflow SEACELLS_ATAC_WF {
     CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
 
     //////// Convert to Seurat using gene scores matrix /////////
+    ch_combined = ARCHR_EXPORT_DATA.out
+        .combine(CALCULATE_SEACELLS.out)
+        .map{[it[0], it[1] + it[3]]}
+    ch_combined.view()
+    META_TO_SEURAT_ATAC( ch_combined ) // input needs to be ArchR exported gene score matrix and cell_metadata.csv from seacells computation
 
     //////// Process metacells Seurat object /////////
     // run dimensionality reduction using the variable genes calculated from the RNA metacells object
@@ -39,8 +43,8 @@ workflow SEACELLS_ATAC_WF {
     emit:
     seacells_anndata = CALCULATE_SEACELLS.out
     seacells_seurat_objects = META_TO_SEURAT_ATAC.out
-    seacells_seurat_processed = PROCESS_METACELLS_ATAC.out
-    seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
-    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
+    //seacells_seurat_processed = PROCESS_METACELLS_ATAC.out
+    //seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
+    //seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
 
 }
