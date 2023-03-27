@@ -16,7 +16,7 @@ include {R as META_TO_SEURAT_ATAC} from "$moduleDir/../../../modules/local/r/mai
 workflow SEACELLS_ATAC_WF {
     take:
     input //[[sample_id:TransferLabels], [Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
-    RNA_metacells // processed seurat object with RNA metacells
+    //RNA_metacells // processed seurat object with RNA metacells
 
     main:
 
