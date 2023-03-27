@@ -7,8 +7,8 @@ include {R as SEURAT_TO_ANNDATA} from "$moduleDir/../../../modules/local/r/main"
 // Run SEACells
 include {PYTHON as CALCULATE_SEACELLS} from "$moduleDir/../../../modules/local/python/main"               addParams(script: file("$moduleDir/../../../bin/seacells/SEACells_computation.py", checkIfExists: true) )
 // Re-process SEACells in R
-include {R as META_TO_SEURAT} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seacells_meta_to_seurat.R", checkIfExists: true) )
-include {R as PROCESS_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/RNA_processes/process_seurat.R", checkIfExists: true) )
+include {R as META_TO_SEURAT_RNA} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seacells_meta_to_seurat_RNA.R", checkIfExists: true) )
+include {R as PROCESS_METACELLS_RNA} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/RNA_processes/process_seurat_RNA.R", checkIfExists: true) )
 include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/RNA_processes/state_classification.R", checkIfExists: true) )
 // Convert back to Anndata
 include {R as SEURAT_TO_ANNDATA_PROCESSED} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
@@ -50,13 +50,13 @@ workflow SEACELLS_RNA_WF {
             .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
             .set {ch_combined}
 
-    META_TO_SEURAT( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
+    META_TO_SEURAT_RNA( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
 
     // Re-process summarised seurat object
-    PROCESS_METACELLS( META_TO_SEURAT.out )
+    PROCESS_METACELLS_RNA( META_TO_SEURAT_RNA.out )
 
     // Re-run cell state classification on metacells
-    ch_state_classification = PROCESS_METACELLS.out
+    ch_state_classification = PROCESS_METACELLS_RNA.out
         .combine(ch_BNM)
         .map{[it[0], it[1] + it[2]]}
     ch_state_classification.view()
@@ -67,8 +67,8 @@ workflow SEACELLS_RNA_WF {
 
     emit:
     seacells_anndata = CALCULATE_SEACELLS.out
-    seacells_seurat_objects = META_TO_SEURAT.out
-    seacells_seurat_processed = PROCESS_METACELLS.out
+    seacells_seurat_objects = META_TO_SEURAT_RNA.out
+    seacells_seurat_processed = PROCESS_METACELLS_RNA.out
     seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
     seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
 
