@@ -20,6 +20,7 @@ include {R as SEURAT_TO_ANNDATA_PROCESSED} from "$moduleDir/../../../modules/loc
 workflow SEACELLS_ATAC_WF {
     take:
     input //[[sample_id:TransferLabels], [Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
+    ch_BNM
     //RNA_metacells // processed seurat object with RNA metacells?? maybe not needed
 
     main:
@@ -40,7 +41,13 @@ workflow SEACELLS_ATAC_WF {
 
     //////// Process metacells Seurat object /////////
     PROCESS_METACELLS_ATAC( META_TO_SEURAT_ATAC.out )
-    CLASSIFY_METACELLS( PROCESS_METACELLS_ATAC )
+
+    // Run cell state classification on metacells
+    ch_state_classification = PROCESS_METACELLS_ATAC.out
+        .combine(ch_BNM)
+        .map{[it[0], it[1] + it[2]]}
+    ch_state_classification.view()
+    CLASSIFY_METACELLS( ch_state_classification )
 
     //////// Convert to Anndata /////////
     SEURAT_TO_ANNDATA_PROCESSED( CLASSIFY_METACELLS.out )
