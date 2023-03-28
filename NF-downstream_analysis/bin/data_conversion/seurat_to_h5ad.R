@@ -39,6 +39,12 @@ if(opt$verbose) print(opt)
     plot_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/6_RNA_Anndata_object_processed_classified/plots/"
     rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/6_RNA_Anndata_object_processed_classified/rds_files/"
     
+    # local interactive path
+    data_path = "./local_test_data/state_classification_ATAC/rds_files/"
+    input = "Classified_metacells.RDS"
+    plot_path = "./local_test_data/ATAC_metacells_ready_to_integrate/plots/"
+    rds_path = "./local_test_data/ATAC_metacells_ready_to_integrate/rds_files/"
+    
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
