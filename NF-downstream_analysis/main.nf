@@ -158,18 +158,15 @@ workflow A {
         ///////     Integrate SEACells      ///////
 
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified.view()
-        SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified.view()
+        //SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified.view()
 
-        // combine ATAC and RNA data (stages only)
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
             .concat( SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified )
             .groupTuple( by:0 )
             .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
-            .view()
+            //.view()
             .set {ch_seacells_to_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
-
-        // // Integrate + filter out contaminating cells (stages only)
-        // INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        // INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
 
         // /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
