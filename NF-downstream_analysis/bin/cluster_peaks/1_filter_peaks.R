@@ -5,12 +5,11 @@
 # load libraries
 library(getopt)
 library(optparse)
-library(ArchR)
 library(tidyverse)
 library(ggplot2)
 library(plyr)
 library(dplyr)
-library(hexbin)
+#library(hexbin)
 library(gridExtra)
 library(grid)
 library(parallel)
@@ -35,26 +34,20 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-    addArchRThreads(threads = 1)
 
-    # output from SEACells - summarised by metacells -> should change to output of seacells purity script
-    data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
-    label = "summarised_counts_1000.csv"
-    # for transfer labels archr object -> should change to output of seacells purity script which will include extra cell metadata
-    data_path = "./output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/"
-    n = 100
+    # combined SEACell outputs
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Combined_SEACell_outputs/"
+    plot_path = "./output/NF-downstream_analysis/Processing/FullData/1_filter_peak_modules/plots/"
+    rds_path = "./output/NF-downstream_analysis/Processing/FullData/1_filter_peak_modules/rds_files/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
-    label = "AnnData_summarised_by_metacells_peak_counts.csv"
-    n = 20000
-    ncores = opt$cores
+    data_path = "./input/csv_files/"
     
-    addArchRThreads(threads = ncores)
+    ncores = opt$cores
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -78,11 +71,18 @@ calc_top_variable_features <- function(counts, n = 1000){
 }
 
 ############################## Read in SEACells summarised data + ArchR object #######################################
-SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
-dim(SEACells_summarised)
 
-## Load in feature set .csv here
-ArchR <- loadArchRProject(path = paste0(data_path, "TransferLabels_Save-ArchR"), force = FALSE, showLogo = TRUE)
+# Read in summarised peak counts across all seacells
+SEACells_summarised <- as.matrix(fread(paste0(data_path, "Combined_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
+#SEACells_summarised <- as.matrix(fread(paste0(data_path, "ss8_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
+
+dim(SEACells_summarised)
+SEACells_summarised[1:4, 1:4]
+head(rownames(SEACells_summarised))
+
+## Read in peak metadata
+peak_metadata <- fread(paste0(data_path, "Feature_metadata.csv"), header = TRUE)
+print(head(peak_metadata))
 
 ############################## 1) Normalise #######################################
 
