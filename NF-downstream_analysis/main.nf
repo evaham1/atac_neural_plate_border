@@ -157,8 +157,14 @@ workflow A {
 
         ///////     Integrate SEACells      ///////
 
-        SEACELLS_RNA_WF.out.seacells_anndata_processed_classified.view()
-        //SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified.view()
+        //SEACELLS_RNA_WF.out.seacells_anndata_processed_classified.view()
+        // [[sample_id:HH6], [c8/0355d43ba613bc2159e10758c26572/plots, c8/0355d43ba613bc2159e10758c26572/rds_files]]
+        // [[sample_id:HH5], [61/920e02828bc1d30d01745280da08cb/plots, 61/920e02828bc1d30d01745280da08cb/rds_files]]
+        // [[sample_id:ss8], [64/bc0c8d3f045086356bc00a7ebde6ff/plots, 64/bc0c8d3f045086356bc00a7ebde6ff/rds_files]]
+        // [[sample_id:ss4], [fa/1d64469d41d5a69f74d4d706bf5681/plots, fa/1d64469d41d5a69f74d4d706bf5681/rds_files]]
+        // [[sample_id:HH7], [d0/6b148d2543b6b195b8ee2088fad0b7/plots, d0/6b148d2543b6b195b8ee2088fad0b7/rds_files]]
+        
+        SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified.view()
 
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
             .concat( SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified )
