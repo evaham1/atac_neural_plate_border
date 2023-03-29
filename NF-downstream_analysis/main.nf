@@ -180,19 +180,19 @@ workflow A {
         // [fa/1d64469d41d5a69f74d4d706bf5681/rds_files/AnnData_RNA.h5ad]
         // [64/bc0c8d3f045086356bc00a7ebde6ff/rds_files/AnnData_RNA.h5ad]
 
-        // SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
-        //     .map{ meta, data -> meta, [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-        //     .map{data -> [[sample_id:'TransferLabels'], meta] }
-        //     .view()
-
-
-
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
-            .concat( SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified )
-            .groupTuple( by:0 )
-            .map{ meta, data -> [meta, [data[0][1], data[1][1]]]}
-            .view() //[ [sample_id:HH5], [rds_files, rds_files] ]
-            .set {ch_seacells_to_integrate}
+            .map{ meta, data -> meta, [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
+            .map{data -> [[sample_id:'TransferLabels'], meta] }
+            .view()
+
+
+
+        // SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
+        //     .concat( SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified )
+        //     .groupTuple( by:0 )
+        //     .map{ meta, data -> [meta, [data[0][1], data[1][1]]]}
+        //     .view() //[ [sample_id:HH5], [rds_files, rds_files] ]
+        //     .set {ch_seacells_to_integrate}
         // INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
 
