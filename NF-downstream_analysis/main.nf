@@ -191,10 +191,13 @@ workflow A {
         ///////     Run peak clustering on full data      ///////
 
         // take the exported_data outputs from SEACell_computation of the ATAC
-        // SEACELLS_ATAC_WF.out.seacells_anndata -> should be: exported_data, plots, rds_files.
-            // need exported_data>'Summarised_by_metacells_counts.csv' and 'Feature_metadata.csv'
-                // combine the summarised peak count .csv files
-                // pass through the feature metadata .csv file (they should all be identical)
+        // SEACELLS_ATAC_WF.out.seacell_outputs_named -> should be: csv_files/HH5_cell_metadata.csv, csv_files/HH5_feature_metadata.csv, csv_files/HH5_summarised_counts.csv
+        // ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
+        //     .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
+        //     .collect()
+        //     .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+
+        // COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
         // run peak filtering script
 
