@@ -163,36 +163,25 @@ workflow A {
         // [[sample_id:ss8], [64/bc0c8d3f045086356bc00a7ebde6ff/plots, 64/bc0c8d3f045086356bc00a7ebde6ff/rds_files]]
         // [[sample_id:ss4], [fa/1d64469d41d5a69f74d4d706bf5681/plots, fa/1d64469d41d5a69f74d4d706bf5681/rds_files]]
         // [[sample_id:HH7], [d0/6b148d2543b6b195b8ee2088fad0b7/plots, d0/6b148d2543b6b195b8ee2088fad0b7/rds_files]]
-        
-        // SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified.view()
-        // [[sample_id:HH6], [b8/58cd94332ca9bd2ed191b78e1e9650/plots, b8/58cd94332ca9bd2ed191b78e1e9650/rds_files]]
-        // [[sample_id:HH5], [75/42d20171f36ae0d23aab0198ce43a6/plots, 75/42d20171f36ae0d23aab0198ce43a6/rds_files]]
-        // [[sample_id:HH7], [de/f7b740dd97d9e86751b723c3280732/plots, de/f7b740dd97d9e86751b723c3280732/rds_files]]
-        // [[sample_id:ss4], [4a/72711280da408db03e302a5926456a/plots, 4a/72711280da408db03e302a5926456a/rds_files]]
-        // [[sample_id:ss8], [ce/18465acd27291aab2dcadedbf599f8/plots, ce/18465acd27291aab2dcadedbf599f8/rds_files]]
-
-        // SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
-        //     .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-        //     .view()
-        // [61/920e02828bc1d30d01745280da08cb/rds_files/AnnData_RNA.h5ad]
-        // [c8/0355d43ba613bc2159e10758c26572/rds_files/AnnData_RNA.h5ad]
-        // [d0/6b148d2543b6b195b8ee2088fad0b7/rds_files/AnnData_RNA.h5ad]
-        // [fa/1d64469d41d5a69f74d4d706bf5681/rds_files/AnnData_RNA.h5ad]
-        // [64/bc0c8d3f045086356bc00a7ebde6ff/rds_files/AnnData_RNA.h5ad]
 
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-            //.map{data -> [[sample_id:'TransferLabels'], data] }
-            .view()
+            .set {ch_RNA}
+
+        ch_RNA.view()
+        
+        
+        SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
+            .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
+            .set {ch_ATAC}
+        // channel identical to ch_RNA except objects are called AnnData_ATAC.h5ad
 
 
-
-        // SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
-        //     .concat( SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified )
-        //     .groupTuple( by:0 )
-        //     .map{ meta, data -> [meta, [data[0][1], data[1][1]]]}
-        //     .view() //[ [sample_id:HH5], [rds_files, rds_files] ]
-        //     .set {ch_seacells_to_integrate}
+        ch_RNA
+            .concat( ch_ATAC )
+            .groupTuple( by:0 )
+            .view() //[ [sample_id:HH5], [rds_files, rds_files] ]
+            .set {ch_seacells_to_integrate}
         // INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
 
