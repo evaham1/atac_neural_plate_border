@@ -169,6 +169,14 @@ seurat <- AddMetaData(seurat, metacell_dictionary$SEACell, col.name = "SEACell")
 # Save seurat object
 saveRDS(seurat, paste0(rds_path, "seurat.RDS"), compress = FALSE)
 
+## Plot number of cells and number of genes in original object
+df <- data.frame(dim(seurat))
+rownames(df) <- c("Gene count: ", "Cell count: ")
+png(paste0(plot_path, 'original_cell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Gene count and cell count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
 #####################################################################################
 ######################    Create summarised seurat object   #########################
 #####################################################################################
@@ -322,6 +330,14 @@ head(seacells_seurat@meta.data)
 print(seacells_seurat)
 
 print("created summarised seurat object!")
+
+## Plot number of cells and number of genes in summarised metacells object
+df <- data.frame(dim(seacells_seurat))
+rownames(df) <- c("Gene count: ", "SEACell count: ")
+png(paste0(plot_path, 'SEACell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Gene count and SEAcell count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
 
 #################### Save new seurat object #########################
 
