@@ -149,4 +149,4 @@ graphics.off()
 ############################    Save seurat object   #############################
 
 ## save seacells seurat object
-saveRDS(seurat, paste0(rds_path, "seacells_seurat_ATAC_processed.RDS"), compress = FALSE)
+saveRDS(seurat, paste0(rds_path, "seacells_seurat_processed.RDS"), compress = FALSE)

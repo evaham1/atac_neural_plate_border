@@ -8,10 +8,10 @@ include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"    
 include {PYTHON as CALCULATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/SEACells_computation.py", checkIfExists: true) )
 // Re-process SEACells in R
 include {R as META_TO_SEURAT_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seacells_meta_to_seurat_ATAC.R", checkIfExists: true) )
-include {R as PROCESS_METACELLS_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/process_seurat_ATAC.R", checkIfExists: true) )
+include {R as PROCESS_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/process_seurat_ATAC.R", checkIfExists: true) )
 include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/state_classification.R", checkIfExists: true) )
 // Convert back to Anndata
-include {R as SEURAT_TO_ANNDATA_PROCESSED} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
+include {R as SEURAT_TO_ANNDATA_PROCESSED_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,23 +62,23 @@ workflow SEACELLS_ATAC_WF {
     META_TO_SEURAT_ATAC( ch_combined ) // input needs to be ArchR exported gene score matrix (in 'exported_ArchR_data') and cell_metadata.csv (in 'exported_data') from seacells computation
 
     //////// Process metacells Seurat object /////////
-    PROCESS_METACELLS_ATAC( META_TO_SEURAT_ATAC.out )
+    PROCESS_METACELLS( META_TO_SEURAT_ATAC.out )
 
     // Run cell state classification on metacells
-    ch_state_classification = PROCESS_METACELLS_ATAC.out
+    ch_state_classification = PROCESS_METACELLS.out
         .combine(ch_BNM)
         .map{[it[0], it[1] + it[2]]}
     ch_state_classification.view()
     CLASSIFY_METACELLS( ch_state_classification )
 
     //////// Convert to Anndata /////////
-    SEURAT_TO_ANNDATA_PROCESSED( CLASSIFY_METACELLS.out )
+    SEURAT_TO_ANNDATA_PROCESSED_ATAC( CLASSIFY_METACELLS.out )
 
     emit:
     seacells_anndata = CALCULATE_SEACELLS.out
     seacells_seurat_objects = META_TO_SEURAT_ATAC.out
-    seacells_seurat_processed = PROCESS_METACELLS_ATAC.out
+    seacells_seurat_processed = PROCESS_METACELLS.out
     seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
-    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED.out
+    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_ATAC.out
 
 }
