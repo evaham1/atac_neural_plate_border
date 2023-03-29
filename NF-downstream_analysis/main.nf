@@ -164,14 +164,25 @@ workflow A {
         // [[sample_id:ss4], [fa/1d64469d41d5a69f74d4d706bf5681/plots, fa/1d64469d41d5a69f74d4d706bf5681/rds_files]]
         // [[sample_id:HH7], [d0/6b148d2543b6b195b8ee2088fad0b7/plots, d0/6b148d2543b6b195b8ee2088fad0b7/rds_files]]
         
-        SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified.view()
+        // SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified.view()
+        // [[sample_id:HH6], [b8/58cd94332ca9bd2ed191b78e1e9650/plots, b8/58cd94332ca9bd2ed191b78e1e9650/rds_files]]
+        // [[sample_id:HH5], [75/42d20171f36ae0d23aab0198ce43a6/plots, 75/42d20171f36ae0d23aab0198ce43a6/rds_files]]
+        // [[sample_id:HH7], [de/f7b740dd97d9e86751b723c3280732/plots, de/f7b740dd97d9e86751b723c3280732/rds_files]]
+        // [[sample_id:ss4], [4a/72711280da408db03e302a5926456a/plots, 4a/72711280da408db03e302a5926456a/rds_files]]
+        // [[sample_id:ss8], [ce/18465acd27291aab2dcadedbf599f8/plots, ce/18465acd27291aab2dcadedbf599f8/rds_files]]
+
+        SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
+            .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
+            .view()
+
+
 
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
             .concat( SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified )
             .groupTuple( by:0 )
-            .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
-            //.view()
-            .set {ch_seacells_to_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+            .map{ meta, data -> [meta, [data[0][1], data[1][1]]]}
+            .view() //[ [sample_id:HH5], [rds_files, rds_files] ]
+            .set {ch_seacells_to_integrate}
         // INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
 
