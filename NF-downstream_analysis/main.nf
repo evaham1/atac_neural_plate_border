@@ -19,7 +19,7 @@ nextflow.enable.dsl = 2
 
 // METADATA WORKFLOWS FOR CHANNEL SWITCHES
 include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/local/metadata"
-include { METADATA as METADATA_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 
 // UPSTREAM PROCESSING WORKFLOWS
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -29,7 +29,7 @@ include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filt
 // PROCESSING WORKFLOWS AND MODULES
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
+include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
 
 //CALCULATING SEACELL WFs
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -50,7 +50,7 @@ include {PYTHON as INTEGRATE_SEACELLS} from "$baseDir/modules/local/python/main"
 
 // PARAMS
 def skip_upstream_processing = params.skip_upstream_processing ? true : false
-def skip_processing = params.skip_processing ? true : false
+def skip_peakcall_processing = params.skip_processing ? true : false
 
 //
 // SET CHANNELS
@@ -114,16 +114,12 @@ workflow A {
     }
 
 
-    ///////////////////////////////////////////////////////////////
-    /////////////////////    PROCESSING      //////////////////////
-    ///////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    /////////////////////    PEAK CALLING      //////////////////////
+    /////////////////////////////////////////////////////////////////
     // calls peaks on full data object to obtain consensus peak set and peak counts
-    // calculates metacells for RNA and ATAC stages
-    // run integration between RNA and ATAC metacells
 
-    if(!skip_processing){
-
-        ///////     Call peaks on full data      ///////
+    if(!skip_peakcall_processing){
 
         // Extract just the full data object
         ch_upstream_processed
@@ -135,19 +131,35 @@ workflow A {
         CLUSTER( ch_full )
         PEAK_CALL( CLUSTER.out )
 
-        ///////     Run Metacells on stage data      ///////
-
         // Split full data into stages
-        SPLIT_STAGES( PEAK_CALL.out )
-        SPLIT_STAGES.out //[[meta], [plots, rds_files]]
+        SPLIT_STAGES_PROCESSED( PEAK_CALL.out )
+        SPLIT_STAGES_PROCESSED.out //[[meta], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
             .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-            .set { ch_split_stage }
+            .set { ch_peakcall_processed }
+
+        ch_peakcall_processed.view()
+
+
+    } else {
+       
+       METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
+       ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
+
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////    METACELLS PROCESSING      //////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    // calculates metacells for RNA and ATAC stages
+    // run integration between RNA and ATAC metacells
+
+    if(!skip_metacell_processing){
 
         // Run Metacells on ATAC stages
-        ch_split_stage.view()
-        SEACELLS_ATAC_WF( ch_split_stage, ch_binary_knowledge_matrix )
+        ch_peakcall_processed.view()
+        SEACELLS_ATAC_WF( ch_peakcall_processed, ch_binary_knowledge_matrix )
              
         //read in RNA data (stages only)
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -203,6 +215,9 @@ workflow A {
 
         // run peak modules script
 
+    }
+
+
 
 
         // /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
@@ -238,19 +253,9 @@ workflow A {
         //     //.view()
         //     .set{ ch_processed }
 
-    } else {
-       
-       METADATA_PROCESSED( params.processed_sample_sheet )
-       // !! NEED TO ADD TRANSFER LABELS OBJECT TO THIS SAMPLE SHEET
-       ch_processed = METADATA_PROCESSED.out.metadata                       
-                                                                            //[[sample_id:HH5], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH5/7_peak_call/rds_files/HH5_Save-ArchR]]
-                                                                            //[[sample_id:HH6], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH6/7_peak_call/rds_files/HH6_Save-ArchR]]
-                                                                            //[[sample_id:HH7], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH7/7_peak_call/rds_files/HH7_Save-ArchR]]
-                                                                            //[[sample_id:ss4], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss4/7_peak_call/rds_files/ss4_Save-ArchR]]
-                                                                            //[[sample_id:ss8], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss8/7_peak_call/rds_files/ss8_Save-ArchR]]
-                                                                            //[[sample_id:TransferLabels], [/camp/home/hamrude/scratch/atac_neural_plate_border/output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
+    
 
-    }
+
 
 
     ///////////////////////////////////////////////////////////////

@@ -20,6 +20,7 @@ ml Graphviz
 nextflow run ./main.nf \
 --outdir ../output/NF-downstream_analysis \
 --skip_upstream_processing true \
---skip_processing false \
+--skip_peakcall_processing false \
+--skip_metacell_processing false \
 -profile crick_full \
 -resume

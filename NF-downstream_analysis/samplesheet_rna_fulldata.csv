@@ -1,6 +1,0 @@
-sample_id,data
-HH5,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/HH5_splitstage_data/rds_files/HH5_clustered_data.RDS
-HH6,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/HH6_splitstage_data/rds_files/HH6_clustered_data.RDS
-HH7,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/HH7_splitstage_data/rds_files/HH7_clustered_data.RDS
-ss4,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/ss4_splitstage_data/rds_files/ss4_clustered_data.RDS
-ss8,/camp/home/hamrude/scratch/10x_neural_plate_border/output/NF-downstream_analysis_stacas/integration_prep/ready_for_integration/ss8_splitstage_data/rds_files/ss8_clustered_data.RDS

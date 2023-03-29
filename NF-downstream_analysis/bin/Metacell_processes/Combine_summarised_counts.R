@@ -31,8 +31,12 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # local interactive paths
-    data_path = "./local_test_data/SEACells_from_camp/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/"
-    rds_path = "./local_test_data/SEACells_outputs_renamed/csv_files/"
+    #data_path = "./local_test_data/SEACells_from_camp/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/"
+    #rds_path = "./local_test_data/SEACells_outputs_renamed/csv_files/"
+    
+    # NEMO interactive paths
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/TEMP_renamed_SEACells_exports/csv_files/"
+    rds_path = "./output/NF-downstream_analysis/Processing/FullData/Combined_SEACell_outputs/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -50,24 +54,89 @@ if(opt$verbose) print(opt)
 }
 
 
-############################## Read in .csv files #######################################
+
+############################## FUNCTIONS #######################################
+
+# check if list of dfs are identical
+all_identical <- function(df_list) {
+  len <- length(df_list)
+  for(i in 2:len){
+    if(!identical(df_list[[i]], df_list[[i-1]])){
+      return(FALSE)
+    }
+  }
+  return(TRUE)
+}
+
+############################## Identify .csv files and list of stages #######################################
 input_files <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE)
 print(input_files)
 
-############################## Extract stage name #######################################
-cell_metadata <- read.csv(paste0(data_path, "cell_metadata.csv"))
-stage <- substr(cell_metadata$index[1], 8, 10)
-print(paste0("Stage detected: ", stage))
+feature_metadata_paths <- list.files(path = data_path, pattern = "*_feature_metadata.csv", full.names = TRUE)
+print(paste0("Feature metadata paths: ", feature_metadata_paths))
 
-############################## Read in and rewrite .csv files #######################################
+cell_metadata_paths <- list.files(path = data_path, pattern = "*_cell_metadata.csv", full.names = TRUE)
+print(paste0("Cell metadata paths: ", cell_metadata_paths))
 
-write.csv(cell_metadata, paste0(rds_path, stage, '_cell_metadata.csv'))
+count_paths <- list.files(path = data_path, pattern = "*_summarised_by_metacells_counts.csv", full.names = TRUE)
+print(paste0("Summarised count paths: ", count_paths))
 
-feature_metadata <- read.csv(paste0(data_path, "Feature_metadata.csv"))
-write.csv(feature_metadata, paste0(rds_path, stage, '_feature_metadata.csv'))
+############################## Check feature metadata files are the same and write out one of them if they are #######################################
 
-counts <- read.csv(paste0(data_path, "Summarised_by_metacells_counts.csv"))
-write.csv(counts, paste0(rds_path, stage, '_summarised_by_metacells_counts.csv'))
+feature_metadata_files <- lapply(feature_metadata_paths, read.csv)
+ifelse (all_identical(feature_metadata_files), print("All feature metadata feature files identical!"), stop("Not all metadata feature files are identical!"))
+
+write.csv(feature_metadata_files[[1]], paste0(rds_path, 'Feature_metadata.csv'))
+
+############################## Combine cell metadata files #######################################
+
+cell_metadata_files <- lapply(cell_metadata_paths, read.csv)
+
+## add another column to cell metadata with seacell ID-stage eg SEACell-84-ss8
+cell_metadata_files <- lapply(cell_metadata_files, function(x) mutate(x, SEACell_stage = paste0(SEACell, "-", stage)))
+
+## combine all cell metacell csvs into one
+combined_cell_metacell <- ldply(cell_metadata_files, data.frame)
+
+## write out new csv
+write.csv(combined_cell_metacell, paste0(rds_path, 'Combined_cell_metadata.csv'))
+
+
+############################## Combine summarised peak counts #######################################
+
+count_files <- lapply(count_paths, fread)
+
+# Extract stages in same order than count files are in (hopefully they dont swap...)
+count_file_names <- sub(".*/", "", count_paths)
+stages <- lapply(file_names, function(x) substr(x, 1, 3))
+print(stages)
+
+## edit seacell ID to be seacell ID-stage eg SEACell-84-ss8
+
+for (i in 1:length(stages)){
+  stage <- stages[i]
+  data <- count_files[[i]]
+  
+  data <- data[, -1]
+  data <- data %>% mutate(SEACell = paste0(V1, "-", stage))
+  data <- data[, -1]
+}
+
+data[1:4, 1:4]
+
+
+
+
+stages
+
+cell_metadata_files <- lapply(cell_metadata_files, function(x) mutate(x, SEACell_stage = paste0(SEACell, "-", stage)))
+
+
+dim(count_files[[1]])
+test <- count_files[[1]][1:4, 1:3]
+test %>% 
+
+write.csv(counts, paste0(rds_path, stage, 'Combined_summarised_by_metacells_counts.csv'))
 
 
 
