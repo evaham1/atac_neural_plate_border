@@ -181,7 +181,6 @@ workflow A {
             .set {ch_ATAC}
         // ch_ATAC is identical to ch_RNA except objects are called AnnData_ATAC.h5ad
 
-
         ch_RNA
             .concat( ch_ATAC )
             .groupTuple( by:0 )
@@ -189,8 +188,17 @@ workflow A {
             .set {ch_seacells_to_integrate}
         INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
+        ///////     Run peak clustering on full data      ///////
 
+        // take the exported_data outputs from SEACell_computation of the ATAC
+        // SEACELLS_ATAC_WF.out.seacells_anndata -> should be: exported_data, plots, rds_files.
+            // need exported_data>'Summarised_by_metacells_counts.csv' and 'Feature_metadata.csv'
+                // combine the summarised peak count .csv files
+                // pass through the feature metadata .csv file (they should all be identical)
+        
+        // run peak filtering script
 
+        // run peak modules script
 
 
 

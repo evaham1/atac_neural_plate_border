@@ -12,6 +12,8 @@ include {R as PROCESS_METACELLS} from "$moduleDir/../../../modules/local/r/main"
 include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/state_classification.R", checkIfExists: true) )
 // Convert back to Anndata
 include {R as SEURAT_TO_ANNDATA_PROCESSED_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
+// Rename SEACell outputs
+include {R as RENAME_SEACELL_OUTPUTS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/SEACell_exports_rename.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,11 +76,15 @@ workflow SEACELLS_ATAC_WF {
     //////// Convert to Anndata /////////
     SEURAT_TO_ANNDATA_PROCESSED_ATAC( CLASSIFY_METACELLS.out )
 
+    //////// Rename SEACell outputs for downstream peak modules /////////
+    RENAME_SEACELL_OUTPUTS( CALCULATE_SEACELLS.out )
+
     emit:
     seacells_anndata = CALCULATE_SEACELLS.out
     seacells_seurat_objects = META_TO_SEURAT_ATAC.out
     seacells_seurat_processed = PROCESS_METACELLS.out
     seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
     seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_ATAC.out
+    seacell_outputs_named = RENAME_SEACELL_OUTPUTS.out
 
 }
