@@ -180,9 +180,9 @@ workflow A {
         // [fa/1d64469d41d5a69f74d4d706bf5681/rds_files/AnnData_RNA.h5ad]
         // [64/bc0c8d3f045086356bc00a7ebde6ff/rds_files/AnnData_RNA.h5ad]
 
-        SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
-            .map{ meta, data -> meta, [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-            .view()
+        // SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
+        //     .map{ meta, data -> meta, [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
+        //     .view()
         // [61/920e02828bc1d30d01745280da08cb/rds_files/AnnData_RNA.h5ad]
         // [c8/0355d43ba613bc2159e10758c26572/rds_files/AnnData_RNA.h5ad]
         // [d0/6b148d2543b6b195b8ee2088fad0b7/rds_files/AnnData_RNA.h5ad]
