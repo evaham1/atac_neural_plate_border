@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
+
 // R scripts to filter peaks and then cluster them using Antler
 include {R as FILTER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/cluster_peaks/1_filter_peaks.R", checkIfExists: true) )
 include {R as CLUSTER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/cluster_peaks/2_antler_calculate_peak_modules.R", checkIfExists: true) )
@@ -26,4 +27,6 @@ workflow CLUSTER_PEAKS_WF {
 
     emit:
     test_output = input
+    clustered_peaks = CLUSTER_PEAKS.out
+    
 }

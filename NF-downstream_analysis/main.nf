@@ -40,10 +40,14 @@ include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacell
 //INTEGRATING SEACELLS
 include {PYTHON as INTEGRATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/Integration/SEACells_integration.py", checkIfExists: true) )
 
+//PEAK CLUSTERING
+include {R as COMBINE_METACELL_COUNTS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Metacell_processes/Combine_summarised_counts.R", checkIfExists: true) )
+include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
+
 
 // DOWNSTREAM PROCESSING WORKFLOWS
 
-// include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
+// 
 // include { FIND_ENHANCERS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/find_enhancers_WF"
 //include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
 //include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
@@ -206,80 +210,25 @@ workflow A {
         ///////     Run peak clustering on full data      ///////
 
         // take the exported_data outputs from SEACell_computation of the ATAC
-        // SEACELLS_ATAC_WF.out.seacell_outputs_named -> should be: csv_files/HH5_cell_metadata.csv, csv_files/HH5_feature_metadata.csv, csv_files/HH5_summarised_counts.csv
-        // ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
-        //     .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
-        //     .collect()
-        //     .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        //SEACELLS_ATAC_WF.out.seacell_outputs_named -> should be: csv_files/HH5_cell_metadata.csv, csv_files/HH5_feature_metadata.csv, csv_files/HH5_summarised_counts.csv
+        ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
+            .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-        // COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
+        COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
-        // run peak filtering script
-
-        // run peak modules script
+        // run peak clustering wf
+        CLUSTER_PEAKS_WF( COMBINE_METACELL_COUNTS.out )
 
     }
 
 
 
 
-        // /////////////// Transfer labels from integrated stages onto non-integrated full data  //////////////////////////
-
-        // // extract the full data
-        // CLUSTER.out
-        //     .filter{ meta, data -> meta.sample_id == 'FullData'}
-        //     //.view() //[[sample_id:FullData], [./rds_files]]
-        //     .set{ ch_fulldata_clustered }
-
-        // // combine clustered full data with integrated stage data into one channel
-        // INTEGRATING.out.integrated_filtered
-        //     .concat( ch_fulldata_clustered )
-        //     .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] } //removes all metadata and list files in rds_files
-        //     //.view()
-        //             //[HH5_Save-ArchR]
-        //             //[HH7_Save-ArchR]
-        //             //[ss4_Save-ArchR]
-        //             //[ss8_Save-ArchR]
-        //             //[HH6_Save-ArchR]
-        //             //[FullData_Save-ArchR]
-        //     .collect()
-        //     .map{data -> [[sample_id:'TransferLabels'], data] }
-        //     //.view() //[[sample_id:TransferLabels], [[HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, HH6_Save-ArchR, FullData_Save-ArchR]]]
-        //     .set{ ch_transfer_labels_input }
-
-        // // transfers labels to full object, clusters and call peaks on stage_clusters of transferlabels object
-        // TRANSFER_LABELS( ch_transfer_labels_input )
-
-        // /////////////// Create output channel  //////////////////////////
-        // CLUSTER.out
-        //     .concat( TRANSFER_LABELS.out.transfer_label_peaks )
-        //     //.view()
-        //     .set{ ch_processed }
-
-    
 
 
 
-
-    ///////////////////////////////////////////////////////////////
-    ///////////////////// DOWNSTREAM PROCESSING ///////////////////
-    ///////////////////////////////////////////////////////////////
-
-
-    //Extract just TransferLabels object from ch_processed
-    // ch_processed
-    //         .filter{ meta, data -> meta.sample_id == 'TransferLabels'}
-    //         //.view() //[[sample_id:TransferLabels], [./TransferLabels_Save-ArchR]]
-    //         .set{ ch_TL }
-
-    // // Subworkflow to create metacells
-    // SEACELLS_WF( ch_TL )
-
-    // // Subworkflow to cluster peaks using metacells
-    // CLUSTER_PEAKS_WF( CALCULATE_SEACELLS.out.seacells_output_combined )
-
-    // // Subworkflow to identify NC and PPR specific enhancers ~ maybe don't need if can find these in the peak modules?
-    // FIND_ENHANCERS_WF( ch_TL )
 
     
     // IN PROGRESS: compare variability of clusters between stages
