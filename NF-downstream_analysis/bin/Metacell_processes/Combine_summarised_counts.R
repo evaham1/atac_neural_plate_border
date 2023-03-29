@@ -121,6 +121,7 @@ for (i in 1:length(stages)){
   data <- data[, -1]
   data <- data %>% mutate(SEACell = paste0(V1, "-", stage))
   data <- data[, -1]
+  data <- data %>% select(SEACell, everything())
   
   assign(paste0(stage, "_data"), data)
 }
@@ -131,6 +132,8 @@ print(dim(HH6_data))
 print(dim(HH7_data))
 print(dim(ss4_data))
 print(dim(ss8_data))
+
+print(ss8_data[1:2, 1:2])
 
 ## Combine all data csvs into one
 # combined_df <- sqldf("SELECT * FROM ss4_data
