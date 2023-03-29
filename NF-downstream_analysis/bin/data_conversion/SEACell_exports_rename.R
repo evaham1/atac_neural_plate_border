@@ -10,6 +10,7 @@ library(tidyverse)
 library(plyr)
 library(dplyr)
 library(parallel)
+library(data.table)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -31,8 +32,12 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # local interactive paths
-    data_path = "./local_test_data/SEACells_from_camp/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/"
-    rds_path = "./local_test_data/SEACells_outputs_renamed/csv_files/"
+    #data_path = "./local_test_data/SEACells_from_camp/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/"
+    #rds_path = "./local_test_data/SEACells_outputs_renamed/csv_files/"
+    
+    # NEMO interactive paths
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/"
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/TEMP_renamed_SEACells_exports/csv_files/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -55,7 +60,7 @@ input_files <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE
 print(input_files)
 
 ############################## Extract stage name #######################################
-cell_metadata <- read.csv(paste0(data_path, "cell_metadata.csv"))
+cell_metadata <- read.csv(paste0(data_path, "Cell_metadata.csv"))
 stage <- substr(cell_metadata$index[1], 8, 10)
 print(paste0("Stage detected: ", stage))
 
@@ -66,8 +71,5 @@ write.csv(cell_metadata, paste0(rds_path, stage, '_cell_metadata.csv'))
 feature_metadata <- read.csv(paste0(data_path, "Feature_metadata.csv"))
 write.csv(feature_metadata, paste0(rds_path, stage, '_feature_metadata.csv'))
 
-counts <- read.csv(paste0(data_path, "Summarised_by_metacells_counts.csv"))
+counts <- fread(paste0(data_path, "Summarised_by_metacells_counts.csv"))
 write.csv(counts, paste0(rds_path, stage, '_summarised_by_metacells_counts.csv'))
-
-
-
