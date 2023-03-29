@@ -10,6 +10,8 @@ library(tidyverse)
 library(plyr)
 library(dplyr)
 library(parallel)
+library(data.table)
+library(sqldf)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -108,11 +110,10 @@ count_files <- lapply(count_paths, fread)
 
 # Extract stages in same order than count files are in (hopefully they dont swap...)
 count_file_names <- sub(".*/", "", count_paths)
-stages <- lapply(file_names, function(x) substr(x, 1, 3))
+stages <- lapply(count_file_names, function(x) substr(x, 1, 3))
 print(stages)
 
-## edit seacell ID to be seacell ID-stage eg SEACell-84-ss8
-
+## Edit seacell ID to be seacell ID-stage eg SEACell-84-ss8
 for (i in 1:length(stages)){
   stage <- stages[i]
   data <- count_files[[i]]
@@ -120,23 +121,31 @@ for (i in 1:length(stages)){
   data <- data[, -1]
   data <- data %>% mutate(SEACell = paste0(V1, "-", stage))
   data <- data[, -1]
+  
+  assign(paste0(stage, "_data"), data)
 }
 
-data[1:4, 1:4]
+# Should all have the same number of columns - can have variable row numbers
+print(dim(HH5_data))
+print(dim(HH6_data))
+print(dim(HH7_data))
+print(dim(ss4_data))
+print(dim(ss8_data))
 
+## Combine all data csvs into one
+# combined_df <- sqldf("SELECT * FROM ss4_data
+#                       UNION ALL 
+#                       SELECT * FROM ss8_data")
 
+combined_df <- sqldf("SELECT * FROM HH5_data
+                      UNION ALL 
+                      SELECT * FROM HH6_data
+                      UNION ALL 
+                      SELECT * FROM HH7_data
+                      UNION ALL 
+                      SELECT * FROM ss4_data
+                      UNION ALL 
+                      SELECT * FROM ss8_data")
 
-
-stages
-
-cell_metadata_files <- lapply(cell_metadata_files, function(x) mutate(x, SEACell_stage = paste0(SEACell, "-", stage)))
-
-
-dim(count_files[[1]])
-test <- count_files[[1]][1:4, 1:3]
-test %>% 
-
-write.csv(counts, paste0(rds_path, stage, 'Combined_summarised_by_metacells_counts.csv'))
-
-
-
+## write out new csv
+write.csv(combined_df, paste0(rds_path, 'Combined_summarised_by_metacells_counts.csv'))
