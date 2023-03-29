@@ -38,7 +38,7 @@ workflow SEACELLS_ATAC_WF {
     
     //////// Run SEACells /////////
     CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
-    
+
     //CALCULATE_SEACELLS.out.view()
 // [[sample_id:HH6], [exported_data, plots, rds_files]]
 // [[sample_id:HH5], [exported_data, plots, rds_files]]
@@ -50,10 +50,10 @@ workflow SEACELLS_ATAC_WF {
     CALCULATE_SEACELLS.out
             .concat( ARCHR_EXPORT_DATA.out )
             .groupTuple( by:0 )
-            .view()
-            .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
+            //.view() //[[sample_id:HH6], [[exported_data, plots, rds_files], [ArchRLogs, exported_ArchR_data]]]
+            .map{ meta, data -> [meta, [data[0][0], data[1][1]]]}
             .set {ch_combined}
-    //ch_combined.view()
+    ch_combined.view()
     META_TO_SEURAT_ATAC( ch_combined ) // input needs to be ArchR exported gene score matrix and cell_metadata.csv from seacells computation
 
     //////// Process metacells Seurat object /////////
