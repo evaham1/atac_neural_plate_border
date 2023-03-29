@@ -29,6 +29,7 @@ include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filt
 // PROCESSING WORKFLOWS AND MODULES
 // include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
 
 //CALCULATING SEACELL WFs
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -105,8 +106,7 @@ workflow A {
         
     } else {
        
-       //METADATA_UPSTREAM_PROCESSED( params.upstream_processed_sample_sheet )
-       METADATA_UPSTREAM_PROCESSED( params.upstream_processed_sample_sheet_temp )
+       METADATA_UPSTREAM_PROCESSED( params.upstream_processed_sample_sheet )
        ch_upstream_processed = METADATA_UPSTREAM_PROCESSED.out.metadata     // [[sample_id:HH5], [HH5_Save-ArchR]]
                                                                             // [[sample_id:HH6], [HH6_Save-ArchR]]
                                                                             // etc
@@ -114,34 +114,39 @@ workflow A {
     }
 
 
-        //TEMP: just run from already peak-called objects so dont have to re-run that step - changed ch_upstream processed samplesheet to
-        // samplesheet_upstream_processed_temp.csv and comment out peak_call process
-
-
     ///////////////////////////////////////////////////////////////
     /////////////////////    PROCESSING      //////////////////////
     ///////////////////////////////////////////////////////////////
-    // integrates with scRNA, filters out contam
-    // clusters
-    // calls peaks
-    // creates transfer labels object
+    // calls peaks on full data object to obtain consensus peak set and peak counts
+    // calculates metacells for RNA and ATAC stages
+    // run integration between RNA and ATAC metacells
 
     if(!skip_processing){
 
-        // Extract the stages (ie remove FullData object)
+        ///////     Call peaks on full data      ///////
+
+        // Extract just the full data object
         ch_upstream_processed
-            .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .set{ ch_stages } // [[sample_id:HH5], [HH5-ArchR]]
-                                // [[sample_id:HH6], [HH6-ArchR]]
-                                // etc
+            .filter{ meta, data -> meta.sample_id == 'FullData'}
+            .set{ ch_full }
 
-        // Call peaks on stages
-        //PEAK_CALL( ch_stages )
+        // Call peaks on full data
+        ch_full.view()
+        PEAK_CALL( ch_full )
 
-        ///////     Run Metacells      ///////
+        ///////     Run Metacells on stage data      ///////
 
-        //ch_binary_knowledge_matrix.view()
-        ///flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-downstream_analysis/binary_knowledge_matrix_contam.csv
+        // Split full data into stages
+        SPLIT_STAGES( PEAK_CALL.out )
+        SPLIT_STAGES.out //[[meta], [plots, rds_files]]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .flatMap {it[1][0].listFiles()}
+            .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+            .set { ch_split_stage }
+
+        // Run Metacells on ATAC stages
+        ch_split_stage.view()
+        SEACELLS_ATAC_WF( ch_split_stage, ch_binary_knowledge_matrix )
              
         //read in RNA data (stages only)
         METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -149,11 +154,6 @@ workflow A {
                                                 // etc
         // Run Metacells on RNA stages
         SEACELLS_RNA_WF( METADATA_RNA.out.metadata, ch_binary_knowledge_matrix )
-
-        // Run Metacells on ATAC stages
-        //SEACELLS_ATAC_WF( PEAK_CALL.out )
-        SEACELLS_ATAC_WF( ch_stages, ch_binary_knowledge_matrix )
-
 
         ///////     Integrate SEACells      ///////
 
