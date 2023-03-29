@@ -33,12 +33,16 @@ workflow SEACELLS_ATAC_WF {
     CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
 
     //////// Convert to Seurat using gene scores matrix /////////
+    CALCULATE_SEACELLS.out.view()
+    ARCHR_EXPORT_DATA.out.view()
+
+
     CALCULATE_SEACELLS.out
             .concat( ARCHR_EXPORT_DATA.out )
             .groupTuple( by:0 )
             .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
             .set {ch_combined}
-    ch_combined.view()
+    //ch_combined.view()
     META_TO_SEURAT_ATAC( ch_combined ) // input needs to be ArchR exported gene score matrix and cell_metadata.csv from seacells computation
 
     //////// Process metacells Seurat object /////////
