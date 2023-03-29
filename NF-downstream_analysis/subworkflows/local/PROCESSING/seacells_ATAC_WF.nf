@@ -53,8 +53,13 @@ workflow SEACELLS_ATAC_WF {
             //.view() //[[sample_id:HH6], [[exported_data, plots, rds_files], [ArchRLogs, exported_ArchR_data]]]
             .map{ meta, data -> [meta, [data[0][0], data[1][1]]]}
             .set {ch_combined}
-    ch_combined.view()
-    META_TO_SEURAT_ATAC( ch_combined ) // input needs to be ArchR exported gene score matrix and cell_metadata.csv from seacells computation
+    //ch_combined.view()
+// [[sample_id:HH5], [exported_data, exported_ArchR_data]]
+// [[sample_id:HH6], [exported_data, exported_ArchR_data]]
+// [[sample_id:HH7], [exported_data, exported_ArchR_data]]
+// [[sample_id:ss4], [exported_data, exported_ArchR_data]]
+// [[sample_id:ss8], [exported_data, exported_ArchR_data]]
+    META_TO_SEURAT_ATAC( ch_combined ) // input needs to be ArchR exported gene score matrix (in 'exported_ArchR_data') and cell_metadata.csv (in 'exported_data') from seacells computation
 
     //////// Process metacells Seurat object /////////
     PROCESS_METACELLS_ATAC( META_TO_SEURAT_ATAC.out )
