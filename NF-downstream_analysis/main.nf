@@ -181,8 +181,8 @@ workflow A {
         // [64/bc0c8d3f045086356bc00a7ebde6ff/rds_files/AnnData_RNA.h5ad]
 
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
-            .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-            .map{data -> [[sample_id:'TransferLabels'], data] }
+            .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
+            //.map{data -> [[sample_id:'TransferLabels'], data] }
             .view()
 
 
