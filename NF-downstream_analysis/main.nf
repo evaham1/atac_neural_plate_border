@@ -50,7 +50,10 @@ include {PYTHON as INTEGRATE_SEACELLS} from "$baseDir/modules/local/python/main"
 
 // PARAMS
 def skip_upstream_processing = params.skip_upstream_processing ? true : false
-def skip_peakcall_processing = params.skip_processing ? true : false
+def skip_peakcall_processing = params.skip_peakcall_processing ? true : false
+def skip_metacell_processing = params.skip_metacell_processing ? true : false
+
+
 
 //
 // SET CHANNELS
