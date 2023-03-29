@@ -1,4 +1,6 @@
-##### Takes seacells summarised data .csv and filters peaks to reduce number for clustering
+##### Input files: 1) summarised data .csv from SEACells computation (table of summarised peak counts across metacells)
+##### and any 2) feature_metadata.csv from SEACells computation (table with all PeakSet information)
+##### Normlises peak counts across seacells, then filters based on annotation and variability
 
 # load libraries
 library(getopt)
@@ -79,6 +81,7 @@ calc_top_variable_features <- function(counts, n = 1000){
 SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
 dim(SEACells_summarised)
 
+## Load in feature set .csv here
 ArchR <- loadArchRProject(path = paste0(data_path, "TransferLabels_Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 ############################## 1) Normalise #######################################
@@ -108,6 +111,7 @@ graphics.off()
 
 ################ 2) Filter peaks by annotation #########################
 
+# change this to directly use from feature set
 peak_set <- getPeakSet(ArchR)
 print(unique(peak_set$peakType))
 
