@@ -28,18 +28,29 @@ workflow SEACELLS_ATAC_WF {
     //////// Convert ArchR to AnnData /////////
     ARCHR_EXPORT_DATA( input ) // R script to export data to run seacells computation
     CREATE_ANNDATA( ARCHR_EXPORT_DATA.out ) // Python script to read exported data into an Anndata object
+
+    //ARCHR_EXPORT_DATA.out.view()
+// [[sample_id:HH6], [ArchRLogs, exported_ArchR_data]]
+// [[sample_id:HH5], [ArchRLogs, exported_ArchR_data]]
+// [[sample_id:HH7], [ArchRLogs, exported_ArchR_data]]
+// [[sample_id:ss4], [ArchRLogs, exported_ArchR_data]]
+// [[sample_id:ss8], [ArchRLogs, exported_ArchR_data]]
     
     //////// Run SEACells /////////
     CALCULATE_SEACELLS( CREATE_ANNDATA.out ) // Python script to calculate seacells on AnnData object
+    
+    //CALCULATE_SEACELLS.out.view()
+// [[sample_id:HH6], [exported_data, plots, rds_files]]
+// [[sample_id:HH5], [exported_data, plots, rds_files]]
+// [[sample_id:HH7], [exported_data, plots, rds_files]]
+// [[sample_id:ss4], [exported_data, plots, rds_files]]
+// [[sample_id:ss8], [exported_data, plots, rds_files]]
 
     //////// Convert to Seurat using gene scores matrix /////////
-    CALCULATE_SEACELLS.out.view()
-    ARCHR_EXPORT_DATA.out.view()
-
-
     CALCULATE_SEACELLS.out
             .concat( ARCHR_EXPORT_DATA.out )
             .groupTuple( by:0 )
+            .view()
             .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
             .set {ch_combined}
     //ch_combined.view()
