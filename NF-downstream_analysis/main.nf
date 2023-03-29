@@ -27,7 +27,7 @@ include { PREPROCESSING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/
 include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filtering"
 
 // PROCESSING WORKFLOWS AND MODULES
-// include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Peak_calling/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as SPLIT_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
 
@@ -130,9 +130,10 @@ workflow A {
             .filter{ meta, data -> meta.sample_id == 'FullData'}
             .set{ ch_full }
 
-        // Call peaks on full data
-        ch_full.view()
-        PEAK_CALL( ch_full )
+        // Cluster and call peaks on full data
+        //ch_full.view() //[[sample_id:FullData], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Upstream_processing/FILTERING/FullData/rds_files/FullData_Save-ArchR]]
+        CLUSTER( ch_full )
+        PEAK_CALL( CLUSTER.out )
 
         ///////     Run Metacells on stage data      ///////
 
