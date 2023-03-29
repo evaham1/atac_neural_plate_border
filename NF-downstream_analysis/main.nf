@@ -182,7 +182,7 @@ workflow A {
 
         SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
             .map{ meta, data -> meta, [data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-            .map{data -> [[sample_id:'TransferLabels'], meta] }
+            //.map{data -> [[sample_id:'TransferLabels'], meta] }
             .view()
 
 
