@@ -144,11 +144,11 @@ workflow A {
         ///flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-downstream_analysis/binary_knowledge_matrix_contam.csv
              
         //read in RNA data (stages only)
-        // METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-        //                                         // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-        //                                         // etc
-        // // Run Metacells on RNA stages
-        // SEACELLS_RNA_WF( METADATA_RNA.out.metadata, ch_binary_knowledge_matrix )
+        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                                // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                                // etc
+        // Run Metacells on RNA stages
+        SEACELLS_RNA_WF( METADATA_RNA.out.metadata, ch_binary_knowledge_matrix )
 
         // Run Metacells on ATAC stages
         //SEACELLS_ATAC_WF( PEAK_CALL.out )

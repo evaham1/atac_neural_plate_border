@@ -68,7 +68,7 @@ workflow SEACELLS_ATAC_WF {
     ch_state_classification = PROCESS_METACELLS.out
         .combine(ch_BNM)
         .map{[it[0], it[1] + it[2]]}
-    ch_state_classification.view()
+    //ch_state_classification.view() //[[sample_id:ss4], [plots, rds_files, binary_knowledge_matrix_contam.csv]]
     CLASSIFY_METACELLS( ch_state_classification )
 
     //////// Convert to Anndata /////////
