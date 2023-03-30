@@ -226,9 +226,21 @@ def main(args=None):
 
     mapping = MNN(rna_PCs, atac_PCs)
     mapping.head()
+    mapping.shape
 
     # Write mapping as csv
     mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings.csv'))
+    
+    # Add scHelper_cell_type to mapping
+    cell_types = rna_ad.obs[['scHelper_cell_type']]
+    cell_types = cell_types.rename_axis("RNA").reset_index()
+    cell_types.shape
+    
+    mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
+    
+    # Write mapping with cell type as csv
+    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type.csv'))
+    
 
 if __name__ == '__main__':
     sys.exit(main())
