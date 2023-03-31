@@ -235,11 +235,12 @@ workflow A {
         // take the exported_data outputs from SEACell_computation of the ATAC
         ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
             .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
+            .view()
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-        ch_metacells_combined.view()
-        COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
+        //ch_metacells_combined.view()
+        //COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
         // run peak clustering wf
         //CLUSTER_PEAKS_WF( COMBINE_METACELL_COUNTS.out )
