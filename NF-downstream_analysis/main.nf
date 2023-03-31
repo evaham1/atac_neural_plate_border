@@ -218,12 +218,13 @@ workflow A {
 
         ch_labels_combined = ch_peakcall_processed //original ArchR ATAC single cell object
             .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .concat( SEACELLS_ATAC_WF.out.seacell_outputs_named ) //seacell ATAC ID to single cell ATAC ID map
-            .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
-            .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
             .view()
+            // .concat( SEACELLS_ATAC_WF.out.seacell_outputs_named ) //seacell ATAC ID to single cell ATAC ID map
+            // .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
+            // .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
+            // .view()
 
-            //CHECK THIS NOW:
+        //CHECK THIS NOW:
         // [[sample_id:FullData], csv_files]
         // [[sample_id:HH6], [HH6_Save-ArchR, csv_files, [plots, rds_files]]]
         // [[sample_id:HH7], [HH7_Save-ArchR, csv_files, [plots, rds_files]]]
