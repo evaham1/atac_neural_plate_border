@@ -94,8 +94,6 @@ workflow A {
             .map{[it[0], it[1] + it[2]]}
             .set {ch_metadata} // add gtf to cellranger output so can add annotations
 
-        ch_metadata.view()
-
         PREPROCESSING ( ch_metadata ) // create ArchR object
 
         FILTERING ( PREPROCESSING.out.output ) // iterative filtering
@@ -146,8 +144,12 @@ workflow A {
             .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
             .set { ch_peakcall_processed }
 
-        ch_peakcall_processed.view()
-
+        // ch_peakcall_processed.view()
+        // [[sample_id:HH6], rds_files/HH6_Save-ArchR]
+        // [[sample_id:HH7], rds_files/HH7_Save-ArchR]
+        // [[sample_id:ss4], rds_files/ss4_Save-ArchR]
+        // [[sample_id:ss8], rds_files/ss8_Save-ArchR]
+        // [[sample_id:HH5], rds_files/HH5_Save-ArchR]
 
     } else {
        
@@ -165,7 +167,6 @@ workflow A {
     if(!skip_metacell_processing){
 
         // Run Metacells on ATAC stages
-        ch_peakcall_processed.view()
         SEACELLS_ATAC_WF( ch_peakcall_processed, ch_binary_knowledge_matrix )
              
         //read in RNA data (stages only)
@@ -213,7 +214,7 @@ workflow A {
             .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
             .concat( ch_peakcall_processed ) //original ArchR ATAC single cell object
             .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
-            .view()
+            //.view()
         //SEACELL_LABELS_ON_ATAC( ch_labels_combined ) //take all this info and output ArchR ATAC stage object with new labels generated from single cell integration
 
 
