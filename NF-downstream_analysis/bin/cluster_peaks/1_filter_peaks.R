@@ -82,8 +82,8 @@ print("Preview of summarised count df:")
 print(SEACells_summarised[1:4, 1:4])
 
 # Extract SEACell IDs from first column
-SEACells_IDs <- as.vector(SEACells_summarised[,1])
-SEACells_summarised <- SEACells_summarised[,-1]
+SEACells_IDs <- as.vector(SEACells_summarised[,2])
+SEACells_summarised <- SEACells_summarised[,-1:2]
 print(head(SEACells_IDs))
 
 # Turn into numeric matrix for downstream processing
