@@ -199,7 +199,12 @@ workflow A {
         SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
             .set {ch_ATAC}
-        ch_ATAC.view()
+        // ch_ATAC.view()
+        // [[sample_id:HH6], 6d/4467b6b5de1ef8f33c2edc45d871b6/rds_files/AnnData_ATAC.h5ad]
+        // [[sample_id:HH7], 4f/2aef89dec2263316c6a5645b259204/rds_files/AnnData_ATAC.h5ad]
+        // [[sample_id:HH5], 78/c6ea5ab5e6e2cc3e0b5ccd6763f948/rds_files/AnnData_ATAC.h5ad]
+        // [[sample_id:ss4], a4/9d8ea368614ff7badd70b2135e7046/rds_files/AnnData_ATAC.h5ad]
+        // [[sample_id:ss8], 4a/a274c2d504b915e6a9fb8369584796/rds_files/AnnData_ATAC.h5ad]
 
         ch_RNA
             .concat( ch_ATAC )
@@ -219,6 +224,8 @@ workflow A {
 
 
         ///////     Run peak clustering on full data      ///////
+
+        SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
 
         // take the exported_data outputs from SEACell_computation of the ATAC
         //SEACELLS_ATAC_WF.out.seacell_outputs_named -> should be: csv_files/HH5_cell_metadata.csv, csv_files/HH5_feature_metadata.csv, csv_files/HH5_summarised_counts.csv
