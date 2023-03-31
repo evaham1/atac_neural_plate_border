@@ -239,12 +239,14 @@ workflow A {
             //.map{ meta, data -> [data.findAll{it =~ /csv_files/}[0]] } //[[sample_id:FullData], [csv_files, csv_files, csv_files, csv_files, csv_files]]
             //.map{it[1].listFiles()}
             .map{ meta, data -> data.listFiles() } //list files inside only folder in output (csv_files)
-            .view()
-            // .map{ data -> data.listFiles() } // extract the 3 files inside csv_files so they are not in []
-            // .view()
-            // .map{ meta, data -> [meta, data.findAll{it =~ /csv_files/}[0].listFiles()[0]] }
-            .collect()
+            // [HH6_feature_metadata.csv, HH6_summarised_by_metacells_counts.csv, HH6_cell_metadata.csv]
+            // [ss4_cell_metadata.csv, ss4_summarised_by_metacells_counts.csv, ss4_feature_metadata.csv]
+            // [ss8_cell_metadata.csv, ss8_summarised_by_metacells_counts.csv, ss8_feature_metadata.csv]
+            // [HH7_feature_metadata.csv, HH7_summarised_by_metacells_counts.csv, HH7_cell_metadata.csv]
+            // [HH5_feature_metadata.csv, HH5_cell_metadata.csv, HH5_summarised_by_metacells_counts.csv]
             .flatten()
+            .view()
+            .collect()
             .view()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
