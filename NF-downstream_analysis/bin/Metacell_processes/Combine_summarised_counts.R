@@ -156,7 +156,8 @@ print(ss8_data[1:2, 1:2])
 #                       UNION ALL 
 #                       SELECT * FROM ss8_data")
 
-rbindlist(list(HH5_data, HH6_data, HH7_data, ss4_data, ss8_data))
+combined_df <- rbindlist(list(HH5_data, HH6_data, HH7_data, ss4_data, ss8_data))
+dim(combined_df)
 
 ## write out new csv
 write.csv(combined_df, paste0(rds_path, 'Combined_summarised_by_metacells_counts.csv'))
