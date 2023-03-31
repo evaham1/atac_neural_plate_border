@@ -235,14 +235,14 @@ workflow A {
         // take the exported_data outputs from SEACell_computation of the ATAC
         ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
             //.map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
-            .map{ meta, data -> [data.listFiles()] }
+            .map{ meta, data -> [data.listFiles()[0]] }
             //.map{ meta, data -> [data.findAll{it =~ /csv_files/}[0]] } //[[sample_id:FullData], [csv_files, csv_files, csv_files, csv_files, csv_files]]
             //.map{it[1].listFiles()}
             .view()
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-        //ch_metacells_combined.view()
+        ch_metacells_combined.view()
         //[[sample_id:FullData], [[HH6_feature_metadata.csv, HH6_summarised_by_metacells_counts.csv, HH6_cell_metadata.csv], [HH7_feature_metadata.csv, HH7_summarised_by_metacells_counts.csv, HH7_cell_metadata.csv], [ss8_cell_metadata.csv, ss8_summarised_by_metacells_counts.csv, ss8_feature_metadata.csv], [ss4_cell_metadata.csv, ss4_summarised_by_metacells_counts.csv, ss4_feature_metadata.csv], [HH5_feature_metadata.csv, HH5_cell_metadata.csv, HH5_summarised_by_metacells_counts.csv]]]
         //COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
