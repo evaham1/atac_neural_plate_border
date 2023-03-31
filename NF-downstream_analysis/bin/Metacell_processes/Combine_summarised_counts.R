@@ -44,7 +44,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     rds_path = "./csv_files/"
-    data_path = "./input/exported_data/"
+    data_path = "./input/"
     ncores = opt$cores
     
   } else {
@@ -72,7 +72,7 @@ all_identical <- function(df_list) {
 
 ############################## Identify .csv files and list of stages #######################################
 input_files <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE)
-print(input_files)
+print(paste0("Input paths detected: ", input_files))
 
 feature_metadata_paths <- list.files(path = data_path, pattern = "*_feature_metadata.csv", full.names = TRUE)
 print(paste0("Feature metadata paths: ", feature_metadata_paths))
