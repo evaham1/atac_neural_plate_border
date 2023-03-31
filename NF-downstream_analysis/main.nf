@@ -189,7 +189,7 @@ workflow A {
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
             .set {ch_RNA}
 
-        // ch_RNA.view()
+        //ch_RNA.view()
         // [[sample_id:HH6], c8/0355d43ba613bc2159e10758c26572/rds_files/AnnData_RNA.h5ad]
         // [[sample_id:HH5], 61/920e02828bc1d30d01745280da08cb/rds_files/AnnData_RNA.h5ad]
         // [[sample_id:HH7], d0/6b148d2543b6b195b8ee2088fad0b7/rds_files/AnnData_RNA.h5ad]
@@ -210,11 +210,11 @@ workflow A {
 
         ///////     Check new scHelper_cell_type labels at single cell level on ATAC data      ///////
 
-        ch_labels_combined = SEACELLS_ATAC_WF.out.seacells_anndata //seacell ATAC ID to single cell ATAC ID map
-            .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
-            .concat( ch_peakcall_processed ) //original ArchR ATAC single cell object
-            .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
-            //.view()
+        // ch_labels_combined = SEACELLS_ATAC_WF.out.seacells_anndata //seacell ATAC ID to single cell ATAC ID map
+        //     .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
+        //     .concat( ch_peakcall_processed ) //original ArchR ATAC single cell object
+        //     .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
+        //     //.view()
         //SEACELL_LABELS_ON_ATAC( ch_labels_combined ) //take all this info and output ArchR ATAC stage object with new labels generated from single cell integration
 
 
@@ -222,12 +222,12 @@ workflow A {
 
         // take the exported_data outputs from SEACell_computation of the ATAC
         //SEACELLS_ATAC_WF.out.seacell_outputs_named -> should be: csv_files/HH5_cell_metadata.csv, csv_files/HH5_feature_metadata.csv, csv_files/HH5_summarised_counts.csv
-        ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
-            .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        // ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
+        //     .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
+        //     .collect()
+        //     .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-        COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
+        // COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
         // run peak clustering wf
         CLUSTER_PEAKS_WF( COMBINE_METACELL_COUNTS.out )
