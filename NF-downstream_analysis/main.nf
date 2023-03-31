@@ -238,9 +238,11 @@ workflow A {
             //.map{ meta, data -> data.listFiles() }
             //.map{ meta, data -> [data.findAll{it =~ /csv_files/}[0]] } //[[sample_id:FullData], [csv_files, csv_files, csv_files, csv_files, csv_files]]
             //.map{it[1].listFiles()}
-            .map{ meta, data -> data.listFiles() } //list files inside only folder in output (csv_files)
-            .view()
-            .map{ it[0], it[1], it[2] } // extract the 3 files inside csv_files so they are not in []
+            // .map{ meta, data -> data.listFiles() } //list files inside only folder in output (csv_files)
+            // .view()
+            // .map{ data -> data.listFiles() } // extract the 3 files inside csv_files so they are not in []
+            // .view()
+            .map{ meta, data -> [meta, data.findAll{it =~ /csv_files/}[0].listFiles()[0]] }
             .view()
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
