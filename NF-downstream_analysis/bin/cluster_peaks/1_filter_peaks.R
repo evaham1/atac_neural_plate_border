@@ -76,18 +76,23 @@ calc_top_variable_features <- function(counts, n = 1000){
 SEACells_summarised <- as.matrix(fread(paste0(data_path, "Combined_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
 #SEACells_summarised <- as.matrix(fread(paste0(data_path, "ss8_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
 
-dim(SEACells_summarised)
-SEACells_summarised[1:4, 1:4]
+print(paste0("Dimensions of summarised counts df: ", dim(SEACells_summarised)))
+print("Preview of summarised count df:")
+print(SEACells_summarised[1:4, 1:4])
+print("Summarised counts df rownames:")
 head(rownames(SEACells_summarised))
 
 ## Read in peak metadata
 peak_metadata <- fread(paste0(data_path, "Feature_metadata.csv"), header = TRUE)
+print("Preview of peakset df:")
 print(head(peak_metadata))
 
 ############################## 1) Normalise #######################################
 
 ## normalise each metacell by the total number of cut sites
 normalised_counts <- t(apply(SEACells_summarised, 1, function(x) x/sum(x))) * 1000
+# Error in sum(x) : invalid 'type' (character) of argument
+# Calls: t -> apply -> FUN
 normalised_counts[1:2, 1:2]
 dim(normalised_counts)
 
