@@ -82,20 +82,21 @@ print("Preview of input df:")
 print(SEACells_summarised[1:4, 1:4])
 
 # Extract SEACell IDs from first column
-SEACells_IDs <- as.vector(SEACells_summarised[,2])
+SEACells_IDs <- pull(SEACells_summarised, 2)
 print(head(SEACells_IDs))
+length(SEACells_IDs)
 
 # Clean up df
 SEACells_summarised <- SEACells_summarised[,-1:-2]
 print("Preview of input df after cleanup:")
 print(SEACells_summarised[1:4, 1:4])
+dim(SEACells_summarised)
 
 # Turn into numeric matrix for downstream processing
-SEACells_summarised_numeric <- matrix(as.numeric(as.character(SEACells_summarised)), ncol = ncol(SEACells_summarised))
+SEACells_summarised_numeric <- as.matrix(sapply(SEACells_summarised, as.numeric))  
 
 # Add SEACell IDs as rownames and peak IDs as colnames
 rownames(SEACells_summarised_numeric) <- SEACells_IDs
-colnames(SEACells_summarised_numeric) <- colnames(SEACells_summarised)
 
 # Check resulting matrix
 print(dim(SEACells_summarised_numeric))
@@ -145,7 +146,6 @@ print("Filtering by peak annotation...")
 included_peak_set <- peak_metadata[which(peak_metadata$peakType %in% c("Distal", "Intronic")), ]
 print(paste0("Number of total peaks: ", length(peak_metadata$name)))
 print(paste0("Number of peaks that are distal or intronic: ", length(included_peak_set$name)))
-
 included_peaks <- included_peak_set$name
 
 # filter summarised counts to only include these peaks
