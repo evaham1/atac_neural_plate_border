@@ -135,6 +135,12 @@ print(dim(ss8_data))
 
 print(ss8_data[1:2, 1:2])
 
+# Default maxcol for sqldf is less than the number of columns here
+print(paste0("Number of columns (peaks): ", dim(HH5_data)[2]))
+maxcol <- dim(HH5_data)[2]+1
+print(paste0("Setting sqldf maxcol as: ", maxcol))
+options(sqldf.maxcol = maxcol)
+
 ## Combine all data csvs into one
 # combined_df <- sqldf("SELECT * FROM ss4_data
 #                       UNION ALL 
