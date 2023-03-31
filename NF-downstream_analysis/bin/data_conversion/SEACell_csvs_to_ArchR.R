@@ -33,20 +33,18 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1) 
     
-    # real data path - transfer labels object
-    data_path = "./output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/"
+    ### Interactively will have to read from a few different places
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Peak_call/rds_files/" # for ArchR object
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/" # for single cell to seacell mapping
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Integrated_SEACells/" # integrated seacell mapping
 
-    # test data path - ss8 object
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/PEAK_CALLING/peak_call/rds_files/"
-
-    # test output path for exported data
-    rds_path = "./scratch_SEACells/ArchR_exported_data/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
-    rds_path = "./exported_ArchR_data/"
-    data_path = "./input/rds_files/"
+    rds_path = "./rds_files/"
+    plot_path = "./plots/"
+    data_path = "./input/"
     ncores = opt$cores
     
     addArchRThreads(threads = ncores)
@@ -59,58 +57,55 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+############################## Read data #######################################
 
-#################### R script to extract peak counts from ArchR object #########################
-# https://github.com/dpeerlab/SEACells/blob/main/notebooks/ArchR/ArchR-preprocessing-nfr-peaks.R
+# List all files in input
+input_paths <- list.files(data_path)
+print(input_paths)
 
-############################## Read in ArchR project #######################################
+# 1) Read in ArchR object
+ArchR_path <- list.files(path = data_path, pattern = "*_Save-ArchR", full.names = TRUE)
+print(paste0("ArchR path: ", ArchR_path))
 
-# If files are not in rds_files subdirectory look in input dir 
-label <- sub('_.*', '', list.files(data_path))
-print(label) 
+ArchR <- loadArchRProject(path = ArchR_path, force = FALSE, showLogo = TRUE)
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
-if (length(label) == 0){
-  data_path = "./input/"
-  label <- sub('_.*', '', list.files(data_path))
-  print(label)
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-} else {
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-}
+# 2) Read in ATAC single cell to SEACell mapping
+SEACell_map_path <- list.files(path = paste0(data_path, "csv_files/"), pattern = "*_cell_metadata.csv", full.names = TRUE)
+#SEACell_map_path <- list.files(path = paste0(data_path, ""), pattern = "*Cell_metadata.csv", full.names = TRUE) #interactive
+print(paste0("SEACell map path: ", SEACell_map_path))
 
-############################## Export data #######################################
+SEACell_map <- read.csv(SEACell_map_path)
+print(head(SEACell_map))
+print(dim(SEACell_map))
 
-# Export
-write.csv(getReducedDims(ArchR), paste0(rds_path, "svd.csv"), quote=FALSE)
-write.csv(getCellColData(ArchR), paste0(rds_path, "cell_metadata.csv"), quote=FALSE)
+# 3) Read in ATAC SEACell to RNA SEACell mapping
+Integration_map_path <- list.files(path = paste0(data_path, "rds_files/"), pattern = "*_mappings_cell_type.csv", full.names = TRUE)
+print(paste0("Integration map path: ", Integration_map_path))
 
-# Gene scores
-gene.scores <- getMatrixFromProject(ArchR)
-scores <- assays(gene.scores)[['GeneScoreMatrix']]
-scores <- as.matrix(scores)
-rownames(scores) <- rowData(gene.scores)$name
-write.csv(scores, paste0(rds_path, "gene_scores.csv"), quote=FALSE)
+Integration_map <- read.csv(Integration_map_path)
+print(head(Integration_map))
+print(dim(Integration_map))
 
-# Peak counts
-peaks <- getPeakSet(ArchR)
-peak.counts <- getMatrixFromProject(ArchR, 'PeakMatrix')
+############################## Merge maps #######################################
 
-# Reorder peaks 
-# Chromosome order
-chr_order <- sort(seqlevels(peaks))
-reordered_features <- list()
-for(chr in chr_order) {
-  reordered_features[[chr]] = peaks[seqnames(peaks) == chr] }
-reordered_features <- Reduce("c", reordered_features)    
+length(unique(SEACell_map$SEACell))
+length(unique(Integration_map$ATAC))
+length(unique(Integration_map$RNA))
 
-# Export counts
-dir.create(paste0(rds_path, "peak_counts/"), recursive = T)
-           
-counts <- assays(peak.counts)[['PeakMatrix']]
-writeMM(counts, paste0(rds_path, "peak_counts/counts.mtx"))
-write.csv(colnames(peak.counts), paste0(rds_path, "peak_counts/cells.csv"))
+sum(unique(SEACell_map$SEACell) %in% unique(Integration_map$ATAC))
 
-names(reordered_features) <- paste0("PeakId_", 1:length(reordered_features))
-write.csv(as.data.frame(reordered_features), paste0(rds_path, 'peak_counts/peaks.csv'))
+df_new <- merge(SEACell_map, Integration_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
+head(df_new)
+
+dim(df_new)
+df_new$scHelper_cell_type
+
+############ Add SEACell integrated scHelper_cell_type to ArchR object ###################
+
+
+############################## Visualise on UMAPs #######################################
+
+############################## Save ArchR #######################################
+
+
