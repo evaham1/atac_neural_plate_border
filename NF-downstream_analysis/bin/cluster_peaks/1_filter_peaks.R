@@ -78,16 +78,20 @@ print("Data read in!")
 
 # Check input
 print(dim(SEACells_summarised))
-print("Preview of summarised count df:")
+print("Preview of input df:")
 print(SEACells_summarised[1:4, 1:4])
 
 # Extract SEACell IDs from first column
 SEACells_IDs <- as.vector(SEACells_summarised[,2])
-SEACells_summarised <- SEACells_summarised[,-1:-2]
 print(head(SEACells_IDs))
 
+# Clean up df
+SEACells_summarised <- SEACells_summarised[,-1:-2]
+print("Preview of input df after cleanup:")
+print(SEACells_summarised[1:4, 1:4])
+
 # Turn into numeric matrix for downstream processing
-SEACells_summarised_numeric <- matrix(as.numeric(SEACells_summarised), ncol = ncol(SEACells_summarised)) 
+SEACells_summarised_numeric <- matrix(as.numeric(as.character(SEACells_summarised)), ncol = ncol(SEACells_summarised))
 
 # Add SEACell IDs as rownames and peak IDs as colnames
 rownames(SEACells_summarised_numeric) <- SEACells_IDs
