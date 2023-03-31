@@ -209,12 +209,12 @@ workflow A {
 
         ///////     Check new scHelper_cell_type labels at single cell level on ATAC data      ///////
 
-        // ch_labels_combined = SEACELLS_ATAC_WF.out.seacells_anndata //seacell ATAC ID to single cell ATAC ID map
-        //     .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
-        //     .concat( ch_peakcall_processed ) //original ArchR ATAC single cell object
-        //     .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
-        //     .view()
-        // SEACELL_LABELS_ON_ATAC( ch_labels_combined ) //take all this info and output ArchR ATAC stage object with new labels generated from single cell integration
+        ch_labels_combined = SEACELLS_ATAC_WF.out.seacells_anndata //seacell ATAC ID to single cell ATAC ID map
+            .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
+            .concat( ch_peakcall_processed ) //original ArchR ATAC single cell object
+            .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
+            .view()
+        //SEACELL_LABELS_ON_ATAC( ch_labels_combined ) //take all this info and output ArchR ATAC stage object with new labels generated from single cell integration
 
 
         ///////     Run peak clustering on full data      ///////
