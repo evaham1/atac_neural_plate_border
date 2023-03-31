@@ -135,26 +135,28 @@ print(dim(ss8_data))
 
 print(ss8_data[1:2, 1:2])
 
-# Default maxcol for sqldf is less than the number of columns here
-print(paste0("Number of columns (peaks): ", dim(HH5_data)[2]))
-maxcol <- dim(HH5_data)[2]+1
-print(paste0("Setting sqldf maxcol as: ", maxcol))
-options(sqldf.maxcol = maxcol)
+# # Default maxcol for sqldf is less than the number of columns here
+# print(paste0("Number of columns (peaks): ", dim(HH5_data)[2]))
+# maxcol <- dim(HH5_data)[2]+1
+# print(paste0("Setting sqldf maxcol as: ", maxcol))
+# options(sqldf.maxcol = maxcol)
 
-## Combine all data csvs into one
-# combined_df <- sqldf("SELECT * FROM ss4_data
+# ## Combine all data csvs into one
+# # combined_df <- sqldf("SELECT * FROM ss4_data
+# #                       UNION ALL 
+# #                       SELECT * FROM ss8_data")
+
+# combined_df <- sqldf("SELECT * FROM HH5_data
+#                       UNION ALL 
+#                       SELECT * FROM HH6_data
+#                       UNION ALL 
+#                       SELECT * FROM HH7_data
+#                       UNION ALL 
+#                       SELECT * FROM ss4_data
 #                       UNION ALL 
 #                       SELECT * FROM ss8_data")
 
-combined_df <- sqldf("SELECT * FROM HH5_data
-                      UNION ALL 
-                      SELECT * FROM HH6_data
-                      UNION ALL 
-                      SELECT * FROM HH7_data
-                      UNION ALL 
-                      SELECT * FROM ss4_data
-                      UNION ALL 
-                      SELECT * FROM ss8_data")
+rbindlist(list(HH5_data, HH6_data, HH7_data, ss4_data, ss8_data))
 
 ## write out new csv
 write.csv(combined_df, paste0(rds_path, 'Combined_summarised_by_metacells_counts.csv'))
