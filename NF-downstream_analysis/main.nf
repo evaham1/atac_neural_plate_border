@@ -199,12 +199,12 @@ workflow A {
         SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified
             .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
             .set {ch_ATAC}
-        // ch_ATAC is identical to ch_RNA except objects are called AnnData_ATAC.h5ad
+        ch_ATAC.view()
 
         ch_RNA
             .concat( ch_ATAC )
             .groupTuple( by:0 )
-            .view() //[[sample_id:ss4], [fa/1d64469d41d5a69f74d4d706bf5681/rds_files/AnnData_RNA.h5ad, 4a/72711280da408db03e302a5926456a/rds_files/AnnData_ATAC.h5ad]]
+            //.view() //[[sample_id:ss4], [fa/1d64469d41d5a69f74d4d706bf5681/rds_files/AnnData_RNA.h5ad, 4a/72711280da408db03e302a5926456a/rds_files/AnnData_ATAC.h5ad]]
             .set {ch_seacells_to_integrate}
         INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
