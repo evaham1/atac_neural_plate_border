@@ -236,11 +236,21 @@ workflow A {
         ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
             //.map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
             .map{it[1].listFiles()}
-            .view()
+            //.view()
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-        //ch_metacells_combined.view()
+
+// [41/8c7ec3c7a7c3bb79dcd52e4bad02b9/csv_files/HH6_feature_metadata.csv, 41/8c7ec3c7a7c3bb79dcd52e4bad02b9/csv_files/HH6_summarised_by_metacells_counts.csv, 41/8c7ec3c7a7c3bb79dcd52e4bad02b9/csv_files/HH6_cell_metadata.csv]
+// [58/b3df47b5a798e1acaa3666df878bdb/csv_files/HH7_feature_metadata.csv, 58/b3df47b5a798e1acaa3666df878bdb/csv_files/HH7_summarised_by_metacells_counts.csv, 58/b3df47b5a798e1acaa3666df878bdb/csv_files/HH7_cell_metadata.csv]
+// [a8/f7a307efa1093759a27fd61ea09350/csv_files/ss8_cell_metadata.csv, a8/f7a307efa1093759a27fd61ea09350/csv_files/ss8_summarised_by_metacells_counts.csv, a8/f7a307efa1093759a27fd61ea09350/csv_files/ss8_feature_metadata.csv]
+// [71/b91188feb85928e3c2096811627513/csv_files/ss4_cell_metadata.csv, 71/b91188feb85928e3c2096811627513/csv_files/ss4_summarised_by_metacells_counts.csv, 71/b91188feb85928e3c2096811627513/csv_files/ss4_feature_metadata.csv]
+// [b5/52af06cc3559a5d45a976102bc509f/csv_files/HH5_feature_metadata.csv, b5/52af06cc3559a5d45a976102bc509f/csv_files/HH5_cell_metadata.csv, b5/52af06cc3559a5d45a976102bc509f/csv_files/HH5_summarised_by_metacells_counts.csv]
+
+
+
+
+        ch_metacells_combined.view()
         //COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
         // run peak clustering wf
