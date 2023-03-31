@@ -39,6 +39,7 @@ include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacell
 
 //INTEGRATING SEACELLS
 include {PYTHON as INTEGRATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/Integration/SEACells_integration.py", checkIfExists: true) )
+include {R as SEACELL_LABELS_ON_ATAC} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/SEACell_csvs_to_ArchR.R", checkIfExists: true) )
 
 //PEAK CLUSTERING
 include {R as COMBINE_METACELL_COUNTS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Metacell_processes/Combine_summarised_counts.R", checkIfExists: true) )
