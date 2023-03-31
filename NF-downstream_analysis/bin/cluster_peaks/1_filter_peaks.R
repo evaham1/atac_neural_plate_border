@@ -72,14 +72,21 @@ calc_top_variable_features <- function(counts, n = 1000){
 ############################## Read in SEACells summarised data + ArchR object #######################################
 
 # Read in summarised peak counts across all seacells
-SEACells_summarised <- as.matrix(fread(paste0(data_path, "Combined_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
+SEACells_summarised <- fread(paste0(data_path, "Combined_summarised_by_metacells_counts.csv"), header = TRUE)
 #SEACells_summarised <- as.matrix(fread(paste0(data_path, "ss8_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
+print("Data read in!")
 
-# Turn into numeric matrix for downstream processing
+# Check input
+print(dim(SEACells_summarised))
+print("Preview of summarised count df:")
+print(SEACells_summarised[1:4, 1:4])
+
+# Extract SEACell IDs from first column
 SEACells_IDs <- as.vector(SEACells_summarised[,1])
 SEACells_summarised <- SEACells_summarised[,-1]
-SEACells_summarised <- as.numeric(SEACells_summarised)
-print(dim(SEACells_summarised))
+print(head(SEACells_IDs))
+
+# Turn into numeric matrix for downstream processing
 SEACells_summarised_numeric <- matrix(as.numeric(SEACells_summarised), ncol = ncol(SEACells_summarised)) 
 
 # Add SEACell IDs as rownames and peak IDs as colnames
