@@ -236,7 +236,7 @@ workflow A {
         ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
             //.map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
             .map{ meta, data -> [data.findAll{it =~ /csv_files/}[0].listFiles()[0]] }
-            //.map{ meta, data -> [data.findAll{it =~ /csv_files/}[0]] }
+            //.map{ meta, data -> [data.findAll{it =~ /csv_files/}[0]] } //[[sample_id:FullData], [csv_files, csv_files, csv_files, csv_files, csv_files]]
             //.map{it[1].listFiles()}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
