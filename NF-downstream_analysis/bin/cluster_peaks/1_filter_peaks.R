@@ -14,7 +14,7 @@ library(gridExtra)
 library(grid)
 library(parallel)
 library(data.table)
-library(doSNOW)
+#library(doSNOW)
 
 ############################## Set up script options #######################################
 # Read in command line opts
