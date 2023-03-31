@@ -225,16 +225,21 @@ workflow A {
 
         ///////     Run peak clustering on full data      ///////
 
-        SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
+        // SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
+        // [[sample_id:HH7], 58/b3df47b5a798e1acaa3666df878bdb/csv_files]
+        // [[sample_id:HH6], 41/8c7ec3c7a7c3bb79dcd52e4bad02b9/csv_files]
+        // [[sample_id:ss8], a8/f7a307efa1093759a27fd61ea09350/csv_files]
+        // [[sample_id:ss4], 71/b91188feb85928e3c2096811627513/csv_files]
+        // [[sample_id:HH5], b5/52af06cc3559a5d45a976102bc509f/csv_files]
 
         // take the exported_data outputs from SEACell_computation of the ATAC
-        //SEACELLS_ATAC_WF.out.seacell_outputs_named -> should be: csv_files/HH5_cell_metadata.csv, csv_files/HH5_feature_metadata.csv, csv_files/HH5_summarised_counts.csv
-        // ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
-        //     .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
-        //     .collect()
-        //     .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
+            .map{it[1].findAll{it =~ /csv_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-        // COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
+        ch_metacells_combined.view()
+        COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
         // run peak clustering wf
         //CLUSTER_PEAKS_WF( COMBINE_METACELL_COUNTS.out )
