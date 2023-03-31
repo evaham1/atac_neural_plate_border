@@ -230,7 +230,7 @@ workflow A {
         // COMBINE_METACELL_COUNTS( ch_metacells_combined ) //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too?
         
         // run peak clustering wf
-        CLUSTER_PEAKS_WF( COMBINE_METACELL_COUNTS.out )
+        //CLUSTER_PEAKS_WF( COMBINE_METACELL_COUNTS.out )
 
     }
 
