@@ -62,8 +62,16 @@ if(opt$verbose) print(opt)
 ########################################################################################################
 
 # read in SEACells data
-SEACells_summarised <- as.matrix(fread(paste0(data_path, label), header = TRUE), rownames = 1)
-print(paste0("Number of peaks to cluster: ", ncol(SEACells_summarised)))
+SEACells_summarised <- fread(paste0(data_path, "Filtered_summarised_counts.csv"), header = TRUE)
+#SEACells_summarised <- as.matrix(fread(paste0(data_path, "ss8_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
+print("Data read in!")
+
+# Check input
+print("Preview of input df:")
+print(SEACells_summarised[1:4, 1:4])
+print(dim(SEACells_summarised))
+
+## make into numeric matrix adjust colnames/rownmames
 
 # change cell names for Antler
 rownames(SEACells_summarised) <- gsub('-', '_', rownames(SEACells_summarised))
