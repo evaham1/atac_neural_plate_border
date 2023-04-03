@@ -45,7 +45,7 @@ workflow CLUSTER_PEAKS_WF {
     COMBINE_METACELL_COUNTS( ch_metacells_combined )
     
     // Filter peaks based on annotation and variability
-    FILTER_PEAKS( input )
+    FILTER_PEAKS( COMBINE_METACELL_COUNTS.out )
 
     // Cluster peaks using Antler package
     CLUSTER_PEAKS( FILTER_PEAKS.out )
