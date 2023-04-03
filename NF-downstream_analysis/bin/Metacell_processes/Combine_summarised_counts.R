@@ -80,6 +80,9 @@ print(paste0("Feature metadata paths: ", feature_metadata_paths))
 cell_metadata_paths <- list.files(path = data_path, pattern = "*_cell_metadata.csv", full.names = TRUE)
 print(paste0("Cell metadata paths: ", cell_metadata_paths))
 
+SEACell_integrated_metadata_paths <- list.files(path = data_path, pattern = "*_filtered_SEACells_integration_map.csv", full.names = TRUE)
+print(paste0("SEACell integrated metadata paths: ", SEACell_integrated_metadata_paths))
+
 count_paths <- list.files(path = data_path, pattern = "*_summarised_by_metacells_counts.csv", full.names = TRUE)
 print(paste0("Summarised count paths: ", count_paths))
 
@@ -102,6 +105,19 @@ combined_cell_metacell <- ldply(cell_metadata_files, data.frame)
 
 ## write out new csv
 write.csv(combined_cell_metacell, paste0(rds_path, 'Combined_cell_metadata.csv'))
+
+############################## Combine SEACell integrated metadata files #######################################
+
+SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_paths, read.csv)
+
+## add another column to cell metadata with seacell ID-stage eg SEACell-84-ss8
+SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_files, function(x) mutate(x, SEACell_stage = paste0(SEACell, "-", stage)))
+
+## combine all cell metacell csvs into one
+combined_SEACell_metacell <- ldply(SEACell_integrated_metadata_files, data.frame)
+
+## write out new csv
+write.csv(combined_SEACell_metacell, paste0(rds_path, 'Combined_SEACell_integrated_metadata.csv'))
 
 
 ############################## Combine summarised peak counts #######################################
