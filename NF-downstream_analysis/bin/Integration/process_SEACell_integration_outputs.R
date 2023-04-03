@@ -185,16 +185,24 @@ seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 saveRDS(seurat, paste0(rds_path, "seacells_seurat_integrated.RDS"), compress = FALSE)
 
 ## plot new metadata on SEACell UMAPs
-png(paste0(plot_path, "stage_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = "stage", pt.size = 6)
+png(paste0(plot_path, "stage_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+DimPlot(seurat, group.by = "stage", pt.size = 10)
 graphics.off()
 
-png(paste0(plot_path, "scHelper_cell_type_from_integration_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = "scHelper_cell_type_from_integration", pt.size = 6)
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$scHelper_cell_type_from_integration))]
+
+png(paste0(plot_path, "scHelper_cell_type_from_integration_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+DimPlot(seurat_data, group.by = 'scHelper_cell_type_from_integration', label = TRUE, 
+        label.size = 9, label.box = TRUE, repel = TRUE,
+        pt.size = 10,
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
-png(paste0(plot_path, "mapping_k_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-FeaturePlot(seurat, features = "Mapping_k", pt.size = 6)
+png(paste0(plot_path, "mapping_k_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+FeaturePlot(seurat, features = "Mapping_k", pt.size = 10)
 graphics.off()
 
 
