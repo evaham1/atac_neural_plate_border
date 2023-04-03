@@ -185,6 +185,9 @@ seurat <- AddMetaData(seurat, metadata = metadata$RNA, col.name = "Integrated_RN
 seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_integration, col.name = "scHelper_cell_type_from_integration")
 seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
+#   Set levels
+seurat@meta.data$scHelper_cell_type_from_integration <- factor(seurat@meta.data$scHelper_cell_type_from_integration, levels = scHelper_cell_type_order)
+
 ## save seacells seurat object with new metadata
 saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), compress = FALSE)
 
