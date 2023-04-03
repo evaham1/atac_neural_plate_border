@@ -71,5 +71,5 @@ workflow SEACELLS_INTEGRATING {
     //emit integrated outputs:
     emit:
     raw_integration_output = INTEGRATE_SEACELLS.out
-    processed_integration_output = CLUSTER_IDENTIFY_FILTERED.out
+    processed_integration_output = PROCESS_INTEGRATION_OUTPUTS.out
 }
