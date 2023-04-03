@@ -56,16 +56,26 @@ workflow SEACELLS_INTEGRATING {
             .set {ch_seacells_to_integrate}
 
         // Run integration
+
         INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
         // Process integration outputs
+
+        ATAC_SEACells_seurat.view()
+
+        ATAC_SEACells_map.view()
+
+        INTEGRATE_SEACELLS.out.view()
+
+
         ch_labels_combined = ATAC_SEACells_seurat
             .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .view()
-            .concat( ATAC_SEACells_map )
-            .concat( INTEGRATE_SEACELLS.out )
-            .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
-            .view()
+            //.concat( ATAC_SEACells_map )
+            //.concat( INTEGRATE_SEACELLS.out )
+            //.groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
+
+        //ch_labels_combined.view()
+
         PROCESS_INTEGRATION_OUTPUTS( ch_labels_combined )
 
     //emit integrated outputs:
