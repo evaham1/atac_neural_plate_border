@@ -63,9 +63,9 @@ workflow SEACELLS_INTEGRATING {
 
         ATAC_SEACells_seurat.view()
 
-        ATAC_SEACells_map.view()
+        // ATAC_SEACells_map.view()
 
-        INTEGRATE_SEACELLS.out.view()
+        // INTEGRATE_SEACELLS.out.view()
 
 
         ch_labels_combined = ATAC_SEACells_seurat
