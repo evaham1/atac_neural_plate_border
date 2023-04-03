@@ -175,7 +175,7 @@ def main(args=None):
     comb_ad = rna_ad[:, hvg].concatenate(atac_ad[:, hvg])
     print(comb_ad)
 
-    # PCA 
+    # Jointly compute PCs - will be input for integration 
     from sklearn.decomposition import TruncatedSVD
     svd = TruncatedSVD(n_components=30)
     comb_ad.obsm['X_pca'] = svd.fit_transform(comb_ad.X)
@@ -183,6 +183,17 @@ def main(args=None):
     print("Combined AnnData object made!")
 
     ####################    Run Integration   ####################
+    
+    #Inputs are:
+        #xs, Matrix of "source" RNA expression levels from scRNA-seq
+        #xt, Matrix of "target" gene activities calcualated from ATAC-seq peak accessibility
+    #The number of metacells can be variable between the two modalities but the number of columns should remain the same. We will use the jointly computed PCs as input for integration
+
+    #Optional paramters:
+        #ws: Vector of weights representing the size of each cluster/metacell from RNA
+        #wt: Same as above but for ATAC
+        #rho: Float in range [0,1] representing whether the final transformation should be closer to RNA distribution (0) or ATAC distribution (1). Default value is 1.
+        #reg: Small float to make sure covariance matrices are invertible
 
     xs = comb_ad[comb_ad.obs['Dataset'] == 'RNA'].obsm['X_pca']
     xt = comb_ad[comb_ad.obs['Dataset'] == 'ATAC'].obsm['X_pca']
@@ -194,6 +205,7 @@ def main(args=None):
     comb_ad.obsm['X_pca_transformed'] = pd.DataFrame(xs_transformed).append(pd.DataFrame(xt_transformed)).values
 
     # Save integrated AnnData object
+    comb_ad
     comb_ad.write(os.path.join(rds_path, 'AnnData_metacells_integrated.h5ad'))
 
     print("Integration ran!")
@@ -217,19 +229,28 @@ def main(args=None):
 
     ####################    Mapping ATAC SEACells to RNA SEACells   ####################
 
-    # Mapping ATAC SEACells to RNA SEACellss
+    # Extracting PCs and SEACell IDs
     rna_PCs = pd.DataFrame(xs_transformed)
     atac_PCs = pd.DataFrame(xt_transformed)
+    print(atac_PCs.head)
 
     rna_PCs.index = rna_ad.obs_names
+    len(rna_PCs.index)
     atac_PCs.index = atac_ad.obs_names
+    len(atac_PCs.index)
 
-    mapping = MNN(rna_PCs, atac_PCs)
+    # Run mapping:
+        # Computes distances between metacells    
+        # Nearest neighbours are computed based on distance in transformed PC space, followed by domain adaption by optimal transport
+        # Constructs a mapping between RNA and ATAC SEACells if they are mutually in each other's k-nearest neighbours
+        
+    ###### Run mapping with k = 1 ######
+    mapping = MNN(rna_PCs, atac_PCs, k=1)
     mapping.head()
-    mapping.shape
-
+    mapping.shape #41, 2
+    
     # Write mapping as csv
-    mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings.csv'))
+    mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings_k1.csv'))
     
     # Add scHelper_cell_type to mapping
     cell_types = rna_ad.obs[['scHelper_cell_type']]
@@ -239,7 +260,99 @@ def main(args=None):
     mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
     
     # Write mapping with cell type as csv
-    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type.csv'))
+    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type_k1.csv'))
+    
+    ###### Run mapping with k = 2 ######
+    mapping = MNN(rna_PCs, atac_PCs, k=2)
+    mapping.head()
+    mapping.shape #119, 2
+    
+    # Write mapping as csv
+    mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings_k2.csv'))
+    
+    # Add scHelper_cell_type to mapping
+    cell_types = rna_ad.obs[['scHelper_cell_type']]
+    cell_types = cell_types.rename_axis("RNA").reset_index()
+    cell_types.shape
+    
+    mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
+    
+    # Write mapping with cell type as csv
+    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type_k2.csv'))
+    
+    ###### Run mapping with k = 3 (default) ######
+    mapping = MNN(rna_PCs, atac_PCs, k=3) #default k
+    mapping.head()
+    mapping.shape #202, 2
+    
+    # Write mapping as csv
+    mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings_k3.csv'))
+    
+    # Add scHelper_cell_type to mapping
+    cell_types = rna_ad.obs[['scHelper_cell_type']]
+    cell_types = cell_types.rename_axis("RNA").reset_index()
+    cell_types.shape
+    
+    mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
+    
+    # Write mapping with cell type as csv
+    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type_k3.csv'))
+    
+    ##### Run mapping with k = 4 ######
+    mapping = MNN(rna_PCs, atac_PCs, k=4)
+    mapping.head()
+    mapping.shape #386,2
+    
+    # Write mapping as csv
+    mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings_k4.csv'))
+    
+    # Add scHelper_cell_type to mapping
+    cell_types = rna_ad.obs[['scHelper_cell_type']]
+    cell_types = cell_types.rename_axis("RNA").reset_index()
+    cell_types.shape
+    
+    mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
+    
+    # Write mapping with cell type as csv
+    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type_k4.csv'))
+    
+    ##### Run mapping with k = 5 ######
+    mapping = MNN(rna_PCs, atac_PCs, k=5)
+    mapping.head()
+    mapping.shape #386,2
+    
+    # Write mapping as csv
+    mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings_k5.csv'))
+    
+    # Add scHelper_cell_type to mapping
+    cell_types = rna_ad.obs[['scHelper_cell_type']]
+    cell_types = cell_types.rename_axis("RNA").reset_index()
+    cell_types.shape
+    
+    mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
+    
+    # Write mapping with cell type as csv
+    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type_k5.csv'))
+    
+    ##### Run mapping with k = 6 ######
+    mapping = MNN(rna_PCs, atac_PCs, k=6)
+    mapping.head()
+    mapping.shape #492,2
+    
+    # Write mapping as csv
+    mapping.to_csv(os.path.join(rds_path, 'SEACell_mappings_k6.csv'))
+    
+    # Add scHelper_cell_type to mapping
+    cell_types = rna_ad.obs[['scHelper_cell_type']]
+    cell_types = cell_types.rename_axis("RNA").reset_index()
+    cell_types.shape
+    
+    mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
+    
+    # Write mapping with cell type as csv
+    mapping_cell_type.to_csv(os.path.join(rds_path, 'SEACell_mappings_cell_type_k6.csv'))
+
+    
     
 
 if __name__ == '__main__':
