@@ -95,10 +95,10 @@ def main(args=None):
     # set output paths
     plot_path = "./integrated_output/plots/"
     rds_path = "./integrated_output/"
-    if not os.path.exists(plot_path):
-        os.mkdir(plot_path)
     if not os.path.exists(rds_path):
         os.mkdir(rds_path)
+    if not os.path.exists(plot_path):
+        os.mkdir(plot_path)
 
     # Cell type colour map
     cell_type_colors = {'NNE': '#ed5e5f', 
