@@ -38,8 +38,7 @@ include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_RNA_WF"
 
 //INTEGRATING SEACELLS
-include {PYTHON as INTEGRATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/Integration/SEACells_integration.py", checkIfExists: true) )
-include {R as SEACELL_LABELS_ON_ATAC} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/SEACell_csvs_to_ArchR.R", checkIfExists: true) )
+include { SEACELLS_INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
 
 //PEAK CLUSTERING
 include {R as COMBINE_METACELL_COUNTS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Metacell_processes/Combine_summarised_counts.R", checkIfExists: true) )
@@ -178,47 +177,16 @@ workflow A {
         SEACELLS_RNA_WF( METADATA_RNA.out.metadata, ch_binary_knowledge_matrix )
 
         ///////     Integrate SEACells      ///////
+        // will these different outputs channel in stage by stage??
+        SEACELLS_INTEGRATING( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed_classified, SEACELLS_ATAC_WF.out.seacell_outputs_named )
 
-        //SEACELLS_RNA_WF.out.seacells_anndata_processed_classified.view()
-        // [[sample_id:HH6], [c8/0355d43ba613bc2159e10758c26572/plots, c8/0355d43ba613bc2159e10758c26572/rds_files]]
-        // [[sample_id:HH5], [61/920e02828bc1d30d01745280da08cb/plots, 61/920e02828bc1d30d01745280da08cb/rds_files]]
-        // [[sample_id:ss8], [64/bc0c8d3f045086356bc00a7ebde6ff/plots, 64/bc0c8d3f045086356bc00a7ebde6ff/rds_files]]
-        // [[sample_id:ss4], [fa/1d64469d41d5a69f74d4d706bf5681/plots, fa/1d64469d41d5a69f74d4d706bf5681/rds_files]]
-        // [[sample_id:HH7], [d0/6b148d2543b6b195b8ee2088fad0b7/plots, d0/6b148d2543b6b195b8ee2088fad0b7/rds_files]]
-
-        SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
-            .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-            .set {ch_RNA}
-
-        //ch_RNA.view()
-        // [[sample_id:HH6], c8/0355d43ba613bc2159e10758c26572/rds_files/AnnData_RNA.h5ad]
-        // [[sample_id:HH5], 61/920e02828bc1d30d01745280da08cb/rds_files/AnnData_RNA.h5ad]
-        // [[sample_id:HH7], d0/6b148d2543b6b195b8ee2088fad0b7/rds_files/AnnData_RNA.h5ad]
-        // [[sample_id:ss4], fa/1d64469d41d5a69f74d4d706bf5681/rds_files/AnnData_RNA.h5ad]
-        // [[sample_id:ss8], 64/bc0c8d3f045086356bc00a7ebde6ff/rds_files/AnnData_RNA.h5ad]
         
-        SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified
-            .map{ meta, data -> [meta, data.findAll{it =~ /rds_files/}[0].listFiles()[0]] }
-            .set {ch_ATAC}
-        // ch_ATAC.view()
-        // [[sample_id:HH6], 6d/4467b6b5de1ef8f33c2edc45d871b6/rds_files/AnnData_ATAC.h5ad]
-        // [[sample_id:HH7], 4f/2aef89dec2263316c6a5645b259204/rds_files/AnnData_ATAC.h5ad]
-        // [[sample_id:HH5], 78/c6ea5ab5e6e2cc3e0b5ccd6763f948/rds_files/AnnData_ATAC.h5ad]
-        // [[sample_id:ss4], a4/9d8ea368614ff7badd70b2135e7046/rds_files/AnnData_ATAC.h5ad]
-        // [[sample_id:ss8], 4a/a274c2d504b915e6a9fb8369584796/rds_files/AnnData_ATAC.h5ad]
-
-        ch_RNA
-            .concat( ch_ATAC )
-            .groupTuple( by:0 )
-            //.view() //[[sample_id:ss4], [fa/1d64469d41d5a69f74d4d706bf5681/rds_files/AnnData_RNA.h5ad, 4a/72711280da408db03e302a5926456a/rds_files/AnnData_ATAC.h5ad]]
-            .set {ch_seacells_to_integrate}
-        INTEGRATE_SEACELLS( ch_seacells_to_integrate )
 
         ///////     Check new scHelper_cell_type labels at single cell level on ATAC data      ///////
 
-        ch_labels_combined = ch_peakcall_processed //original ArchR ATAC single cell object
-            .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .view()
+        // ch_labels_combined = ch_peakcall_processed //original ArchR ATAC single cell object
+        //     .filter{ meta, data -> meta.sample_id != 'FullData'}
+        //     .view()
             // .concat( SEACELLS_ATAC_WF.out.seacell_outputs_named ) //seacell ATAC ID to single cell ATAC ID map
             // .concat( INTEGRATE_SEACELLS.out ) //seacell RNA ID to seacell ATAC ID map + transferred scHelper_cell_type label
             // .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
