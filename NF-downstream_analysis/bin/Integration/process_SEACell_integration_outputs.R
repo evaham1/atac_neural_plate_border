@@ -165,9 +165,10 @@ filtered_integration_map <- combined_integration_map %>%
 dim(filtered_integration_map)
 head(filtered_integration_map)
 
-## Extract stage from cell metadata to use for naming file
+## Detect stage from cell metadata + add to df + use to name file
 stage <- substr(SEACell_map$index[1], 8, 10)
 print(paste0("Stage detected: ", stage))
+filtered_integration_map %>% mutate(Stage = stage)
 
 write.csv(filtered_integration_map, paste0(rds_path, stage, '_filtered_SEACells_integration_map.csv'))
 
