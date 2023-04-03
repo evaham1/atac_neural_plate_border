@@ -32,11 +32,10 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    # output from SEACells - summarised by metacells
-    data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
-    label = "summarised_counts_1000.csv"
-    plot_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/Peak_modules/plots/"
-    rds_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/Peak_modules/rds_files/"
+    # interactive local paths
+    data_path = "./local_test_data/peak_count_matrix_to_cluster/"
+    plot_path = "./local_test_data/clustered_peaks/plots"
+    rds_path = "./clustered_peaks/rds_files"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -44,7 +43,6 @@ if(opt$verbose) print(opt)
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/rds_files/"
-    label = "AnnData_summarised_by_metacells_peak_counts.csv"
     ncores = opt$cores
     
     
@@ -58,12 +56,11 @@ if(opt$verbose) print(opt)
 }
 
 ########################################################################################################
-#                                 Read in data and create Antler inputs                               #
+#                                 Read in data and clean up                               #
 ########################################################################################################
 
 # read in SEACells data
 SEACells_summarised <- fread(paste0(data_path, "Filtered_summarised_counts.csv"), header = TRUE)
-#SEACells_summarised <- as.matrix(fread(paste0(data_path, "ss8_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
 print("Data read in!")
 
 # Check input
@@ -71,11 +68,40 @@ print("Preview of input df:")
 print(SEACells_summarised[1:4, 1:4])
 print(dim(SEACells_summarised))
 
-## make into numeric matrix adjust colnames/rownmames
+# Extract SEACell IDs from first column
+SEACells_IDs <- SEACells_summarised$V1
+print(head(SEACells_IDs))
+length(SEACells_IDs)
+
+# Clean up df
+SEACells_summarised <- SEACells_summarised[,-1]
+print("Preview of input df after cleanup:")
+print(SEACells_summarised[1:4, 1:4])
+dim(SEACells_summarised)
+
+# Turn into numeric matrix for downstream processing
+SEACells_summarised_numeric <- as.matrix(sapply(SEACells_summarised, as.numeric))  
+
+# Add SEACell IDs as rownames
+rownames(SEACells_summarised_numeric) <- SEACells_IDs
 
 # change cell names for Antler
-rownames(SEACells_summarised) <- gsub('-', '_', rownames(SEACells_summarised))
-rownames(SEACells_summarised) <- gsub('#', '', rownames(SEACells_summarised))
+rownames(SEACells_summarised_numeric) <- gsub('-', '_', rownames(SEACells_summarised_numeric))
+rownames(SEACells_summarised_numeric) <- gsub('#', '', rownames(SEACells_summarised_numeric))
+
+# Check resulting matrix
+print(dim(SEACells_summarised_numeric))
+print("Preview of summarised count df:")
+print(SEACells_summarised_numeric[1:4, 1:4])
+
+# Overwrite cleaned data
+SEACells_summarised <- SEACells_summarised_numeric
+
+print("Data read in!")
+
+########################################################################################################
+#                                 Generate Antler Inputs                               #
+########################################################################################################
 
 # generate fake metadata needed for Antler
 pheno_data <- data.frame(row.names = rownames(SEACells_summarised),
@@ -116,9 +142,10 @@ antler_data$gene_modules$identify(
   process_plots         = TRUE)
 
 # rename peak modules
-if (is.null(names(antler_data$gene_modules$lists$unbiasedPMs$content))) {
-  names(antler_data$gene_modules$lists$unbiasedPMs$content) <- paste0("GM", 1:length(antler_data$gene_modules$lists$unbiasedPMs$content))
-}
+names(antler_data$gene_modules$lists$unbiasedPMs$content) <- paste0("GM", 1:length(antler_data$gene_modules$lists$unbiasedPMs$content))
+
+# how many peak modules were generated
+print(paste0("Number of peak modules made: ", length(antler_data$gene_modules$lists$unbiasedPMs$content)))
 
 ########## DE PMs ############## <- NEED TO WORK ON THIS ONCE HAVE MY METADATA
 # # Subset peak modules that have at least 50% of peaks DE > 0.25 logFC & FDR < 0.001 between scHelperCellTypes
