@@ -94,7 +94,7 @@ print(head(SEACell_map))
 print(dim(SEACell_map))
 
 # 3) Read in ATAC SEACell to RNA SEACell mapping
-Integration_map_path <- list.files(path = paste0(data_path, "integrated_data/"), pattern = "*_mappings_cell_type", full.names = TRUE)
+Integration_map_path <- list.files(path = paste0(data_path, "integrated_output/"), pattern = "*_mappings_cell_type", full.names = TRUE)
 print(paste0("Integration map path: ", Integration_map_path))
 
 Integration_maps <- lapply(Integration_map_path, read.csv)

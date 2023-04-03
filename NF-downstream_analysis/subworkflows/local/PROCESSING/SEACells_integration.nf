@@ -75,7 +75,7 @@ workflow SEACELLS_INTEGRATING {
         // [[sample_id:HH5], csv_files]
         // [[sample_id:ss8], csv_files]
 
-        INTEGRATE_SEACELLS.out.view()
+        //INTEGRATE_SEACELLS.out.view()
         // [[sample_id:HH6], [integrated_output]]
         // [[sample_id:HH5], [integrated_output]]
         // [[sample_id:ss4], [integrated_output]]
@@ -88,7 +88,12 @@ workflow SEACELLS_INTEGRATING {
             .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
             .map{ meta, data -> [meta, data.flatten()] } // remove extra [] around outputs
 
-        ch_labels_combined.view()
+        //ch_labels_combined.view()
+        // [[sample_id:HH7], [plots, rds_files, csv_files, integrated_output]]
+        // [[sample_id:HH6], [plots, rds_files, csv_files, integrated_output]]
+        // [[sample_id:ss4], [plots, rds_files, csv_files, integrated_output]]
+        // [[sample_id:HH5], [plots, rds_files, csv_files, integrated_output]]
+        // [[sample_id:ss8], [plots, rds_files, csv_files, integrated_output]]
 
         PROCESS_INTEGRATION_OUTPUTS( ch_labels_combined )
 
@@ -97,10 +102,3 @@ workflow SEACELLS_INTEGRATING {
     raw_integration_output = INTEGRATE_SEACELLS.out
     processed_integration_output = PROCESS_INTEGRATION_OUTPUTS.out
 }
-
-// [[sample_id:HH6], [[plots, rds_files], csv_files, integrated_output]]
-// [[sample_id:HH7], [[plots, rds_files], csv_files, integrated_output]]
-// [[sample_id:HH5], [[a3/73e2f29913e4d9ae0738d711104b23/plots, a3/73e2f29913e4d9ae0738d711104b23/rds_files], b5/52af06cc3559a5d45a976102bc509f/csv_files, 6b/5063c856a50fa6a02c4e7ecd2a8946/integrated_output]]
-// [[sample_id:ss8], [[7a/300bb19288c200cb37814a2b7b390c/plots, 7a/300bb19288c200cb37814a2b7b390c/rds_files], a8/f7a307efa1093759a27fd61ea09350/csv_files, 82/ebddad91b6894dc83d95a7958eec9c/integrated_output]]
-// [[sample_id:ss4], [[f6/da89740bd86e6fb6f71e323043d6be/plots, f6/da89740bd86e6fb6f71e323043d6be/rds_files], 71/b91188feb85928e3c2096811627513/csv_files, ee/518f3f3b2279062e158b863392c05f/integrated_output]]
-
