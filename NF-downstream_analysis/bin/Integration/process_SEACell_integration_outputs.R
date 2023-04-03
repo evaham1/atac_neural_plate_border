@@ -180,6 +180,10 @@ seurat <- AddMetaData(seurat, metadata = metadata$RNA, col.name = "Integrated_RN
 seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_integration, col.name = "scHelper_cell_type_from_integration")
 seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
+## save seacells seurat object with new metadata
+saveRDS(seurat, paste0(rds_path, "seacells_seurat_integrated.RDS"), compress = FALSE)
+
+## plot new metadata on SEACell UMAPs
 png(paste0(plot_path, "stage_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
 DimPlot(seurat, group.by = "stage", pt.size = 6)
 graphics.off()
@@ -188,6 +192,9 @@ png(paste0(plot_path, "scHelper_cell_type_from_integration_UMAP.png"), width=40,
 DimPlot(seurat, group.by = "scHelper_cell_type_from_integration", pt.size = 6)
 graphics.off()
 
+png(paste0(plot_path, "mapping_k_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
+FeaturePlot(seurat, features = "Mapping_k", pt.size = 6)
+graphics.off()
 
 
 ############################## 3) Generate ATAC SEACell to ATAC single cell map #######################################
@@ -198,9 +205,3 @@ single_cell_integrated_map <- df_new %>% select(c("SEACell", "index", "RNA", "sc
 head(single_cell_integrated_map)
 
 write.csv(single_cell_integrated_map, paste0(rds_path, 'ATAC_singlecell_integration_map.csv'))
-
-############################## Visualise on seurat UMAPs #######################################
-
-############################## Save seurat object #######################################
-
-
