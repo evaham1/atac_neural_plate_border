@@ -76,14 +76,18 @@ workflow SEACELLS_INTEGRATING {
         // [[sample_id:ss8], csv_files]
 
         INTEGRATE_SEACELLS.out.view()
-
+        // [[sample_id:HH6], [integrated_data, plots]]
+        // [[sample_id:HH5], [integrated_data, plots]]
+        // [[sample_id:ss4], [integrated_data, plots]]
+        // [[sample_id:HH7], [integrated_data, plots]]
+        // [[sample_id:ss8], [integrated_data, plots]]
 
         ch_labels_combined = ATAC_SEACells_seurat
             .concat( ATAC_SEACells_map )
             .concat( INTEGRATE_SEACELLS.out )
             .groupTuple( by:0 ) // all 3 outputs need to be grouped by stage
 
-        //ch_labels_combined.view()
+        ch_labels_combined.view()
 
         PROCESS_INTEGRATION_OUTPUTS( ch_labels_combined )
 

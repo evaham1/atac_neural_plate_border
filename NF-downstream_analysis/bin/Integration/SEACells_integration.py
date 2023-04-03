@@ -93,8 +93,8 @@ def main(args=None):
     print(args.input)
 
     # set output paths
-    plot_path = "./plots/"
-    rds_path = "./integrated_data/"
+    plot_path = "./integrated_output/plots/"
+    rds_path = "./integrated_output/"
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
     if not os.path.exists(rds_path):
