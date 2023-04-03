@@ -193,10 +193,10 @@ png(paste0(plot_path, "stage_UMAP.png"), width=25, height=20, units = 'cm', res 
 DimPlot(seurat, group.by = "stage", pt.size = 10)
 graphics.off()
 
-scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$scHelper_cell_type_from_integration))]
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_from_integration))]
 
 png(paste0(plot_path, "scHelper_cell_type_from_integration_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
-DimPlot(seurat_data, group.by = 'scHelper_cell_type_from_integration', label = TRUE, 
+DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = TRUE, 
         label.size = 9, label.box = TRUE, repel = TRUE,
         pt.size = 10,
         cols = scHelper_cols, shuffle = TRUE) +
