@@ -38,7 +38,7 @@ include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_RNA_WF"
 
 //INTEGRATING SEACELLS
-include { SEACELLS_INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
+include { SEACELLS_INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/SEACells_integration"
 
 //PEAK CLUSTERING
 include {R as COMBINE_METACELL_COUNTS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Metacell_processes/Combine_summarised_counts.R", checkIfExists: true) )
