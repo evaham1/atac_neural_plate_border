@@ -165,7 +165,11 @@ filtered_integration_map <- combined_integration_map %>%
 dim(filtered_integration_map)
 head(filtered_integration_map)
 
-write.csv(filtered_integration_map, paste0(rds_path, 'Filtered_SEACells_integration_map.csv'))
+## Extract stage from cell metadata to use for naming file
+stage <- substr(SEACell_map$index[1], 8, 10)
+print(paste0("Stage detected: ", stage))
+
+write.csv(filtered_integration_map, paste0(rds_path, stage, '_filtered_SEACells_integration_map.csv'))
 
 ############################## 2) Visualise integration result on ATAC SEACell seurat #######################################
 
@@ -182,7 +186,7 @@ seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_integration
 seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
 ## save seacells seurat object with new metadata
-saveRDS(seurat, paste0(rds_path, "seacells_seurat_integrated.RDS"), compress = FALSE)
+saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), compress = FALSE)
 
 ## plot new metadata on SEACell UMAPs
 png(paste0(plot_path, "stage_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
@@ -213,4 +217,4 @@ single_cell_integrated_map <- df_new %>% select(c("SEACell", "index", "RNA", "sc
 
 head(single_cell_integrated_map)
 
-write.csv(single_cell_integrated_map, paste0(rds_path, 'ATAC_singlecell_integration_map.csv'))
+write.csv(single_cell_integrated_map, paste0(rds_path, stage, '_ATAC_singlecell_integration_map.csv'))
