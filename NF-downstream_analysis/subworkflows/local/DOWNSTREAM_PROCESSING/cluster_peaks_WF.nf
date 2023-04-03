@@ -56,10 +56,15 @@ workflow CLUSTER_PEAKS_WF {
     ch_metacells_combined
         .concat( ch_integration_combined )
         .groupTuple( by:0 )
+        .map{ meta, data -> [meta, data.flatten()] }
         .set { ch_combined_input }
 
     ch_combined_input.view()
         //[[sample_id:FullData], [HH7_feature_metadata.csv, HH7_summarised_by_metacells_counts.csv, HH7_cell_metadata.csv, HH6_feature_metadata.csv, HH6_summarised_by_metacells_counts.csv, HH6_cell_metadata.csv, HH5_feature_metadata.csv, HH5_cell_metadata.csv, HH5_summarised_by_metacells_counts.csv, ss8_cell_metadata.csv, ss8_summarised_by_metacells_counts.csv, ss8_feature_metadata.csv, ss4_cell_metadata.csv, ss4_summarised_by_metacells_counts.csv, ss4_feature_metadata.csv]]
+
+
+//[[sample_id:FullData], [ [csv_files/HH6_feature_metadata.csv, csv_files/HH6_summarised_by_metacells_counts.csv, csv_files/HH6_cell_metadata.csv, csv_files/HH7_feature_metadata.csv, csv_files/HH7_summarised_by_metacells_counts.csv, csv_files/HH7_cell_metadata.csv, csv_files/ss4_cell_metadata.csv, csv_files/ss4_summarised_by_metacells_counts.csv, csv_files/ss4_feature_metadata.csv, csv_files/ss8_cell_metadata.csv, csv_files/ss8_summarised_by_metacells_counts.csv, csv_files/ss8_feature_metadata.csv, csv_files/HH5_feature_metadata.csv, csv_files/HH5_cell_metadata.csv, csv_files/HH5_summarised_by_metacells_counts.csv ], [rds_files/HH7_ATAC_singlecell_integration_map.csv, dd/d5d12be2ea33f7a16763ac939fab75/rds_files/HH6_filtered_SEACells_integration_map.csv, a0/0f8b69eacb2f85af5fb569d7d37a91/rds_files/ss4_seacells_seurat_integrated.RDS, e7/debcf1cac8c8a41b3538bae55b00e3/rds_files/ss8_filtered_SEACells_integration_map.csv, a7/396ed3b67b40b9de5b26046799cf72/rds_files/HH5_ATAC_singlecell_integration_map.csv]]]
+
 
     //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too
     COMBINE_METACELL_COUNTS( ch_combined_input )
