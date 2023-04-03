@@ -60,7 +60,6 @@ workflow CLUSTER_PEAKS_WF {
     CLUSTER_PEAKS( FILTER_PEAKS.out )
 
     emit:
-    test_output = input
     clustered_peaks = CLUSTER_PEAKS.out
     
 }
