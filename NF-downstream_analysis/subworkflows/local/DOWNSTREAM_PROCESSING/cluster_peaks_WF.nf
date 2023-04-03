@@ -27,7 +27,7 @@ workflow CLUSTER_PEAKS_WF {
         // [[sample_id:HH5], b5/52af06cc3559a5d45a976102bc509f/csv_files]
 
     // take the exported_data outputs from SEACell_computation of the ATAC
-    ch_metacells_combined = SEACELLS_ATAC_WF.out.seacell_outputs_named // Collect csv files from all stages
+    ch_metacells_combined = input // Collect csv files from all stages
         .map{ meta, data -> data.listFiles() } //list files inside only folder in output (csv_files)
             // [HH6_feature_metadata.csv, HH6_summarised_by_metacells_counts.csv, HH6_cell_metadata.csv]
             // [ss4_cell_metadata.csv, ss4_summarised_by_metacells_counts.csv, ss4_feature_metadata.csv]
