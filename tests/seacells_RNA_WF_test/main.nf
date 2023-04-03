@@ -14,7 +14,7 @@ workflow test_seacells_RNA_WF {
     METADATA( params.sample_sheet_test )
     ch_input = METADATA.out.metadata
 
-    ch_input.view()
+    //ch_input.view()
 
     SEACELLS_RNA_WF( ch_input, ch_binary_knowledge_matrix )
 }

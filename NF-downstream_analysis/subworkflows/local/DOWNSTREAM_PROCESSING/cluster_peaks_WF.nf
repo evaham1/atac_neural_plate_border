@@ -19,7 +19,7 @@ workflow CLUSTER_PEAKS_WF {
 
     main:
 
-    input.view()
+    //input.view()
         // [[sample_id:HH7], 58/b3df47b5a798e1acaa3666df878bdb/csv_files]
         // [[sample_id:HH6], 41/8c7ec3c7a7c3bb79dcd52e4bad02b9/csv_files]
         // [[sample_id:ss8], a8/f7a307efa1093759a27fd61ea09350/csv_files]
@@ -38,7 +38,7 @@ workflow CLUSTER_PEAKS_WF {
         .collect() // puts all arrays together
         .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
 
-    ch_metacells_combined.view()
+    //ch_metacells_combined.view()
         //[[sample_id:FullData], [HH7_feature_metadata.csv, HH7_summarised_by_metacells_counts.csv, HH7_cell_metadata.csv, HH6_feature_metadata.csv, HH6_summarised_by_metacells_counts.csv, HH6_cell_metadata.csv, HH5_feature_metadata.csv, HH5_cell_metadata.csv, HH5_summarised_by_metacells_counts.csv, ss8_cell_metadata.csv, ss8_summarised_by_metacells_counts.csv, ss8_feature_metadata.csv, ss4_cell_metadata.csv, ss4_summarised_by_metacells_counts.csv, ss4_feature_metadata.csv]]
 
     //combine all the summarised counts into one summarised counts file, check all feature metadata the same and write, combine all cell metadata too
