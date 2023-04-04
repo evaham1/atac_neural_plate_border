@@ -39,6 +39,7 @@ if(opt$verbose) print(opt)
     
     # interactive NEMO paths
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/0_combining_outputs/csv_files/"
     #data_path = "./output/NF-downstream_analysis/Processing/FullData/Peak_call/rds_files/"
     plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/"
     rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/plots/"
@@ -108,6 +109,12 @@ print(SEACells_summarised_numeric[1:4, 1:4])
 SEACells_summarised <- SEACells_summarised_numeric
 
 print("Data read in!")
+
+
+######## read in metadata
+
+metadata <- read.csv(paste0(data_path, "Combined_SEACell_integrated_metadata.csv"), row.names = 'ATAC')
+
 
 ########################################################################################################
 #                                 Generate Antler Inputs                               #
@@ -207,15 +214,111 @@ filtered_matrix[1:2, 1:2]
 
 ## scale matrix
 #plot_data <- round(plot_data, digits = 3)
-plot_data <- t(scale(filtered_matrix))
-plot_data[plot_data > 1] <- 1
-plot_data[plot_data < -1] <- -1
+# plot_data <- t(scale(filtered_matrix))
 
 plot_data[1:2, 1:2]
 
 
 ## plot data
 pheatmap(plot_data, show_colnames = FALSE, show_rownames = FALSE, border_color = NA)
+
+
+# 
+# GeneModuleOrder <- function (seurat_obj, gene_modules, metadata_1 = NULL, order_1 = NULL, 
+#                              metadata_2 = NULL, order_2 = NULL, rename_modules = NULL, 
+#                              plot_path = "scHelper_log/GM_classification/") 
+# {
+#   classified_gms_1 <- GeneModuleClassify(seurat_obj, gene_modules, 
+#                                          metadata = metadata_1, plot_path = plot_path)
+#   classified_gms_1 <- classified_gms_1 %>% arrange(match(!!sym(metadata_1), 
+#                                                          order_1)) %>% group_by(!!sym(metadata_1)) %>% mutate(pos = 1:n()) %>% 
+#     mutate(new_name = paste(!!sym(metadata_1), pos, sep = "-")) %>% 
+#     dplyr::select(gene_module, !!sym(metadata_1), new_name)
+#   ordered_gms <- gene_modules[order(match(names(gene_modules), 
+#                                           classified_gms_1$gene_module))] # ordered on metadata_1 but not renamed
+#   if (is.null(metadata_2) || is.na(metadata_2) || is.nan(metadata_2)) {
+#     print(paste0("Gene modules ordered only on ", metadata_1))
+#   }
+#   else {
+#     print(paste0("Gene modules ordered on ", metadata_1, 
+#                  " AND ", metadata_2))
+#     temp_seurat <- SplitObject(seurat_data, split.by = metadata_1)
+#     classified_gms_2 <- c()
+#     for (i in order_1) {
+#       print(i)
+#       subset_gms <- gene_modules[classified_gms_1 %>% filter(!!sym(metadata_1) == 
+#                                                                i) %>% dplyr::pull(gene_module)]
+#       if (length(subset_gms) != 0) {
+#         temp <- GeneModuleClassify(seurat_data, subset_gms, 
+#                                    metadata = metadata_2, plot_path = paste0(plot_path, 
+#                                                                              i, "/"))
+#         classified_gms_2 <- rbind(classified_gms_2, temp)
+#       }
+#     }
+#     
+#     classified_gms_2 <- classified_gms_2 %>% add_column(!!sym(metadata_1) := classified_gms_1[[metadata_1]])
+#     
+#     classified_gms_2 <- classified_gms_2 %>% arrange(!!sym(metadata_1), (match(!!sym(metadata_2), order_2))) %>% 
+#       mutate(pos = 1:n()) %>% mutate(new_name = paste(!!sym(metadata_2), pos, sep = "-")) %>% 
+#       dplyr::select(gene_module, !!sym(metadata_2), !!sym(metadata_1), new_name)
+#     
+#     ordered_gms <- gene_modules[order(match(names(gene_modules), classified_gms_2$gene_module))]
+#     
+#     if (!is.null(rename_modules) && rename_modules == metadata_2) {
+#       names(ordered_gms) <- classified_gms_2$new_name
+#     }
+#   }
+#   if (!is.null(rename_modules) && rename_modules == metadata_1) {
+#     names(ordered_gms) <- classified_gms_1$new_name
+#   }
+#   return(ordered_gms)
+# }
+
+### TEMP - overwrite pheatmap function to return dfs to pass to complex heatmap
+GeneModulePheatmap <- function (peak_normalised_matrix, metadata, custom_order = NULL, 
+                                custom_order_column = metadata[1],
+                                gene_modules, gm_row_annotation = TRUE,
+                                annotation_names_row = FALSE, scale_data = TRUE) 
+{
+
+  metadata <- metadata %>% mutate_if(is.character, as.factor)
+  
+  col_ann <- col_ann[do.call("order", c(col_ann[custom_order_column],
+                                        list(decreasing = FALSE))), , drop = FALSE]
+  if (!is.null(custom_order)) {
+    if (!setequal(custom_order, unique(col_ann[[custom_order_column]]))) {
+      stop("custom_order factors missing from custom_order_column \n\n")
+    }
+    levels(col_ann[[custom_order_column]]) <- custom_order
+    col_ann <- col_ann[order(col_ann[[custom_order_column]]),
+                       , drop = FALSE]
+  }
+  
+  if (gm_row_annotation == TRUE) {
+    row_ann <- stack(selected_GM) %>% rename(`Gene Modules` = ind) %>%
+      column_to_rownames("values")
+  }
+  else {
+    row_ann <- NA
+  }
+  
+  plot_data <- t(peak_normalised_matrix)
+  
+  if (scale_data) {
+    cat("Scaling data \n")
+    plot_data <- t(scale(t(plot_data)))
+  }
+  
+  plot_data <- replace(plot_data, plot_data >= 2, 2)
+  plot_data <- replace(plot_data, plot_data <= -2, -2)
+  
+  output <- list(plot_data = plot_data,
+                row_ann = row_ann,
+                col_ann = col_ann,
+                ann_colours = ann_colours)
+  return(output)
+}
+
 
 
 
