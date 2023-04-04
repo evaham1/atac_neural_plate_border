@@ -38,6 +38,7 @@ if(opt$verbose) print(opt)
     
     # NEMO interactive paths
     data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/TEMP_renamed_SEACells_exports/csv_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Integrated_SEACells_label_transfer/rds_files/"
     rds_path = "./output/NF-downstream_analysis/Processing/FullData/Combined_SEACell_outputs/"
     
   } else if (opt$runtype == "nextflow"){
@@ -108,18 +109,34 @@ write.csv(combined_cell_metacell, paste0(rds_path, 'Combined_cell_metadata.csv')
 
 ############################## Combine SEACell integrated metadata files #######################################
 
-SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_paths, read.csv)
+SEACell_integrated_metadata_files <- list()
 
-## add another column to cell metadata with seacell ID-stage eg SEACell-84-ss8
-SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_files, function(x) mutate(x, ATAC = paste0(ATAC, "-", stage)))
-SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_files, function(x) mutate(x, RNA = paste0(RNA, "-", stage)))
 
-## check new integrated metadata
-print("Preview of combined integrated SEACell metadata:")
-print(SEACell_integrated_metadata_files[1:5, ])
+for (path in SEACell_integrated_metadata_paths){
+  # detect stage from file name
+  stage <- str_sub(path,-41,-39)
+  print(paste0("Stage detected from file name: ", stage))
+  
+  # add stage to SEACell IDs as otherwise they wont be unique when you combine the stages together
+  file <- read.csv(path)
+  file <- file %>% 
+    mutate(ATAC = paste0(ATAC, "-", stage)) %>%
+    mutate(RNA = paste0(RNA, "-", stage))
+  
+  # add altered df to list of dfs
+  SEACell_integrated_metadata_files <- list(SEACell_integrated_metadata_files, file)
+}
+
+
+## check new integrated metadata
+print(length(SEACell_integrated_metadata_files))
+print("Preview of first df in list of integrated SEACell metadata dfs:")
+print(SEACell_integrated_metadata_files[[2]][1:5, ])
 
 ## combine all cell metacell csvs into one
 combined_SEACell_metacell <- ldply(SEACell_integrated_metadata_files, data.frame)
+dim(combined_SEACell_metacell)
+print(combined_SEACell_metacell[1:5, ])
 
 ## write out new csv
 write.csv(combined_SEACell_metacell, paste0(rds_path, 'Combined_SEACell_integrated_metadata.csv'))
