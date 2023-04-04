@@ -12,6 +12,9 @@ library(plyr)
 library(dplyr)
 library(parallel)
 library(Seurat)
+library(gridExtra)
+library(grid)
+library(tidyverse)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -73,6 +76,11 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo')
 
+###### STAGE COLOURS ####################
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
+
 ############################## Read data #######################################
 
 # List all files in input
@@ -118,6 +126,16 @@ combined_integration_map <- combined_integration_map %>% mutate(k = 1)
 print("Preview of integration map of k=1:")
 head(combined_integration_map)
 
+# Initiate count of unique ATAC IDs mapped
+print(paste0("Number of ATAC SEACells labelled with k=1: ", dim(combined_integration_map)[1]))
+labelled_cell_count <- c(dim(combined_integration_map)[1])
+
+# Initiate count of duplicates in maps
+duplicated_ATAC_IDs <- combined_integration_map$ATAC[duplicated(combined_integration_map$ATAC)]
+print(paste0("Number of ATAC SEACells duplicates k=1: ", length(duplicated_ATAC_IDs)))
+duplicated_cell_count <- c(length(duplicated_ATAC_IDs))
+
+# Iterate through each k value and add new SEACell mappings to combined_integration_map
 for (i in 2:length(Integration_maps)){
   print(i)
   
@@ -125,23 +143,48 @@ for (i in 2:length(Integration_maps)){
   map <- Integration_maps[[i]]
   map <- map[, -1]
   map <- map %>% mutate(k = i)
+  head(map)
   
   # remove any matches to ATAC cells which have already been matched
   unique_map <- map %>% 
     filter(!(ATAC %in% combined_integration_map$ATAC))
   print(head(unique_map))
-  print(dim(unique_map))
+  
+  # count how many unique ATAC SEAcell IDs this iteration adds
+  print(paste0("Number of unique ATAC SEACells additionally labelled with k=", i, ": ", length(unique(unique_map$ATAC))))
+  labelled_cell_count <- c(labelled_cell_count, length(unique(unique_map$ATAC)))
+  
+  # count how many duplicated ATAC SEACell IDs have in this iteration
+  duplicated_ATAC_IDs <- unique_map$ATAC[duplicated(unique_map$ATAC)]
+  print(paste0("Number of duplicated ATAC SEACell IDs mapping with k=", i, ": ", length(duplicated_ATAC_IDs)))
+  duplicated_cell_count <- c(duplicated_cell_count, length(duplicated_ATAC_IDs))
   
   # add any new matches to combined df
   combined_integration_map <- rbind(combined_integration_map, unique_map)
   
 }
 
-dim(combined_integration_map)
+print("Preview of combined integration map:")
 head(combined_integration_map)
+
+# Plot how many new SEACell mappings are made at each k value
+png(paste0(plot_path, "new_unique_maps_over_k_values.png"), width=25, height=20, units = 'cm', res = 200)
+plot(labelled_cell_count, ylim = c(0, length(unique(SEACell_map$SEACell))+2))
+abline(h=length(unique(SEACell_map$SEACell)), col="blue")
+graphics.off()
+
+# Plot how many ATAC SEACell IDs mapped at the end
 mapped <- unique(combined_integration_map$ATAC) %in% unique(SEACell_map$SEACell)
 print(paste0("Number of ATAC SEACell IDs mapped to an RNA SEACell ID: ", length(mapped)))
 print(paste0("Number of ATAC SEACell IDs NOT mapped to an RNA SEACell ID: ", length(unique(SEACell_map$SEACell)) - length(mapped)))
+
+df <- as.data.frame(c(length(mapped), length(unique(SEACell_map$SEACell)) - length(mapped), length(unique(SEACell_map$SEACell))))
+rownames(df) <- c("ATAC IDs mapped to an RNA ID:", "ATAC IDs NOT mapped to an RNA ID:", "Total ATAC IDs")
+colnames(df) <- "SEACell counts"
+png(paste0(plot_path, 'mapped_metacell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Mapped SEACell counts", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
 
 ## dealing with duplicate ATAC IDs by:
 # identify which ones map to > 1 scHelper cell type, remove these ones (v few)
@@ -193,26 +236,36 @@ seurat@meta.data$scHelper_cell_type_from_integration <- factor(seurat@meta.data$
 saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), compress = FALSE)
 
 ## plot new metadata on SEACell UMAPs
+
+# Plot stage
+seurat@meta.data$stage <- factor(seurat@meta.data$stage, levels = stage_order)
+stage_cols <- stage_colours[levels(droplevels(seurat@meta.data$stage))]
+
 png(paste0(plot_path, "stage_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = "stage", pt.size = 10)
-graphics.off()
-
-scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_from_integration))]
-
-png(paste0(plot_path, "scHelper_cell_type_from_integration_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = TRUE, 
+DimPlot(seurat, group.by = 'stage', label = TRUE, 
         label.size = 9, label.box = TRUE, repel = TRUE,
         pt.size = 10,
-        cols = scHelper_cols, shuffle = TRUE) +
+        cols = stage_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
                  plot.title = element_blank())
 graphics.off()
 
-png(paste0(plot_path, "mapping_k_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
-FeaturePlot(seurat, features = "Mapping_k", pt.size = 10)
+# Plot transferred cell type labels
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_from_integration))]
+
+png(paste0(plot_path, "scHelper_cell_type_from_integration_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = FALSE, 
+        pt.size = 10,
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(plot.title = element_blank())
 graphics.off()
 
+# Plot k values of transferred labels
+png(paste0(plot_path, "mapping_k_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+FeaturePlot(seurat, features = "Mapping_k", pt.size = 10, cols = c("red", "grey"))
+graphics.off()
 
 ############################## 3) Generate ATAC SEACell to ATAC single cell map #######################################
 
