@@ -254,7 +254,7 @@ def main(args=None):
         mapping.shape #41, 2
         
         # Write mapping as csv
-        filename = "SEACell_mappings_k" + i + ".csv"
+        filename = "SEACell_mappings_k" + str(i) + ".csv"
         mapping.to_csv(os.path.join(rds_path, filename))
         
         # Add scHelper_cell_type to mapping
@@ -265,7 +265,7 @@ def main(args=None):
         mapping_cell_type = pd.merge(mapping, cell_types, on='RNA')
         
         # Write mapping with cell type as csv
-        filename = "SEACell_mappings_cell_type_k" + i + ".csv"
+        filename = "SEACell_mappings_cell_type_k" + str(i) + ".csv"
         mapping_cell_type.to_csv(os.path.join(rds_path, filename))
 
 if __name__ == '__main__':
