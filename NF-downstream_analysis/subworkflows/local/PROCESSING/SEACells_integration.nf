@@ -4,8 +4,8 @@ nextflow.enable.dsl = 2
 // python script to integrate seacells
 include {PYTHON as INTEGRATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/Integration/SEACells_integration.py", checkIfExists: true) )
 
-// r script to process integration maps that are outputted and checks on seurat object
-include {R as PROCESS_INTEGRATION_OUTPUTS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/process_SEACell_integration_outputs.R", checkIfExists: true) )
+// r script to create consensus label transfer map and checks thes labels on SEACells ATAC seurat object
+include {R as LABEL_TRANSFER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/SEACell_integration_label_transfer.R", checkIfExists: true) )
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,10 +95,10 @@ workflow SEACELLS_INTEGRATING {
         // [[sample_id:HH5], [plots, rds_files, csv_files, integrated_output]]
         // [[sample_id:ss8], [plots, rds_files, csv_files, integrated_output]]
 
-        PROCESS_INTEGRATION_OUTPUTS( ch_labels_combined )
+        LABEL_TRANSFER( ch_labels_combined )
 
     //emit integrated outputs:
     emit:
     raw_integration_output = INTEGRATE_SEACELLS.out
-    processed_integration_output = PROCESS_INTEGRATION_OUTPUTS.out
+    processed_integration_output = LABEL_TRANSFER.out
 }
