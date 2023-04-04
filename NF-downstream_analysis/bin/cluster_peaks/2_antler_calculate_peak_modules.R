@@ -33,9 +33,15 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # interactive local paths
-    data_path = "./local_test_data/peak_count_matrix_to_cluster/"
-    plot_path = "./local_test_data/clustered_peaks/plots"
-    rds_path = "./clustered_peaks/rds_files"
+    #data_path = "./local_test_data/peak_count_matrix_to_cluster/"
+    #plot_path = "./local_test_data/clustered_peaks/plots"
+    #rds_path = "./clustered_peaks/rds_files"
+    
+    # interactive NEMO paths
+    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/"
+    #data_path = "./output/NF-downstream_analysis/Processing/FullData/Peak_call/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/"
+    rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -58,6 +64,10 @@ if(opt$verbose) print(opt)
 ########################################################################################################
 #                                 Read in data and clean up                               #
 ########################################################################################################
+
+# read in seurat data - which seurat data?? would need to be full data object of SEACells which I havent made yet...
+# seurat_data <- readRDS(data_path, full.names = TRUE))
+# seurat_data <- readRDS(list.files(data_path, full.names = TRUE))
 
 # read in SEACells data
 SEACells_summarised <- fread(paste0(data_path, "Filtered_summarised_counts.csv"), header = TRUE)
@@ -105,9 +115,9 @@ print("Data read in!")
 
 # generate fake metadata needed for Antler
 pheno_data <- data.frame(row.names = rownames(SEACells_summarised),
-                          "timepoint" = rep(1, nrow(SEACells_summarised)),
-                          "treatment" = rep("null", nrow(SEACells_summarised)),
-                          "replicate_id" = rep(1, nrow(SEACells_summarised))
+                         "timepoint" = rep(1, nrow(SEACells_summarised)),
+                         "treatment" = rep("null", nrow(SEACells_summarised)),
+                         "replicate_id" = rep(1, nrow(SEACells_summarised))
 )
 
 # create antler folder
@@ -155,11 +165,171 @@ print(paste0("Number of peak modules made: ", length(antler_data$gene_modules$li
 # # save unbiasedGMs_DE in antler object
 # antler_data$gene_modules$set(name= "unbiasedGMs_DE", content = gms)
 
+########## Write GMs ##############
+export_antler_modules <- function(antler_object, publish_dir, names_list){
+  for(gm_list in names_list){
+    mods = antler_data$gene_modules$lists[[gm_list]]$content
+    for (i in seq(length(mods))) {
+      modname = base::names(mods)[i]
+      if (is.null(modname)) {
+        modname = paste0("GM: ", i)
+      }
+      write(paste0(modname, "; ", paste0(mods[[i]], collapse = ", ")), file = paste0(publish_dir, '/', gm_list, '.txt'), append = TRUE)
+    }
+  }
+}
+
+export_antler_modules(antler_data, publish_dir = rds_path, names_list = 'unbiasedGMs')
+
+########## Save Antler object ##############
+saveRDS(antler_data, paste0(rds_path, 'antler_out.RDS'))
+
 ########################################################################################################
 #                                        Visualisations                                                #
 ########################################################################################################
 
-### look through Alex's scripts and adapt the heatmap functions so can plot them here
+# read in antler RDS file if working interactively:
+# antler <- readRDS(paste0(rds_path, 'antler_out.RDS'))
+
+antler_data$gene_modules$lists$unbiasedPMs$content
+
+peaks <- unlist(antler_data$gene_modules$lists$unbiasedPMs$content)
+length(peaks)
+
+## subset matrix to only include peaks that are in PMs
+SEACells_summarised[1:2, 1:2]
+dim(SEACells_summarised)
+
+filtered_matrix <- SEACells_summarised[, peaks]
+
+dim(filtered_matrix)
+filtered_matrix[1:2, 1:2]
+
+## scale matrix
+#plot_data <- round(plot_data, digits = 3)
+plot_data <- t(scale(filtered_matrix))
+plot_data[plot_data > 1] <- 1
+plot_data[plot_data < -1] <- -1
+
+plot_data[1:2, 1:2]
+
+
+## plot data
+pheatmap(plot_data, show_colnames = FALSE, show_rownames = FALSE, border_color = NA)
 
 
 
+
+
+
+########################################################################################################################################################
+##################################################   Setting metadata and colours for heatmaps:   ################################################
+
+# # Set metadata and order cells in heatmap
+# metadata <- if(length(unique(seurat_data@meta.data$stage)) == 1){meta_col
+# }else{c("stage", meta_col)}
+# metadata <- if(length(unique(seurat_data@meta.data$run)) == 1){metadata
+# }else{c(metadata, "run")}
+# 
+# # Allow manual setting of metadata using --force_order command line arg
+# if(!is.null(opt$force_order)){metadata <- unlist(str_split(opt$force_order, pattern = ','))}
+
+# 
+# ########################################################################################################################################################
+# ##################################################   Plotting heatmaps with ordered GMs:   #############################################################
+# 
+# # Extract ordering of gms from metadata
+# labels <- c("stage", "scHelper_cell_type", "seurat_clusters")
+# stage_order <- levels(seurat_data@meta.data$stage)
+# scHelper_cell_type_order <- levels(seurat_data@meta.data$scHelper_cell_type)
+# 
+# metadata_1 <- NULL
+# order_1 <- NULL
+# metadata_2 <- NULL
+# order_2 <- NULL
+# 
+# if(sum(labels %in% metadata) !=0){
+#   metadata_1 <- labels[labels %in% metadata][1]
+#   order_1 <- get(paste0(metadata_1, '_order'))
+#   
+#   if(sum(labels %in% metadata) == 2){
+#     metadata_2 <- labels[labels %in% metadata][2]
+#     order_2 <- get(paste0(metadata_2, '_order'))
+#   }
+# } else {
+#   print(paste(c(labels, 'not found in metadata. GMs will not be ordered'), collapse = ' '))
+# }
+# 
+# ##########################################################################################
+# # plot all gene modules (unbiasedGMs)
+# 
+# # Order gms
+# if (!is.null(metadata_1)){
+#   antler_data$gene_modules$lists$unbiasedGMs$content <- GeneModuleOrder(seurat_obj = seurat_data, gene_modules = antler_data$gene_modules$lists$unbiasedGMs$content,
+#                                                                         metadata_1 = metadata_1, order_1 = order_1,
+#                                                                         metadata_2 = metadata_2, order_2 = order_2,
+#                                                                         plot_path = "scHelper_log/GM_classification/unbiasedGMs/")
+# }
+# 
+# # if stage not present in metadata, add it here so all heatmaps have the stage annotation
+# if (!("stage" %in% metadata)){
+#   metadata <- c("stage", metadata)}
+# 
+# # generate plot data
+# plot_data <- GeneModulePheatmap(seurat_obj = seurat_data,  metadata = metadata, gene_modules = antler_data$gene_modules$lists$unbiasedGMs$content,
+#                                 show_rownames = FALSE, col_order = metadata, col_ann_order = metadata, gaps_col = ifelse('stage' %in% metadata, 'stage', meta_col), fontsize = 15, fontsize_row = 10,
+#                                 return = "plot_data")
+# plot_data$ann_colours$scHelper_cell_type <- scHelper_cell_type_colours[names(plot_data$ann_colours$scHelper_cell_type)]
+# plot_data$ann_colours$stage <- stage_colours[names(plot_data$ann_colours$stage)]
+# 
+# # Set annotations for heatmap
+# if (!is.null(plot_data$ann_colours$run)){
+#   if(length(plot_data$ann_colours$stage) > 1){
+#     top_annotation <- HeatmapAnnotation(stage = anno_block(gp = gpar(fill = plot_data$ann_colours$stage),
+#                                                            labels = levels(plot_data$col_ann$stage),
+#                                                            labels_gp = gpar(col = "white", fontsize = 50, fontface='bold')),
+#                                         run = anno_simple(x = as.character(plot_data$col_ann$run),
+#                                                           col = plot_data$ann_colours$run, height = unit(1, "cm")),
+#                                         simple_anno_size = unit(1, "cm"),
+#                                         annotation_label = "Run", gp = gpar(fontsize = 35))
+#   } else {
+#     top_annotation <- HeatmapAnnotation(run = anno_simple(x = as.character(plot_data$col_ann$run),
+#                                                           col = plot_data$ann_colours$run, height = unit(1, "cm")),
+#                                         simple_anno_size = unit(1, "cm"),
+#                                         annotation_label = "Run", gp = gpar(fontsize = 35))
+#   }
+# } else {
+#   top_annotation = NULL
+# }
+# 
+# png(paste0(plot_path, 'unbiasedGMs.png'), height = 150, width = 100, units = 'cm', res = 400)
+# Heatmap(t(plot_data$plot_data), col = PurpleAndYellow(), cluster_columns = FALSE, cluster_rows = FALSE,
+#         show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 45), row_title_rot = 90,
+#         row_split = plot_data$row_ann$`Gene Modules`, column_split = if(length(plot_data$ann_colours$stage) > 1){
+#           plot_data$col_ann$stage
+#         }else{
+#           plot_data$col_ann$scHelper_cell_type
+#         },
+#         heatmap_legend_param = list(
+#           title = "Scaled expression", at = c(-2, 0, 2), 
+#           labels = c(-2, 0, 2),
+#           legend_height = unit(11, "cm"),
+#           grid_width = unit(1.5, "cm"),
+#           title_gp = gpar(fontsize = 35, fontface = 'bold'),
+#           labels_gp = gpar(fontsize = 30, fontface = 'bold'),
+#           title_position = 'lefttop-rot',
+#           x = unit(13, "npc")
+#         ),
+#         top_annotation = top_annotation,
+#         bottom_annotation = HeatmapAnnotation(scHelper_cell_type = anno_simple(x = as.character(plot_data$col_ann$scHelper_cell_type),
+#                                                                                col = plot_data$ann_colours$scHelper_cell_type, height = unit(1, "cm")), show_annotation_name = FALSE,
+#                                               labels = anno_mark(at = cumsum(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths) - floor(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths/2),
+#                                                                  labels = rle(as.character(plot_data$col_ann$scHelper_cell_type))$values,
+#                                                                  which = "column", side = 'bottom',
+#                                                                  labels_gp = gpar(fontsize = 40), lines_gp = gpar(lwd=8))),
+#         raster_quality = 8
+# )
+# graphics.off()
+# 
+# 
+# 
