@@ -94,6 +94,8 @@ ifelse (all_identical(feature_metadata_files), print("All feature metadata featu
 
 write.csv(feature_metadata_files[[1]], paste0(rds_path, 'Feature_metadata.csv'))
 
+print("Feature metadata checked and saved!")
+
 ############################## Combine cell metadata files #######################################
 
 cell_metadata_files <- lapply(cell_metadata_paths, read.csv)
@@ -107,9 +109,11 @@ combined_cell_metacell <- ldply(cell_metadata_files, data.frame)
 ## write out new csv
 write.csv(combined_cell_metacell, paste0(rds_path, 'Combined_cell_metadata.csv'))
 
+print("Cell metadata files combined!")
+
 ############################## Combine SEACell integrated metadata files #######################################
 
-SEACell_integrated_metadata_files <- list()
+SEACell_integrated_metadata_files <- c()
 
 
 for (path in SEACell_integrated_metadata_paths){
@@ -124,14 +128,17 @@ for (path in SEACell_integrated_metadata_paths){
     mutate(RNA = paste0(RNA, "-", stage))
   
   # add altered df to list of dfs
-  SEACell_integrated_metadata_files <- list(SEACell_integrated_metadata_files, file)
+  SEACell_integrated_metadata_files <- c(SEACell_integrated_metadata_files, file)
 }
-
 
 ## check new integrated metadata
 print(length(SEACell_integrated_metadata_files))
 print("Preview of first df in list of integrated SEACell metadata dfs:")
+print(SEACell_integrated_metadata_files[[1]][1:5, ])
 print(SEACell_integrated_metadata_files[[2]][1:5, ])
+print(SEACell_integrated_metadata_files[[3]][1:5, ])
+print(SEACell_integrated_metadata_files[[4]][1:5, ])
+print(SEACell_integrated_metadata_files[[5]][1:5, ])
 
 ## combine all cell metacell csvs into one
 combined_SEACell_metacell <- ldply(SEACell_integrated_metadata_files, data.frame)
@@ -141,6 +148,7 @@ print(combined_SEACell_metacell[1:5, ])
 ## write out new csv
 write.csv(combined_SEACell_metacell, paste0(rds_path, 'Combined_SEACell_integrated_metadata.csv'))
 
+print("Cell integrated metadata files combined!")
 
 ############################## Combine summarised peak counts #######################################
 
@@ -199,3 +207,5 @@ dim(combined_df)
 
 ## write out new csv
 write.csv(combined_df, paste0(rds_path, 'Combined_summarised_by_metacells_counts.csv'))
+
+print("Summarised peak counts combined!")
