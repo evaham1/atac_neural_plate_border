@@ -45,7 +45,7 @@ workflow CLUSTER_PEAKS_WF {
     // [[sample_id:HH6], [plots, rds_files]]
 
     ch_integration_combined = integration_output
-        .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles() }
+        .map{ meta, data -> [data.findAll{it =~ /rds_files/}[0].listFiles()] }
         .flatten() //removes square brackets from each array
         .collect() // puts all arrays together
         .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
