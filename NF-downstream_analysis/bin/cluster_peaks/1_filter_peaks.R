@@ -117,7 +117,11 @@ print(head(peak_metadata))
 
 print("Normalising counts...")
 
-normalised_counts <- t(apply(SEACells_summarised_numeric, 1, function(x) x/sum(x))) * 1000
+# Calculate total number of reads per cell
+total_counts <- rowSums(SEACells_summarised_numeric)
+
+# Convert to counts per million (CPM)
+normalised_counts <- SEACells_summarised_numeric / (total_counts / 1e4)
 
 print("Preview of normalised counts df:")
 print(normalised_counts[1:2, 1:2])
