@@ -67,6 +67,11 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+###### STAGE COLOURS ####################
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
+
 #####################################################################################
 ############################    Read in RDS object   #############################
 #####################################################################################
@@ -121,8 +126,16 @@ seurat <- FindNeighbors(seurat, dims = 1:pc_cutoff, verbose = FALSE)
 seurat <- RunUMAP(seurat, dims = 1:pc_cutoff, verbose = FALSE)
 
 # UMAP of stage
-png(paste0(plot_path, "stage_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = "stage", pt.size = 6)
+seurat@meta.data$stage <- factor(seurat@meta.data$stage, levels = stage_order)
+stage_cols <- stage_colours[levels(droplevels(seurat@meta.data$stage))]
+
+png(paste0(plot_path, "stage_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'stage', label = TRUE, 
+        label.size = 9, label.box = TRUE, repel = TRUE,
+        pt.size = 10, cols = stage_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 # Find optimal cluster resolution
@@ -134,8 +147,13 @@ graphics.off()
 seurat <- FindClusters(seurat, resolution = 1.2)
 
 # UMAP of clusters
-png(paste0(plot_path, "clusters_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = "seurat_clusters", pt.size = 6)
+png(paste0(plot_path, "clusters_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'seurat_clusters', label = TRUE, 
+        label.size = 9, label.box = TRUE, repel = TRUE,
+        pt.size = 10, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 # Size of clusters
