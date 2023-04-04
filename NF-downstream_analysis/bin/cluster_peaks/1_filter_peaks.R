@@ -69,11 +69,10 @@ calc_top_variable_features <- function(counts, n = 1000){
   return(features)
 }
 
-############################## Read in SEACells summarised data + ArchR object #######################################
+############################## Read in SEACells summarised data #######################################
 
 # Read in summarised peak counts across all seacells
 SEACells_summarised <- fread(paste0(data_path, "Combined_summarised_by_metacells_counts.csv"), header = TRUE)
-#SEACells_summarised <- as.matrix(fread(paste0(data_path, "ss8_summarised_by_metacells_counts.csv"), header = TRUE), rownames = 1)
 print("Data read in!")
 
 # Check input
@@ -102,6 +101,11 @@ rownames(SEACells_summarised_numeric) <- SEACells_IDs
 print(dim(SEACells_summarised_numeric))
 print("Preview of summarised count df:")
 print(SEACells_summarised_numeric[1:4, 1:4])
+
+# Write out unaltered raw counts matrix
+write.csv(SEACells_summarised_numeric, paste0(rds_path, "Combined_summarised_by_metacells_counts.csv"), row.names = TRUE, col.names = TRUE)
+
+############################## Read in PeakSet data #######################################
 
 ## Read in peak metadata
 peak_metadata <- fread(paste0(data_path, "Feature_metadata.csv"), header = TRUE)
@@ -148,7 +152,7 @@ print(paste0("Number of total peaks: ", length(peak_metadata$name)))
 print(paste0("Number of peaks that are distal or intronic: ", length(included_peak_set$name)))
 included_peaks <- included_peak_set$name
 
-# filter summarised counts to only include these peaks
+# filter normalised summarised counts to only include these peaks
 colnames(normalised_counts) <- gsub(':', '-', colnames(normalised_counts))
 annot_filtered_matrix <- normalised_counts[, which(colnames(normalised_counts) %in% included_peaks)]
 dim(annot_filtered_matrix)
@@ -164,7 +168,7 @@ print("Filtering by variance...")
 top_features <- calc_top_variable_features(annot_filtered_matrix, n = opt$nPeaks)
 print(paste0("Number of top variable features: ", length(top_features)))
 
-## filter matrix based on these features
+## filter normalised matrix based on these features
 variable_filtered_matrix <- annot_filtered_matrix[, top_features]
 
 # check new matrix
@@ -184,4 +188,17 @@ print("Peaks filtered!")
 
 ############################## Save filtered normalised summarised count data #######################################
 
-write.csv(variable_filtered_matrix, paste0(rds_path, "Filtered_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
+write.csv(variable_filtered_matrix, paste0(rds_path, "Filtered_normalised_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
+
+############################## Filter raw counts matrix and save #######################################
+
+# Use same peaks to filter raw data matrix
+filtered_raw_matrix <- SEACells_summarised_numeric[, top_features]
+
+# check new matrix
+print("Preview of filtered raw counts df:")
+print(filtered_raw_matrix[1:2, 1:2])
+dim(filtered_raw_matrix)
+
+# write to file
+write.csv(filtered_raw_matrix, paste0(rds_path, "Filtered_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
