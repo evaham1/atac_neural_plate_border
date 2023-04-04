@@ -110,6 +110,14 @@ write.csv(combined_cell_metacell, paste0(rds_path, 'Combined_cell_metadata.csv')
 
 SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_paths, read.csv)
 
+## add another column to cell metadata with seacell ID-stage eg SEACell-84-ss8
+SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_files, function(x) mutate(x, ATAC = paste0(ATAC, "-", stage)))
+SEACell_integrated_metadata_files <- lapply(SEACell_integrated_metadata_files, function(x) mutate(x, RNA = paste0(RNA, "-", stage)))
+
+## check new integrated metadata
+print("Preview of combined integrated SEACell metadata:")
+print(SEACell_integrated_metadata_files[1:5, ])
+
 ## combine all cell metacell csvs into one
 combined_SEACell_metacell <- ldply(SEACell_integrated_metadata_files, data.frame)
 
