@@ -39,6 +39,7 @@ if(opt$verbose) print(opt)
     # NEMO interactive paths
     data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/TEMP_renamed_SEACells_exports/csv_files/"
     data_path = "./output/NF-downstream_analysis/Processing/ss8/Integrated_SEACells_label_transfer/rds_files/"
+    data_path = "./output/temp/"
     rds_path = "./output/NF-downstream_analysis/Processing/FullData/Combined_SEACell_outputs/"
     
   } else if (opt$runtype == "nextflow"){
@@ -113,10 +114,16 @@ print("Cell metadata files combined!")
 
 ############################## Combine SEACell integrated metadata files #######################################
 
-SEACell_integrated_metadata_files <- c()
+SEACell_integrated_metadata_files <- list()
 
 
-for (path in SEACell_integrated_metadata_paths){
+for (i in 1:length(SEACell_integrated_metadata_paths)){
+  
+  print(i)
+  
+  # extract correct path
+  path <- SEACell_integrated_metadata_paths[i]
+  
   # detect stage from file name
   stage <- str_sub(path,-41,-39)
   print(paste0("Stage detected from file name: ", stage))
@@ -128,12 +135,13 @@ for (path in SEACell_integrated_metadata_paths){
     mutate(RNA = paste0(RNA, "-", stage))
   
   # add altered df to list of dfs
-  SEACell_integrated_metadata_files <- c(SEACell_integrated_metadata_files, file)
+  SEACell_integrated_metadata_files[[i]] <- file
+  
 }
 
 ## check new integrated metadata
 print(length(SEACell_integrated_metadata_files))
-print("Preview of first df in list of integrated SEACell metadata dfs:")
+print("Preview of each df in list of integrated SEACell metadata dfs:")
 print(SEACell_integrated_metadata_files[[1]][1:5, ])
 print(SEACell_integrated_metadata_files[[2]][1:5, ])
 print(SEACell_integrated_metadata_files[[3]][1:5, ])
