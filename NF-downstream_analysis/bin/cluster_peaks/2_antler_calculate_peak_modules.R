@@ -98,10 +98,9 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, metadata, col_order,
   
   ### Cell-level ordering and annotations ###
   
-  # Automatically order cells by their values in the 'custom_order_column'
+  # Initiated column anndata
   col_ann <- metadata %>% mutate_if(is.character, as.factor)
-  col_ann <- col_ann[do.call("order", c(col_ann[col_order],
-                                         list(decreasing = FALSE))), , drop = FALSE]
+  
   # If 'custom_order' is set use this to reorder cells
   if (!is.null(custom_order)) {
     if (!setequal(custom_order, unique(col_ann[[custom_order_column]]))) {
@@ -111,6 +110,10 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, metadata, col_order,
     col_ann <- col_ann[order(col_ann[[custom_order_column]]),
                        , drop = FALSE]
   }
+  
+  # Automatically order cells by the columns specified in 'col_order'
+  col_ann <- col_ann[do.call("order", c(col_ann[col_order],
+                                        list(decreasing = FALSE))), , drop = FALSE]
   
   ### Peak-level ordering and annotations ###
   
@@ -354,7 +357,7 @@ order <- scHelper_cell_type_order[scHelper_cell_type_order %in% metadata$scHelpe
 cols <- scHelper_cell_type_colours[order]
 
 ## prepare plot data - ordering by scHelper_cell_type
-plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('scHelper_cell_type', 'stage'),
+plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
                                     custom_order_column = "scHelper_cell_type", custom_order = order,
                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
 
