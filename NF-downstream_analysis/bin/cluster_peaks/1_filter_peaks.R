@@ -81,7 +81,7 @@ print("Preview of input df:")
 print(SEACells_summarised[1:4, 1:4])
 
 # Extract SEACell IDs from first column
-SEACells_IDs <- pull(SEACells_summarised, 2)
+SEACells_IDs <- dplyr::pull(SEACells_summarised, 2)
 print(head(SEACells_IDs))
 length(SEACells_IDs)
 
@@ -96,6 +96,9 @@ SEACells_summarised_numeric <- as.matrix(sapply(SEACells_summarised, as.numeric)
 
 # Add SEACell IDs as rownames and peak IDs as colnames
 rownames(SEACells_summarised_numeric) <- SEACells_IDs
+
+# Adjust peak IDs name format
+colnames(SEACells_summarised_numeric) <- gsub(':', '-', colnames(SEACells_summarised_numeric))
 
 # Check resulting matrix
 print(dim(SEACells_summarised_numeric))
@@ -120,7 +123,7 @@ print("Normalising counts...")
 # Calculate total number of reads per cell
 total_counts <- rowSums(SEACells_summarised_numeric)
 
-# Convert to counts per million (CPM)
+# Convert to counts per 10,000 (like normalising done in Seurat) 
 normalised_counts <- SEACells_summarised_numeric / (total_counts / 1e4)
 
 print("Preview of normalised counts df:")
@@ -157,7 +160,6 @@ print(paste0("Number of peaks that are distal or intronic: ", length(included_pe
 included_peaks <- included_peak_set$name
 
 # filter normalised summarised counts to only include these peaks
-colnames(normalised_counts) <- gsub(':', '-', colnames(normalised_counts))
 annot_filtered_matrix <- normalised_counts[, which(colnames(normalised_counts) %in% included_peaks)]
 dim(annot_filtered_matrix)
 
