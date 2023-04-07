@@ -21,7 +21,7 @@ library(tidyverse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-k", "--k_cutoff"), action = "store", type = "character", help = "integration param k cutoff to use", default = 9),
+  make_option(c("-k", "--k_cutoff"), action = "store", type = "integer", help = "integration param k cutoff to use", default = 9),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
