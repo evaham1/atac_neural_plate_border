@@ -33,7 +33,7 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-
+    
     # combined SEACell outputs
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/0_combining_outputs/csv_files/"
     plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/plots/"
@@ -155,15 +155,11 @@ print("Counts normalised!")
 print("Filtering by peak annotation...")
 
 included_peak_set <- peak_metadata[which(peak_metadata$peakType %in% c("Distal", "Intronic")), ]
-print(paste0("Number of total peaks: ", length(peak_metadata$name)))
-print(paste0("Number of peaks that are distal or intronic: ", length(included_peak_set$name)))
 included_peaks <- included_peak_set$name
 
 # filter normalised summarised counts to only include these peaks
 annot_filtered_matrix <- normalised_counts[, which(colnames(normalised_counts) %in% included_peaks)]
 dim(annot_filtered_matrix)
-
-print("Peaks filtered!")
 
 ############## 3) Filter peaks by variance #######################################
 ## pick peaks with most variance across all cells
@@ -191,6 +187,16 @@ hist(variance, breaks = 1000)
 graphics.off()
 
 print("Peaks filtered!")
+
+############################## Plot how many peaks filtered in each step #######################################
+
+df <- data.frame(Filtering_step = c("Unfiltered", "Annotation_filter", "Variance_filter"),
+                 Remaining_peak_count = c(dim(normalised_counts)[2], dim(annot_filtered_matrix)[2], dim(variable_filtered_matrix)[2])
+)
+png(paste0(plot_path, 'how_many_peaks_filtered_table.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
 
 ############################## Save filtered normalised summarised count data #######################################
 
