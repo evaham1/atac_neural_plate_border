@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("inputs: 1) SEACells ATAC seurat object, 2) csv mapping single cell IDs to SEACell IDs, 3) csv mapping SEACell IDs to integrate cell type label")
+print("inputs: 1) csv mapping SEACell IDs to integrate cell type label, 2) csv mapping single cell ATAC IDs to SEACEll IDs, 3) ATAC SEACell seurat object")
 print("script uses csvs to 1) make consensus RNA-ATAC SEACell mapping -> csv, 2) visualise these new SEACell labels on ATAC SEACell seurat object and 3) maps this SEACell map for ATAC onto ATAC single cell data -> csv")
 
 ############################## Load libraries #######################################
@@ -19,10 +19,11 @@ library(tidyverse)
 ############################## Set up script options #######################################
 # Read in command line opts
 option_list <- list(
-    make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
-    make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-    make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
-    )
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-k", "--k_cutoff"), action = "store", type = "character", help = "integration param k cutoff to use", default = 9),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
+)
 
 opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
@@ -36,10 +37,13 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     ### Interactively will have to read from a few different places
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/5_Classify_metacells/" # for seurat object
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/" # for single cell to seacell mapping
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/Integrated_SEACells/" # integrated seacell mapping
-
+    # 1) ATAC SEACell to RNA SEACell mapping
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Integrated_SEACells/"
+    # 2) ATAC SEACell to single cell mapping
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/"
+    # 3) ATAC SEACell seurat object
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/5_Classify_metacells/"
+    
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -87,11 +91,12 @@ names(stage_colours) <- stage_order
 input_paths <- list.files(data_path)
 print(input_paths)
 
-# 1) Read in seurat object
-seurat_path <- list.files(path = paste0(data_path, "rds_files/"), pattern = ".RDS", full.names = TRUE)
-print(paste0("Seurat path: ", seurat_path))
-seurat <- readRDS(seurat_path)
-print(seurat)
+# 1) Read in ATAC SEACell to RNA SEACell mapping
+Integration_map_path <- list.files(path = paste0(data_path, "integrated_output/"), pattern = "*_mappings_cell_type", full.names = TRUE)
+print(paste0("Integration map path: ", Integration_map_path))
+
+Integration_maps <- lapply(Integration_map_path, read.csv)
+print(paste0("Number of integration maps (ie k values run): ", length(Integration_maps)))
 
 # 2) Read in ATAC single cell to SEACell mapping
 SEACell_map_path <- list.files(path = paste0(data_path, "csv_files/"), pattern = "*_cell_metadata.csv", full.names = TRUE)
@@ -102,14 +107,22 @@ SEACell_map <- read.csv(SEACell_map_path)
 print(head(SEACell_map))
 print(dim(SEACell_map))
 
-# 3) Read in ATAC SEACell to RNA SEACell mapping
-Integration_map_path <- list.files(path = paste0(data_path, "integrated_output/"), pattern = "*_mappings_cell_type", full.names = TRUE)
-print(paste0("Integration map path: ", Integration_map_path))
+# 3) Read in SEACell ATAC seurat object
+seurat_path <- list.files(path = paste0(data_path, "rds_files/"), pattern = ".RDS", full.names = TRUE)
+print(paste0("Seurat path: ", seurat_path))
+seurat <- readRDS(seurat_path)
+print(seurat)
 
-Integration_maps <- lapply(Integration_map_path, read.csv)
-print(paste0("Number of integration maps (ie k values run): ", length(Integration_maps)))
 
-############################## 1) Generate consensus SEACell integration map RNA-ATAC #######################################
+#############################################################################################################################
+#####################            1) Generate consensus SEACell integration map RNA-ATAC            ##########################
+#############################################################################################################################
+
+############### 1.1) Clean up data ##############
+
+# How many ATAC SEACells are there 
+all_SEACells <- unique(SEACell_map$SEACell)
+print(paste0("How many SEACells total: ", length(all_SEACells)))
 
 # Initiate combined integration map with mapping from k=1
 combined_integration_map <- Integration_maps[[1]]
@@ -126,13 +139,13 @@ combined_integration_map <- combined_integration_map %>% mutate(k = 1)
 print("Preview of integration map of k=1:")
 head(combined_integration_map)
 
+############### 1.2) Make combined map by iterating through each k value ##############
+
 # Initiate count of unique ATAC IDs mapped
-print(paste0("Number of ATAC SEACells labelled with k=1: ", dim(combined_integration_map)[1]))
 labelled_cell_count <- c(dim(combined_integration_map)[1])
 
 # Initiate count of duplicates in maps
 duplicated_ATAC_IDs <- combined_integration_map$ATAC[duplicated(combined_integration_map$ATAC)]
-print(paste0("Number of ATAC SEACells duplicates k=1: ", length(duplicated_ATAC_IDs)))
 duplicated_cell_count <- c(length(duplicated_ATAC_IDs))
 
 # Iterate through each k value and add new SEACell mappings to combined_integration_map
@@ -143,12 +156,10 @@ for (i in 2:length(Integration_maps)){
   map <- Integration_maps[[i]]
   map <- map[, -1]
   map <- map %>% mutate(k = i)
-  head(map)
   
   # remove any matches to ATAC cells which have already been matched
   unique_map <- map %>% 
     filter(!(ATAC %in% combined_integration_map$ATAC))
-  print(head(unique_map))
   
   # count how many unique ATAC SEAcell IDs this iteration adds
   print(paste0("Number of unique ATAC SEACells additionally labelled with k=", i, ": ", length(unique(unique_map$ATAC))))
@@ -166,56 +177,118 @@ for (i in 2:length(Integration_maps)){
 
 print("Preview of combined integration map:")
 head(combined_integration_map)
+dim(combined_integration_map)
 
-# Plot how many new SEACell mappings are made at each k value
-png(paste0(plot_path, "new_unique_maps_over_k_values.png"), width=25, height=20, units = 'cm', res = 200)
-plot(labelled_cell_count, ylim = c(0, length(unique(SEACell_map$SEACell))+2))
-abline(h=length(unique(SEACell_map$SEACell)), col="blue")
+############### 1.3) Set cut-off K value ##############
+
+# use plots to see when using less stringent k value doesn't add signficiantly more maps
+png(paste0(plot_path, "k_values_plot.png"), width=25, height=20, units = 'cm', res = 200)
+plot(labelled_cell_count, ylim = c(0, length(all_SEACells)+2))
+abline(h=length(all_SEACells), col="blue")
 graphics.off()
 
-# Plot how many ATAC SEACell IDs mapped at the end
-mapped <- unique(combined_integration_map$ATAC) %in% unique(SEACell_map$SEACell)
-print(paste0("Number of ATAC SEACell IDs mapped to an RNA SEACell ID: ", length(mapped)))
-print(paste0("Number of ATAC SEACell IDs NOT mapped to an RNA SEACell ID: ", length(unique(SEACell_map$SEACell)) - length(mapped)))
-
-df <- as.data.frame(c(length(mapped), length(unique(SEACell_map$SEACell)) - length(mapped), length(unique(SEACell_map$SEACell))))
-rownames(df) <- c("ATAC IDs mapped to an RNA ID:", "ATAC IDs NOT mapped to an RNA ID:", "Total ATAC IDs")
-colnames(df) <- "SEACell counts"
-png(paste0(plot_path, 'mapped_metacell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Mapped SEACell counts", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+df <- data.frame(k = c(1:length(labelled_cell_count)),
+                 SEACell_count = labelled_cell_count)
+png(paste0(plot_path, 'k_values_table.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
 
-## dealing with duplicate ATAC IDs by:
-# identify which ones map to > 1 scHelper cell type, remove these ones (v few)
-# for the rest just remove duplicates as the scHelper_cell_type will be the same even if the RNA SEACell ID is different
-duplicated_ATAC_IDs <- combined_integration_map$ATAC[duplicated(combined_integration_map$ATAC)]
-print(paste0("Number of duplicated ATAC SEACell IDs in integration maps: ", length(duplicated_ATAC_IDs)))
+# use user-defined k value to remove data
+cutoff_integration_map <- combined_integration_map %>% filter(k <= opt$k_cutoff)
+dim(cutoff_integration_map)
 
+# plot how many ATAC SEACell IDs have been removed from this filtering step
+df <- data.frame(before_filter = length(unique(combined_integration_map$ATAC)),
+                 after_filter = length(unique(cutoff_integration_map$ATAC)),
+                 nFiltered = length(unique(combined_integration_map$ATAC)) - length(unique(cutoff_integration_map$ATAC))
+                 )
+png(paste0(plot_path, 'k_values_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
+############### 1.4) Deal with single ATAC SEACells mapping to multiple RNA SEACells ##############
+
+# identify which ATAC SEACells map to > 1 scHelper cell type, remove these ones (v few)
+# for the rest just remove duplicates as the scHelper_cell_type will be the same even if the RNA SEACell ID is different
+duplicated_ATAC_IDs <- cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)]
 duplicates_map <- combined_integration_map %>% filter(ATAC %in% duplicated_ATAC_IDs) %>%
   arrange(ATAC) %>%
   group_by(ATAC, scHelper_cell_type) %>% 
   dplyr::mutate(duplicated_cell_type = n()>1)
-SEACells_to_remove <- duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC
-  
+SEACells_to_remove <- unique(duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC)
+
 print(paste0("Number of ATAC SEACell duplicates that map to more than one cell type: ", length(SEACells_to_remove)))
 print("Removing these SEACells from mapping!")
 
-filtered_integration_map <- combined_integration_map %>% 
+filtered_integration_map <- cutoff_integration_map %>% 
   dplyr::filter(!ATAC %in% SEACells_to_remove) %>% 
   distinct(ATAC, .keep_all = TRUE)
 
-dim(filtered_integration_map)
-head(filtered_integration_map)
+# plot how many ATAC SEACell IDs have been removed from this filtering step
+df <- data.frame(before_filter = length(unique(cutoff_integration_map$ATAC)),
+                 after_filter = length(unique(filtered_integration_map$ATAC)),
+                 nFiltered = length(unique(cutoff_integration_map$ATAC)) - length(unique(filtered_integration_map$ATAC))
+)
+png(paste0(plot_path, 'duplicate_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
+############### 1.5) Plot some final stats ##############
+
+# Plot how many ATAC SEACell IDs mapped at the end
+mapped_SEACells <- all_SEACells[(all_SEACells %in% filtered_integration_map$ATAC)]
+unmapped_SEACells <- all_SEACells[!(all_SEACells %in% filtered_integration_map$ATAC)]
+
+df <- as.data.frame(c(length(mapped_SEACells), length(unmapped_SEACells), length(all_SEACells)))
+rownames(df) <- c("ATAC IDs mapped to an RNA ID:", "ATAC IDs NOT mapped to an RNA ID:", "Total ATAC IDs")
+colnames(df) <- "SEACell counts"
+png(paste0(plot_path, 'Filtered_how_many_metacells_mapped.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
+# Plot how many ATAC SEACell IDs in final table were mapped using different k values
+table <- as.data.frame(table(filtered_integration_map$k))
+colnames(table) <- c("k value", "How many SEACells mapped")
+png(paste0(plot_path, 'Filtered_how_many_metacells_mapped_from_each_k.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(table, theme = ttheme_minimal()))
+graphics.off()
+
+############### 1.6) Add rows with 'NA' for ATAC SEACell IDs which are not mapped ##############
+
+## Add ATAC IDs to df which are NOT mapped
+unmapped_df <- data.frame (RNA  = rep("NA", length(unmapped_SEACells)),
+                           ATAC = unmapped_SEACells,
+                           scHelper_cell_type  = rep("NA", length(unmapped_SEACells)),
+                           k  = rep("NA", length(unmapped_SEACells))
+)
+full_integration_map <- rbind(filtered_integration_map, unmapped_df)
+
+# check final dataframe includes all SEACell ATAC IDs
+if (length(all_SEACells) == sum(all_SEACells %in% full_integration_map$ATAC)) {
+  print("Final integration map complete!") } else {
+    stop("Final integration map does not include all SEACell ATAC IDs!")
+  }
+
+############### 1.7) Add stage data to dataframe ##############
 
 ## Detect stage from cell metadata + add to df + use to name file
 stage <- substr(SEACell_map$index[1], 8, 10)
 print(paste0("Stage detected: ", stage))
 filtered_integration_map %>% mutate(Stage = stage)
 
+############### 1.8) Save processed integration map ##############
+
 write.csv(filtered_integration_map, paste0(rds_path, stage, '_filtered_SEACells_integration_map.csv'))
 
-############################## 2) Visualise integration result on ATAC SEACell seurat #######################################
+
+#############################################################################################################################
+#####################            2) Visualise integration result on ATAC SEACell seurat           ##########################
+#############################################################################################################################
 
 ## add new transferred labels to seurat object
 map1 <- filtered_integration_map %>% arrange(ATAC)
@@ -267,7 +340,10 @@ png(paste0(plot_path, "mapping_k_UMAP.png"), width=25, height=20, units = 'cm', 
 FeaturePlot(seurat, features = "Mapping_k", pt.size = 10, cols = c("red", "grey"))
 graphics.off()
 
-############################## 3) Generate ATAC SEACell to ATAC single cell map #######################################
+
+#############################################################################################################################
+#########################            3) Generate ATAC SEACell to ATAC single cell map           #############################
+#############################################################################################################################
 
 df_new <- merge(SEACell_map, filtered_integration_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
 single_cell_integrated_map <- df_new %>% select(c("SEACell", "index", "RNA", "scHelper_cell_type"))
