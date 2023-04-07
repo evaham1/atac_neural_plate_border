@@ -118,6 +118,9 @@ print(seurat)
 #####################            1) Generate consensus SEACell integration map RNA-ATAC            ##########################
 #############################################################################################################################
 
+plot_path = "./plots/generating_consenus_integration_map/"
+dir.create(plot_path, recursive = T)
+
 ############### 1.1) Clean up data ##############
 
 # How many ATAC SEACells are there 
@@ -185,11 +188,12 @@ dim(combined_integration_map)
 png(paste0(plot_path, "k_values_plot.png"), width=25, height=20, units = 'cm', res = 200)
 plot(labelled_cell_count, ylim = c(0, length(all_SEACells)+2))
 abline(h=length(all_SEACells), col="blue")
+abline(v=opt$k_cutoff, col="red")
 graphics.off()
 
 df <- data.frame(k = c(1:length(labelled_cell_count)),
                  SEACell_count = labelled_cell_count)
-png(paste0(plot_path, 'k_values_table.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, 'k_values_table.png'), height = 12, width = 6, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -253,7 +257,7 @@ graphics.off()
 # Plot how many ATAC SEACell IDs in final table were mapped using different k values
 table <- as.data.frame(table(filtered_integration_map$k))
 colnames(table) <- c("k value", "How many SEACells mapped")
-png(paste0(plot_path, 'Filtered_how_many_metacells_mapped_from_each_k.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, 'Filtered_how_many_metacells_mapped_from_each_k.png'), height = 12, width = 6, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, theme = ttheme_minimal()))
 graphics.off()
@@ -289,6 +293,9 @@ write.csv(filtered_integration_map, paste0(rds_path, stage, '_filtered_SEACells_
 #############################################################################################################################
 #####################            2) Visualise integration result on ATAC SEACell seurat           ##########################
 #############################################################################################################################
+
+plot_path = "./plots/seurat_visualise/"
+dir.create(plot_path, recursive = T)
 
 ## add new transferred labels to seurat object
 map1 <- filtered_integration_map %>% arrange(ATAC)
