@@ -46,10 +46,10 @@ def main(args=None):
 
     #####   3) Summarised count matrix
     # Load data
-    ad_sum = sc.read(args.input + '/Counts_summarised_by_metacells.h5ad')
+    ad_sum = sc.read(args.input + '/AnnData_summarised_by_metacells.h5ad')
     print(ad_sum)
     # Export data
-    ad_sum.to_df(layer="raw").to_csv(os.path.join(rds_path,"AnnData_summarised_by_metacells_peak_counts.csv"))
+    ad_sum.to_df(layer="raw").to_csv(os.path.join(rds_path,"Summarised_by_metacells_counts.csv"))
 
 if __name__ == '__main__':
     sys.exit(main())

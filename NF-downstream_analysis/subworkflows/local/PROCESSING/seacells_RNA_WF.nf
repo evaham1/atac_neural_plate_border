@@ -1,17 +1,17 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-// Python scripts to run SEACells computation
-include {R as SEURAT_TO_ANNDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
-
-include {PYTHON as CALCULATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/SEACells_computation.py", checkIfExists: true) )
-include {PYTHON as EXPORT_DATA_FROM_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/data_conversion/Export_data_from_AnnData.py", checkIfExists: true) )
-
-include {R as META_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seacells_meta_to_seurat.R", checkIfExists: true) )
-include {R as SEURAT_TO_ANNDATA_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
-
-//include {R as CHECK_SEACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/Check_seacell_purity.R", checkIfExists: true) )
-
+///// Scripts to run SEACells computation and re-run processing on metacells
+// Convert to Anndata
+include {R as SEURAT_TO_ANNDATA} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
+// Run SEACells
+include {PYTHON as CALCULATE_SEACELLS} from "$moduleDir/../../../modules/local/python/main"               addParams(script: file("$moduleDir/../../../bin/seacells/SEACells_computation.py", checkIfExists: true) )
+// Re-process SEACells in R
+include {R as META_TO_SEURAT_RNA} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seacells_meta_to_seurat_RNA.R", checkIfExists: true) )
+include {R as PROCESS_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/process_seurat_RNA.R", checkIfExists: true) )
+include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/state_classification.R", checkIfExists: true) )
+// Convert back to Anndata
+include {R as SEURAT_TO_ANNDATA_PROCESSED_RNA} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,35 +19,58 @@ include {R as SEURAT_TO_ANNDATA_PROCESSED} from "$baseDir/modules/local/r/main" 
 
 workflow SEACELLS_RNA_WF {
     take:
-    input //[[sample_id:TransferLabels], [Processing/TransferLabels/3_peak_call/rds_files/TransferLabels_Save-ArchR]]
+    input
+    ch_BNM
 
     main:
 
-    input.set { ch_seurat }
+    //input.view()
+    // [[sample_id:HH5], [/ready_for_integration/HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]
+    // [[sample_id:HH6], [/ready_for_integration/HH6_splitstage_data/rds_files/HH6_clustered_data.RDS]]
+    // [[sample_id:HH7], [/ready_for_integration/HH7_splitstage_data/rds_files/HH7_clustered_data.RDS]]
+    // [[sample_id:ss4], [/ready_for_integration/ss4_splitstage_data/rds_files/ss4_clustered_data.RDS]]
+    // [[sample_id:ss8], [/ready_for_integration/ss8_splitstage_data/rds_files/ss8_clustered_data.RDS]]
+    //ch_BNM.view()
+    /// /atac_neural_plate_border/NF-downstream_analysis/binary_knowledge_matrix_contam.csv
 
-    // Convert seurat to Anndata object
+    input.set{ch_seurat}
+
+    //////// Convert Seurat to AnnData /////////
     SEURAT_TO_ANNDATA( input )
 
     //////// Run SEACells /////////
-    CALCULATE_SEACELLS( input ) // Python script to calculate seacells on AnnData object
-    EXPORT_DATA_FROM_SEACELLS( CALCULATE_SEACELLS.out ) //Python script to export data from Anndata objects as .csv
+    CALCULATE_SEACELLS( SEURAT_TO_ANNDATA.out ) // Python script to calculate seacells on AnnData object
 
-    // Process resulting metacells - need to input original seurat object and the anndata exported data
-    ch_combined = EXPORT_DATA_FROM_SEACELLS.out
+    //CALCULATE_SEACELLS.out.view()
+    // [[sample_id:HH6], [./exported_data, ./plots, ./rds_files]]
+
+    //////// Convert AnnData to Seurat /////////
+    CALCULATE_SEACELLS.out
             .concat( ch_seurat )
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'Input'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-    META_TO_SEURAT( ch_combined ) // this outputs 2 seurat objects, one full object with metacells added and one summarised seurat
-    
-    // need to filter to only the condensed seurat object to convert into anndata 
+            .groupTuple( by:0 )
+            .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
+            .set {ch_combined}
 
-    SEURAT_TO_ANNDATA_PROCESSED( ch )
+    META_TO_SEURAT_RNA( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
+
+    //////// Process metacells Seurat object /////////
+    PROCESS_METACELLS( META_TO_SEURAT_RNA.out )
+
+    // Re-run cell state classification on metacells
+    ch_state_classification = PROCESS_METACELLS.out
+        .combine(ch_BNM)
+        .map{[it[0], it[1] + it[2]]}
+    //ch_state_classification.view()
+    CLASSIFY_METACELLS( ch_state_classification )
+
+    //////// Convert to Anndata /////////
+    SEURAT_TO_ANNDATA_PROCESSED_RNA( CLASSIFY_METACELLS.out )
 
     emit:
-    anndata = CALCULATE_SEACELLS.out
-    exports = EXPORT_DATA_FROM_SEACELLS.out
-    seurat = META_TO_SEURAT.out
-    processed_anndata = SEURAT_TO_ANNDATA_PROCESSED.out
+    seacells_anndata = CALCULATE_SEACELLS.out
+    seacells_seurat_objects = META_TO_SEURAT_RNA.out
+    seacells_seurat_processed = PROCESS_METACELLS.out
+    seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
+    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_RNA.out
 
 }

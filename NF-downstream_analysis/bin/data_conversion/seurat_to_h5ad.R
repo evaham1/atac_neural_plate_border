@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-##### Convert seurat object to h5ad AnnData object for python processing
+print("Script to convert seurat object to h5ad AnnData object for python processing")
 
 # Load packages
 library(Seurat)
@@ -14,10 +14,12 @@ library(optparse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-d", "--data_path"), action = "store", type = "character", help = "Name of data path that seurat object is in", default = './input/'),
+  make_option(c("-i", "--input"), action = "store", type = "character", help = "Name of input seurat object if there is more than one in input"),
   make_option(c("-a", "--assay"), action = "store", type = "character", help = "Assay to export from seurat object ('integrated' or 'RNA')", default = 'integrated'),
   make_option(c("-o", "--outfile"), action = "store", type = "character", help = "Name of outfile"),
   make_option(c("-g", "--group_by"), action = "store", type = "character", help = "Name of metadata column containing groups to colour by", default = 'seurat_clusters'),
-  make_option(c("", "--verbose"), action = "store_true", type = "logical", help = "Verbose", default = FALSE)
+  make_option(c("", "--verbose"), action = "store_true", type = "logical", help = "Verbose", default = TRUE)
 )
 
 opt_parser = OptionParser(option_list = option_list)
@@ -32,13 +34,23 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # interative path goes here
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/5_Classify_metacells/rds_files/"
+    input = "Classified_metacells.RDS"
+    plot_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/6_RNA_Anndata_object_processed_classified/plots/"
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_RNA_WF/6_RNA_Anndata_object_processed_classified/rds_files/"
+    
+    # local interactive path
+    data_path = "./local_test_data/state_classification_ATAC/rds_files/"
+    input = "Classified_metacells.RDS"
+    plot_path = "./local_test_data/ATAC_metacells_ready_to_integrate/plots/"
+    rds_path = "./local_test_data/ATAC_metacells_ready_to_integrate/rds_files/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/"
+    data_path = opt$data_path
     ncores = opt$cores
     
   } else {
@@ -52,7 +64,23 @@ if(opt$verbose) print(opt)
 
 ############################## Read in data #######################################
 
-seurat_object <- readRDS(list.files(data_path, full.names = TRUE, recursive = TRUE))
+# If there is only one object in data_path use this, if there is more than one need 'input' arg to define which one to use
+
+input_files <- list.files(data_path, full.names = TRUE, recursive = TRUE)
+print(paste0("Input files: ", input_files))
+
+if (length(input_files) > 1){
+  print(paste0("Multiple input files detected, reading in only ", opt$input))
+  if (is.null(opt$input)) {
+    stop("ERROR: input arg not defined!")
+  }
+  seurat_object <- readRDS(paste0(data_path, opt$input))
+} else {
+  print("Only one input file detected, reading in now...")
+  seurat_object <- readRDS(input_files)
+}
+
+print(seurat_object)
 
 ############################## Convert to H5ad #######################################
 
@@ -69,13 +97,13 @@ if(!opt[['group_by']] %in% colnames(seurat_object@meta.data)){
 
 if(opt$group_by == 'scHelper_cell_type'){
   colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                  "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                  "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3")
+               "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+               "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3")
   
   cell_state <- factor(seurat_object@meta.data[['scHelper_cell_type']], levels = c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
-                                                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                                                        'vFB', 'aNP', 'node', 'FB', 'pEpi'))
+                                                                                   'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                                                                   'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                                                                   'vFB', 'aNP', 'node', 'FB', 'pEpi'))
   names(colours) <- levels(cell_state)
   
 } else {
@@ -110,5 +138,5 @@ Convert(paste0(opt$outfile, '.h5seurat'), dest = "h5ad")
 # Remove intermediate h5Seurat file
 file.remove(paste0(opt$outfile, '.h5seurat'))
 
-# Move .h5ad file to ./rds_fles/
+# Move .h5ad file to ./rds_files/
 system(paste0("mv ", opt$outfile, ".h5ad ./rds_files/"))
