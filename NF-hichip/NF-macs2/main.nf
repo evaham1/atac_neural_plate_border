@@ -14,24 +14,29 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
-// MACS2 NF-CORE MODULE
+// LOAD MODULES
+include { METADATA } from "./subworkflows/local/metadata"
+include { MACS2_CALLPEAK           } from './modules/nf-core/macs2/callpeak/main'
 
-//
 // SET CHANNELS
-//
-
 Channel
-    .value(params.reference)
-    .set{ch_reference}
+    .value(params.macs_gsize)
+    .set{macs_gsize}
 
+
+//ch_bam                            // channel: [ val(meta), [ ip_bam ], [ control_bam ] ]
+//macs_gsize                        // integer: value for --macs_gsize parameter
 
 //
 // WORKFLOW: Run macs2
 //
 
-workflow PEAK_CALL_MACS2 {
+workflow NF_PEAK_CALL {
 
-        
+    METADATA( params.sample_sheet )
+
+    MACS2_CALLPEAK (METADATA.out, macs_gsize)
+
 }
 
 /*
@@ -45,7 +50,7 @@ workflow PEAK_CALL_MACS2 {
 // See: https://github.com/nf-core/rnaseq/issues/619
 //
 workflow {
-    PEAK_CALL_MACS2 ()
+    NF_PEAK_CALL ()
 }
 
 
