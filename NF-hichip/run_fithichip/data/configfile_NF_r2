@@ -5,12 +5,12 @@
 ##============
 ## valid pairs from HiC-Pro pipeline - can be gzipped as well
 ##============
-ValidPairs=/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r1.allValidPairs
+ValidPairs=/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r2.allValidPairs
 
 ##********
 ## Mandatory parameter - Output directory to contain all the results
 ##********
-OutDir=../../output/NF-hichip/NF_FitHiChiP_r1
+OutDir=../../output/NF-hichip/NF_FitHiChiP_r2
 
 
 
