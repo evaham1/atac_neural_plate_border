@@ -25,6 +25,6 @@ nextflow run nf-core/fetchngs \
     -r 1.9 \
     -c ./conf/crick_params.config \
     --input ./data/SRR_Acc_List.txt \
-    --outdir ../output/NF-cutandrun-H3k27ac \
+    --outdir ../output/NF-cutandrun-H3k27ac_fetchngs \
     --email hamrude@crick.ac.uk \
     -resume

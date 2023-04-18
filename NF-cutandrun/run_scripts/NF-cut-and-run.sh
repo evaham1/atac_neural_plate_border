@@ -13,15 +13,17 @@ ml Nextflow/22.10.3
 ml Singularity/3.6.4
 
 export NXF_VER=22.10.3
+export NXF_SINGULARITY_CACHEDIR=/nemo/lab/briscoej/working/hamrude/NF_singularity
+export NXF_HOME=/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-cutandrun
+export NXF_WORK=work/
 
 ## UPDATE PIPLINE
-nextflow pull nf-core/hic
+nextflow pull nf-core/cutandrun
 
-nextflow run nf-core/hic \
-    -r 2.0.0 \
+nextflow run nf-core/cutandrun \
+    -r 3.1 \
     -c ./conf/crick_params.config \
-    --digestion 'mboi' \
     --input  ./data/samplesheet.csv \
-    --outdir ../output/NF-hichip_alignment \
-    --email thierya@crick.ac.uk \
+    --outdir ../output/NF-cutandrun-H3k27ac \
+    --email hamrude@crick.ac.uk \
     -resume

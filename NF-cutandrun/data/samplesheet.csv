@@ -1,7 +1,5 @@
-sample,accession,fastq_1,fastq_2
-WE_HiChip_r1,SRX8279273,../output/NF-hichip_fetchngs/fastq/SRX8279273_SRR11719976_1.fastq.gz,../output/NF-hichip_fetchngs/fastq/SRX8279273_SRR11719976_2.fastq.gz
-WE_HiChip_r2,SRX8279274,../output/NF-hichip_fetchngs/fastq/SRX8279274_SRR11719977_1.fastq.gz,../output/NF-hichip_fetchngs/fastq/SRX8279274_SRR11719977_2.fastq.gz
-WE_HiChip_r3,SRX8279275,../output/NF-hichip_fetchngs/fastq/SRX8279275_SRR11719978_1.fastq.gz,../output/NF-hichip_fetchngs/fastq/SRX8279275_SRR11719978_2.fastq.gz
-NF_HiChip_r1,SRX8279276,../output/NF-hichip_fetchngs/fastq/SRX8279276_SRR11719979_1.fastq.gz,../output/NF-hichip_fetchngs/fastq/SRX8279276_SRR11719979_2.fastq.gz
-NF_HiChip_r2,SRX8279277,../output/NF-hichip_fetchngs/fastq/SRX8279277_SRR11719980_1.fastq.gz,../output/NF-hichip_fetchngs/fastq/SRX8279277_SRR11719980_2.fastq.gz
-NF_HiChip_r3,SRX8279278,../output/NF-hichip_fetchngs/fastq/SRX8279278_SRR11719981_1.fastq.gz,../output/NF-hichip_fetchngs/fastq/SRX8279278_SRR11719981_2.fastq.gz
+group,replicate,fastq_1,fastq_2,control
+h3k27ac,1,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k27ac,2,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k27ac,3,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+igg_ctrl,1,READ1_FASTQ.gz,READ2_FASTQ.gz,
