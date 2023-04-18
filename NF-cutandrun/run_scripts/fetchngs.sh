@@ -14,6 +14,9 @@ ml Singularity/3.6.4
 ml Graphviz
 
 export NXF_VER=22.10.3
+export NXF_SINGULARITY_CACHEDIR=/nemo/lab/briscoej/working/hamrude/NF_singularity
+export NXF_HOME=/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-cutandrun
+export NXF_WORK=work/
 
 ## UPDATE PIPLINE
 nextflow pull nf-core/fetchngs
