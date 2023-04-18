@@ -12,4 +12,4 @@ ml Java/11.0.2
 ml Singularity/3.6.4
 
 ## RUN FITHICHIP BASH SCRIPT
-bash ../FitHiChIP/FitHiChIP_Singularity.sh -C ../FitHiChIP/data/configfile_NF_r1
+bash ../run_fithichip/FitHiChIP/FitHiChIP_Singularity.sh -C ../run_fithichip/data/configfile_NF_r1
