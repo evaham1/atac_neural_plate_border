@@ -10,14 +10,14 @@ ValidPairs=/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hi
 ##********
 ## Mandatory parameter - Output directory to contain all the results
 ##********
-OutDir=../../output/NF-hichip/NF_FitHiChiP_r1
+OutDir=/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip/NF_FitHiChiP_r1
 
 
 
 ##********
 ## File containing chromomosome size information corresponding to the reference genome.
 ##********
-ChrSizeFile=./data/chrom_galgal6.sizes
+ChrSizeFile=/flask/scratch/briscoej/thierya/atac_neural_plate_border/NF-hichip/run_fithichip/data/chrom_galgal6.sizes
 
 ##********
 ## Mandatory parameter - Reference ChIP-seq / HiChIP peaks (in .bed format) - can be gzipped as well
