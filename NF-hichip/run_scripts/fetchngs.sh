@@ -24,5 +24,5 @@ nextflow run nf-core/fetchngs \
     --input ./data/SRR_Acc_List.txt \
     --outdir ../output/NF-hichip_fetchngs \
     --nf_core_pipeline rnaseq \
-    --email thierya@crick.ac.uk \
+    --email hamrude@crick.ac.uk \
     -resume
