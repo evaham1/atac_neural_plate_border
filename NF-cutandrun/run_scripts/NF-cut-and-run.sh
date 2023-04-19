@@ -21,7 +21,7 @@ export NXF_WORK=work/
 nextflow pull nf-core/cutandrun
 
 nextflow run nf-core/cutandrun \
-    -r 3.1 \
+    -r dev \
     -c ./conf/crick_params.config \
     --input  ./data/samplesheet.csv \
     --normalisation_mode 'CPM' \
