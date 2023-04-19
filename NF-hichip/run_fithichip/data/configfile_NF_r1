@@ -81,5 +81,5 @@ PREFIX=FitHiChIP
 ## Binary variable 1/0: 
 ## if 1, overwrites any existing output file. 
 ## otherwise (0), does not overwrite any output file.
-OverWrite=0
+OverWrite=1
 
