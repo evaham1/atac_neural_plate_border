@@ -25,10 +25,9 @@ ChrSizeFile=./data/chrom_galgal6.sizes
 ## Otherwise, peaks can be computed from HiChIP data. 
 ## See the documentation: https://ay-lab.github.io/FitHiChIP/usage/Utilities.html#inferring-peaks-from-hichip-data-for-use-in-the-hichip-pipeline
 ##********
-PeakFile=../../NF-cutandrun-H3k27ac/XXX
 
-
-
+# Have used the output of H3k37ac CUT&RUN data collected from chick neural folds, consensus peaks called with macs2 (broad)
+PeakFile=/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac//03_peak_calling/05_consensus_peaks/h3k27ac.consensus.peaks.awk.bed
 
 
 ##********
