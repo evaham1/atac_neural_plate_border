@@ -400,239 +400,239 @@ fi
 # check if the required libraries are all installed or not
 #*****************************
 
-## first check the python version
-# note: FitHiChIP new versions now use python3, instead of python2
-# check if python3 is installed and its version is > 3.4
-pythonversion=$(python3 --version 2>&1 | head -n 1 | awk '{print $2}' -)
-if [[ -z "$pythonversion" ]]; then
-    echo "ERROR ====>>> No Python installation is detected in the system !!! FitHiChIP quits !!!" 
-    errcond=1
-fi
-numfield=`echo $pythonversion | awk -F'[.]' '{print NF}' -`
-if [[ $numfield -ge 3 ]]; then
-	num1=`echo $pythonversion | awk -F'[.]' '{print $1}' -`
-	num2=`echo $pythonversion | awk -F'[.]' '{print $2}' -`
-	num3=`echo $pythonversion | awk -F'[.]' '{print $3}' -`
-	if [[ $num1 -gt 3 ]]; then
-		echo "Installed python version: "${pythonversion}
-	elif [[ $num1 -eq 3 && $num2 -gt 4 ]]; then
-		echo "Installed python version: "${pythonversion}
-	elif [[ $num1 -eq 3 && $num2 -eq 4 && $num3 -ge 1 ]]; then
-		echo "Installed python version: "${pythonversion}
-	else 
-		echo " --- FitHiChIP now works on python 3 - should be python3 with version >= 3.4 !!! FitHiChIP quits !!!"
-		errcond=1
-	fi
-else
-	num1=`echo $pythonversion | awk -F'[.]' '{print $1}' -`
-	num2=`echo $pythonversion | awk -F'[.]' '{print $2}' -`
-	if [[ $num1 -gt 3 ]]; then
-		echo "Installed python version: "${pythonversion}
-	elif [[ $num1 -eq 3 && $num2 -gt 3 ]]; then
-		echo "Installed python version: "${pythonversion}
-	else 
-		echo " --- FitHiChIP now works on python 3 - should be python3 with version >= 3.4 !!! FitHiChIP quits !!!"
-		errcond=1
-	fi	
-fi
+# ## first check the python version
+# # note: FitHiChIP new versions now use python3, instead of python2
+# # check if python3 is installed and its version is > 3.4
+# pythonversion=$(python3 --version 2>&1 | head -n 1 | awk '{print $2}' -)
+# if [[ -z "$pythonversion" ]]; then
+#     echo "ERROR ====>>> No Python installation is detected in the system !!! FitHiChIP quits !!!" 
+#     errcond=1
+# fi
+# numfield=`echo $pythonversion | awk -F'[.]' '{print NF}' -`
+# if [[ $numfield -ge 3 ]]; then
+# 	num1=`echo $pythonversion | awk -F'[.]' '{print $1}' -`
+# 	num2=`echo $pythonversion | awk -F'[.]' '{print $2}' -`
+# 	num3=`echo $pythonversion | awk -F'[.]' '{print $3}' -`
+# 	if [[ $num1 -gt 3 ]]; then
+# 		echo "Installed python version: "${pythonversion}
+# 	elif [[ $num1 -eq 3 && $num2 -gt 4 ]]; then
+# 		echo "Installed python version: "${pythonversion}
+# 	elif [[ $num1 -eq 3 && $num2 -eq 4 && $num3 -ge 1 ]]; then
+# 		echo "Installed python version: "${pythonversion}
+# 	else 
+# 		echo " --- FitHiChIP now works on python 3 - should be python3 with version >= 3.4 !!! FitHiChIP quits !!!"
+# 		errcond=1
+# 	fi
+# else
+# 	num1=`echo $pythonversion | awk -F'[.]' '{print $1}' -`
+# 	num2=`echo $pythonversion | awk -F'[.]' '{print $2}' -`
+# 	if [[ $num1 -gt 3 ]]; then
+# 		echo "Installed python version: "${pythonversion}
+# 	elif [[ $num1 -eq 3 && $num2 -gt 3 ]]; then
+# 		echo "Installed python version: "${pythonversion}
+# 	else 
+# 		echo " --- FitHiChIP now works on python 3 - should be python3 with version >= 3.4 !!! FitHiChIP quits !!!"
+# 		errcond=1
+# 	fi	
+# fi
 
-# check if python3 libraries are also installed
-if python3 -c "import gzip"; then
-    echo '*** Python library gzip is installed'
-else
-    echo 'ERROR ====>>> Python3 library gzip is not installed !!! FitHiChIP quits !!!'
-    errcond=1
-fi
-if python3 -c "from optparse import OptionParser"; then
-    echo '*** Python module OptionParser (from the package optparse) is installed'
-else
-    echo 'ERROR ====>>> Python module OptionParser (from the package optparse) is not installed !!! FitHiChIP quits !!!'
-    errcond=1
-fi
-if python3 -c "import networkx"; then
-    echo '*** Python package networkx is installed'
-else
-    echo 'ERROR ====>>> Python3 package networkx is not installed !!! Try to install the package by python3 -m pip install networkx. FitHiChIP quits !!!'
-    errcond=1
-fi
+# # check if python3 libraries are also installed
+# if python3 -c "import gzip"; then
+#     echo '*** Python library gzip is installed'
+# else
+#     echo 'ERROR ====>>> Python3 library gzip is not installed !!! FitHiChIP quits !!!'
+#     errcond=1
+# fi
+# if python3 -c "from optparse import OptionParser"; then
+#     echo '*** Python module OptionParser (from the package optparse) is installed'
+# else
+#     echo 'ERROR ====>>> Python module OptionParser (from the package optparse) is not installed !!! FitHiChIP quits !!!'
+#     errcond=1
+# fi
+# if python3 -c "import networkx"; then
+#     echo '*** Python package networkx is installed'
+# else
+#     echo 'ERROR ====>>> Python3 package networkx is not installed !!! Try to install the package by python3 -m pip install networkx. FitHiChIP quits !!!'
+#     errcond=1
+# fi
 
-# check if MACS2 package is installed
-macs2version=$(macs2 --version 2>&1 |  head -n 1 | awk -F[" "] '{print $2 }' -)
-if [[ -z "$macs2version" ]]; then
-    echo "ERROR ====>>> MACS2 peak calling package is not detected in the system !!! Try to install the package by python3 -m pip install MACS2. FitHiChIP quits !!!" 
-    errcond=1
-else
-	echo "*** Found MACS2 package (for peak calling) installed in the system -  "$macs2version
-fi
+# # check if MACS2 package is installed
+# macs2version=$(macs2 --version 2>&1 |  head -n 1 | awk -F[" "] '{print $2 }' -)
+# if [[ -z "$macs2version" ]]; then
+#     echo "ERROR ====>>> MACS2 peak calling package is not detected in the system !!! Try to install the package by python3 -m pip install MACS2. FitHiChIP quits !!!" 
+#     errcond=1
+# else
+# 	echo "*** Found MACS2 package (for peak calling) installed in the system -  "$macs2version
+# fi
 
-# check the R version
-Rversion=$(R --version | head -n 1 | awk -F[" "] '{print $3}' -)
-if [[ -z "$Rversion" ]]; then
-    echo "ERROR ====>>> No R installation is detected in the system !!! FitHiChIP quits !!!" 
-    errcond=1
-fi
-numfield=`echo $Rversion | awk -F'[.]' '{print NF}' -`
-if [[ $numfield -ge 3 ]]; then
-	num1=`echo $Rversion | awk -F'[.]' '{print $1}' -`
-	num2=`echo $Rversion | awk -F'[.]' '{print $2}' -`
-	num3=`echo $Rversion | awk -F'[.]' '{print $3}' -`
-	if [[ $num1 -gt 3 ]]; then
-		echo "Installed R version: "${Rversion}
-	elif [[ $num1 -eq 3 && $num2 -gt 3 ]]; then
-		echo "Installed R version: "${Rversion}
-	elif [[ $num1 -eq 3 && $num2 -eq 3 && $num3 -ge 0 ]]; then
-		echo "Installed R version: "${Rversion}
-	else 
-		echo " -- R version should be at least R 3.3 !!! FitHiChIP quits !!!"
-		errcond=1
-	fi
-else
-	num1=`echo $Rversion | awk -F'[.]' '{print $1}' -`
-	num2=`echo $Rversion | awk -F'[.]' '{print $2}' -`
-	if [[ $num1 -gt 3 ]]; then
-		echo "Installed R version: "${Rversion}
-	elif [[ $num1 -eq 3 && $num2 -gt 3 ]]; then
-		echo "Installed R version: "${Rversion}
-	else 
-		echo " -- R version should be at least R 3.3 !!! FitHiChIP quits !!!"
-		errcond=1
-	fi	
-fi
+# # check the R version
+# Rversion=$(R --version | head -n 1 | awk -F[" "] '{print $3}' -)
+# if [[ -z "$Rversion" ]]; then
+#     echo "ERROR ====>>> No R installation is detected in the system !!! FitHiChIP quits !!!" 
+#     errcond=1
+# fi
+# numfield=`echo $Rversion | awk -F'[.]' '{print NF}' -`
+# if [[ $numfield -ge 3 ]]; then
+# 	num1=`echo $Rversion | awk -F'[.]' '{print $1}' -`
+# 	num2=`echo $Rversion | awk -F'[.]' '{print $2}' -`
+# 	num3=`echo $Rversion | awk -F'[.]' '{print $3}' -`
+# 	if [[ $num1 -gt 3 ]]; then
+# 		echo "Installed R version: "${Rversion}
+# 	elif [[ $num1 -eq 3 && $num2 -gt 3 ]]; then
+# 		echo "Installed R version: "${Rversion}
+# 	elif [[ $num1 -eq 3 && $num2 -eq 3 && $num3 -ge 0 ]]; then
+# 		echo "Installed R version: "${Rversion}
+# 	else 
+# 		echo " -- R version should be at least R 3.3 !!! FitHiChIP quits !!!"
+# 		errcond=1
+# 	fi
+# else
+# 	num1=`echo $Rversion | awk -F'[.]' '{print $1}' -`
+# 	num2=`echo $Rversion | awk -F'[.]' '{print $2}' -`
+# 	if [[ $num1 -gt 3 ]]; then
+# 		echo "Installed R version: "${Rversion}
+# 	elif [[ $num1 -eq 3 && $num2 -gt 3 ]]; then
+# 		echo "Installed R version: "${Rversion}
+# 	else 
+# 		echo " -- R version should be at least R 3.3 !!! FitHiChIP quits !!!"
+# 		errcond=1
+# 	fi	
+# fi
 
-# check the samtools version
-samtoolsversion=$(samtools 2>&1 | grep "Version" | awk -F[" "] '{print $2}' -)
-if [[ -z "$samtoolsversion" ]]; then
-    echo "ERROR ====>>> No samtools installation is detected in the system !!! FitHiChIP quits !!!" 
-    errcond=1
-    # exit 1
-fi
-numfield=`echo $samtoolsversion | awk -F'[.]' '{print NF}' -`
-if [[ $numfield -ge 3 ]]; then
-	num1=`echo $samtoolsversion | awk -F'[.]' '{print $1}' -`
-	num2=`echo $samtoolsversion | awk -F'[.]' '{print $2}' -`
-	num3=`echo $samtoolsversion | awk -F'[.]' '{print $3}' -`
-	if [[ $num1 -gt 1 ]]; then
-		echo "Installed samtools version: "${samtoolsversion}
-	elif [[ $num1 -eq 1 && $num2 -gt 6 ]]; then
-		echo "Installed samtools version: "${samtoolsversion}
-	elif [[ $num1 -eq 1 && $num2 -eq 6 && $num3 -ge 0 ]]; then
-		echo "Installed samtools version: "${samtoolsversion}
-	else 
-		echo " - Samtools version should be at least 1.6 !!! FitHiChIP quits !!!"
-		errcond=1
-	fi
-else
-	num1=`echo $samtoolsversion | awk -F'[.]' '{print $1}' -`
-	num2=`echo $samtoolsversion | awk -F'[.]' '{print $2}' -`
-	if [[ $num1 -gt 1 ]]; then
-		echo "Installed samtools version: "${samtoolsversion}
-	elif [[ $num1 -eq 1 && $num2 -gt 6 ]]; then
-		echo "Installed samtools version: "${samtoolsversion}
-	else 
-		echo " - Samtools version should be at least 1.6 !!! FitHiChIP quits !!!"
-		errcond=1
-	fi	
-fi
+# # check the samtools version
+# samtoolsversion=$(samtools 2>&1 | grep "Version" | awk -F[" "] '{print $2}' -)
+# if [[ -z "$samtoolsversion" ]]; then
+#     echo "ERROR ====>>> No samtools installation is detected in the system !!! FitHiChIP quits !!!" 
+#     errcond=1
+#     # exit 1
+# fi
+# numfield=`echo $samtoolsversion | awk -F'[.]' '{print NF}' -`
+# if [[ $numfield -ge 3 ]]; then
+# 	num1=`echo $samtoolsversion | awk -F'[.]' '{print $1}' -`
+# 	num2=`echo $samtoolsversion | awk -F'[.]' '{print $2}' -`
+# 	num3=`echo $samtoolsversion | awk -F'[.]' '{print $3}' -`
+# 	if [[ $num1 -gt 1 ]]; then
+# 		echo "Installed samtools version: "${samtoolsversion}
+# 	elif [[ $num1 -eq 1 && $num2 -gt 6 ]]; then
+# 		echo "Installed samtools version: "${samtoolsversion}
+# 	elif [[ $num1 -eq 1 && $num2 -eq 6 && $num3 -ge 0 ]]; then
+# 		echo "Installed samtools version: "${samtoolsversion}
+# 	else 
+# 		echo " - Samtools version should be at least 1.6 !!! FitHiChIP quits !!!"
+# 		errcond=1
+# 	fi
+# else
+# 	num1=`echo $samtoolsversion | awk -F'[.]' '{print $1}' -`
+# 	num2=`echo $samtoolsversion | awk -F'[.]' '{print $2}' -`
+# 	if [[ $num1 -gt 1 ]]; then
+# 		echo "Installed samtools version: "${samtoolsversion}
+# 	elif [[ $num1 -eq 1 && $num2 -gt 6 ]]; then
+# 		echo "Installed samtools version: "${samtoolsversion}
+# 	else 
+# 		echo " - Samtools version should be at least 1.6 !!! FitHiChIP quits !!!"
+# 		errcond=1
+# 	fi	
+# fi
 
-# check if bgzip is installed in the system
-bgzipnum=`bgzip -h 2>&1 | wc -l`
-if [[ $bgzipnum -gt 5 ]]; then
-	echo "*** bgzip utility is installed in the system"
-else
-	echo "ERROR =====>> bgzip utility is NOT installed in the system -- please install it from htslib (associated with samtools) version >= 1.6"
-	errcond=1
-fi
+# # check if bgzip is installed in the system
+# bgzipnum=`bgzip -h 2>&1 | wc -l`
+# if [[ $bgzipnum -gt 5 ]]; then
+# 	echo "*** bgzip utility is installed in the system"
+# else
+# 	echo "ERROR =====>> bgzip utility is NOT installed in the system -- please install it from htslib (associated with samtools) version >= 1.6"
+# 	errcond=1
+# fi
 
-# check if tabix is installed in the system
-tabixnum=`tabix -h 2>&1 | wc -l`
-if [[ $tabixnum -gt 5 ]]; then
-	echo "*** tabix utility is installed in the system"
-else
-	echo "ERROR =====>> tabix utility is NOT installed in the system -- please install it from htslib (associated with samtools) version >= 1.6"
-	errcond=1
-fi
+# # check if tabix is installed in the system
+# tabixnum=`tabix -h 2>&1 | wc -l`
+# if [[ $tabixnum -gt 5 ]]; then
+# 	echo "*** tabix utility is installed in the system"
+# else
+# 	echo "ERROR =====>> tabix utility is NOT installed in the system -- please install it from htslib (associated with samtools) version >= 1.6"
+# 	errcond=1
+# fi
 
-# check the bedtools version
-# command 1
-bedtoolsversion1=$(bedtools --version | head -n 1 | awk -F[" "] '{print substr($2,2); }' -)
-# echo "bedtoolsversion1: "$bedtoolsversion1
-# command 2
-bedtoolsversion2=$(bedtools 2>&1 | grep "Version" | awk -F[" "] '{print substr($NF,2); }' -)
-# echo "bedtoolsversion2: "$bedtoolsversion2
-# if both commands fail then surely bedtools is not installed in the system
-if [[ -z "$bedtoolsversion1" && -z "$bedtoolsversion2" ]]; then
-    echo "ERROR ====>>> No bedtools installation is detected in the system !!! FitHiChIP quits !!!" 
-    errcond=1
-fi
-if [[ ! -z "$bedtoolsversion1" ]]; then
+# # check the bedtools version
+# # command 1
+# bedtoolsversion1=$(bedtools --version | head -n 1 | awk -F[" "] '{print substr($2,2); }' -)
+# # echo "bedtoolsversion1: "$bedtoolsversion1
+# # command 2
+# bedtoolsversion2=$(bedtools 2>&1 | grep "Version" | awk -F[" "] '{print substr($NF,2); }' -)
+# # echo "bedtoolsversion2: "$bedtoolsversion2
+# # if both commands fail then surely bedtools is not installed in the system
+# if [[ -z "$bedtoolsversion1" && -z "$bedtoolsversion2" ]]; then
+#     echo "ERROR ====>>> No bedtools installation is detected in the system !!! FitHiChIP quits !!!" 
+#     errcond=1
+# fi
+# if [[ ! -z "$bedtoolsversion1" ]]; then
 
-	numfield=`echo $bedtoolsversion1 | awk -F'[.]' '{print NF}' -`
-	if [[ $numfield -ge 3 ]]; then
-		num1=`echo $bedtoolsversion1 | awk -F'[.]' '{print $1}' -`
-		num2=`echo $bedtoolsversion1 | awk -F'[.]' '{print $2}' -`
-		num3=`echo $bedtoolsversion1 | awk -F'[.]' '{print $3}' -`
-		if [[ $num1 -gt 2 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion1}
-		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion1}
-		elif [[ $num1 -eq 2 && $num2 -eq 26 && $num3 -ge 0 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion1}
-		else 
-			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
-			errcond=1
-		fi
-	else
-		num1=`echo $bedtoolsversion1 | awk -F'[.]' '{print $1}' -`
-		num2=`echo $bedtoolsversion1 | awk -F'[.]' '{print $2}' -`
-		if [[ $num1 -gt 2 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion1}
-		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion1}
-		else 
-			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
-			errcond=1
-		fi	
-	fi
-fi
+# 	numfield=`echo $bedtoolsversion1 | awk -F'[.]' '{print NF}' -`
+# 	if [[ $numfield -ge 3 ]]; then
+# 		num1=`echo $bedtoolsversion1 | awk -F'[.]' '{print $1}' -`
+# 		num2=`echo $bedtoolsversion1 | awk -F'[.]' '{print $2}' -`
+# 		num3=`echo $bedtoolsversion1 | awk -F'[.]' '{print $3}' -`
+# 		if [[ $num1 -gt 2 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion1}
+# 		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion1}
+# 		elif [[ $num1 -eq 2 && $num2 -eq 26 && $num3 -ge 0 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion1}
+# 		else 
+# 			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
+# 			errcond=1
+# 		fi
+# 	else
+# 		num1=`echo $bedtoolsversion1 | awk -F'[.]' '{print $1}' -`
+# 		num2=`echo $bedtoolsversion1 | awk -F'[.]' '{print $2}' -`
+# 		if [[ $num1 -gt 2 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion1}
+# 		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion1}
+# 		else 
+# 			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
+# 			errcond=1
+# 		fi	
+# 	fi
+# fi
 
-if [[ -z "$bedtoolsversion1" && ! -z "$bedtoolsversion2" ]]; then
+# if [[ -z "$bedtoolsversion1" && ! -z "$bedtoolsversion2" ]]; then
     
-	numfield=`echo $bedtoolsversion2 | awk -F'[.]' '{print NF}' -`
-	if [[ $numfield -ge 3 ]]; then
-		num1=`echo $bedtoolsversion2 | awk -F'[.]' '{print $1}' -`
-		num2=`echo $bedtoolsversion2 | awk -F'[.]' '{print $2}' -`
-		num3=`echo $bedtoolsversion2 | awk -F'[.]' '{print $3}' -`
-		if [[ $num1 -gt 2 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion2}
-		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion2}
-		elif [[ $num1 -eq 2 && $num2 -eq 26 && $num3 -ge 0 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion2}
-		else 
-			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
-			errcond=1
-		fi
-	else
-		num1=`echo $bedtoolsversion2 | awk -F'[.]' '{print $1}' -`
-		num2=`echo $bedtoolsversion2 | awk -F'[.]' '{print $2}' -`
-		if [[ $num1 -gt 2 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion2}
-		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
-			echo "Installed bedtools version: "${bedtoolsversion2}
-		else 
-			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
-			errcond=1
-		fi	
-	fi
-fi
+# 	numfield=`echo $bedtoolsversion2 | awk -F'[.]' '{print NF}' -`
+# 	if [[ $numfield -ge 3 ]]; then
+# 		num1=`echo $bedtoolsversion2 | awk -F'[.]' '{print $1}' -`
+# 		num2=`echo $bedtoolsversion2 | awk -F'[.]' '{print $2}' -`
+# 		num3=`echo $bedtoolsversion2 | awk -F'[.]' '{print $3}' -`
+# 		if [[ $num1 -gt 2 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion2}
+# 		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion2}
+# 		elif [[ $num1 -eq 2 && $num2 -eq 26 && $num3 -ge 0 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion2}
+# 		else 
+# 			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
+# 			errcond=1
+# 		fi
+# 	else
+# 		num1=`echo $bedtoolsversion2 | awk -F'[.]' '{print $1}' -`
+# 		num2=`echo $bedtoolsversion2 | awk -F'[.]' '{print $2}' -`
+# 		if [[ $num1 -gt 2 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion2}
+# 		elif [[ $num1 -eq 2 && $num2 -gt 26 ]]; then
+# 			echo "Installed bedtools version: "${bedtoolsversion2}
+# 		else 
+# 			echo " - bedtools version should be at least 2.26.0 !!! FitHiChIP quits !!!"
+# 			errcond=1
+# 		fi	
+# 	fi
+# fi
 
-# final evaluation
-if [[ $errcond == 1 ]]; then
-	echo " --------->>>>>> ERROR - current system has one or more packages missing" 
-	echo " ------- please check the above logs and install the missing packages before executing FitHiChIP"
-	echo " ------- exiting for the moment !!"
-	exit 1
-fi
+# # final evaluation
+# if [[ $errcond == 1 ]]; then
+# 	echo " --------->>>>>> ERROR - current system has one or more packages missing" 
+# 	echo " ------- please check the above logs and install the missing packages before executing FitHiChIP"
+# 	echo " ------- exiting for the moment !!"
+# 	exit 1
+# fi
 
 #*****************************
 # directory of the configuration file
