@@ -21,9 +21,11 @@ export NXF_WORK=work/
 nextflow pull nf-core/cutandrun
 
 nextflow run nf-core/cutandrun \
-    -r dev \
+    -r 3.1 \
     -c ./conf/crick_params.config \
     --input  ./data/samplesheet.csv \
+    --normalisation_mode 'CPM' \
+    --peakcaller 'macs2' \
     --outdir ../output/NF-cutandrun-H3k27ac \
     --email hamrude@crick.ac.uk \
     -resume
