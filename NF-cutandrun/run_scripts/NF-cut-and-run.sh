@@ -2,7 +2,7 @@
 #SBATCH --job-name=NF-hichip_alignment
 #SBATCH -t 42:00:00
 #SBATCH --mail-type=ALL,ARRAY_TASKS
-#SBATCH --mail-user=thierya@crick.ac.uk
+#SBATCH --mail-user=hamrude@crick.ac.uk
 
 export TERM=xterm
 

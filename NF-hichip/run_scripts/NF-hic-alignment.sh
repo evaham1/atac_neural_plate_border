@@ -23,5 +23,5 @@ nextflow run nf-core/hic \
     --digestion 'mboi' \
     --input  ./data/samplesheet.csv \
     --outdir ../output/NF-hichip_alignment \
-    --email thierya@crick.ac.uk \
+    --email hamrude@crick.ac.uk \
     -resume
