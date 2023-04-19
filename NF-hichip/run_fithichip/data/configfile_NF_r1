@@ -10,7 +10,7 @@ ValidPairs=/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hi
 ##********
 ## Mandatory parameter - Output directory to contain all the results
 ##********
-OutDir=/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip/NF_FitHiChiP_r1
+OutDir=/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-hichip/NF_FitHiChiP_r1
 
 
 
