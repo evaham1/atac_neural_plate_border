@@ -90,16 +90,21 @@ names(stage_colours) <- stage_order
 ########################       FUNCTIONS    ########################################
 
 ## Function to generate plot data for Complex Heatmap with ordering of data by cell metadata and peak modules
-PrepPeakModuleHeatmap <- function (peak_normalised_matrix, metadata, col_order,
-                                    custom_order_column = metadata[1], custom_order = NULL,
-                                    peak_modules, peak_row_annotation = TRUE,
-                                    scale_data = TRUE) 
+# peak_normalised_matrix = normalised count matrix with seacells as rows and peaks as columns
+# cell_metadata = each row a metacell, columns correspond to metadata eg scHelper_cell_type, stage, etc
+# col_order = which columns of cell_metadata to use to order cells, if you specify more than one will respect ordering (e.g. if c('stage', 'cell_type'), cells will be ordered first by stage and then by cell type)
+# custom_order_column = for one columns of the cell_metadata you can specify a custom order of variables by which to order cells, this param is to select which column you use (eg 'cell_type')
+# custom_order = for one columns of the cell_metadata you can specify a custom order of variables by which to order cells, this param is to input the custom ordering (eg c('NC', 'PPR', 'NPB'))
+PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata, 
+                                   col_order, custom_order_column = metadata[1], custom_order = NULL,
+                                   peak_modules, peak_row_annotation = TRUE,
+                                   scale_data = TRUE) 
 {
   
   ### Cell-level ordering and annotations ###
   
-  # Initiated column anndata
-  col_ann <- metadata %>% mutate_if(is.character, as.factor)
+  # Initiate column anndata
+  col_ann <- cell_metadata %>% mutate_if(is.character, as.factor)
   
   # If 'custom_order' is set use this to reorder cells
   if (!is.null(custom_order)) {
