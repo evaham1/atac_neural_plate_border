@@ -193,7 +193,7 @@ graphics.off()
 
 df <- data.frame(k = c(1:length(labelled_cell_count)),
                  SEACell_count = labelled_cell_count)
-png(paste0(plot_path, 'k_values_table.png'), height = 12, width = 6, units = 'cm', res = 400)
+png(paste0(plot_path, 'k_values_table.png'), height = 25, width = 6, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -249,7 +249,7 @@ unmapped_SEACells <- all_SEACells[!(all_SEACells %in% filtered_integration_map$A
 df <- as.data.frame(c(length(mapped_SEACells), length(unmapped_SEACells), length(all_SEACells)))
 rownames(df) <- c("ATAC IDs mapped to an RNA ID:", "ATAC IDs NOT mapped to an RNA ID:", "Total ATAC IDs")
 colnames(df) <- "SEACell counts"
-png(paste0(plot_path, 'Filtered_how_many_metacells_mapped.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, 'Filtered_how_many_metacells_mapped.png'), height = 20, width = 8, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -257,7 +257,7 @@ graphics.off()
 # Plot how many ATAC SEACell IDs in final table were mapped using different k values
 table <- as.data.frame(table(filtered_integration_map$k))
 colnames(table) <- c("k value", "How many SEACells mapped")
-png(paste0(plot_path, 'Filtered_how_many_metacells_mapped_from_each_k.png'), height = 12, width = 6, units = 'cm', res = 400)
+png(paste0(plot_path, 'Filtered_how_many_metacells_mapped_from_each_k.png'), height = 20, width = 8, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, theme = ttheme_minimal()))
 graphics.off()
@@ -344,7 +344,11 @@ graphics.off()
 
 # Plot k values of transferred labels
 png(paste0(plot_path, "mapping_k_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
-FeaturePlot(seurat, features = "Mapping_k", pt.size = 10, cols = c("red", "grey"))
+FeaturePlot(features = "Mapping_k", cols = c("red", "grey"), 
+        pt.size = 10,
+        shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(plot.title = element_blank())
 graphics.off()
 
 
