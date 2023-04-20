@@ -11,7 +11,7 @@ library(plyr)
 library(dplyr)
 library(parallel)
 library(data.table)
-library(sqldf)
+#library(sqldf)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -76,19 +76,14 @@ all_identical <- function(df_list) {
 input_files <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE)
 print(paste0("Input paths detected: ", input_files))
 
-feature_metadata_paths <- list.files(path = data_path, pattern = "*_feature_metadata.csv", full.names = TRUE)
-print(paste0("Feature metadata paths: ", feature_metadata_paths))
-
-cell_metadata_paths <- list.files(path = data_path, pattern = "*_cell_metadata.csv", full.names = TRUE)
-print(paste0("Cell metadata paths: ", cell_metadata_paths))
-
-SEACell_integrated_metadata_paths <- list.files(path = data_path, pattern = "*_filtered_SEACells_integration_map.csv", full.names = TRUE)
-print(paste0("SEACell integrated metadata paths: ", SEACell_integrated_metadata_paths))
-
-count_paths <- list.files(path = data_path, pattern = "*_summarised_by_metacells_counts.csv", full.names = TRUE)
-print(paste0("Summarised count paths: ", count_paths))
 
 ############################## Check feature metadata files are the same and write out one of them if they are #######################################
+
+print("Checking feature metadata...")
+
+# Extract paths
+feature_metadata_paths <- list.files(path = data_path, pattern = "*_feature_metadata.csv", full.names = TRUE)
+print(paste0("Feature metadata paths: ", feature_metadata_paths))
 
 feature_metadata_files <- lapply(feature_metadata_paths, read.csv)
 ifelse (all_identical(feature_metadata_files), print("All feature metadata feature files identical!"), stop("Not all metadata feature files are identical!"))
@@ -98,6 +93,12 @@ write.csv(feature_metadata_files[[1]], paste0(rds_path, 'Feature_metadata.csv'))
 print("Feature metadata checked and saved!")
 
 ############################## Combine cell metadata files #######################################
+
+print("Checking cell metadata...")
+
+# Extract paths
+cell_metadata_paths <- list.files(path = data_path, pattern = "*_cell_metadata.csv", full.names = TRUE)
+print(paste0("Cell metadata paths: ", cell_metadata_paths))
 
 cell_metadata_files <- lapply(cell_metadata_paths, read.csv)
 
@@ -114,8 +115,13 @@ print("Cell metadata files combined!")
 
 ############################## Combine SEACell integrated metadata files #######################################
 
-SEACell_integrated_metadata_files <- list()
+print("Checking SEACell integrated metadata...")
 
+# Extract paths
+SEACell_integrated_metadata_paths <- list.files(path = data_path, pattern = "*_SEACells_integration_map.csv", full.names = TRUE)
+print(paste0("SEACell integrated metadata paths: ", SEACell_integrated_metadata_paths))
+
+SEACell_integrated_metadata_files <- list()
 
 for (i in 1:length(SEACell_integrated_metadata_paths)){
   
@@ -159,6 +165,12 @@ write.csv(combined_SEACell_metacell, paste0(rds_path, 'Combined_SEACell_integrat
 print("Cell integrated metadata files combined!")
 
 ############################## Combine summarised peak counts #######################################
+
+print("Checking summarised peak counts...")
+
+# Extract paths
+count_paths <- list.files(path = data_path, pattern = "*_summarised_by_metacells_counts.csv", full.names = TRUE)
+print(paste0("Summarised count paths: ", count_paths))
 
 count_files <- lapply(count_paths, fread)
 
