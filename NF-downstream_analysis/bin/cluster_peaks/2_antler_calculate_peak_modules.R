@@ -12,6 +12,7 @@ library(RColorBrewer)
 library(scHelper)
 library(ComplexHeatmap) # Gu, Z. (2016) Complex heatmaps reveal patterns and correlations in multidimensional genomic data. DOI: 10.1093/bioinformatics/btw313
 library(data.table)
+library(Seurat)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -65,11 +66,11 @@ if(opt$verbose) print(opt)
 }
 
 ########################       CELL STATE COLOURS    ########################################
-scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+scHelper_cell_type_order <- c('node', 'streak', 'PGC', 'BI', 'meso', 'endo',
+                              'EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
-                              'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo', 'Unmapped')
+                              'aNP', 'FB', 'vFB', 'Unmapped')
 
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
                                 "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
@@ -111,9 +112,10 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
     if (!setequal(custom_order, unique(col_ann[[custom_order_column]]))) {
       stop("custom_order factors missing from custom_order_column \n\n")
     }
-    levels(col_ann[[custom_order_column]]) <- custom_order
-    col_ann <- col_ann[order(col_ann[[custom_order_column]]),
-                       , drop = FALSE]
+    
+    col_ann[[custom_order_column]] <- factor(col_ann[[custom_order_column]], levels = custom_order)
+    col_ann <- col_ann[order(col_ann[[custom_order_column]]),]
+    
   }
   
   # Automatically order cells by the columns specified in 'col_order'
@@ -151,6 +153,7 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
   return(output)
   
 }
+
 
 ########################################################################################################
 #                                 Read in data and clean up                               #
@@ -294,10 +297,9 @@ names(antler_data$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:leng
 # how many peak modules were generated
 print(paste0("Number of peak modules made: ", length(antler_data$gene_modules$lists$unbiasedPMs$content)))
 
-########## DE PMs ############## <- NEED TO WORK ON THIS ONCE HAVE MY METADATA
+########## DE PMs ############## <- would have to figure out how to do this as dont have seurat object?
 # # Subset peak modules that have at least 50% of peaks DE > 0.25 logFC & FDR < 0.001 between scHelperCellTypes
-# gms <- DEGeneModules(seurat_data, antler_data$gene_modules$get("unbiasedGMs"), logfc = 0.25, pval = 0.001, selected_gene_proportion = 0.5, active_ident = meta_col,
-#                      ident_1 = c('aPPR', 'pPPR', 'PPR'), ident_2 = c('NC', 'dNC'))
+# gms <- DEGeneModules(seurat_data, antler_data$gene_modules$get("unbiasedGMs"), logfc = 0.25, pval = 0.001, selected_gene_proportion = 0.5, active_ident = meta_col)
 # 
 # # save unbiasedGMs_DE in antler object
 # antler_data$gene_modules$set(name= "unbiasedGMs_DE", content = gms)
@@ -323,7 +325,7 @@ saveRDS(antler_data, paste0(rds_path, 'antler_out.RDS'))
 
 
 ########################################################################################################
-#                                        Visualisations                                                #
+#                                   Visualise all peak modules                                         #
 ########################################################################################################
 
 # read in antler RDS file if working interactively:
@@ -337,6 +339,8 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
 order <- scHelper_cell_type_order[scHelper_cell_type_order %in% metadata$scHelper_cell_type]
 cols <- scHelper_cell_type_colours[order]
+
+########  Plot all peak modules ordered by stage and then by cell type ########
 
 ## prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
@@ -363,23 +367,112 @@ plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FAL
                 show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
                 row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
                 bottom_annotation = bottom_annotation,
-                top_annotation = top_annotation)
-png('temp.png', width = 60, height = 40, res = 400, units = 'cm')
+                top_annotation = top_annotation, col = PurpleAndYellow())
+
+png(paste0(plot_path, 'all_peak_modules_cells_ordered_by_stage_and_celltype.png'), width = 60, height = 80, res = 400, units = 'cm')
+plot
+graphics.off()
+
+########################################################################################################
+#                             Visualise 10 peak modules at a time                                      #
+########################################################################################################
+
+##### First 10
+temp1 <- antler_data$gene_modules$lists$unbiasedPMs$content[1:11]
+peaks <- unlist(temp1)
+length(peaks)
+filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
+plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
+                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   peak_modules = temp1, peak_row_annotation = TRUE)
+bottom_annotation = HeatmapAnnotation(scHelper_cell_type = anno_simple(x = as.character(plot_data$col_ann$scHelper_cell_type),
+                                                                       col = cols, height = unit(0.5, "cm")), show_annotation_name = FALSE,
+                                      labels = anno_mark(at = cumsum(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths) - floor(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths/2),
+                                                         labels = rle(as.character(plot_data$col_ann$scHelper_cell_type))$values,
+                                                         which = "column", side = 'bottom',
+                                                         labels_gp = gpar(fontsize = 10), lines_gp = gpar(lwd=2)))
+top_annotation <- HeatmapAnnotation(stage = anno_block(gp = gpar(fill = stage_colours),
+                                                       labels = levels(plot_data$col_ann$stage),
+                                                       labels_gp = gpar(col = "white", fontsize = 20, fontface='bold')),
+                                    simple_anno_size = unit(1, "cm"),
+                                    annotation_label = "stage", gp = gpar(fontsize = 20))
+plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
+                bottom_annotation = bottom_annotation,
+                top_annotation = top_annotation, col = PurpleAndYellow())
+
+png(paste0(plot_path, 'first_10_peak_modules.png'), width = 60, height = 30, res = 400, units = 'cm')
+plot
+graphics.off()
+
+##### Next 10ish
+temp2 <- antler_data$gene_modules$lists$unbiasedPMs$content[12:24]
+peaks <- unlist(temp2)
+length(peaks)
+filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
+plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
+                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   peak_modules = temp2, peak_row_annotation = TRUE)
+bottom_annotation = HeatmapAnnotation(scHelper_cell_type = anno_simple(x = as.character(plot_data$col_ann$scHelper_cell_type),
+                                                                       col = cols, height = unit(0.5, "cm")), show_annotation_name = FALSE,
+                                      labels = anno_mark(at = cumsum(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths) - floor(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths/2),
+                                                         labels = rle(as.character(plot_data$col_ann$scHelper_cell_type))$values,
+                                                         which = "column", side = 'bottom',
+                                                         labels_gp = gpar(fontsize = 10), lines_gp = gpar(lwd=2)))
+top_annotation <- HeatmapAnnotation(stage = anno_block(gp = gpar(fill = stage_colours),
+                                                       labels = levels(plot_data$col_ann$stage),
+                                                       labels_gp = gpar(col = "white", fontsize = 20, fontface='bold')),
+                                    simple_anno_size = unit(1, "cm"),
+                                    annotation_label = "stage", gp = gpar(fontsize = 20))
+plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
+                bottom_annotation = bottom_annotation,
+                top_annotation = top_annotation, col = PurpleAndYellow())
+
+png(paste0(plot_path, 'next_10ish_peak_modules.png'), width = 60, height = 40, res = 400, units = 'cm')
+plot
+graphics.off()
+
+##### Last 10ish
+temp3 <- antler_data$gene_modules$lists$unbiasedPMs$content[25:35]
+peaks <- unlist(temp3)
+length(peaks)
+filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
+plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
+                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   peak_modules = temp3, peak_row_annotation = TRUE)
+bottom_annotation = HeatmapAnnotation(scHelper_cell_type = anno_simple(x = as.character(plot_data$col_ann$scHelper_cell_type),
+                                                                       col = cols, height = unit(0.5, "cm")), show_annotation_name = FALSE,
+                                      labels = anno_mark(at = cumsum(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths) - floor(rle(as.character(plot_data$col_ann$scHelper_cell_type))$lengths/2),
+                                                         labels = rle(as.character(plot_data$col_ann$scHelper_cell_type))$values,
+                                                         which = "column", side = 'bottom',
+                                                         labels_gp = gpar(fontsize = 10), lines_gp = gpar(lwd=2)))
+top_annotation <- HeatmapAnnotation(stage = anno_block(gp = gpar(fill = stage_colours),
+                                                       labels = levels(plot_data$col_ann$stage),
+                                                       labels_gp = gpar(col = "white", fontsize = 20, fontface='bold')),
+                                    simple_anno_size = unit(1, "cm"),
+                                    annotation_label = "stage", gp = gpar(fontsize = 20))
+plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
+                bottom_annotation = bottom_annotation,
+                top_annotation = top_annotation, col = PurpleAndYellow())
+
+png(paste0(plot_path, 'last_10ish_peak_modules.png'), width = 60, height = 30, res = 400, units = 'cm')
 plot
 graphics.off()
 
 
-## still need to add:
-# column annotations ie colours and labels for stages on top
-# row annotations ie colours and labels for PMs
-# option to order cells (columns) by scHelper cell type within stage
-# option to order PMs by accessibility
 
+########################################################################################################
+#                             Visualise interesting peak modules                                      #
+########################################################################################################
 
-
-
-
-
-
+# Manually pick out interesting looking PMs
+nonneural_PMs <- c(1, 2, 5, 6, 7, 8, 9, 10)
+neural_PMs <- c(16, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 30, 31)
+anterior_PMs <- c(21, 22, 23)
 
 
