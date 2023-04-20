@@ -21,7 +21,7 @@ library(tidyverse)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-k", "--k_cutoff"), action = "store", type = "integer", help = "integration param k cutoff to use", default = 9),
+  make_option(c("-k", "--k_cutoff"), action = "store", type = "integer", help = "integration param k cutoff to use", default = 3),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
@@ -67,23 +67,27 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo')
+                              'PGC', 'BI', 'meso', 'endo', 'Unmapped')
 
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
                                 "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
                                 "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB", "#EAEAEA")
 
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo')
+                                       'PGC', 'BI', 'meso', 'endo', 'Unmapped')
 
 ###### STAGE COLOURS ####################
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
+
+###### K-MAPPING COLOURS ####################
+k_colors <- c("#f21111", "#ef3e2a", "#ea573f", "#e56a54", "#de7c69", "#d58c7f", "#c99b94", "#bbaaab", "a8b8c1", "#EAEAEA")
+names(k_colors) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "Unmapped")
 
 ############################## Read data #######################################
 
@@ -185,7 +189,7 @@ dim(combined_integration_map)
 ############### 1.3) Set cut-off K value ##############
 
 # use plots to see when using less stringent k value doesn't add signficiantly more maps
-png(paste0(plot_path, "k_values_plot.png"), width=25, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "13_k_values_plot.png"), width=25, height=20, units = 'cm', res = 200)
 plot(labelled_cell_count, ylim = c(0, length(all_SEACells)+2))
 abline(h=length(all_SEACells), col="blue")
 abline(v=opt$k_cutoff, col="red")
@@ -193,7 +197,7 @@ graphics.off()
 
 df <- data.frame(k = c(1:length(labelled_cell_count)),
                  SEACell_count = labelled_cell_count)
-png(paste0(plot_path, 'k_values_table.png'), height = 25, width = 6, units = 'cm', res = 400)
+png(paste0(plot_path, '13_k_values_table.png'), height = 25, width = 6, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -207,7 +211,7 @@ df <- data.frame(before_filter = length(unique(combined_integration_map$ATAC)),
                  after_filter = length(unique(cutoff_integration_map$ATAC)),
                  nFiltered = length(unique(combined_integration_map$ATAC)) - length(unique(cutoff_integration_map$ATAC))
                  )
-png(paste0(plot_path, 'k_values_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, '13_k_values_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -235,7 +239,7 @@ df <- data.frame(before_filter = length(unique(cutoff_integration_map$ATAC)),
                  after_filter = length(unique(filtered_integration_map$ATAC)),
                  nFiltered = length(unique(cutoff_integration_map$ATAC)) - length(unique(filtered_integration_map$ATAC))
 )
-png(paste0(plot_path, 'duplicate_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, '14_duplicate_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -249,7 +253,7 @@ unmapped_SEACells <- all_SEACells[!(all_SEACells %in% filtered_integration_map$A
 df <- as.data.frame(c(length(mapped_SEACells), length(unmapped_SEACells), length(all_SEACells)))
 rownames(df) <- c("ATAC IDs mapped to an RNA ID:", "ATAC IDs NOT mapped to an RNA ID:", "Total ATAC IDs")
 colnames(df) <- "SEACell counts"
-png(paste0(plot_path, 'Filtered_how_many_metacells_mapped.png'), height = 20, width = 8, units = 'cm', res = 400)
+png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped.png'), height = 20, width = 8, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -257,7 +261,7 @@ graphics.off()
 # Plot how many ATAC SEACell IDs in final table were mapped using different k values
 table <- as.data.frame(table(filtered_integration_map$k))
 colnames(table) <- c("k value", "How many SEACells mapped")
-png(paste0(plot_path, 'Filtered_how_many_metacells_mapped_from_each_k.png'), height = 20, width = 8, units = 'cm', res = 400)
+png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped_from_each_k.png'), height = 20, width = 8, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, theme = ttheme_minimal()))
 graphics.off()
@@ -265,10 +269,10 @@ graphics.off()
 ############### 1.6) Add rows with 'NA' for ATAC SEACell IDs which are not mapped ##############
 
 ## Add ATAC IDs to df which are NOT mapped
-unmapped_df <- data.frame (RNA  = rep("NA", length(unmapped_SEACells)),
+unmapped_df <- data.frame (RNA  = rep("Unmapped", length(unmapped_SEACells)),
                            ATAC = unmapped_SEACells,
-                           scHelper_cell_type  = rep("NA", length(unmapped_SEACells)),
-                           k  = rep("NA", length(unmapped_SEACells))
+                           scHelper_cell_type  = rep("Unmapped", length(unmapped_SEACells)),
+                           k  = rep("Unmapped", length(unmapped_SEACells))
 )
 full_integration_map <- rbind(filtered_integration_map, unmapped_df)
 
@@ -283,11 +287,11 @@ if (length(all_SEACells) == sum(all_SEACells %in% full_integration_map$ATAC)) {
 ## Detect stage from cell metadata + add to df + use to name file
 stage <- substr(SEACell_map$index[1], 8, 10)
 print(paste0("Stage detected: ", stage))
-filtered_integration_map %>% mutate(Stage = stage)
+full_integration_map %>% mutate(Stage = stage)
 
 ############### 1.8) Save processed integration map ##############
 
-write.csv(filtered_integration_map, paste0(rds_path, stage, '_filtered_SEACells_integration_map.csv'))
+write.csv(full_integration_map, paste0(rds_path, stage, '_SEACells_integration_map.csv'))
 
 
 #############################################################################################################################
@@ -298,7 +302,7 @@ plot_path = "./plots/seurat_visualise/"
 dir.create(plot_path, recursive = T)
 
 ## add new transferred labels to seurat object
-map1 <- filtered_integration_map %>% arrange(ATAC)
+map1 <- full_integration_map %>% arrange(ATAC)
 colnames(map1)[colnames(map1) == 'scHelper_cell_type'] <- 'scHelper_cell_type_integration'
 map2 <- rownames_to_column(seurat@meta.data, var = "ATAC")
 map <- merge(map1, map2, by = "ATAC", all = TRUE)
@@ -311,6 +315,7 @@ seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
 #   Set levels
 seurat@meta.data$scHelper_cell_type_from_integration <- factor(seurat@meta.data$scHelper_cell_type_from_integration, levels = scHelper_cell_type_order)
+seurat@meta.data$Mapping_k <- factor(seurat@meta.data$Mapping_k, levels = names(k_colors))
 
 ## save seacells seurat object with new metadata
 saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), compress = FALSE)
@@ -321,7 +326,7 @@ saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), comp
 seurat@meta.data$stage <- factor(seurat@meta.data$stage, levels = stage_order)
 stage_cols <- stage_colours[levels(droplevels(seurat@meta.data$stage))]
 
-png(paste0(plot_path, "stage_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "2_stage_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'stage', label = TRUE, 
         label.size = 9, label.box = TRUE, repel = TRUE,
         pt.size = 10,
@@ -334,7 +339,7 @@ graphics.off()
 # Plot transferred cell type labels
 scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_from_integration))]
 
-png(paste0(plot_path, "scHelper_cell_type_from_integration_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "2_scHelper_cell_type_from_integration_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = FALSE, 
         pt.size = 10,
         cols = scHelper_cols, shuffle = TRUE) +
@@ -343,14 +348,15 @@ DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = FALSE,
 graphics.off()
 
 # Plot k values of transferred labels
-png(paste0(plot_path, "mapping_k_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
-FeaturePlot(features = "Mapping_k", cols = c("red", "grey"), 
+k_cols <- k_colors[levels(droplevels(seurat@meta.data$Mapping_k))]
+
+png(paste0(plot_path, "2_mapping_k_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'Mapping_k', label = FALSE, 
         pt.size = 10,
-        shuffle = TRUE) +
+        cols = k_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(plot.title = element_blank())
 graphics.off()
-
 
 #############################################################################################################################
 #########################            3) Generate ATAC SEACell to ATAC single cell map           #############################
