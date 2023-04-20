@@ -197,7 +197,7 @@ graphics.off()
 
 df <- data.frame(k = c(1:length(labelled_cell_count)),
                  SEACell_count = labelled_cell_count)
-png(paste0(plot_path, '13_k_values_table.png'), height = 25, width = 6, units = 'cm', res = 400)
+png(paste0(plot_path, '13_k_values_table.png'), height = 18, width = 6, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -253,7 +253,7 @@ unmapped_SEACells <- all_SEACells[!(all_SEACells %in% filtered_integration_map$A
 df <- as.data.frame(c(length(mapped_SEACells), length(unmapped_SEACells), length(all_SEACells)))
 rownames(df) <- c("ATAC IDs mapped to an RNA ID:", "ATAC IDs NOT mapped to an RNA ID:", "Total ATAC IDs")
 colnames(df) <- "SEACell counts"
-png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped.png'), height = 20, width = 8, units = 'cm', res = 400)
+png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped.png'), height = 8, width = 18, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -261,7 +261,7 @@ graphics.off()
 # Plot how many ATAC SEACell IDs in final table were mapped using different k values
 table <- as.data.frame(table(filtered_integration_map$k))
 colnames(table) <- c("k value", "How many SEACells mapped")
-png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped_from_each_k.png'), height = 20, width = 8, units = 'cm', res = 400)
+png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped_from_each_k.png'), height = 15, width = 15, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, theme = ttheme_minimal()))
 graphics.off()
