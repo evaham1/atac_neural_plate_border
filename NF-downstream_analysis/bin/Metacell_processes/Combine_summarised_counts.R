@@ -131,7 +131,7 @@ for (i in 1:length(SEACell_integrated_metadata_paths)){
   path <- SEACell_integrated_metadata_paths[i]
   
   # detect stage from file name
-  stage <- str_sub(path,-41,-39)
+  stage <- str_sub(path,-32,-30)
   print(paste0("Stage detected from file name: ", stage))
   
   # add stage to SEACell IDs as otherwise they wont be unique when you combine the stages together
