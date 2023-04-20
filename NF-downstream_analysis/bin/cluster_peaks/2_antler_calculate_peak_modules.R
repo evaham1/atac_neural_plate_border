@@ -69,18 +69,18 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo')
+                              'PGC', 'BI', 'meso', 'endo', 'Unmapped')
 
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
                                 "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
                                 "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB", "#EAEAEA")
 
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo')
+                                       'PGC', 'BI', 'meso', 'endo', 'Unmapped')
 ########################       STAGE COLOURS     ###########################################
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
@@ -322,41 +322,18 @@ saveRDS(antler_data, paste0(rds_path, 'antler_out.RDS'))
 ########################################################################################################
 
 # read in antler RDS file if working interactively:
-# antler <- readRDS(paste0(rds_path, 'antler_out.RDS'))
+# antler_data <- readRDS(paste0(rds_path, 'antler_out.RDS'))
 
 ## subset matrix to only include peaks that are in PMs
 peaks <- unlist(antler_data$gene_modules$lists$unbiasedPMs$content)
-print(peaks[1:10])
 length(peaks)
-
 filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
-print(filtered_normalised_matrix[1:5, 1:5])
 
-## prepare plot data - ordering by stage
-plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, 
-                                    custom_order_column = "stage", custom_order = stage_order,
-                                    peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
-
-
-
-
-###### Complex Heatmap
-Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-        show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-        row_split = plot_data$row_ann$`Peak Modules`, column_split = if(length(plot_data$col_ann$stage) > 1){
-          plot_data$col_ann$stage
-        }else{
-          plot_data$col_ann$scHelper_cell_type
-        },
-        
-        top_annotation = top_annotation
-)
-
-
+# prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
 order <- scHelper_cell_type_order[scHelper_cell_type_order %in% metadata$scHelper_cell_type]
 cols <- scHelper_cell_type_colours[order]
 
-## prepare plot data - ordering by scHelper_cell_type
+## prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
                                     custom_order_column = "scHelper_cell_type", custom_order = order,
                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
