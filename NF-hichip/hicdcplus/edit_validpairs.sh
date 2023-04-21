@@ -13,13 +13,6 @@ output_file=$2
 # Set the number of columns in the input file as the third argument
 num_columns=$3
 
-# Get the total number of lines in the input file
-num_lines=$(wc -l < "${input_file}")
-
-# Initialize the line counter and progress bar
-line_count=0
-progress_bar=""
-
 # Loop through each line of the input file and append "chr" to the beginning of the second column
 while read line; do
     # Split the line into columns using the tab delimiter
@@ -36,14 +29,4 @@ while read line; do
 
     # Join the columns back into a single tab-delimited line and write it to the output file
     echo -e "${cols[@]}" >> "${output_file}"
-
-    # Update the line counter and progress bar
-    line_count=$((line_count + 1))
-    progress_bar=$(echo "scale=2; $line_count * 100 / $num_lines" | bc -l)
-
-    # Print the progress bar
-    printf "Progress: [%-50s] %d%%\r" "${progress_bar// /=}" "${progress_bar%.*}"
 done < "${input_file}"
-
-# Print a newline character after the progress bar
-printf "\n"
