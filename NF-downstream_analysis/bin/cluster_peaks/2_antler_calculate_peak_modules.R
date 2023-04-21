@@ -450,6 +450,7 @@ scHelper_cell_type_colours <- scHelper_cell_type_colours[order]
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
                                     custom_order_column = "scHelper_cell_type", custom_order = order,
+                                    order_SEAcells = TRUE,
                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -476,7 +477,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -501,7 +502,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -526,7 +527,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -554,7 +555,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -579,7 +580,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -604,7 +605,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -629,7 +630,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
@@ -654,7 +655,7 @@ filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type", custom_order = order, order_SEAcells = TRUE,
                                    peak_modules = temp1, peak_row_annotation = TRUE)
 
 # Plot heatmap
