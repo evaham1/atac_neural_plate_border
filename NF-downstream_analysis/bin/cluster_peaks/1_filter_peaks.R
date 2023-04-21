@@ -69,6 +69,26 @@ calc_top_variable_features <- function(counts, n = 1000){
   return(features)
 }
 
+############################## Pass through SEACell metadata #######################################
+
+## Read in SEACell metadata
+metadata <- fread(paste0(data_path, "Combined_SEACell_integrated_metadata.csv"), header = TRUE)
+print("Preview of SEACell metadata df:")
+print(head(metadata))
+
+# Write out unaltered SEACell metadata
+write.csv(metadata, paste0(rds_path, "Combined_SEACell_integrated_metadata.csv"), col.names = TRUE)
+
+############################## Read in PeakSet data + pass through #######################################
+
+## Read in peak metadata
+peak_metadata <- fread(paste0(data_path, "Feature_metadata.csv"), header = TRUE)
+print("Preview of peakset df:")
+print(head(peak_metadata))
+
+# Write out unaltered peak metadata
+write.csv(peak_metadata, paste0(rds_path, "Feature_metadata.csv"), col.names = TRUE)
+
 ############################## Read in SEACells summarised data #######################################
 
 # Read in summarised peak counts across all seacells
@@ -108,12 +128,6 @@ print(SEACells_summarised_numeric[1:4, 1:4])
 # Write out unaltered raw counts matrix
 write.csv(SEACells_summarised_numeric, paste0(rds_path, "Combined_summarised_by_metacells_counts.csv"), row.names = TRUE, col.names = TRUE)
 
-############################## Read in PeakSet data #######################################
-
-## Read in peak metadata
-peak_metadata <- fread(paste0(data_path, "Feature_metadata.csv"), header = TRUE)
-print("Preview of peakset df:")
-print(head(peak_metadata))
 
 ############################## 1) Normalise #######################################
 ## normalise each metacell by the total number of cut sites
