@@ -85,6 +85,8 @@ valid_pair_path = paste0(data_path, "NF_HiChip_r1.allValidPairs")
 
 gi_list <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
 
+test <- read.table(valid_pair_path,
+  sep="\t", header=FALSE)
 
 #expand features for modeling
 gi_list<-expand_1D_features(gi_list)
