@@ -40,7 +40,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./output/NF-hichip/HicDC/plots/"
     rds_path = "./output/NF-hichip/HicDC/rds_files/"
-    data_path = "./output/NF-hichip/NF-hic/"
+    data_path = "./output/NF-hichip/HicDC/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -77,16 +77,32 @@ head(bintolen,20)
 gi_list<-generate_bintolen_gi_list(
   bintolen_path=paste0(rds_path,"/test_bintolen.txt.gz"),
   gen = "Ggallus", gen_ver = "galGal6")
+
+gi_list_validate(gi_list) # passes without errors
 head(gi_list)
+# GInteractions object with 1457234 interactions and 1 metadata column:
+#   seqnames1           ranges1     seqnames2           ranges2 |         D
+# <Rle>         <IRanges>         <Rle>         <IRanges> | <integer>
+#   [1]     chr13            0-5000 ---     chr13            0-5000 |         0
+# [2]     chr13            0-5000 ---     chr13        5000-10000 |      5000
+# [3]     chr13            0-5000 ---     chr13       10000-15000 |     10000
+# [4]     chr13            0-5000 ---     chr13       15000-20000 |     15000
+# [5]     chr13            0-5000 ---     chr13       20000-25000 |     20000
 
 #add .hic counts
-hicfile_path = ""
-valid_pair_path = paste0(data_path, "NF_HiChip_r1.allValidPairs")
+valid_pair_path = paste0(data_path, "NF_HiChip_r1_edited.txt")
+gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
 
-gi_list <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
+#  In add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path) :
+# chr1does not have any counts in this file. Dropping from gi_list.
 
-test <- read.table(valid_pair_path,
-  sep="\t", header=FALSE)
+gi_list_validate(gi_list_with_valid_pairs)
+head(gi_list_with_valid_pairs)
+# named list()
+
+#ISSUE: gi_list is empty now, something wrong with adding hicpro_allvalidpairs
+
+###########################
 
 #expand features for modeling
 gi_list<-expand_1D_features(gi_list)
