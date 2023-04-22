@@ -9,50 +9,36 @@
 #SBATCH --mail-user=hamrude@crick.ac.uk
 
 ## Bash script to take big .ValidPairs output that comes from HiC-Pro, cut it into smaller pieces, and rename chromosomes from '1' -> 'chr1' etc.
-## Usage: sbatch edit_file.sh input_file.allValidPairs output_file.txt 12
+## sbatch split_and_edit_validpairs.sh input_file.allValidPairs output_file.txt 12
 
-# Rename input file to .txt if it has .allValidPairs extension
-input_file=$1
-if [[ "$input_file" == *.allValidPairs ]]; then
-    mv "$input_file" "${input_file/.allValidPairs/.txt}"
-    input_file="${input_file/.allValidPairs/.txt}"
-fi
+# Get the input file name from the command line argument
+input_file="$1"
 
-# Function to split the input file into smaller chunks
-split_file() {
-    input_file=$1
-    chunk_size=$2
-    output_dir=$3
-    mkdir -p $output_dir
-    split -a 4 -d -l $chunk_size $input_file $output_dir/
-}
+# Get the output file name from the command line argument
+output_file="$2"
 
-# Function to edit the second column of a tab-delimited file
-edit_file() {
-    input_file=$1
-    output_file=$2
-    num_columns=$3
-    awk -F '\t' -v OFS='\t' '{ $2="chr"$2; print }' $input_file > $output_file
-}
+# Get the number of columns from the command line argument
+num_cols="$3"
 
-# Parse command-line arguments
-output_file=$2
-num_columns=$3
+# Rename input file to .txt
+cp "$input_file" input.txt
 
 # Split the input file into smaller chunks
-chunk_size=1000000 # adjust as needed
-output_dir=$(mktemp -d)
-split_file $input_file $chunk_size $output_dir
+split -l 1000000 input.txt input_part
 
 # Edit the second column of each chunk
-for chunk_file in $output_dir/*
-do
-    chunk_output_file=$(basename $chunk_file)
-    edit_file $chunk_file $chunk_output_file $num_columns
+for file in input_part*; do
+    awk -v num_cols="$num_cols" 'BEGIN{FS=OFS="\t"}{if(NF==num_cols){$2="chr"$2}; print}' "${file}" > "${file}.edited" &
 done
 
-# Combine the edited chunks into a single output file
-cat $output_dir/* > $output_file
+# Wait for all editing jobs to finish
+wait
 
-# Remove the temporary directory
-rm -r $output_dir
+# Concatenate the edited chunks into a single output file
+cat input_part*.edited > "$output_file"
+
+# Remove the intermediate files
+rm input.txt input_part*
+
+# Print a completion message
+echo "Finished editing file."
