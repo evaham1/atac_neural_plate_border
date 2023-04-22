@@ -8,11 +8,14 @@
 #SBATCH --mail-type=ALL,ARRAY_TASKS
 #SBATCH --mail-user=hamrude@crick.ac.uk
 
-# Rename input file to .txt if it has .ValidPairs extension
+## Bash script to take big .ValidPairs output that comes from HiC-Pro, cut it into smaller pieces, and rename chromosomes from '1' -> 'chr1' etc.
+## Usage: sbatch edit_file.sh input_file.allValidPairs output_file.txt 12
+
+# Rename input file to .txt if it has .allValidPairs extension
 input_file=$1
-if [[ "$input_file" == *.ValidPairs ]]; then
-    mv "$input_file" "${input_file/.ValidPairs/.txt}"
-    input_file="${input_file/.ValidPairs/.txt}"
+if [[ "$input_file" == *.allValidPairs ]]; then
+    mv "$input_file" "${input_file/.allValidPairs/.txt}"
+    input_file="${input_file/.allValidPairs/.txt}"
 fi
 
 # Function to split the input file into smaller chunks
