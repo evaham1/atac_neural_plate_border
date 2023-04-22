@@ -1,44 +1,55 @@
 #!/bin/bash
+#SBATCH --job-name=edit_ValidPairs
+#SBATCH --output=edit_ValidPairs.out
+#SBATCH --error=edit_ValidPairs.err
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=120G
+#SBATCH -t 6:00:00
+#SBATCH --mail-type=ALL,ARRAY_TASKS
+#SBATCH --mail-user=hamrude@crick.ac.uk
 
-### because the ValidPairs file is so big need to split it into smaller pieces
+# Rename input file to .txt if it has .ValidPairs extension
+input_file=$1
+if [[ "$input_file" == *.ValidPairs ]]; then
+    mv "$input_file" "${input_file/.ValidPairs/.txt}"
+    input_file="${input_file/.ValidPairs/.txt}"
+fi
 
-# set the number of lines per file
-lines_per_file=1000000
+# Function to split the input file into smaller chunks
+split_file() {
+    input_file=$1
+    chunk_size=$2
+    output_dir=$3
+    mkdir -p $output_dir
+    split -a 4 -d -l $chunk_size $input_file $output_dir/
+}
 
-# split the input file into smaller files
-split -l $lines_per_file "$1" input_file_part_
+# Function to edit the second column of a tab-delimited file
+edit_file() {
+    input_file=$1
+    output_file=$2
+    num_columns=$3
+    awk -F '\t' -v OFS='\t' '{ $2="chr"$2; print }' $input_file > $output_file
+}
 
-# count the number of split files
-num_files=$(ls -1 input_file_part_* | wc -l)
+# Parse command-line arguments
+output_file=$2
+num_columns=$3
 
-# run the original script on each file in parallel
-for (( i=0; i<$num_files; i++ ))
+# Split the input file into smaller chunks
+chunk_size=1000000 # adjust as needed
+output_dir=$(mktemp -d)
+split_file $input_file $chunk_size $output_dir
+
+# Edit the second column of each chunk
+for chunk_file in $output_dir/*
 do
-    # construct the input and output file names
-    input_file="input_file_part_$(printf "%02d" $i)"
-    output_file="output_file_part_$(printf "%02d" $i)"
-
-    # run the original script on the current file in the background
-    ./edit_validpairs.sh "$input_file" "$output_file" "$2" &
-
-    # display a progress bar
-    echo -ne "Processing file $((i+1)) of $num_files [$input_file] : [\033[1;32m"
-    for (( j=0; j<=40; j++ ))
-    do
-        if [ $((j*100/40)) -le $((i*100/num_files)) ]; then
-            echo -ne "\033[1;32m#\033[0m"
-        else
-            echo -ne "\033[1;31m-\033[0m"
-        fi
-    done
-    echo -ne "] $((i*100/num_files))% \r"
+    chunk_output_file=$(basename $chunk_file)
+    edit_file $chunk_file $chunk_output_file $num_columns
 done
 
-# wait for all background processes to finish
-wait
+# Combine the edited chunks into a single output file
+cat $output_dir/* > $output_file
 
-# concatenate the output files
-cat output_file_part_* > "$3"
-
-# clean up the split files
-rm -f input_file_part_* output_file_part_*
+# Remove the temporary directory
+rm -r $output_dir
