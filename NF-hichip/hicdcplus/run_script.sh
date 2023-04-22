@@ -9,4 +9,4 @@
 #SBATCH --mail-user=hamrude@crick.ac.uk
 
 # call the script to split and edit the file
-./split_and_edit_validpairs.sh /flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-hichip/NF-hic/NF_HiChip_r1.txt /flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-hichip/NF-hic/NF_HiChip_r1_edited.txt 12
+/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip/hicdcplus/split_and_edit_validpairs.sh  /flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-hichip/NF-hic/NF_HiChip_r1.txt /flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-hichip/NF-hic/NF_HiChip_r1_edited.txt 12
