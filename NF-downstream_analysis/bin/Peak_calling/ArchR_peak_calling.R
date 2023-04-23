@@ -19,6 +19,7 @@ library(grid)
 library(parallel)
 library(clustree)
 library(ComplexHeatmap)
+library(BSgenome.Ggallus.UCSC.galGal6)
 
 ############################## Set up script options #######################################
 # Read in command line opts
