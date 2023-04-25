@@ -87,7 +87,7 @@ ArchR_ClustRes <- function(ArchR, starting_res = 0, by = 0.1){
   
   for(res in resolutions[1:length(resolutions)]){
     print(paste0("resolution: ", res))
-    ArchR_clustered <- addClusters(input = ArchR, name = "clusters", force = TRUE, resolution = res)
+    ArchR_clustered <- addClusters(input = ArchR, name = "clusters", force = TRUE, resolution = res, seed = 1)
     plots[[paste(res)]] <- plotEmbedding(ArchR_clustered, name = "clusters") +
       ggtitle(paste("resolution = ", res))
     title <- paste0("clustering_res_", res)
@@ -397,18 +397,18 @@ names(stage_colours) <- stage_order
 #################################################################################
 ############################## PROCESSING #######################################
 # Dimensionality reduction
-ArchR <- addIterativeLSI(ArchR, force = TRUE)
+ArchR <- addIterativeLSI(ArchR, force = TRUE, seed = 1)
 print("iterative LSI ran")
 
 # Run UMAP
-ArchR <- addUMAP(ArchR, force = TRUE)
+ArchR <- addUMAP(ArchR, force = TRUE, seed = 1)
 print("UMAP added")
 
 # Cluster
 if (length(unique(ArchR$stage)) == 1){
-  ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$stage_clust_res, force = TRUE)
+  ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$stage_clust_res, force = TRUE, seed = 1)
 } else {
-  ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$full_clust_res, force = TRUE)
+  ArchR <- addClusters(ArchR, name = "clusters", resolution = opt$full_clust_res, force = TRUE, seed = 1)
 }
 print("clustering ran")
 
@@ -558,7 +558,7 @@ dir.create(plot_path_temp, recursive = T)
 
 ##########    Feature plots
 
-ArchR <- addImputeWeights(ArchR)
+ArchR <- addImputeWeights(ArchR, seed = 1)
 
 # Contaminating markers
 contaminating_markers <- c(
