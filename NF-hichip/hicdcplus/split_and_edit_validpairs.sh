@@ -40,5 +40,8 @@ cat input_part*.edited > "$output_file"
 # Remove the intermediate files
 rm input.txt input_part*
 
+# Convert the output file to tab-delimited format
+sed -i 's/ /\t/g' "$output_file"
+
 # Print a completion message
 echo "Finished editing file."
