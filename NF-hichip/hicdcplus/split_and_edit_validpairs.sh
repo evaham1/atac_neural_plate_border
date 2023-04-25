@@ -17,8 +17,8 @@ input_file="$1"
 # Get the output file name from the command line argument
 output_file="$2"
 
-# Get the number of columns from the command line argument
-num_cols="$3"
+# # Get the number of columns from the command line argument
+# num_cols="$3"
 
 # Rename input file to .txt
 cp "$input_file" input.txt
@@ -28,7 +28,7 @@ split -l 1000000 input.txt input_part
 
 # Edit the second and fifth column of each chunk to add 'chr' to the chromosome name
 for file in input_part*; do
-    awk -v num_cols="$num_cols" 'BEGIN{FS=OFS="\t"}{if(NF==num_cols){$2="chr"$2; $5="chr"$5}; print}' "${file}" > "${file}.edited" &
+    awk 'BEGIN{FS=OFS="\t"}{$2="chr"$2;$5="chr"$5}1' "${file}" > "${file}.edited" &
 done
 
 # Wait for all editing jobs to finish
