@@ -28,7 +28,7 @@ split -l 1000000 input.txt input_part
 
 # Edit the second column of each chunk
 for file in input_part*; do
-    awk -v num_cols="$num_cols" 'BEGIN{FS=OFS="\t"}{if(NF==num_cols){$2="chr"$2}; print}' "${file}" > "${file}.edited" &
+    awk -v num_cols="$num_cols" 'BEGIN{FS=OFS="\t"}{if(NF==num_cols){$output_file="chr"$output_file}; print}' "${file}" > "${file}.edited" &
 done
 
 # Wait for all editing jobs to finish
