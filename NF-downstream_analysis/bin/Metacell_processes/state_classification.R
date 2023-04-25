@@ -124,26 +124,67 @@ print(BNM)
 cell_state_markers <- read.csv(BNM, row.names = 1) %>% select(!c(evidence))
 cell_state_markers <- apply(cell_state_markers, 2, function(x) rownames(cell_state_markers)[x > 0])
 
+# cell_states = list(
+
+#   HH5 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN',
+#           'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+  
+#   HH6 = c('NNE', 'node', 'streak', 'eN', 'eCN',
+#           'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+
+#   HH7 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
+#           'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+
+#   ss4 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
+#           'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+
+#   ss8 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
+#           'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
+#           'PGC', 'BI', 'meso', 'endo')
+# )
+
+# simplified cell_states for SEACells:
 cell_states = list(
 
-  HH5 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN',
-          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
+  HH5 = c('node', 'streak', 
+          'NNE', 'EE', 
+          'eNPB', 'NPB',
+          'eN', 'eCN', 'NP', 'pNP', 'iNP', 'aNP', 
+          'PPR',
           'PGC', 'BI', 'meso', 'endo'),
   
-  HH6 = c('NNE', 'node', 'streak', 'eN', 'eCN',
-          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
+  HH6 = c('node', 'streak', 
+          'NNE',
+          'NPB',
+          'eN', 'eCN','NP', 'pNP', 'iNP', 'aNP', 
+          'PPR',
           'PGC', 'BI', 'meso', 'endo'),
 
-  HH7 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
-          'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
+  HH7 = c('pEpi', 
+          'NPB', 'aNPB', 'pNPB', 
+          'NC', 'dNC', 
+          'NP', 'pNP', 'iNP','aNP', 
+          'HB', 'MB', 'FB', 
+          'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo'),
 
-  ss4 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
-          'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
+  ss4 = c('pEpi', 
+          'NPB', 'aNPB', 'pNPB', 
+          'NC', 'dNC',
+          'HB', 'MB', 'FB', 'vFB', 
+          'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo'),
 
-  ss8 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
-          'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
+  ss8 = c('pEpi', 
+          'NPB', 'aNPB', 'pNPB', 
+          'NC', 'dNC', 
+          'NP', 'pNP', 'iNP','aNP', 
+          'HB', 'MB', 'FB', 'vFB', 
+          'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo')
 )
 
