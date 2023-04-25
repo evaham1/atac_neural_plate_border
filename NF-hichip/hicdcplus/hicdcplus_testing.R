@@ -89,18 +89,14 @@ head(gi_list)
 # [4]     chr13            0-5000 ---     chr13       15000-20000 |     15000
 # [5]     chr13            0-5000 ---     chr13       20000-25000 |     20000
 
-#add .hic counts
-valid_pair_path = paste0(data_path, "NF_HiChip_r1_edited.txt")
+#add .hic counts - need to edit valid pairs output to change '1' -> 'chr1' in column 2 and column 5
+valid_pair_path = paste0(data_path, "NF_HiChip_r1_edited_v6.allValidPairs")
+valid_pair_file <- data.table::fread(valid_pair_path, sep = "\t", header = FALSE)
+head(valid_pair_file)
+
 gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
-
-#  In add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path) :
-# chr1does not have any counts in this file. Dropping from gi_list.
-
 gi_list_validate(gi_list_with_valid_pairs)
 head(gi_list_with_valid_pairs)
-# named list()
-
-#ISSUE: gi_list is empty now, something wrong with adding hicpro_allvalidpairs
 
 ###########################
 
