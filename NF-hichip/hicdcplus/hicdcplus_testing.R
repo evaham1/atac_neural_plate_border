@@ -68,7 +68,8 @@ if(opt$verbose) print(opt)
 construct_features(output_path = paste0(rds_path,"test"),
                    gen = "Ggallus", gen_ver = "galGal6", # BSgenome.Ggallus.UCSC.galGal6, same as used for ArchR preprocessing
                    sig = c("GATC"), # this is the cut site of restriction enzyme Mboi which was used to make HiChip data
-                   bin_type = "Bins-uniform", binsize = 5000
+                   bin_type = "Bins-uniform", 
+                   binsize = 5000 # resolution = 5kb
                    )
 bintolen <- data.table::fread(paste0(rds_path,"test_bintolen.txt.gz"))
 head(bintolen,20)
@@ -91,8 +92,8 @@ head(gi_list)
 
 #add .hic counts - need to edit valid pairs output to change '1' -> 'chr1' in column 2 and column 5
 valid_pair_path = paste0(data_path, "NF_HiChip_r1_edited_v6.allValidPairs")
-valid_pair_file <- data.table::fread(valid_pair_path, sep = "\t", header = FALSE)
-head(valid_pair_file)
+#valid_pair_file <- data.table::fread(valid_pair_path, sep = "\t", header = FALSE)
+#head(valid_pair_file)
 
 gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
 gi_list_validate(gi_list_with_valid_pairs)
@@ -155,14 +156,68 @@ mcols(expanded_gi_list_with_valid_pairs[[1]])
 
 #run HiC-DC+ on 2 cores
 set.seed(1010) #HiC-DC downsamples rows for modeling
-expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs, ncore=2)
-head(expanded_gi_list_with_valid_pairs_HiCDC)
+# finds significant interactions in HiC-DC readable matrix and expresses statistical significance of counts with p-val, q-val, FDR corrected pval (mu)
+# ncore defaults to parallel::detectCores()-1
+expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
+                                                              covariates = NULL,
+                                                              distance_type = "spline",
+                                                              model_distribution = "nb",
+                                                              binned = TRUE,
+                                                              df = 6,
+                                                              Dmin = 0,
+                                                              Dmax = 1.5e6, # recommended for HiChip data in manual
+                                                              ssize = 0.01,
+                                                              splineknotting = "uniform",
+                                                              chrs = c('chr21', 'chr22')
+                                                              )
+head(expanded_gi_list_with_valid_pairs_HiCDC[[13]]) # chromosome that wasnt ran using HiCDC
+# GInteractions object with 6 interactions and 4 metadata columns:
+#   seqnames1   ranges1     seqnames2     ranges2 |         D    counts        gc       len
+# <Rle> <IRanges>         <Rle>   <IRanges> | <integer> <numeric> <numeric> <numeric>
+#   [1]     chr20    0-5000 ---     chr20      0-5000 |         0         0 -2.530504  -2.16879
+# [2]     chr20    0-5000 ---     chr20  5000-10000 |      5000         0 -2.561440  -3.23152
+# [3]     chr20    0-5000 ---     chr20 10000-15000 |     10000         0 -2.601628  -4.18493
+# [4]     chr20    0-5000 ---     chr20 15000-20000 |     15000         0 -2.415055  -5.41408
+# [5]     chr20    0-5000 ---     chr20 20000-25000 |     20000         0 -1.074367  -2.81809
+# [6]     chr20    0-5000 ---     chr20 25000-30000 |     25000         0  0.131059  -7.14647
+# -------
+#   regions: 2780 ranges and 2 metadata columns
+# seqinfo: 1 sequence from an unspecified genome; no seqlengths
+head(expanded_gi_list_with_valid_pairs_HiCDC[[14]]) # chromosome that WAS ran using HiCDC
+# GInteractions object with 6 interactions and 8 metadata columns:
+#   seqnames1   ranges1     seqnames2     ranges2 |         D    counts        gc       len        mu      sdev
+# <Rle> <IRanges>         <Rle>   <IRanges> | <integer> <numeric> <numeric> <numeric> <numeric> <numeric>
+#   [1]     chr21    0-5000 ---     chr21      0-5000 |         0         3  0.414755  -1.92886  10.35434   6.53781
+# [2]     chr21    0-5000 ---     chr21  5000-10000 |      5000         2  0.500550  -3.06837   6.10078   4.16470
+# [3]     chr21    0-5000 ---     chr21 10000-15000 |     10000         0 -0.670526  -5.92123   1.57612   1.52531
+# [4]     chr21    0-5000 ---     chr21 15000-20000 |     15000         0 -0.600917  -5.92123   1.44458   1.44049
+# [5]     chr21    0-5000 ---     chr21 25000-30000 |     25000         0 -0.874250  -3.21762   3.28106   2.55602
+# [6]     chr21    0-5000 ---     chr21 30000-35000 |     30000         0  0.213983  -4.09739   2.46746   2.07527
+# pvalue    qvalue
+# <numeric> <numeric>
+#   [1]  0.930362         1
+# [2]  0.900999         1
+# [3]  1.000000         1
+# [4]  1.000000         1
+# [5]  1.000000         1
+# [6]  1.000000         1
+# -------
+#   regions: 1369 ranges and 2 metadata columns
+# seqinfo: 1 sequence from an unspecified genome; no seqlengths
+
+
+chr21_output <- expanded_gi_list_with_valid_pairs_HiCDC[[14]]
+head(chr21_output)
+hist(unique(chr21_output[,8]$qvalue))
+
+filtered_ch21_output <- chr21_output[chr21_output$qvalue < 0.05]
+nrow(filtered_ch21_output)
 
 #write normalized counts (observed/expected) to a .hic file
 hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
-          hicfile=paste0(rds_path,'/Test_sample_combined_result.hic'),
+          hicfile=paste0(rds_path,'/Test_sample_combined_result_chr21_chr22.hic'),
           mode='normcounts',
-          gen_ver='hg19')
+          gen_ver='galGal6')
 
 #write results to a text file
 gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
