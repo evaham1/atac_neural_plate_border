@@ -97,16 +97,74 @@ head(valid_pair_file)
 gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
 gi_list_validate(gi_list_with_valid_pairs)
 head(gi_list_with_valid_pairs)
+length(gi_list_with_valid_pairs) # 42 - each element in list is a chromosome
+gi_list_with_valid_pairs[[1]]
+# An object of class "GInteractions"
+# Slot "anchor1":
+#   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+# [41] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 
-###########################
+# Slot "anchor2":
+#   [1]   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20
+# [21]  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40
 
-#expand features for modeling
-gi_list<-expand_1D_features(gi_list)
+# Slot "regions":
+#   GRanges object with 39522 ranges and 2 metadata columns:
+#   seqnames              ranges strand |        gc       len
+# <Rle>           <IRanges>  <Rle> | <numeric> <numeric>
+#   [1]     chr1              0-5000      * |  0.547500      1771
+# [2]     chr1          5000-10000      * |  0.562083      2279
+# [3]     chr1         10000-15000      * |  0.430000      1000
+# [4]     chr1         15000-20000      * |  0.424536      3604
+# [5]     chr1         20000-25000      * |  0.583636      4801
+# ...      ...                 ...    ... .       ...       ...
+# [39518]     chr1 197585000-197590000      * |  0.520000      3961
+# [39519]     chr1 197590000-197595000      * |  0.544423      4006
+# [39520]     chr1 197595000-197600000      * |  0.556905      3978
+# [39521]     chr1 197600000-197605000      * |  0.525588      3376
+# [39522]     chr1 197605000-197608386      * |  0.563571      3135
+# -------
+#   seqinfo: 1 sequence from an unspecified genome; no seqlengths
+# 
+# Slot "NAMES":
+#   NULL
+# 
+# Slot "elementMetadata":
+#   DataFrame with 15768122 rows and 2 columns
+# D    counts
+# <integer> <numeric>
+#   1                0         0
+# 2             5000         0
+# 3            10000         0
+# 4            15000         0
+# 5            20000         0
+# ...            ...       ...
+# 15768118      5000         0
+# 15768119      9193         0
+# 15768120         0         5
+# 15768121      4193         6
+# 15768122         0         1
+# 
+# Slot "metadata":
+#   list()
+
+#expand features for modeling - adds 2D features in metadata handle? what does that mean?
+expanded_gi_list_with_valid_pairs <- expand_1D_features(gi_list_with_valid_pairs)
+expanded_gi_list_with_valid_pairs[[1]]
+mcols(expanded_gi_list_with_valid_pairs[[1]])
 
 #run HiC-DC+ on 2 cores
 set.seed(1010) #HiC-DC downsamples rows for modeling
-gi_list<-HiCDCPlus_parallel(gi_list,ncore=2)
-head(gi_list)
+expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs, ncore=2)
+head(expanded_gi_list_with_valid_pairs_HiCDC)
 
+#write normalized counts (observed/expected) to a .hic file
+hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
+          hicfile=paste0(rds_path,'/Test_sample_combined_result.hic'),
+          mode='normcounts',
+          gen_ver='hg19')
 
+#write results to a text file
+gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
+              fname=paste0(rds_path,'/Test_sample_combined_result.txt.gz'))
 
