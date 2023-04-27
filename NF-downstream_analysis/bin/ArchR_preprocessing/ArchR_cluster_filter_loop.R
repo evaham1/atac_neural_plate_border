@@ -16,6 +16,7 @@ library(gridExtra)
 library(grid)
 library(parallel)
 library(clustree)
+library(scHelper)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -38,13 +39,10 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    plot_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/plots/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8_Save-ArchR/ArchR_clustering/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ArchR_split/rds_files/"
-    
-    # already clustered
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/QC_MED/ss8/prefiltering/clustering/rds_files/"
-    
+    data_path = "./output/NF-downstream_analysis/Upstream_processing/FILTERING/ss8/rds_files/" # already clustered
+    plot_path = "./output/NF-downstream_analysis/Upstream_processing/FILTERING/ss8/rds_files/"
+    rds_path = "./output/NF-downstream_analysis/Upstream_processing/FILTERING/ss8/rds_files/"
+
     addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
@@ -64,78 +62,6 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
-}
-
-############################### FUNCTIONS - adapted from scHelper #################################################
-ArchR_IdentifyOutliers <- function(ArchR, group_by = 'clusters', metrics, intersect_metrics = TRUE, quantiles){
-  outlier <- list()
-  if(!length(quantiles) == 2){
-    stop('quantiles must be an array of length == 2')
-  }
-  for(metric in metrics){
-    min = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[1])
-    max = quantile(getCellColData(ArchR, select = metrics)[,1], probs = quantiles[2])
-    
-    outlier[[metric]] <- as.tibble(getCellColData(ArchR)) %>%
-      group_by((!!as.symbol(group_by))) %>%
-      summarise(median = median((!!as.symbol(metric)))) %>%
-      filter(median > max | median < min) %>%
-      pull(!!as.symbol(group_by))
-  }
-  
-  if(intersect_metrics){
-    if(length(Reduce(intersect, outlier)) == 0){
-      cat('No outliers detected!')
-    } else {
-      return(Reduce(intersect, outlier))
-    }
-  } else{
-    if(length(as.character(unique(unlist(outlier)))) == 0){
-      cat('No outliers detected!')
-    } else {
-      return(as.character(unique(unlist(outlier))))
-    }
-  }
-}
-
-ArchR_ClustRes <- function(ArchR, by = 0.1, starting_res = 0){
-  plots <- list()
-  resolutions <- c(seq(starting_res, starting_res+9*by, by=by))
-  cluster_df <- data.frame(ArchR$cellNames)
-  
-  if(length(ArchR@reducedDims) == 0){stop("Carry out dimensionality reduction before clustering")}
-  
-  for(res in resolutions[2:length(resolutions)]){
-    ArchR_clustered <- addClusters(input = ArchR, name = "clusters", force = TRUE, resolution = res)
-    plots[[paste(res)]] <- plotEmbedding(ArchR_clustered, name = "clusters") +
-      ggtitle(paste("resolution = ", res))
-    title <- paste0("clustering_res_", res)
-    cluster_df <- cluster_df %>% mutate(!!title := ArchR_clustered@cellColData$clusters)
-  }
-  
-  plots[["clustree"]] <- clustree(cluster_df, prefix = "clustering_res_")
-  lay <- rbind(c(1,1,1,2,3,4),
-               c(1,1,1,5,6,7),
-               c(1,1,1,8,9,10))
-  lay <- rbind(c(10,10,10,1,2,3),
-               c(10,10,10,4,5,6),
-               c(10,10,10,7,8,9))
-  plots2 <- gridExtra::arrangeGrob(grobs = plots, layout_matrix = lay)
-  return(gridExtra::grid.arrange(plots2))
-}
-
-# function to make heatmap showing contribution of cell groups to other cell groups
-cell_counts_heatmap <- function(ArchR = ArchR, group1 = "scHelper_cell_type_new", group2 = "clusters") {
-  group1_data <- getCellColData(ArchR, select = group1)[,1]
-  group2_data <- getCellColData(ArchR, select = group2)[,1]
-  cM <- confusionMatrix(paste0(group2_data), paste0(group1_data))
-  cM <- cM / Matrix::rowSums(cM)
-  
-  p <- pheatmap::pheatmap(
-    mat = cM,
-    color = paletteContinuous("whiteBlue"), 
-    border_color = "black"
-  )
 }
 
 ############################## Read in ArchR project #######################################
