@@ -165,7 +165,7 @@ cell_states = list(
           'PGC', 'BI', 'meso', 'endo'),
 
   HH7 = c('pEpi', 
-          'NPB', 'aNPB', 'pNPB', 
+          'NPB', 
           'NC', 'dNC', 
           'NP', 'pNP', 'iNP','aNP', 
           'HB', 'MB', 'FB', 
@@ -173,18 +173,18 @@ cell_states = list(
           'PGC', 'BI', 'meso', 'endo'),
 
   ss4 = c('pEpi', 
-          'NPB', 'aNPB', 'pNPB', 
+          'NPB', 
           'NC', 'dNC',
           'HB', 'MB', 'FB', 'vFB', 
           'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo'),
 
   ss8 = c('pEpi', 
-          'NPB', 'aNPB', 'pNPB', 
+          'NPB', 
           'NC', 'dNC', 
           'NP', 'pNP', 'iNP','aNP', 
           'HB', 'MB', 'FB', 'vFB', 
-          'PPR', 'aPPR', 'pPPR',
+          'PPR',
           'PGC', 'BI', 'meso', 'endo')
 )
 
