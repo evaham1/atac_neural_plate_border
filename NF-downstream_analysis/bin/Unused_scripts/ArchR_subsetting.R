@@ -87,7 +87,7 @@ if(is.null(opt$groups1)){
 
 
 ############################## Function to subset ArchR project #######################################
-subset_ArchR <- function(ArchR_object, meta_col1, meta_col2, groups1, groups2, invert1, invert2, invert = FALSE){
+ArchR_Subset <- function(ArchR_object, meta_col1, meta_col2, groups1, groups2, invert1, invert2, invert = FALSE){
   
   print(paste0("Filtering on first meta_col: ", meta_col1))
   if (invert1 == FALSE){
@@ -122,7 +122,7 @@ print(colnames(ArchR@cellColData))
 #####################################################################################
 ############################## Subset ArchR object #######################################
 
-ArchR_subset <- subset_ArchR(ArchR, meta_col1 = opt$meta_col1, meta_col2 = opt$meta_col2, 
+ArchR_subset <- ArchR_Subset(ArchR, meta_col1 = opt$meta_col1, meta_col2 = opt$meta_col2, 
                              groups1 = opt$groups1, groups2 = opt$groups2,
                              invert1 = opt$invert1, invert2 = opt$invert2)
 print("ArchR object subsetted")

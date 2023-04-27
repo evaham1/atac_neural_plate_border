@@ -69,7 +69,7 @@ if(opt$verbose) print(opt)
 ############################## Functions #######################################
 
 # function to take ArchR object and a category and make a freq table of how frequently metacells found in each category
-calculate_metacell_frequencies <- function(ArchR, metacell_slot = "SEACell_ID", category = "stage"){
+SEACells_MetacellFrequencies <- function(ArchR, metacell_slot = "SEACell_ID", category = "stage"){
   
   df <- data.frame(getCellColData(ArchR, select = metacell_slot), getCellColData(ArchR, select = category))
   colnames(df) <- c("Metacell", "Category")
@@ -117,7 +117,7 @@ calculate_metacell_proportions <- function(freq_table){
 }
 
 ## Function to plot piechart of how many metacells pass threshold for proportion of cells coming from one label
-piechart_proportion_threshold <- function(prop_table, threshold = 0.5){
+SEACells_PiechartProportionThreshold <- function(prop_table, threshold = 0.5){
   
   # filter cells to only include those that pass threshold
   passed_cells <- prop_table %>% filter(prop > threshold)
@@ -221,7 +221,7 @@ for (cat in categories) {
   dir.create(plot_path_temp, recursive = T)
   
   # calculate frequencies
-  freq_table <- calculate_metacell_frequencies(ArchR, metacell_slot = "SEACell_ID", category = cat)
+  freq_table <- SEACells_MetacellFrequencies(ArchR, metacell_slot = "SEACell_ID", category = cat)
   
   # calculate proportions of labels in metacells
   prop_table <- calculate_metacell_proportions(freq_table)
@@ -239,17 +239,17 @@ for (cat in categories) {
   
   ## how many metacells have > 50% of their cells from same label
   png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.5)
+  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.5)
   graphics.off()
   
   ## how many metacells have > 75% of their cells from same label
   png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.75)
+  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.75)
   graphics.off()
   
   ## how many metacells have > 90% of their cells from same label
   png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.9)
+  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.9)
   graphics.off()
   
 }
@@ -349,7 +349,7 @@ print("Summarised count data read in!")
 #   dir.create(plot_path_temp, recursive = T)
   
 #   # calculate frequencies
-#   freq_table <- calculate_metacell_frequencies(ArchR, category = cat, metacell_slot = "SEACell_cluster")
+#   freq_table <- SEACells_MetacellFrequencies(ArchR, category = cat, metacell_slot = "SEACell_cluster")
   
 #   # calculate proportions of labels in metacells
 #   prop_table <- calculate_metacell_proportions(freq_table)
@@ -367,17 +367,17 @@ print("Summarised count data read in!")
   
 #   ## how many metacells have > 50% of their cells from same label
 #   png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
-#   piechart_proportion_threshold(prop_table, threshold = 0.5)
+#   SEACells_PiechartProportionThreshold(prop_table, threshold = 0.5)
 #   graphics.off()
   
 #   ## how many metacells have > 75% of their cells from same label
 #   png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
-#   piechart_proportion_threshold(prop_table, threshold = 0.75)
+#   SEACells_PiechartProportionThreshold(prop_table, threshold = 0.75)
 #   graphics.off()
   
 #   ## how many metacells have > 90% of their cells from same label
 #   png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
-#   piechart_proportion_threshold(prop_table, threshold = 0.9)
+#   SEACells_PiechartProportionThreshold(prop_table, threshold = 0.9)
 #   graphics.off()
   
 # }

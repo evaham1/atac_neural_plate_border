@@ -64,7 +64,7 @@ if(opt$verbose) print(opt)
 }
 
 # ## function to aggregate matrix from seurat object and summarise by cell groupings
-# summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEACell"){
+# SEACells_SummariseSeuratData <- function(seurat, data_slot = "counts", category = "SEACell"){
   
 #   # extract data into dataframe
 #   df <- GetAssayData(object = seurat, slot = data_slot)
@@ -117,7 +117,7 @@ if (dim(metacell_dictionary)[1] == dim(gene_score_matrix)[2]-1){
 
 #################### Add up gene score counts across metacells #########################
 
-summarised_gene_score_counts <- summarise_gene_score_matrix(matrix = gene_score_matrix, dictionary = metacell_dictionary)
+summarised_gene_score_counts <- SEACells_SummariseGeneScoreMatrix(matrix = gene_score_matrix, dictionary = metacell_dictionary)
 
 dim(summarised_gene_score_counts) # 7547  202
 sum(is.na(summarised_gene_score_counts)) # 0 NA values

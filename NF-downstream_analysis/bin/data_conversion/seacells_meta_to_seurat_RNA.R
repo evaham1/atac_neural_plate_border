@@ -67,7 +67,7 @@ if(opt$verbose) print(opt)
 ################### Functions ##########################
 
 # ## function to aggregate matrix from seurat object and summarise by cell groupings
-# SEACells_summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEACell"){
+# SEACells_SummariseSeuratData <- function(seurat, data_slot = "counts", category = "SEACell"){
   
 #   # extract data into dataframe
 #   df <- GetAssayData(object = seurat, slot = data_slot)
@@ -87,7 +87,7 @@ if(opt$verbose) print(opt)
 # }
 
 # function to take seurat object and a category and make a freq table of how frequently metacells found in each category
-# calculate_metacell_frequencies <- function(seurat, metacell_slot = "SEACell", category = "stage", calc_proportions = FALSE){
+# SEACells_MetacellFrequencies <- function(seurat, metacell_slot = "SEACell", category = "stage", calc_proportions = FALSE){
   
 #   df <- data.frame(FetchData(object = seurat, vars = c(metacell_slot, category)))
 #   colnames(df) <- c("Metacell", "Category")
@@ -137,7 +137,7 @@ if(opt$verbose) print(opt)
 # }
 
 ## Function to plot piechart of how many metacells pass threshold for proportion of cells coming from one label
-# piechart_proportion_threshold <- function(prop_table, threshold = 0.5){
+# SEACells_PiechartProportionThreshold <- function(prop_table, threshold = 0.5){
   
 #   # filter cells to only include those that pass threshold
 #   passed_cells <- prop_table %>% filter(prop > threshold)
@@ -211,7 +211,7 @@ for (cat in categories) {
   dir.create(plot_path_temp, recursive = T)
   
   # calculate frequencies
-  freq_table <- calculate_metacell_frequencies(seurat, metacell_slot = "SEACell", category = cat)
+  freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = cat)
   
   # calculate proportions of labels in metacells
   prop_table <- calculate_metacell_proportions(freq_table)
@@ -229,22 +229,22 @@ for (cat in categories) {
   
   ## how many metacells have > 40% of their cells from same label
   png(paste0(plot_path_temp, "Pie_prop_over_0.4.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.4)
+  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.4)
   graphics.off()
   
   ## how many metacells have > 50% of their cells from same label
   png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.5)
+  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.5)
   graphics.off()
   
   ## how many metacells have > 75% of their cells from same label
   png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.75)
+  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.75)
   graphics.off()
   
   ## how many metacells have > 90% of their cells from same label
   png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
-  piechart_proportion_threshold(prop_table, threshold = 0.9)
+  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.9)
   graphics.off()
   
 }
@@ -254,7 +254,7 @@ for (cat in categories) {
 ###### RNA slot: 3 assays: counts (raw), data (normalised), scale.data -> only add up raw 'counts'
 DefaultAssay(object = seurat) <- "RNA"
 DefaultAssay(object = seurat)
-summarised_RNA_counts <- summarise_seurat_data(seurat = seurat, data_slot = "counts", category = "SEACell")
+summarised_RNA_counts <- SEACells_SummariseSeuratData(seurat = seurat, data_slot = "counts", category = "SEACell")
 
 dim(summarised_RNA_counts) # 18683   215
 sum(is.na(summarised_RNA_counts)) # 0 NA values
@@ -264,7 +264,7 @@ print("raw counts summarised")
 ###### Integrated slot: 2 assays: data, scale.data -> only add up 'data'
 DefaultAssay(object = seurat) <- "integrated"
 DefaultAssay(object = seurat)
-summarised_integrated_data <- summarise_seurat_data(seurat = seurat, data_slot = "data", category = "SEACell")
+summarised_integrated_data <- SEACells_SummariseSeuratData(seurat = seurat, data_slot = "data", category = "SEACell")
 
 dim(summarised_integrated_data) # 18683   215
 sum(is.na(summarised_integrated_data)) # 0 NA values
@@ -281,7 +281,7 @@ temp_metadata <- data.frame(seacell_ids_stripped)
 colnames(temp_metadata) <- "Metacell"
 
 # Sex (proportion cells in metacell which are MALE)
-sex_freq_table <- calculate_metacell_frequencies(seurat, metacell_slot = "SEACell", category = "sex")
+sex_freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "sex")
 sex_prop_table <- calculate_metacell_proportions(sex_freq_table)
 sex_male_prop <- sex_prop_table %>%
   subset(Category == "male") %>%
@@ -293,7 +293,7 @@ temp_metadata_sex <- temp_metadata_sex %>% replace(is.na(.), 0)
 colnames(temp_metadata_sex) <- c("Metacell", "sex")
 
 # Run (proportion cells in metacell which are from RUN 1)
-run_freq_table <- calculate_metacell_frequencies(seurat, metacell_slot = "SEACell", category = "run")
+run_freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "run")
 run_prop_table <- calculate_metacell_proportions(run_freq_table)
 run_1_prop <- run_prop_table %>%
   subset(Category == "1") %>%
@@ -305,7 +305,7 @@ temp_metadata_run <- temp_metadata_run %>% replace(is.na(.), 0)
 colnames(temp_metadata_run) <- gsub("prop", "run", colnames(temp_metadata_run))
 
 # Stage (just carry over)
-stage_freq_table <- calculate_metacell_frequencies(seurat, metacell_slot = "SEACell", category = "stage")
+stage_freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "stage")
 stage_prop_table <- calculate_metacell_proportions(stage_freq_table)
 stage_prop_table <- stage_prop_table %>%
   select(c(Metacell, Category))

@@ -101,7 +101,7 @@ dir.create(plot_path_temp, recursive = T)
 # If there is more than one sample, plot number of cells in each group that come from each sample
 if (length(unique(ArchR$Sample)) > 1){
   png(paste0(plot_path_temp, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
-  ArchR_cell_counting(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
+  ArchRCellCounting(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
   graphics.off()
 }
 
@@ -110,11 +110,11 @@ pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGrou
 
 # Plot table to see which samples and groups the pseudo replicate cells come from 
 png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_sample_table.png'), height = 40, width = 30, units = 'cm', res = 400)
-ArchR_pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = "Sample")
+ArchR_PseudoreplicateCounts(ArchR, pseudo_replicates, group_by = "Sample")
 graphics.off()
 
 png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 40, width = 70, units = 'cm', res = 400)
-ArchR_pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = opt$group_by)
+ArchR_PseudoreplicateCounts(ArchR, pseudo_replicates, group_by = opt$group_by)
 graphics.off()
 
 #####  Make actual pseudo-replicates for peak calling:
@@ -366,18 +366,18 @@ if (isTRUE(run_heatmaps)) {
     ArchRProj = ArchR_peaks, 
     useMatrix = "PeakMatrix", 
     groupBy = opt$group_by)
-  seMarker <- ArchR_add_unique_ids_to_se(seMarker, ArchR, matrix_type = "PeakMatrix")
+  seMarker <- ArchRAddUniqueIdsToSe(seMarker, ArchR, matrix_type = "PeakMatrix")
   print("seMarker object made")
   
   # prepare for plotting
-  normalised_matrix <- ArchR_extract_means_from_se(seMarker, Log2norm = TRUE, scaleTo = 10^4) # extract means df from se object and log2norm all features in each cell group
+  normalised_matrix <- ArchR_ExtractMeansFromSe(seMarker, Log2norm = TRUE, scaleTo = 10^4) # extract means df from se object and log2norm all features in each cell group
   print("matrix for plotting made")
   
   # heatmap palette 
   pal <- paletteContinuous(set = "solarExtra", n = 100)
   
   # Heatmap of positive markers which pass cutoff thresholds
-  ids <- ArchR_extract_ids(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+  ids <- ArchR_ExtractIds(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
   if (length(ids) < 2){
     print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
   } else {
@@ -385,17 +385,17 @@ if (isTRUE(run_heatmaps)) {
     subsetted_matrix <- normalised_matrix[ids, ]
     
     png(paste0(plot_path_temp, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-    print(ArchR_marker_heatmap(subsetted_matrix, pal = pal))
+    print(ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal))
     graphics.off()
   }
   
   # Heatmap of positive markers top 10 per cell group
-  ids <- ArchR_extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
+  ids <- ArchR_ExtractIds(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
   print(paste0(length(ids), " features passed cutoff for top 10 heatmap"))
   subsetted_matrix <- normalised_matrix[ids, ]
   
   png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 70, width = 20, units = 'cm', res = 400)
-  print(ArchR_marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
+  print(ArchR_PlotMarkerHeatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
   graphics.off()
   
 }

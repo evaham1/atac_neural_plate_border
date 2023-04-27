@@ -172,7 +172,7 @@ graphics.off()
 # Plot contribution of each stage to each cluster
 if (length(unique(ArchR$stage)) > 1){
   png(paste0(plot_path_temp, "cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-  ArchR_cell_counts_heatmap(ArchR = ArchR, group1 = "clusters", group2 = "stage")
+  ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "clusters", group2 = "stage")
   graphics.off()
 }
 
@@ -290,23 +290,23 @@ feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
                         "SOX21", "SOX2", "BMP4", "HOXB1")
 
 png(paste0(plot_path_temp, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_feature_plot_grid(ArchR, feature_list = contaminating_markers)
+ArchR_FeaturePlotGrid(ArchR, feature_list = contaminating_markers)
 graphics.off()
 
 png(paste0(plot_path_temp, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_feature_plot_grid(ArchR, feature_list = late_markers)
+ArchR_FeaturePlotGrid(ArchR, feature_list = late_markers)
 graphics.off()
 
 png(paste0(plot_path_temp, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_feature_plot_grid(ArchR, feature_list = ap_markers)
+ArchR_FeaturePlotGrid(ArchR, feature_list = ap_markers)
 graphics.off()
 
 png(paste0(plot_path_temp, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_feature_plot_grid(ArchR, feature_list = early_markers)
+ArchR_FeaturePlotGrid(ArchR, feature_list = early_markers)
 graphics.off()
 
 png(paste0(plot_path_temp, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_feature_plot_grid(ArchR, feature_list = feature_plot_genes)
+ArchR_FeaturePlotGrid(ArchR, feature_list = feature_plot_genes)
 graphics.off()
 
 print("Feature plots done")
@@ -322,16 +322,16 @@ if (isTRUE(run_heatmaps)) {
     ArchRProj = ArchR, 
     useMatrix = "GeneScoreMatrix", 
     groupBy = "clusters")
-  seMarker <- ArchR_add_unique_ids_to_se(seMarker, ArchR, matrix_type = "GeneScoreMatrix")
+  seMarker <- ArchRAddUniqueIdsToSe(seMarker, ArchR, matrix_type = "GeneScoreMatrix")
 
   # prepare for plotting
-  normalised_matrix <- ArchR_extract_means_from_se(seMarker, Log2norm = TRUE, scaleTo = 10^4) # extract means df from se object and log2norm all features in each cell group
+  normalised_matrix <- ArchR_ExtractMeansFromSe(seMarker, Log2norm = TRUE, scaleTo = 10^4) # extract means df from se object and log2norm all features in each cell group
 
   # heatmap palette 
   pal = viridis::magma(100)
 
   # Heatmap of positive markers which pass cutoff thresholds
-  ids <- ArchR_extract_ids(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+  ids <- ArchR_ExtractIds(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
   if (length(ids) < 2){
     print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
   } else {
@@ -339,16 +339,16 @@ if (isTRUE(run_heatmaps)) {
     subsetted_matrix <- normalised_matrix[ids, ]
     
     png(paste0(plot_path_temp, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-    print(ArchR_marker_heatmap(subsetted_matrix, pal = pal))
+    print(ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal))
     graphics.off()
   }
 
   # Heatmap of positive markers top 10 per cell group
-  ids <- ArchR_extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
+  ids <- ArchR_ExtractIds(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
   subsetted_matrix <- normalised_matrix[ids, ]
   
   png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-  ArchR_marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE)
+  ArchR_PlotMarkerHeatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE)
   graphics.off()
   
 }
