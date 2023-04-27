@@ -67,7 +67,7 @@ if (length(label) == 0){
 }
 
 ############################## Split ArchR project #######################################
-split_ArchR <- split_ArchR_by_stage(ArchR)
+split_ArchR <- ArchR_split_by_stage(ArchR)
 print("ArcR object split")
 
 names(split_ArchR) <- unique(ArchR$stage)
