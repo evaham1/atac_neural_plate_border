@@ -7,6 +7,7 @@ library(getopt)
 library(future)
 library(parallel)
 library(ArchR)
+library(scHelper)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -23,9 +24,10 @@ opt = getopt(spec)
     setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    plot_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/plots/" 
-    rds_path = "../output/NF-downstream_analysis/5_ArchR_clustering_postfiltering/rds_files/"
-    data_path = "../output/NF-downstream_analysis/6_ArchR_stage_split/rds_files/"
+    data_path = "../output/NF-downstream_analysis/Upstream_processing/FILTERING/FullData/rds_files/"
+    plot_path = "../output/NF-downstream_analysis/TEMP_split_stages/plots/" 
+    rds_path = "../output/NF-downstream_analysis/TEMP_split_stages/rds_files/"
+    
 
     addArchRThreads(threads = 1) 
     
@@ -46,20 +48,6 @@ opt = getopt(spec)
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
-}
-
-############################## Function to split samples ################################ 
-
-## need to make this generic (not just split by stage) need to overcome passing variable to $ issue
-split_ArchR_by_stage <- function(ArchR_project){
-  split_names <- unique(ArchR_project$stage)
-  split_ArchR <- c()
-  for (i in split_names){
-    idxSample <- BiocGenerics::which(ArchR_project$stage %in% i)
-    cellsSample <- ArchR_project$cellNames[idxSample]
-    split_ArchR <- c(split_ArchR, ArchR_project[cellsSample, ])
-  }
-  return(split_ArchR)
 }
 
 ############################## Read in ArchR project #######################################
