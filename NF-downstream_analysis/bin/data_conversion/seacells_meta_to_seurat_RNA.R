@@ -66,77 +66,92 @@ if(opt$verbose) print(opt)
 
 ################### Functions ##########################
 
-## function to aggregate matrix from seurat object and summarise by cell groupings
-summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEACell"){
+# ## function to aggregate matrix from seurat object and summarise by cell groupings
+# SEACells_summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEACell"){
   
-  # extract data into dataframe
-  df <- GetAssayData(object = seurat, slot = data_slot)
-  df <- as.data.frame(t(as.data.frame(df)))
+#   # extract data into dataframe
+#   df <- GetAssayData(object = seurat, slot = data_slot)
+#   df <- as.data.frame(t(as.data.frame(df)))
   
-  # convert cell ids to category ids
-  category_ids <- select(seurat@meta.data, category)[,1]
-  df <- df %>% mutate(category = category_ids)
+#   # convert cell ids to category ids
+#   category_ids <- select(seurat@meta.data, category)[,1]
+#   df <- df %>% mutate(category = category_ids)
   
-  # aggregate df based on category
-  df_summarised <- aggregate(. ~ category, df, sum)
+#   # aggregate df based on category
+#   df_summarised <- aggregate(. ~ category, df, sum)
   
-  # format df so can be added back to seurat object
-  df_summarised <- t(column_to_rownames(df_summarised, var = "category"))
+#   # format df so can be added back to seurat object
+#   df_summarised <- t(column_to_rownames(df_summarised, var = "category"))
   
-  return(df_summarised)
-}
+#   return(df_summarised)
+# }
 
 # function to take seurat object and a category and make a freq table of how frequently metacells found in each category
-calculate_metacell_frequencies <- function(seurat, metacell_slot = "SEACell", category = "stage"){
+# calculate_metacell_frequencies <- function(seurat, metacell_slot = "SEACell", category = "stage", calc_proportions = FALSE){
   
-  df <- data.frame(FetchData(object = seurat, vars = c(metacell_slot, category)))
-  colnames(df) <- c("Metacell", "Category")
+#   df <- data.frame(FetchData(object = seurat, vars = c(metacell_slot, category)))
+#   colnames(df) <- c("Metacell", "Category")
   
-  freq <- df %>%
-    group_by(Metacell, Category) %>% 
-    dplyr::summarize(count = n()) %>%
-    mutate(Metacell = str_split(Metacell, "-", simplify = TRUE)[ , 2]) %>%
-    mutate(Metacell = as.numeric(Metacell)) %>% 
-    arrange(Metacell) %>% 
-    mutate(count = as.numeric(count))
+#   df <- df %>%
+#     group_by(Metacell, Category) %>% 
+#     dplyr::summarize(count = n()) %>%
+#     mutate(Metacell = str_split(Metacell, "-", simplify = TRUE)[ , 2]) %>%
+#     mutate(Metacell = as.numeric(Metacell)) %>% 
+#     arrange(Metacell) %>% 
+#     mutate(count = as.numeric(count))
   
-  print(paste0("Number of metacells: ", length(unique(freq$Metacell))))
-  print(paste0("Number of categories: ", length(unique(freq$Category))))
+#   print(paste0("Number of metacells: ", length(unique(freq$Metacell))))
+#   print(paste0("Number of categories: ", length(unique(freq$Category))))
+
+#   if (calc_proportions){
+
+#     # calculate total cell counts per metacell
+#     totals_df <- aggregate(count ~ Metacell, data=df, FUN=sum)
+#     totals <- totals_df$count
+#     print(length(totals))
   
-  return(freq)
-}
+#     # calculate proportions per metacell
+#     prop_table <- df %>%
+#       mutate(prop = count/totals[Metacell+1])
+
+#     df <- prop_table
+#   }
+
+#   return(df)
+
+# }
 
 ## Function to take freq table and turn it into proportions per metacell
-calculate_metacell_proportions <- function(freq_table){
+# calculate_metacell_proportions <- function(freq_table){
   
-  # calculate total cell counts per metacell
-  totals_df <- aggregate(count ~ Metacell, data=freq_table, FUN=sum)
-  totals <- totals_df$count
-  print(length(totals))
+#   # calculate total cell counts per metacell
+#   totals_df <- aggregate(count ~ Metacell, data=freq_table, FUN=sum)
+#   totals <- totals_df$count
+#   print(length(totals))
   
-  # calculate proportions per metacell
-  prop_table <- freq_table %>%
-    mutate(prop = count/totals[Metacell+1])
+#   # calculate proportions per metacell
+#   prop_table <- freq_table %>%
+#     mutate(prop = count/totals[Metacell+1])
   
-  return(prop_table)
-}
+#   return(prop_table)
+# }
 
 ## Function to plot piechart of how many metacells pass threshold for proportion of cells coming from one label
-piechart_proportion_threshold <- function(prop_table, threshold = 0.5){
+# piechart_proportion_threshold <- function(prop_table, threshold = 0.5){
   
-  # filter cells to only include those that pass threshold
-  passed_cells <- prop_table %>% filter(prop > threshold)
-  # number of cells that pass threshold:
-  passed_cells <- length(unique(passed_cells$Metacell))
-  # number of cells that didn't pass threshold:
-  failed_cells <- length(unique(prop_table$Metacell)) - passed_cells
-  # plot piechart
-  slices <- c(passed_cells, failed_cells)
-  lbls <- c(paste0("Passed: ", passed_cells), paste0("Didn't pass: ", failed_cells))
+#   # filter cells to only include those that pass threshold
+#   passed_cells <- prop_table %>% filter(prop > threshold)
+#   # number of cells that pass threshold:
+#   passed_cells <- length(unique(passed_cells$Metacell))
+#   # number of cells that didn't pass threshold:
+#   failed_cells <- length(unique(prop_table$Metacell)) - passed_cells
+#   # plot piechart
+#   slices <- c(passed_cells, failed_cells)
+#   lbls <- c(paste0("Passed: ", passed_cells), paste0("Didn't pass: ", failed_cells))
   
-  return(pie(slices, labels = lbls, main = paste0("Number of cells that passed threshold (", threshold, ") of label proportions")))
+#   return(pie(slices, labels = lbls, main = paste0("Number of cells that passed threshold (", threshold, ") of label proportions")))
   
-}
+# }
 
 
 #######################################################################################

@@ -63,28 +63,25 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
-
-################### Functions ##########################
-
-## function to aggregate matrix from seurat object and summarise by cell groupings
-summarise_gene_score_matrix <- function(matrix, dictionary){
+# ## function to aggregate matrix from seurat object and summarise by cell groupings
+# summarise_seurat_data <- function(seurat, data_slot = "counts", category = "SEACell"){
   
-  # turn gene score matrix into numeric dataframe
-  df <- as.data.frame(t(as.data.frame(matrix)))
-  df <- df[-1, ] # remove row with gene names
-  df2 <- mutate_all(df, function(x) as.numeric(as.character(x)))
+#   # extract data into dataframe
+#   df <- GetAssayData(object = seurat, slot = data_slot)
+#   df <- as.data.frame(t(as.data.frame(df)))
   
-  # add dictionary of cell ids to metacell ids to dataframe
-  df3 <- df2 %>% mutate(category = dictionary$SEACell)
+#   # convert cell ids to category ids
+#   category_ids <- select(seurat@meta.data, category)[,1]
+#   df <- df %>% mutate(category = category_ids)
   
-  # aggregate df based on metacell ids
-  df_summarised <- aggregate(. ~ category, df3, sum)
+#   # aggregate df based on category
+#   df_summarised <- aggregate(. ~ category, df, sum)
   
-  # format df so can be added to seurat object
-  df_summarised <- t(column_to_rownames(df_summarised, var = "category"))
+#   # format df so can be added back to seurat object
+#   df_summarised <- t(column_to_rownames(df_summarised, var = "category"))
   
-  return(df_summarised)
-}
+#   return(df_summarised)
+# }
 
 
 #######################################################################################
