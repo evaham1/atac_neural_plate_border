@@ -20,6 +20,7 @@ library(parallel)
 library(clustree)
 library(ComplexHeatmap)
 library(BSgenome.Ggallus.UCSC.galGal6)
+library(scHelper)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -44,7 +45,10 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # peaks already called on ss8
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/6_peak_call/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Peak_call/rds_files/"
+    
+    # peaks already called on FullData
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Peak_call/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -65,204 +69,6 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
-}
-
-############################### FUNCTIONS ####################################
-cell_counts <- function(ArchR = ArchR, group1 = "clusters", group2 = "Sample") {
-  group1_data <- getCellColData(ArchR, select = group1)[,1]
-  group1_cell_counts <- as.data.frame(table(group1_data))
-  colnames(group1_cell_counts) <- c("ID", "Total_count")
-  
-  group2_cell_counts <- data.frame()
-  group2_data <- getCellColData(ArchR, select = group2)[,1]
-  for (i in unique(group1_data)) {
-    data_group1 <- getCellColData(ArchR, select = group1)[,1]
-    cells <- ArchR$cellNames[BiocGenerics::which(data_group1 == i)]
-    ArchR_subset <- ArchR[cells, ]
-    data_group2 <- getCellColData(ArchR_subset, select = group2)[,1]
-    group2_cell_counts_i <- as.data.frame(table(data_group2)) %>%
-      pivot_wider(names_from = data_group2, values_from = Freq) %>% 
-      add_column(ID = !!i)
-    group2_cell_counts <- rbind.fill(group2_cell_counts, group2_cell_counts_i)
-  }
-  
-  cell_counts <- merge(group1_cell_counts, group2_cell_counts)
-  cell_counts[is.na(cell_counts)] <- 0
-  
-  ## Ordering rows and columns to better visualise
-  if (group1 == "clusters"){
-    cell_counts <- cell_counts %>% 
-      mutate(ID = as.numeric(gsub('^.', '', ID))) %>%
-      arrange(ID)
-  }
-  
-  if (group2 == "clusters"){
-    new_names <- as.numeric(gsub('^.', '', colnames(cell_counts)[3:length(colnames(cell_counts))]))
-    colnames(cell_counts)[3:length(colnames(cell_counts))] <- new_names
-    cell_counts <- cell_counts[, c("ID", "Total_count", 1:max(new_names))]
-  }
-  
-  grid.arrange(tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-}
-
-
-## function to print table of how many cells in each pseudoreplicate and how many samples and clusters are in them
-pseudoreplicate_counts <- function(ArchR = ArchR, pseudo_replicates, group_by = "Sample") {
-  
-  unlisted <- unlist(pseudo_replicates, recursive=FALSE)
-  print(paste0("Number of pseudoreplicates: ", length(unlisted)))
-  group_cell_counts <- data.frame()
-  
-  # iterate through each pseudoreplicate
-  for (i in c(1:length(unlisted))) {
-    #print(paste0("Pseudoreplicate number: ", i))
-    group_name <- names(unlisted[i])
-    cell_IDs <- unlisted[i][[1]]
-    ArchR_pseudo_replicate <- ArchR[cell_IDs, ]
-    
-    # add up contributions of each group to pseudoreplicates
-    group_cell_count <- as.data.frame(table(getCellColData(ArchR_pseudo_replicate, select = group_by))) %>%
-      pivot_wider(names_from = Var1, values_from = Freq) %>% 
-      add_column(pseudo_replicate_ID = group_name)
-    group_cell_counts <- rbind.fill(group_cell_counts, group_cell_count)
-    
-  }
-  
-  # format table
-  group_cell_counts[is.na(group_cell_counts)] <- 0
-  group_cell_counts <- group_cell_counts %>% relocate(pseudo_replicate_ID)
-  
-  grid.arrange(tableGrob(group_cell_counts, rows=NULL, theme = ttheme_minimal()))
-  
-}
-
-### Function to add unique ids to se peak object so can subset properly
-add_unique_ids_to_se <- function(seMarker, ArchR, matrix_type) {
-  
-  if (matrix_type == "PeakMatrix") {
-    tmp_peaks = data.frame(ArchR@peakSet)
-    tmp_diff_peaks = data.frame(rowData(seMarker))
-    diff_peaks_join_peakset = left_join(tmp_diff_peaks, tmp_peaks, 
-                                        by = c("seqnames" = "seqnames", "start" = "start", "end" = "end"))
-    diff_peaks_join_peakset$gene_name = paste(diff_peaks_join_peakset$nearestGene, diff_peaks_join_peakset$distToTSS,sep="_")
-    diff_peaks_join_peakset$unique_id = paste0(diff_peaks_join_peakset$seqnames, ":", diff_peaks_join_peakset$start, "-", diff_peaks_join_peakset$end)
-    rowData(seMarker) = diff_peaks_join_peakset
-  }
-  
-  if (matrix_type == "GeneScoreMatrix") {
-    rowData <- as.data.frame(rowData(seMarker))
-    
-    duplicated_gene_names <- rowData$name[duplicated(rowData$name)]
-    duplicated_genes <- rowData[which(rowData$name %in% duplicated_gene_names), ]
-    duplicated_genes <- duplicated_genes %>% group_by(name) %>% 
-      arrange(name) %>% mutate(unique_id = paste0(name, "-", rowid(name)))
-    join_df = left_join(rowData, duplicated_genes,
-                        by = c("seqnames" = "seqnames", "start" = "start", "end" = "end", "name" = "name", "idx" = "idx", "strand" = "strand"))
-    
-    join_df <- join_df %>% mutate(unique_id = coalesce(unique_id, name))
-    
-    rowData(seMarker) = join_df
-  }
-  
-  return(seMarker)
-}
-
-### Function to extract means from se object into matrix for plotting
-extract_means_from_se <- function(seMarker) {
-  mat <- as.data.frame(SummarizedExperiment::assays(seMarker)[["Mean"]])
-  rownames(mat) <- rowData(seMarker)$unique_id
-  
-  return(mat)
-}
-
-### Function to Log2normalise matrix (must be run before subsetting!)
-Log2norm <- function(mat, scaleTo = 10^4) {
-  mat <- log2(t(t(mat)/colSums(mat)) * scaleTo + 1) # normalising means for depth of cluster
-  return(mat)
-}
-
-### Function to extract IDs to be plotted, either by cut off or cut off + top n features
-extract_ids <- function(seMarker, cutOff = "FDR <= 1 & Log2FC >= 0", top_n = TRUE, n = 10, group_name = "clusters") {
-  
-  markerList <- getMarkers(seMarker, cutOff = cutOff) # extract features that pass threshold
-  
-  df <- data.frame() # merged all features into a df
-  for (i in 1:length(names(markerList))) {
-    print(i)
-    df_i <- as.data.frame(markerList[i])
-    df <- rbind(df, df_i)
-  }
-  
-  if (top_n == FALSE){
-    ids <- df$unique_id
-  } else {
-    df <- df %>%
-      group_by(group_name) %>%
-      top_n(n, Log2FC) %>%
-      dplyr::arrange(Log2FC, .by_group = TRUE)
-    ids <- unique(df$unique_id)
-  }
-  
-  return(ids)
-}
-
-### Function to subset normalised matrix using IDs
-subset_matrix <- function(mat, ids) {
-  subsetted_matrix <- mat[ids, ]
-  return(subsetted_matrix)
-}
-
-### Function to plot marker heatmap
-marker_heatmap <- function(mat, pal = NULL, 
-                           labelRows = FALSE, fontSizeRows = 12,
-                           labelCols = TRUE, fontSizeCols = 12,
-                           cluster_columns = TRUE, cluster_rows = TRUE) {
-  
-  # scale each feature independently and add min/max limits
-  limits <- c(-2, 2) # could make this user-defined
-  mat <- sweep(mat - rowMeans(mat), 1, matrixStats::rowSds(mat), 
-               `/`)
-  mat[mat > max(limits)] <- max(limits)
-  mat[mat < min(limits)] <- min(limits)
-  
-  # colours - set default if NULL
-  if (is.null(pal) == TRUE) {
-    pal <- paletteContinuous(set = "solarExtra", n = 100)
-  }
-  
-  # # order rows by eucladian distance
-  # dist_mat <- dist(mat, method = 'euclidean')
-  # hclust_avg <- hclust(dist_mat, method = 'average')
-  # ordered_features <- hclust_avg$labels[c(hclust_avg$order)]
-  # mat <- mat[match(ordered_features, rownames(mat)), ]
-  # 
-  # # order columns by eucladian distance
-  # dist_mat <- dist(t(mat), method = 'euclidean')
-  # hclust_avg <- hclust(dist_mat, method = 'average')
-  # ordered_cell_groups <- hclust_avg$labels[c(hclust_avg$order)]
-  # mat <- mat[ , match(ordered_cell_groups, colnames(mat))]
-  
-  Heatmap(
-    matrix = mat,
-    col = pal,
-    heatmap_legend_param = list(title = "z-scores"),
-    #top_annotation = topAnno, 
-    # add raster stuff?
-    
-    #Column Options
-    cluster_columns = cluster_columns,
-    show_column_names = labelCols,
-    column_names_gp = gpar(fontsize = fontSizeCols),
-    column_names_max_height = unit(100, "mm"),
-    #column_split = colData$stage,
-    
-    #Row Options
-    cluster_rows = cluster_rows,
-    show_row_names = labelRows,
-    row_names_gp = gpar(fontsize = fontSizeRows)
-    #row_split = row_split_params
-  )
-  
 }
 
 ############################## Read in ArchR project #######################################
@@ -292,20 +98,23 @@ print(paste0("Cells grouped by: ", opt$group_by))
 plot_path_temp <- paste0(plot_path, "pseudoreplicates/")
 dir.create(plot_path_temp, recursive = T)
 
-# Plot number of cells in each group that come from each sample
-png(paste0(plot_path_temp, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
-cell_counts(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
-graphics.off()
+# If there is more than one sample, plot number of cells in each group that come from each sample
+if (length(unique(ArchR$Sample)) > 1){
+  png(paste0(plot_path_temp, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
+  ArchR_cell_counting(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
+  graphics.off()
+}
 
-# Make pseudo replicates and see which samples these cells come from + which groups they come from
+# Make pseudo replicates
 pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE, force = TRUE)
 
+# Plot table to see which samples and groups the pseudo replicate cells come from 
 png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_sample_table.png'), height = 40, width = 30, units = 'cm', res = 400)
-pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = "Sample")
+ArchR_pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = "Sample")
 graphics.off()
 
 png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 40, width = 70, units = 'cm', res = 400)
-pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = opt$group_by)
+ArchR_pseudoreplicate_counts(ArchR, pseudo_replicates, group_by = opt$group_by)
 graphics.off()
 
 #####  Make actual pseudo-replicates for peak calling:
@@ -557,36 +366,36 @@ if (isTRUE(run_heatmaps)) {
     ArchRProj = ArchR_peaks, 
     useMatrix = "PeakMatrix", 
     groupBy = opt$group_by)
-  seMarker <- add_unique_ids_to_se(seMarker, ArchR, matrix_type = "PeakMatrix")
+  seMarker <- ArchR_add_unique_ids_to_se(seMarker, ArchR, matrix_type = "PeakMatrix")
   print("seMarker object made")
   
   # prepare for plotting
-  matrix <- extract_means_from_se(seMarker) # extract means df from se object
-  normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
+  normalised_matrix <- ArchR_extract_means_from_se(seMarker, Log2norm = TRUE, scaleTo = 10^4) # extract means df from se object and log2norm all features in each cell group
   print("matrix for plotting made")
   
+  # heatmap palette 
   pal <- paletteContinuous(set = "solarExtra", n = 100)
   
   # Heatmap of positive markers which pass cutoff thresholds
-  ids <- extract_ids(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
+  ids <- ArchR_extract_ids(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
   if (length(ids) < 2){
     print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
   } else {
     print(paste0(length(ids), " features passed cutoff - now plotting heatmap"))
-    subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
+    subsetted_matrix <- normalised_matrix[ids, ]
     
     png(paste0(plot_path_temp, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-    print(marker_heatmap(subsetted_matrix, pal = pal))
+    print(ArchR_marker_heatmap(subsetted_matrix, pal = pal))
     graphics.off()
   }
   
   # Heatmap of positive markers top 10 per cell group
-  ids <- extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
+  ids <- ArchR_extract_ids(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
   print(paste0(length(ids), " features passed cutoff for top 10 heatmap"))
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids) # subset matrix to only include features of interest
+  subsetted_matrix <- normalised_matrix[ids, ]
   
   png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 70, width = 20, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
+  print(ArchR_marker_heatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
   graphics.off()
   
 }
