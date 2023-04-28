@@ -17,9 +17,6 @@ input_file="$1"
 # Get the output file name from the command line argument
 output_file="$2"
 
-# # Get the number of columns from the command line argument
-# num_cols="$3"
-
 # Rename input file to .txt
 cp "$input_file" input.txt
 

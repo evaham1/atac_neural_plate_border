@@ -74,6 +74,24 @@ construct_features(output_path = paste0(rds_path,"test"),
 bintolen <- data.table::fread(paste0(rds_path,"test_bintolen.txt.gz"))
 head(bintolen,20)
 
+# Write out bins so they can be intersected with peaks and genes
+split <- function(str, col) { 
+  return (strsplit(as.character(str), '-')[[1]][col])
+}
+df <- data.frame(chrom = unlist(lapply(bintolen$bins, FUN = split, col=1)),
+                 chromStart = unlist(lapply(bintolen$bins, FUN = split, col=2)),
+                 chromEnd = unlist(lapply(bintolen$bins, FUN = split, col=3)),
+                 name = bintolen$bins
+)
+head(df)
+
+write.table(df, file = paste0(rds_path, "bins.bed"), sep="\t", row.names=F, col.names=F, quote = F)
+
+# Read in gtf and edit it to be a bed file to intersect with bins
+gtf <- read.csv(paste0(rds_path, "tag_chroms.gtf"), sep="\t", header=FALSE)
+
+
+
 # Create gi_list from this bintolen object
 gi_list<-generate_bintolen_gi_list(
   bintolen_path=paste0(rds_path,"/test_bintolen.txt.gz"),
@@ -90,6 +108,8 @@ head(gi_list)
 # [4]     chr13            0-5000 ---     chr13       15000-20000 |     15000
 # [5]     chr13            0-5000 ---     chr13       20000-25000 |     20000
 
+hist(gi_list$chr1$D)
+
 #add .hic counts - need to edit valid pairs output to change '1' -> 'chr1' in column 2 and column 5
 valid_pair_path = paste0(data_path, "NF_HiChip_r1_edited_v6.allValidPairs")
 #valid_pair_file <- data.table::fread(valid_pair_path, sep = "\t", header = FALSE)
@@ -100,6 +120,7 @@ gi_list_validate(gi_list_with_valid_pairs)
 head(gi_list_with_valid_pairs)
 length(gi_list_with_valid_pairs) # 42 - each element in list is a chromosome
 gi_list_with_valid_pairs[[1]]
+mcols(gi_list[[1]])
 # An object of class "GInteractions"
 # Slot "anchor1":
 #   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
@@ -208,10 +229,21 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[14]]) # chromosome that WAS ran us
 
 chr21_output <- expanded_gi_list_with_valid_pairs_HiCDC[[14]]
 head(chr21_output)
-hist(unique(chr21_output[,8]$qvalue))
+
+hist(unique(chr21_output[,8]$qvalue), breaks = 100)
+
+
 
 filtered_ch21_output <- chr21_output[chr21_output$qvalue < 0.05]
 nrow(filtered_ch21_output)
+
+hist(unique(filtered_ch21_output[,2]$counts), breaks = 100)
+
+filtered_ch21_output[1,]
+
+filtered_ch21_output_2 <- filtered_ch21_output[filtered_ch21_output$counts > 50]
+filtered_ch21_output_2
+
 
 #write normalized counts (observed/expected) to a .hic file
 hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
