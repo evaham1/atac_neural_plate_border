@@ -49,6 +49,7 @@ if(opt$verbose) print(opt)
     
     # peaks already called on FullData
     data_path = "./output/NF-downstream_analysis/Processing/FullData/Peak_call/rds_files/"
+    rds_path = "./local_test_data/HiChip_processing/"
     
     addArchRThreads(threads = 1) 
     
@@ -143,8 +144,19 @@ ps$name <- paste0(ps_df$seqnames, "-", ps_df$start, "-", ps_df$end)
 ArchR@peakSet <- ps
 ArchR_peaks <- addPeakMatrix(ArchR, force = TRUE)
 
-getPeakSet(ArchR_peaks)
-getAvailableMatrices(ArchR_peaks)
+## write out peakset
+peakset_granges <- getPeakSet(ArchR_peaks)
+head(peakset_granges)
+write.csv(peakset_granges, file = paste0(rds_path, label, "_GRanges_PeakSet.csv"), quote = F)
+
+df <- data.frame(chrom = seqnames(peakset_granges),
+                 chromStart = start(peakset_granges)-1,
+                 chromEnd = end(peakset_granges),
+                 name = peakset_granges[,14]$name,
+                 score = c(score(peakset_granges)),
+                 strand = strand(peakset_granges))
+head(df)
+write.table(df, file = paste0(rds_path, label, "_PeakSet.bed"), sep="\t", row.names=F, col.names=F, quote = F)
 
 #################################################################################
 ############################## Save ArchR project ###############################
