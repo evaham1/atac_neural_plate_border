@@ -5,6 +5,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
 BiocManager::install("HiCDCPlus")
+BiocManager::install("GenomicFeatures")
 ######
 
 print("script to use HiCDCPlus to call significant loop from HiChip data")
@@ -65,32 +66,26 @@ if(opt$verbose) print(opt)
 ## Create genomic features
 # finds all restriction enzyme cutsites of a given genome and genome version and computes GC content, mappability (if a relevant .bigWig file is provided) and effective fragment length for uniform bin or across specified multiples of restriction enzyme cutsites of given pattern(s).
 
-construct_features(output_path = paste0(rds_path,"test"),
-                   gen = "Ggallus", gen_ver = "galGal6", # BSgenome.Ggallus.UCSC.galGal6, same as used for ArchR preprocessing
-                   sig = c("GATC"), # this is the cut site of restriction enzyme Mboi which was used to make HiChip data
-                   bin_type = "Bins-uniform", 
-                   binsize = 5000 # resolution = 5kb
-                   )
+# construct_features(output_path = paste0(rds_path,"test"),
+#                    gen = "Ggallus", gen_ver = "galGal6", # BSgenome.Ggallus.UCSC.galGal6, same as used for ArchR preprocessing
+#                    sig = c("GATC"), # this is the cut site of restriction enzyme Mboi which was used to make HiChip data
+#                    bin_type = "Bins-uniform", 
+#                    binsize = 5000 # resolution = 5kb
+#                    )
 bintolen <- data.table::fread(paste0(rds_path,"test_bintolen.txt.gz"))
 head(bintolen,20)
 
 # Write out bins so they can be intersected with peaks and genes
-split <- function(str, col) { 
-  return (strsplit(as.character(str), '-')[[1]][col])
-}
-df <- data.frame(chrom = unlist(lapply(bintolen$bins, FUN = split, col=1)),
-                 chromStart = unlist(lapply(bintolen$bins, FUN = split, col=2)),
-                 chromEnd = unlist(lapply(bintolen$bins, FUN = split, col=3)),
-                 name = bintolen$bins
-)
-head(df)
-
-write.table(df, file = paste0(rds_path, "bins.bed"), sep="\t", row.names=F, col.names=F, quote = F)
-
-# Read in gtf and edit it to be a bed file to intersect with bins
-gtf <- read.csv(paste0(rds_path, "tag_chroms.gtf"), sep="\t", header=FALSE)
-
-
+# split <- function(str, col) { 
+#   return (strsplit(as.character(str), '-')[[1]][col])
+# }
+# df <- data.frame(chrom = unlist(lapply(bintolen$bins, FUN = split, col=1)),
+#                  chromStart = unlist(lapply(bintolen$bins, FUN = split, col=2)),
+#                  chromEnd = unlist(lapply(bintolen$bins, FUN = split, col=3)),
+#                  name = bintolen$bins
+# )
+# head(df)
+# write.table(df, file = paste0(rds_path, "bins.bed"), sep="\t", row.names=F, col.names=F, quote = F)
 
 # Create gi_list from this bintolen object
 gi_list<-generate_bintolen_gi_list(
@@ -108,8 +103,6 @@ head(gi_list)
 # [4]     chr13            0-5000 ---     chr13       15000-20000 |     15000
 # [5]     chr13            0-5000 ---     chr13       20000-25000 |     20000
 
-hist(gi_list$chr1$D)
-
 #add .hic counts - need to edit valid pairs output to change '1' -> 'chr1' in column 2 and column 5
 valid_pair_path = paste0(data_path, "NF_HiChip_r1_edited_v6.allValidPairs")
 #valid_pair_file <- data.table::fread(valid_pair_path, sep = "\t", header = FALSE)
@@ -118,9 +111,9 @@ valid_pair_path = paste0(data_path, "NF_HiChip_r1_edited_v6.allValidPairs")
 gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
 gi_list_validate(gi_list_with_valid_pairs)
 head(gi_list_with_valid_pairs)
-length(gi_list_with_valid_pairs) # 42 - each element in list is a chromosome
-gi_list_with_valid_pairs[[1]]
-mcols(gi_list[[1]])
+# length(gi_list_with_valid_pairs) # 42 - each element in list is a chromosome
+# gi_list_with_valid_pairs[[1]]
+# mcols(gi_list[[1]])
 # An object of class "GInteractions"
 # Slot "anchor1":
 #   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
@@ -172,8 +165,8 @@ mcols(gi_list[[1]])
 
 #expand features for modeling - adds 2D features in metadata handle? what does that mean?
 expanded_gi_list_with_valid_pairs <- expand_1D_features(gi_list_with_valid_pairs)
-expanded_gi_list_with_valid_pairs[[1]]
-mcols(expanded_gi_list_with_valid_pairs[[1]])
+# expanded_gi_list_with_valid_pairs[[1]]
+# mcols(expanded_gi_list_with_valid_pairs[[1]])
 
 #run HiC-DC+ on 2 cores
 set.seed(1010) #HiC-DC downsamples rows for modeling
@@ -189,7 +182,7 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
                                                               ssize = 0.01,
                                                               splineknotting = "uniform",
-                                                              chrs = c('chr21', 'chr22')
+                                                              chrs = c('chr1')
                                                               )
 head(expanded_gi_list_with_valid_pairs_HiCDC[[13]]) # chromosome that wasnt ran using HiCDC
 # GInteractions object with 6 interactions and 4 metadata columns:
@@ -204,7 +197,7 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[13]]) # chromosome that wasnt ran 
 # -------
 #   regions: 2780 ranges and 2 metadata columns
 # seqinfo: 1 sequence from an unspecified genome; no seqlengths
-head(expanded_gi_list_with_valid_pairs_HiCDC[[14]]) # chromosome that WAS ran using HiCDC
+head(expanded_gi_list_with_valid_pairs_HiCDC[[1]]) # chromosome that WAS ran using HiCDC
 # GInteractions object with 6 interactions and 8 metadata columns:
 #   seqnames1   ranges1     seqnames2     ranges2 |         D    counts        gc       len        mu      sdev
 # <Rle> <IRanges>         <Rle>   <IRanges> | <integer> <numeric> <numeric> <numeric> <numeric> <numeric>
@@ -226,15 +219,18 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[14]]) # chromosome that WAS ran us
 #   regions: 1369 ranges and 2 metadata columns
 # seqinfo: 1 sequence from an unspecified genome; no seqlengths
 
+########### Looking at just output of chromosome 1 for now
+chr1_output <- expanded_gi_list_with_valid_pairs_HiCDC[[1]]
+head(chr1_output)
 
-chr21_output <- expanded_gi_list_with_valid_pairs_HiCDC[[14]]
-head(chr21_output)
+## Plot counts over interaction distances - takes too long
+#plot(chr1_output[,1]$D, chr1_output[,2]$counts)
 
-hist(unique(chr21_output[,8]$qvalue), breaks = 100)
+## Plot distribution of significance 
+hist(unique(chr1_output[,8]$qvalue), breaks = 100)
 
-
-
-filtered_ch21_output <- chr21_output[chr21_output$qvalue < 0.05]
+### Filter to only include significant interactions
+filtered_ch1_output <- chr1_output[chr1_output$qvalue < 0.05]
 nrow(filtered_ch21_output)
 
 hist(unique(filtered_ch21_output[,2]$counts), breaks = 100)
@@ -254,4 +250,7 @@ hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
 #write results to a text file
 gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
               fname=paste0(rds_path,'/Test_sample_combined_result.txt.gz'))
+
+
+
 
