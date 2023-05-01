@@ -2,7 +2,7 @@
 ##### and any 2) feature_metadata.csv from SEACells computation (table with all PeakSet information)
 ##### Normlises peak counts across seacells, then filters based on annotation and variability
 
-# load libraries
+# load libraries 
 library(getopt)
 library(optparse)
 library(tidyverse)
