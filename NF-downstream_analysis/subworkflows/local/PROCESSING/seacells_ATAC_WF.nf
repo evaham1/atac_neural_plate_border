@@ -8,8 +8,8 @@ include {PYTHON as CREATE_ANNDATA} from "$baseDir/modules/local/python/main"    
 include {PYTHON as CALCULATE_SEACELLS} from "$baseDir/modules/local/python/main"               addParams(script: file("$baseDir/bin/seacells/SEACells_computation.py", checkIfExists: true) )
 // Re-process SEACells in R
 include {R as META_TO_SEURAT_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seacells_meta_to_seurat_ATAC.R", checkIfExists: true) )
-include {R as PROCESS_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/process_seurat_ATAC.R", checkIfExists: true) )
-include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/Metacell_processes/state_classification.R", checkIfExists: true) )
+include {R as PROCESS_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/seacells/process_seurat_ATAC.R", checkIfExists: true) )
+include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/seacells/state_classification.R", checkIfExists: true) )
 // Convert back to Anndata
 include {R as SEURAT_TO_ANNDATA_PROCESSED_ATAC} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
 // Rename SEACell outputs

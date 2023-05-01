@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 
 // R script to combine metacell outputs
-include {R as COMBINE_METACELL_COUNTS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Metacell_processes/Combine_summarised_counts.R", checkIfExists: true) )
+include {R as COMBINE_METACELL_COUNTS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/Combine_summarised_counts.R", checkIfExists: true) )
 
 // R scripts to filter peaks and then cluster them using Antler
 include {R as FILTER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/cluster_peaks/1_filter_peaks.R", checkIfExists: true) )
