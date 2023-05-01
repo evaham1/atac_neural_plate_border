@@ -52,7 +52,7 @@ opt = getopt(spec)
 
 ############################## Read in ArchR project #######################################
 # If files are not in rds_files subdirectory look in input dir
-label <- sub('_.*', '', list.files(data_path))
+label <- unique(sub('_.*', '', list.files(data_path)))
 print(label)
 
 if (length(label) == 0){
