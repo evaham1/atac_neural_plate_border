@@ -42,7 +42,7 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-    data_path = "./local_test_data/test_inputs/test_input_seacells_meta_to_seurat/"
+    data_path = "./local_test_data/test_input_seacells_meta_to_seurat/"
     rds_path = "./local_test_data/convert_seacells_to_seurat/"
     plot_path = "./local_test_data/convert_seacells_to_seurat//plots/"
     
@@ -62,97 +62,6 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
-
-
-################### Functions ##########################
-
-# ## function to aggregate matrix from seurat object and summarise by cell groupings
-# SEACells_SummariseSeuratData <- function(seurat, data_slot = "counts", category = "SEACell"){
-  
-#   # extract data into dataframe
-#   df <- GetAssayData(object = seurat, slot = data_slot)
-#   df <- as.data.frame(t(as.data.frame(df)))
-  
-#   # convert cell ids to category ids
-#   category_ids <- select(seurat@meta.data, category)[,1]
-#   df <- df %>% mutate(category = category_ids)
-  
-#   # aggregate df based on category
-#   df_summarised <- aggregate(. ~ category, df, sum)
-  
-#   # format df so can be added back to seurat object
-#   df_summarised <- t(column_to_rownames(df_summarised, var = "category"))
-  
-#   return(df_summarised)
-# }
-
-# function to take seurat object and a category and make a freq table of how frequently metacells found in each category
-# SEACells_MetacellFrequencies <- function(seurat, metacell_slot = "SEACell", category = "stage", calc_proportions = FALSE){
-  
-#   df <- data.frame(FetchData(object = seurat, vars = c(metacell_slot, category)))
-#   colnames(df) <- c("Metacell", "Category")
-  
-#   df <- df %>%
-#     group_by(Metacell, Category) %>% 
-#     dplyr::summarize(count = n()) %>%
-#     mutate(Metacell = str_split(Metacell, "-", simplify = TRUE)[ , 2]) %>%
-#     mutate(Metacell = as.numeric(Metacell)) %>% 
-#     arrange(Metacell) %>% 
-#     mutate(count = as.numeric(count))
-  
-#   print(paste0("Number of metacells: ", length(unique(freq$Metacell))))
-#   print(paste0("Number of categories: ", length(unique(freq$Category))))
-
-#   if (calc_proportions){
-
-#     # calculate total cell counts per metacell
-#     totals_df <- aggregate(count ~ Metacell, data=df, FUN=sum)
-#     totals <- totals_df$count
-#     print(length(totals))
-  
-#     # calculate proportions per metacell
-#     prop_table <- df %>%
-#       mutate(prop = count/totals[Metacell+1])
-
-#     df <- prop_table
-#   }
-
-#   return(df)
-
-# }
-
-## Function to take freq table and turn it into proportions per metacell
-# calculate_metacell_proportions <- function(freq_table){
-  
-#   # calculate total cell counts per metacell
-#   totals_df <- aggregate(count ~ Metacell, data=freq_table, FUN=sum)
-#   totals <- totals_df$count
-#   print(length(totals))
-  
-#   # calculate proportions per metacell
-#   prop_table <- freq_table %>%
-#     mutate(prop = count/totals[Metacell+1])
-  
-#   return(prop_table)
-# }
-
-## Function to plot piechart of how many metacells pass threshold for proportion of cells coming from one label
-# SEACells_PiechartProportionThreshold <- function(prop_table, threshold = 0.5){
-  
-#   # filter cells to only include those that pass threshold
-#   passed_cells <- prop_table %>% filter(prop > threshold)
-#   # number of cells that pass threshold:
-#   passed_cells <- length(unique(passed_cells$Metacell))
-#   # number of cells that didn't pass threshold:
-#   failed_cells <- length(unique(prop_table$Metacell)) - passed_cells
-#   # plot piechart
-#   slices <- c(passed_cells, failed_cells)
-#   lbls <- c(paste0("Passed: ", passed_cells), paste0("Didn't pass: ", failed_cells))
-  
-#   return(pie(slices, labels = lbls, main = paste0("Number of cells that passed threshold (", threshold, ") of label proportions")))
-  
-# }
-
 
 #######################################################################################
 ######################    Add SEACells IDs to seurat object   #########################
@@ -211,10 +120,7 @@ for (cat in categories) {
   dir.create(plot_path_temp, recursive = T)
   
   # calculate frequencies
-  freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = cat)
-  
-  # calculate proportions of labels in metacells
-  prop_table <- calculate_metacell_proportions(freq_table)
+  prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = cat, calc_proportions = TRUE)
   
   # plot the relative proportions of labels in each metacell
   png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
@@ -281,8 +187,7 @@ temp_metadata <- data.frame(seacell_ids_stripped)
 colnames(temp_metadata) <- "Metacell"
 
 # Sex (proportion cells in metacell which are MALE)
-sex_freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "sex")
-sex_prop_table <- calculate_metacell_proportions(sex_freq_table)
+sex_prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "sex", calc_proportions = TRUE)
 sex_male_prop <- sex_prop_table %>%
   subset(Category == "male") %>%
   select(c(Metacell, prop))
@@ -293,8 +198,7 @@ temp_metadata_sex <- temp_metadata_sex %>% replace(is.na(.), 0)
 colnames(temp_metadata_sex) <- c("Metacell", "sex")
 
 # Run (proportion cells in metacell which are from RUN 1)
-run_freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "run")
-run_prop_table <- calculate_metacell_proportions(run_freq_table)
+run_prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "run", calc_proportions = TRUE)
 run_1_prop <- run_prop_table %>%
   subset(Category == "1") %>%
   select(c(Metacell, prop))
@@ -305,8 +209,7 @@ temp_metadata_run <- temp_metadata_run %>% replace(is.na(.), 0)
 colnames(temp_metadata_run) <- gsub("prop", "run", colnames(temp_metadata_run))
 
 # Stage (just carry over)
-stage_freq_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "stage")
-stage_prop_table <- calculate_metacell_proportions(stage_freq_table)
+stage_prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "stage", calc_proportions = TRUE)
 stage_prop_table <- stage_prop_table %>%
   select(c(Metacell, Category))
 
