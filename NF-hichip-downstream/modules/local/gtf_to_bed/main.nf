@@ -7,6 +7,7 @@ process GTF_TO_BED {
 
     shell:
     '''
+    #!/bin/bash
     # Removes header lines starting with "#"
     # Only keeps lines with "gene" in the 3rd column
     # Splits the 9th column by ";" and then by "\""
