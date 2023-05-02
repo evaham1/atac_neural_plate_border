@@ -7,8 +7,13 @@ process EDIT_VALIDPAIRS {
 
     script:
     def filename = sh(script: 'basename ./input/*', returnStdout: true).trim()
+
+    def filename = sh(script: 'basename /path/to/directory/*', returnStdout: true).trim()
+
+
     """
-    echo $filename
+    basename ./input/*
+    cp ./input/WE_HiChip_r1.allValidPairs input.txt
     """
     // # Detect input file name
     // filename=$(basename ./input/*)
