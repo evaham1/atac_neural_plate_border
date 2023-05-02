@@ -48,7 +48,7 @@ Channel
 // WORKFLOW: Run main nf-core/NF-hichip-downstream analysis pipeline
 //
 
-workflow A {
+workflow {
 
     // Read in ValidPairs data
     METADATA( params.sample_sheet_validpairs )
@@ -68,20 +68,6 @@ workflow A {
     // Turn gtf file into bed file
     GTF_TO_BED( ch_gtf )
 
-}
-
-/*
-========================================================================================
-    RUN ALL WORKFLOWS
-========================================================================================
-*/
-
-//
-// WORKFLOW: Execute a single named workflow for the pipeline
-// See: https://github.com/nf-core/rnaseq/issues/619
-//
-workflow {
-    A ()
 }
 
 
