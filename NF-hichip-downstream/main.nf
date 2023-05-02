@@ -25,6 +25,7 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
 
 // 2) Prep peak output and gtf and then intersect with bins to annotate them
+include {GTF_TO_BED} from "$baseDir/modules/local/gtf_to_bed/main"
 
 // 3) Filter bins to pick out interactions of interest
 
@@ -63,6 +64,9 @@ workflow A {
 
     // Generate bins
     //GENERATE_BINS ( METADATA.out )
+
+    // Turn gtf file into bed file
+    GTF_TO_BED( ch_gtf )
 
 }
 
