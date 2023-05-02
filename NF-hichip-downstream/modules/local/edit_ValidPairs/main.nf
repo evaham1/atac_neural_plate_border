@@ -31,7 +31,7 @@ process EDIT_VALIDPAIRS {
     rm input.txt input_part*
 
     # Convert the output file to tab-delimited format
-    sed -i 's/ /\t/g' "edited_ValidPairs.ValidPairs"
+    sed -i 's/ /\t/g' "edited_ValidPairs.txt"
     '''
 }
 
