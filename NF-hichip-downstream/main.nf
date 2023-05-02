@@ -50,6 +50,12 @@ Channel
 
 workflow {
 
+    // Generate bins
+    GENERATE_BINS ( METADATA.out )
+
+    // Turn gtf file into bed file
+    GTF_TO_BED( ch_gtf )
+
     // Read in ValidPairs data
     METADATA( params.sample_sheet_validpairs )
         // [[sample_id:WE_HiChip_r1], [/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/WE_HiChip_r1.allValidPairs]]
@@ -69,11 +75,14 @@ workflow {
         // [[sample_id:NF_HiChip_r3], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/63/77a440049f7e59893b25d1f2b2f5d9/edited_ValidPairs.txt, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/63/77a440049f7e59893b25d1f2b2f5d9/input]]
 
 
-    // // Generate bins
-    GENERATE_BINS ( METADATA.out )
+    
 
-    // // Turn gtf file into bed file
-    // GTF_TO_BED( ch_gtf )
+
+
+    // Intersect bins with peaks
+
+    // Find interactions of interest
+
 
 }
 
