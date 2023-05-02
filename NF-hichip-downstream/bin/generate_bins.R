@@ -3,14 +3,6 @@
 ### script to make bins for HiCDCPlus analysis + to intersect with peak and gene beds
 print("script to make bins for HiCDCPlus analysis + to intersect with peak and gene beds")
 
-# ##### Move to docker image - run on archr docker ####
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
-
-# BiocManager::install("HiCDCPlus")
-# BiocManager::install("GenomicFeatures")
-# ######
-
 ############################## Load libraries #######################################
 library(getopt)
 library(optparse)
@@ -66,7 +58,7 @@ if(opt$verbose) print(opt)
 # finds all restriction enzyme cutsites of a given genome and genome version and computes GC content, mappability (if a relevant .bigWig file is provided) and effective fragment length for uniform bin or across specified multiples of restriction enzyme cutsites of given pattern(s).
 
 # construct features
-construct_features(output_path = paste0(rds_path, "test"),
+construct_features(output_path = paste0(rds_path, "bins"),
                    gen = "Ggallus", gen_ver = "galGal6", # BSgenome.Ggallus.UCSC.galGal6, same as used for ArchR preprocessing
                    sig = c("GATC"), # this is the cut site of restriction enzyme Mboi which was used to make HiChip data
                    bin_type = "Bins-uniform", 
@@ -74,7 +66,7 @@ construct_features(output_path = paste0(rds_path, "test"),
                    )
 
 # read in bintolen object to check
-bintolen <- data.table::fread(paste0(rds_path,"test_bintolen.txt.gz"))
+bintolen <- data.table::fread(paste0(rds_path,"bins_bintolen.txt.gz"))
 head(bintolen,20)
 
 # Write out bins into simplified bed file so they can be intersected with peaks and genes
