@@ -20,7 +20,7 @@ nextflow.enable.dsl = 2
 // 1) Create bins
 
 // 2) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find significant interactions
-include { METADATA as METADATA } from "$baseDir/subworkflows/local/metadata"
+include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
 
 // 2) Prep peak output and gtf and then intersect with bins to annotate them
@@ -50,8 +50,10 @@ workflow A {
     // Read in ValidPairs data
     METADATA( params.sample_sheet_validpairs )
 
+    METADATA.out.view()
+
     // Edit ValidPairs data to add 'chr' to chromosome names
-    EDIT_VALIDPAIRS ( METADATA.out.output )
+    EDIT_VALIDPAIRS ( METADATA.out )
 
 }
 
