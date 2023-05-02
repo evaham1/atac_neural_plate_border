@@ -7,8 +7,7 @@ process EDIT_VALIDPAIRS {
 
     script:
     """
-    filename=$(basename .input/*)
-    echo $filename
+    echo $input
     """
     // # Detect input file name
     // filename=$(basename ./input/*)
