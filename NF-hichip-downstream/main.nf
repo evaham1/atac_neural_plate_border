@@ -52,6 +52,10 @@ workflow {
 
     //////////  Bins generation and annotation  //////////
 
+    ch_gtf.view()
+
+    ch_peaks.view()
+
     // Turn gtf file into bed file
     GTF_TO_BED( ch_gtf )
 
