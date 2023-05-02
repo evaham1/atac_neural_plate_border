@@ -63,11 +63,11 @@ workflow {
     EDIT_VALIDPAIRS ( METADATA.out )
     EDIT_VALIDPAIRS.out.view()
 
-    // Generate bins
-    GENERATE_BINS ( METADATA.out )
+    // // Generate bins
+    // GENERATE_BINS ( METADATA.out )
 
-    // Turn gtf file into bed file
-    GTF_TO_BED( ch_gtf )
+    // // Turn gtf file into bed file
+    // GTF_TO_BED( ch_gtf )
 
 }
 
