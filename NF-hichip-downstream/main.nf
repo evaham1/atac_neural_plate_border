@@ -18,6 +18,7 @@ nextflow.enable.dsl = 2
 */
 
 // 1) Create bins
+include {R as GENERATE_BINS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/generate_bins.R", checkIfExists: true) )
 
 // 2) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find significant interactions
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -27,18 +28,19 @@ include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
 
 // 3) Filter bins to pick out interactions of interest
 
-
-// PARAMS
-
-
 //
 // SET CHANNELS
 //
 
-// set channel to NF-HiC output directory containing ValidPairs
-// Channel
-//     .value(params.)
-//     .set{ch_reference}
+// set channel for gtf file
+Channel
+    .value(params.gtf)
+    .set{ch_gtf}
+
+// set channel for peaks.bed file
+Channel
+    .value(params.peaks)
+    .set{ch_peaks}
 
 
 //
@@ -58,6 +60,9 @@ workflow A {
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
+
+    // Generate bins
+    GENERATE_BINS ()
 
 }
 
