@@ -8,7 +8,7 @@ process EDIT_VALIDPAIRS {
     script:
     """
     basename ./input/*
-    cp ./input/WE_HiChip_r1.allValidPairs input.txt
+    cp ./input/* input.txt
     """
     // # Detect input file name
     // filename=$(basename ./input/*)
