@@ -7,7 +7,7 @@ process EDIT_VALIDPAIRS {
 
     script:
     """
-    echo "Hello World"
+    basename ./input/*
     """
     // # Detect input file name
     // filename=$(basename ./input/*)
