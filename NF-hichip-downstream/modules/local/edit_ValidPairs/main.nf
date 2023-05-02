@@ -6,11 +6,6 @@ process EDIT_VALIDPAIRS {
     tuple val(meta), file('*')       , emit: outs
 
     script:
-    def filename = sh(script: 'basename ./input/*', returnStdout: true).trim()
-
-    def filename = sh(script: 'basename /path/to/directory/*', returnStdout: true).trim()
-
-
     """
     basename ./input/*
     cp ./input/WE_HiChip_r1.allValidPairs input.txt
