@@ -62,7 +62,7 @@ workflow A {
     EDIT_VALIDPAIRS ( METADATA.out )
 
     // Generate bins
-    GENERATE_BINS ( METADATA.out )
+    //GENERATE_BINS ( METADATA.out )
 
 }
 
