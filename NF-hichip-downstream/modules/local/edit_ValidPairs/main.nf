@@ -8,7 +8,7 @@ process EDIT_VALIDPAIRS {
     script:
     """
     # Rename input file to .txt
-    cp "$1" input.txt
+    cp $1 input.txt
 
     # Split the input file into smaller chunks
     split -l 1000000 input.txt input_part
