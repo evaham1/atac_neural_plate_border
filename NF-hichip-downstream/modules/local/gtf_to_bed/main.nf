@@ -3,7 +3,7 @@ process GTF_TO_BED {
     path('input/*')
 
     output:
-    path('*')       , emit: outs
+    path('gtf_file.bed')       , emit: outs
 
     shell:
     '''
@@ -13,6 +13,7 @@ process GTF_TO_BED {
     # Prints the 1st, 4th, 5th, 9th, 10th, and 7th columns (Chr, start, end, gene_id, gene_name, strand)
     # The gene name is the 6th column if it exists, otherwise it is the gene id
     # Chromosome names are prepended with "chr"
+    
     sed '/^#/d' ./input/* \
     | awk -F "\t" '{
         if ($3=="gene") {
@@ -27,7 +28,7 @@ process GTF_TO_BED {
         print chr"\t"$4-1"\t"$5"\t"gene_id"\t"gene_name"\t"$7;
     }
     }' \
-    > "${gtf_file%.*}.bed"
+    > "gtf_file.bed"
     '''
 }
 
