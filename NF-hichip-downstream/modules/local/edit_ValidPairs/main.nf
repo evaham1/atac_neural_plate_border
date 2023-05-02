@@ -21,19 +21,19 @@ process EDIT_VALIDPAIRS {
         awk 'BEGIN{FS=OFS="\t"}{$2="chr"$2;$5="chr"$5}1' "${file}" > "${file}.edited" &
     done
 
+    # Wait for all editing jobs to finish
+    wait
+
+    # Concatenate the edited chunks into a single output file
+    cat input_part*.edited > "edited_ValidPairs.txt"
+
+    # Remove the intermediate files
+    rm input.txt input_part*
+
+    # Convert the output file to tab-delimited format
+    sed -i 's/ /\t/g' "edited_ValidPairs.ValidPairs"
     '''
 }
 
     
 
-    // # Wait for all editing jobs to finish
-    // wait
-
-    // # Concatenate the edited chunks into a single output file
-    // cat input_part*.edited > "edited_ValidPairs.txt"
-
-    // # Remove the intermediate files
-    // rm input.txt input_part*
-
-    // # Convert the output file to tab-delimited format
-    // sed -i 's/ /\t/g' "edited_ValidPairs.ValidPairs"
