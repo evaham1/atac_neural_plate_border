@@ -61,10 +61,16 @@ workflow {
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
-    EDIT_VALIDPAIRS.out.view()
+        // [[sample_id:NF_HiChip_r1], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/89/191db4292187ae2b937f09cf34f809/edited_ValidPairs.txt, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/89/191db4292187ae2b937f09cf34f809/input]]
+        // [[sample_id:WE_HiChip_r1], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/54/5cda609f53cfaa836a755b1f3f798d/edited_ValidPairs.txt, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/54/5cda609f53cfaa836a755b1f3f798d/input]]
+        // [[sample_id:WE_HiChip_r2], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/3a/1edda7b589865c6ef67b033291421b/edited_ValidPairs.txt, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/3a/1edda7b589865c6ef67b033291421b/input]]
+        // [[sample_id:NF_HiChip_r2], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/e6/84e3bec58c48e23a72869dbb67a110/edited_ValidPairs.txt, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/e6/84e3bec58c48e23a72869dbb67a110/input]]
+        // [[sample_id:WE_HiChip_r3], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/c7/e9907b5bf54ae5559cb991235cdd0f/edited_ValidPairs.txt, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/c7/e9907b5bf54ae5559cb991235cdd0f/input]]
+        // [[sample_id:NF_HiChip_r3], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/63/77a440049f7e59893b25d1f2b2f5d9/edited_ValidPairs.txt, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/63/77a440049f7e59893b25d1f2b2f5d9/input]]
+
 
     // // Generate bins
-    // GENERATE_BINS ( METADATA.out )
+    GENERATE_BINS ( METADATA.out )
 
     // // Turn gtf file into bed file
     // GTF_TO_BED( ch_gtf )
