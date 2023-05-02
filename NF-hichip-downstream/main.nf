@@ -60,7 +60,7 @@ workflow {
     GTF_TO_BED( ch_gtf )
 
     // Generate bins
-    GENERATE_BINS ( GTF_TO_BED.out )
+    GENERATE_BINS ( ch_gtf, GTF_TO_BED.out )
 
     // Intersect bins with peaks
         //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
