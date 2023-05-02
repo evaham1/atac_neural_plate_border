@@ -61,9 +61,10 @@ workflow {
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
+    EDIT_VALIDPAIRS.out.view()
 
     // Generate bins
-    //GENERATE_BINS ( METADATA.out )
+    GENERATE_BINS ( METADATA.out )
 
     // Turn gtf file into bed file
     GTF_TO_BED( ch_gtf )
