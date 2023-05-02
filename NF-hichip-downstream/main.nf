@@ -50,23 +50,6 @@ Channel
 
 workflow {
 
-    //////////  Bins generation and annotation  //////////
-
-    ch_gtf.view()
-
-    ch_peaks.view()
-
-    // Turn gtf file into bed file
-    GTF_TO_BED( ch_gtf )
-
-    // Generate bins
-    GENERATE_BINS ( ch_gtf, GTF_TO_BED.out )
-
-    // Intersect bins with peaks
-        //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
-
-    // Intersect bins with genes
-        //here need channel manipulation to combine GTF_TO_BED.out and GENERATE_BINS.out
 
     //////////  HiChip-sample specific analysis  //////////
 
@@ -78,6 +61,22 @@ workflow {
         // [[sample_id:NF_HiChip_r1], [/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r1.allValidPairs]]
         // [[sample_id:NF_HiChip_r2], [/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r2.allValidPairs]]
         // [[sample_id:NF_HiChip_r3], [/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r3.allValidPairs]]
+
+    //////////  Bins generation and annotation  //////////
+
+    // Turn gtf file into bed file
+    GTF_TO_BED( ch_gtf )
+
+    // Generate bins
+    GENERATE_BINS ( METADATA.out ) // doesnt take any input files, just put this as R expects tuple as input
+
+    // Intersect bins with peaks
+        //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
+
+    // Intersect bins with genes
+        //here need channel manipulation to combine GTF_TO_BED.out and GENERATE_BINS.out
+
+    //////////  HiChip-sample specific analysis  //////////
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
