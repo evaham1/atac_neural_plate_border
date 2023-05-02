@@ -6,8 +6,9 @@ process EDIT_VALIDPAIRS {
     tuple val(meta), file('*')       , emit: outs
 
     script:
+    def filename = sh(script: 'basename ./input/*', returnStdout: true).trim()
     """
-    echo $input
+    echo $filename
     """
     // # Detect input file name
     // filename=$(basename ./input/*)
