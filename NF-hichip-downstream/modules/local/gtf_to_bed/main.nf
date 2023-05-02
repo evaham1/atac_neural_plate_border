@@ -3,7 +3,7 @@ process GTF_TO_BED {
     path('input/*')
 
     output:
-    file('*')       , emit: outs
+    'gtf_filed.bed'       , emit: outs
 
     shell:
     '''
