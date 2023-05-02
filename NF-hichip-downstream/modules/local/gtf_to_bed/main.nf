@@ -18,8 +18,11 @@ process GTF_TO_BED {
     sed '/^#/d' "./input/tag_chroms.gtf" \
         | awk -F "\t" '{
             if ($3 == "gene") {
+                split($9, a, "\"");
+                gene_id = a[2];
                 chr = "chr" $1;
-                print chr "\t" $4-1 "\t" $5 "\t" $7;
+                gene_name = (a[10] == "") ? gene_id : a[6];
+                print chr "\t" $4-1 "\t" $5 "\t" gene_id "\t" gene_name "\t" $7;
             }
         }' \
         > "gtf_file.bed"
