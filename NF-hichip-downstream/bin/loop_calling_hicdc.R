@@ -56,12 +56,12 @@ if(opt$verbose) print(opt)
 ############################## Call loops #######################################
 
 # Read in bintolen object with the generated bins
-bintolen <- data.table::fread(paste0(rds_path, "bins_bintolen.txt.gz"))
+bintolen <- data.table::fread(paste0(rds_path, "test_bintolen.txt.gz"))
 head(bintolen,20)
 
 # Create gi_list from this bintolen object
 gi_list<-generate_bintolen_gi_list(
-  bintolen_path=paste0(rds_path,"/test_bintolen.txt.gz"),
+  bintolen_path=paste0(rds_path,"/bins_bintolen.txt.gz"),
   gen = "Ggallus", gen_ver = "galGal6")
 
 # Check gi_list
@@ -171,30 +171,25 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[1]])
 #plot(chr1_output[,1]$D, chr1_output[,2]$counts)
 
 ## Plot distribution of significance 
-hist(unique(chr1_output[,8]$qvalue), breaks = 100)
-
-### Filter to only include significant interactions
-filtered_ch1_output <- chr1_output[chr1_output$qvalue < 0.05]
-nrow(filtered_ch21_output)
-
-hist(unique(filtered_ch21_output[,2]$counts), breaks = 100)
-
-filtered_ch21_output[1,]
-
-filtered_ch21_output_2 <- filtered_ch21_output[filtered_ch21_output$counts > 50]
-filtered_ch21_output_2
-
+# hist(unique(chr1_output[,8]$qvalue), breaks = 100)
+# 
+# ### Filter to only include significant interactions
+# filtered_ch1_output <- chr1_output[chr1_output$qvalue < 0.05]
+# nrow(filtered_ch21_output)
+# 
+# hist(unique(filtered_ch21_output[,2]$counts), breaks = 100)
+# 
+# filtered_ch21_output[1,]
+# 
+# filtered_ch21_output_2 <- filtered_ch21_output[filtered_ch21_output$counts > 50]
+# filtered_ch21_output_2
 
 #write normalized counts (observed/expected) to a .hic file
 hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
-          hicfile=paste0(rds_path,'/Test_sample_combined_result_chr21_chr22.hic'),
+          hicfile=paste0(rds_path,'/HiCDC_output.hic'),
           mode='normcounts',
           gen_ver='galGal6')
 
 #write results to a text file
 gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
-              fname=paste0(rds_path,'/Test_sample_combined_result.txt.gz'))
-
-
-
-
+              fname=paste0(rds_path,'/HiCDC_output.txt.gz'))
