@@ -6,7 +6,7 @@ process EDIT_VALIDPAIRS {
     tuple val(meta), file('*')       , emit: outs
 
     shell:
-    """
+    '''
     # Print out input file name
     basename ./input/*
 
@@ -16,13 +16,15 @@ process EDIT_VALIDPAIRS {
     # Split the input file into smaller chunks
     split -l 1000000 input.txt input_part
 
-    """
+    # Edit the second and fifth column of each chunk to add 'chr' to the chromosome name
+    for file in input_part*; do
+        awk 'BEGIN{FS=OFS="\t"}{$2="chr"$2;$5="chr"$5}1' "${file}" > "${file}.edited" &
+    done
+
+    '''
 }
 
-    // # Edit the second and fifth column of each chunk to add 'chr' to the chromosome name
-    // for file in input_part*; do
-    //     awk 'BEGIN{FS=OFS="\t"}{$2="chr"$2;$5="chr"$5}1' "${file}" > "${file}.edited" &
-    // done
+    
 
     // # Wait for all editing jobs to finish
     // wait
