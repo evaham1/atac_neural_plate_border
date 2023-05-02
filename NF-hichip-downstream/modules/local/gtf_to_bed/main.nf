@@ -14,7 +14,7 @@ process GTF_TO_BED {
     # The gene name is the 6th column if it exists, otherwise it is the gene id
     # Chromosome names are prepended with "chr"
     
-    sed '/^#/d' "./input/*" \
+    sed '/^#/d' "./input/tag_chroms.gtf" \
         | awk -F "\t" '{
             if ($3 == "gene") {
                 split($9, a, "\"");
