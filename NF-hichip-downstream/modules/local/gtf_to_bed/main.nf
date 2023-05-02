@@ -1,9 +1,9 @@
 process GTF_TO_BED {
     input:
-    tuple val(meta), path('input/*')
+    path('input/*')
 
     output:
-    tuple val(meta), file('*')       , emit: outs
+    file('*')       , emit: outs
 
     shell:
     '''
