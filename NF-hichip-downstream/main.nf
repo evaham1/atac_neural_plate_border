@@ -71,10 +71,9 @@ workflow {
     // Intersect bins with peaks
         //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
     GENERATE_BINS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r1], edited_ValidPairs.txt]
-        .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        .map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
         .view() //[[sample_id:dummy], [rds_files]]
         .flatMap {it[1][0].listFiles()} //bins.bed //bins_bintolen.txt.gz
-        .filter{ data -> data == 'bins_bintolen.txt.gz'}
         .set{ ch_peak_bins }
     
     ch_peak_bins.view()

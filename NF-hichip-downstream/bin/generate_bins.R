@@ -41,6 +41,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
+    bed_path = "./bed_files/"
     data_path = "./input/"
     ncores = opt$cores
     
@@ -51,6 +52,7 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
+  dir.create(bed_path, recursive = T)
 }
 
 ############################## Create bins #######################################
@@ -81,4 +83,4 @@ df <- data.frame(chrom = unlist(lapply(bintolen$bins, FUN = split, col=1)),
 )
 head(df)
 
-write.table(df, file = paste0(rds_path, "bins.bed"), sep="\t", row.names=F, col.names=F, quote = F)
+write.table(df, file = paste0(bed_path, "bins.bed"), sep="\t", row.names=F, col.names=F, quote = F)
