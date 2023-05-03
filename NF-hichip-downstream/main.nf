@@ -46,7 +46,7 @@ Channel
 // generate placeholder channel so can run generate_bins.R
 Channel
     .value(params.gtf)
-    .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+    .map { row -> [[sample_id:dummy], row] }
     .set{ch_dummy}
 
 
