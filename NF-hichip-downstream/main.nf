@@ -22,6 +22,7 @@ include {R as GENERATE_BINS} from "$baseDir/modules/local/r/main"               
 
 // 2) Prep peak output and gtf and then intersect with bins to annotate them
 include {GTF_TO_BED} from "$baseDir/modules/local/gtf_to_bed/main"
+include {INTERSECT_BINS as INTERSECT_BINS_PEAKS} from "$baseDir/modules/local/intersect_bins/main"
 
 // 3) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find significant interactions
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -69,6 +70,14 @@ workflow {
 
     // Intersect bins with peaks
         //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
+    GENERATE_BINS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r1], edited_ValidPairs.txt]
+        .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        .flatMap {it[1][0].listFiles()}
+        .set{ ch_peak_bins }
+    
+    ch_peak_bins.view()
+
+    //INTERSECT_BINS_PEAKS( ch_peak_bins )
 
     // Intersect bins with genes
         //here need channel manipulation to combine GTF_TO_BED.out and GENERATE_BINS.out
