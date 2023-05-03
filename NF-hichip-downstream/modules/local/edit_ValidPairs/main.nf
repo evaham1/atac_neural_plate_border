@@ -30,6 +30,9 @@ process EDIT_VALIDPAIRS {
     # Remove the intermediate files
     rm input.txt input_part*
 
+    # Remove the input folder
+    rm -r input
+
     # Convert the output file to tab-delimited format
     sed -i 's/ /\t/g' "edited_ValidPairs.txt"
     '''
