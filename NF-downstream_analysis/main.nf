@@ -140,7 +140,7 @@ workflow A {
         SPLIT_STAGES_PROCESSED.out //[[meta], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
-            .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+            .map { row -> [[sample_id:dummy], row] }
             .set { ch_peakcall_processed }
 
         // ch_peakcall_processed.view()
