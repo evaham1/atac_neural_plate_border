@@ -60,12 +60,12 @@ if(opt$verbose) print(opt)
 ######################################   Read in bins   ####################################################
 
 # Read in bintolen object with the generated bins
-bintolen <- data.table::fread(paste0(rds_path, "rds_files/bins_bintolen.txt.gz"))
+bintolen <- data.table::fread(paste0(data_path, "rds_files/bins_bintolen.txt.gz"))
 head(bintolen,20)
 
 # Create gi_list from this bintolen object
 gi_list<-generate_bintolen_gi_list(
-  bintolen_path=paste0(rds_path, "rds_files/bins_bintolen.txt.gz"),
+  bintolen_path=paste0(data_path, "rds_files/bins_bintolen.txt.gz"),
   gen = "Ggallus", gen_ver = "galGal6")
 
 # Check gi_list
