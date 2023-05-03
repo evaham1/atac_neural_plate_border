@@ -75,11 +75,10 @@ workflow {
         //.view() //[[sample_id:dummy], [bed_files]]
         .flatMap {it[1][0].listFiles()} //bins.bed
         .combine( ch_peaks )
-        .view()
+        .view() //[bins.bed, FullData_PeakSet.bed]
         .set{ ch_peak_bins }
 
-
-    //INTERSECT_BINS_PEAKS( ch_peak_bins )
+    INTERSECT_BINS_PEAKS( ch_peak_bins )
 
     // Intersect bins with genes
         //here need channel manipulation to combine GTF_TO_BED.out and GENERATE_BINS.out
