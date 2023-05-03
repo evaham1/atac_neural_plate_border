@@ -85,18 +85,12 @@ workflow {
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
-        // [[sample_id:NF_HiChip_r1], /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/cd/88cbc6d7ea5b20c6f52febaa5ec9fd/edited_ValidPairs.txt]
-        // [[sample_id:WE_HiChip_r1], /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/c7/90d4da8bc07627e142e1dc2dabe34d/edited_ValidPairs.txt]
-        // [[sample_id:WE_HiChip_r3], /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/10/9a2142476b94b5d081b47234204903/edited_ValidPairs.txt]
-        // [[sample_id:WE_HiChip_r2], /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/cb/c9c6eb42cd96232528bc34b5de0c7d/edited_ValidPairs.txt]
-        // [[sample_id:NF_HiChip_r2], /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/37/d9febe21517a7b599e57805d2ae542/edited_ValidPairs.txt]
-        // [[sample_id:NF_HiChip_r3], /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/22/321e6b00beda5a892912d42175ab62/edited_ValidPairs.txt]
 
     // Run HiCDCPlus on ValidPairs data to find significant interactions
-    EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[meta], edited_ValidPairs.txt]
-        .map { row -> [row[0], [row[1]]] }
-        // .combine( GENERATE_BINS.out )
-        // .map{[it[0], it[1] + it[3]]}
+    EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r1], edited_ValidPairs.txt]
+        .map { row -> [row[0], [row[1]]] } //[[sample_id:WE_HiChip_r1], [edited_ValidPairs.txt]]
+        .combine( GENERATE_BINS.out )
+        .map{[it[0], it[1] + it[3]]}
         .set { ch_validpairs }
 
     ch_validpairs.view()
