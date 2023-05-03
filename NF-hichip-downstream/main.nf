@@ -20,14 +20,15 @@ nextflow.enable.dsl = 2
 // 1) Create bins
 include {R as GENERATE_BINS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/generate_bins.R", checkIfExists: true) )
 
-// 2) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find significant interactions
-include { METADATA } from "$baseDir/subworkflows/local/metadata"
-include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
-
 // 2) Prep peak output and gtf and then intersect with bins to annotate them
 include {GTF_TO_BED} from "$baseDir/modules/local/gtf_to_bed/main"
 
-// 3) Filter bins to pick out interactions of interest
+// 3) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find significant interactions
+include { METADATA } from "$baseDir/subworkflows/local/metadata"
+include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
+include {R as LOOP_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/loop_calling_hicdc.R", checkIfExists: true) )
+
+// 4) Filter bins to pick out interactions of interest
 
 //
 // SET CHANNELS
@@ -91,9 +92,9 @@ workflow {
         .map { row -> [row[0], [row[1]]] } //[[sample_id:WE_HiChip_r1], [edited_ValidPairs.txt]]
         .combine( GENERATE_BINS.out )
         .map{[it[0], it[1] + it[3]]}
-        .set { ch_validpairs }
+        .set { ch_validpairs } //[[sample_id:NF_HiChip_r3], [edited_ValidPairs.txt, plots, rds_files]]
 
-    ch_validpairs.view()
+    LOOP_CALL( ch_validpairs )
 
     //here need some channel manipulation to combine GENERATE_BINS.out and EDIT_VALIDPAIRS.out
 

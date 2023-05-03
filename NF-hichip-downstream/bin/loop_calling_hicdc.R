@@ -41,7 +41,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
   } else {
@@ -53,15 +53,19 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
-############################## Call loops #######################################
+############################################################################################################
+############################################# Call loops ###################################################
+############################################################################################################
+
+######################################   Read in bins   ####################################################
 
 # Read in bintolen object with the generated bins
-bintolen <- data.table::fread(paste0(rds_path, "test_bintolen.txt.gz"))
+bintolen <- data.table::fread(paste0(rds_path, "rds_files/bins_bintolen.txt.gz"))
 head(bintolen,20)
 
 # Create gi_list from this bintolen object
 gi_list<-generate_bintolen_gi_list(
-  bintolen_path=paste0(rds_path,"/bins_bintolen.txt.gz"),
+  bintolen_path=paste0(rds_path, "rds_files/bins_bintolen.txt.gz"),
   gen = "Ggallus", gen_ver = "galGal6")
 
 # Check gi_list
@@ -75,6 +79,8 @@ head(gi_list)
 # [3]     chr13            0-5000 ---     chr13       10000-15000 |     10000
 # [4]     chr13            0-5000 ---     chr13       15000-20000 |     15000
 # [5]     chr13            0-5000 ---     chr13       20000-25000 |     20000
+
+####################################   Read in ValidPairs   ###################################################
 
 # Add Validpairs
 valid_pair_path = paste0(data_path, "edited_ValidPairs.txt")
@@ -135,6 +141,8 @@ head(gi_list_with_valid_pairs)
 # Slot "metadata":
 #   list()
 
+####################################   Run HiCDC+   ##################################################
+
 # Expand features for modeling - adds 2D features in metadata handle? what does that mean?
 expanded_gi_list_with_valid_pairs <- expand_1D_features(gi_list_with_valid_pairs)
 
@@ -151,7 +159,8 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               Dmin = 0,
                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
                                                               ssize = 0.01,
-                                                              splineknotting = "uniform"
+                                                              splineknotting = "uniform",
+                                                              chrs = c("chr21","chr22")
                                                               )
 
 # Check one chromosome
@@ -166,6 +175,8 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[1]])
 # [5]     chr20    0-5000 ---     chr20 20000-25000 |     20000         0 -1.074367  -2.81809
 # [6]     chr20    0-5000 ---     chr20 25000-30000 |     25000         0  0.131059  -7.14647
 # -------
+
+####################################   Visualisations   ##################################################
 
 ## Plot counts over interaction distances - takes too long
 #plot(chr1_output[,1]$D, chr1_output[,2]$counts)
@@ -183,6 +194,8 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[1]])
 # 
 # filtered_ch21_output_2 <- filtered_ch21_output[filtered_ch21_output$counts > 50]
 # filtered_ch21_output_2
+
+####################################   Write outputs   ##################################################
 
 #write normalized counts (observed/expected) to a .hic file
 hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
