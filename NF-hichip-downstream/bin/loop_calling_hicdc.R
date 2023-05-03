@@ -59,9 +59,7 @@ if(opt$verbose) print(opt)
 
 ######################################   Read in bins   ####################################################
 
-# Read in bintolen object with the generated bins
-bintolen <- data.table::fread(paste0(data_path, "rds_files/bins_bintolen.txt.gz"))
-head(bintolen,20)
+print("reading in bins...")
 
 # Create gi_list from this bintolen object
 gi_list<-generate_bintolen_gi_list(
@@ -80,7 +78,11 @@ head(gi_list)
 # [4]     chr13            0-5000 ---     chr13       15000-20000 |     15000
 # [5]     chr13            0-5000 ---     chr13       20000-25000 |     20000
 
+print("bins read in!")
+
 ####################################   Read in ValidPairs   ###################################################
+
+print("reading in HiChip counts...")
 
 # Add Validpairs
 valid_pair_path = paste0(data_path, "edited_ValidPairs.txt")
@@ -141,7 +143,11 @@ head(gi_list_with_valid_pairs)
 # Slot "metadata":
 #   list()
 
+print("HiChip counts read in!")
+
 ####################################   Run HiCDC+   ##################################################
+
+print("running HiCDC+...")
 
 # Expand features for modeling - adds 2D features in metadata handle? what does that mean?
 expanded_gi_list_with_valid_pairs <- expand_1D_features(gi_list_with_valid_pairs)
@@ -160,7 +166,7 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
                                                               ssize = 0.01,
                                                               splineknotting = "uniform",
-                                                              chrs = c("chr21","chr22")
+                                                              chrs = c("chr1")
                                                               )
 
 # Check one chromosome
@@ -175,6 +181,8 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[1]])
 # [5]     chr20    0-5000 ---     chr20 20000-25000 |     20000         0 -1.074367  -2.81809
 # [6]     chr20    0-5000 ---     chr20 25000-30000 |     25000         0  0.131059  -7.14647
 # -------
+
+print("HiCDC+ run!")
 
 ####################################   Visualisations   ##################################################
 
@@ -198,11 +206,11 @@ head(expanded_gi_list_with_valid_pairs_HiCDC[[1]])
 ####################################   Write outputs   ##################################################
 
 #write normalized counts (observed/expected) to a .hic file
-hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
+hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC[[1]],
           hicfile=paste0(rds_path,'/HiCDC_output.hic'),
           mode='normcounts',
           gen_ver='galGal6')
 
 #write results to a text file
-gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
+gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC[[1]],
               fname=paste0(rds_path,'/HiCDC_output.txt.gz'))
