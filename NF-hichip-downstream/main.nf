@@ -72,10 +72,14 @@ workflow {
         //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
     GENERATE_BINS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r1], edited_ValidPairs.txt]
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        .view()
+        //.filter{ meta, data -> meta.sample_id == 'FullData'}
         .flatMap {it[1][0].listFiles()}
         .set{ ch_peak_bins }
     
     ch_peak_bins.view()
+    // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/c5/d2ca727dccb0dbb6645013d7e73c1e/rds_files/bins.bed
+    // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/c5/d2ca727dccb0dbb6645013d7e73c1e/rds_files/bins_bintolen.txt.gz
 
     //INTERSECT_BINS_PEAKS( ch_peak_bins )
 
