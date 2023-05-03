@@ -1,13 +1,8 @@
 #!/bin/bash
 
-# Usage: ./gtf_to_bed.sh <gtf_file>
-
-if [ $# -eq 0 ]; then
-  echo "Usage: ./gtf_to_bed.sh <gtf_file>"
-  exit 1
-fi
-
+# Specify inputs
 gtf_file="$1"
+output_file="$2"
 
 # Removes header lines starting with "#"
 # Only keeps lines with "gene" in the 3rd column
@@ -29,4 +24,4 @@ sed '/^#/d' "$gtf_file" \
     print chr"\t"$4-1"\t"$5"\t"gene_id"\t"gene_name"\t"$7;
   }
 }' \
-> "${gtf_file%.*}.bed"
+> "$output_file"
