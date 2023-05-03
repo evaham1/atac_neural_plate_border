@@ -165,12 +165,11 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               Dmin = 0,
                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
                                                               ssize = 0.01,
-                                                              splineknotting = "uniform",
-                                                              chrs = c("chr1")
+                                                              splineknotting = "uniform"
                                                               )
 
 # Check one chromosome
-head(expanded_gi_list_with_valid_pairs_HiCDC[[1]])
+head(expanded_gi_list_with_valid_pairs_HiCDC)
 # GInteractions object with 6 interactions and 4 metadata columns:
 #   seqnames1   ranges1     seqnames2     ranges2 |         D    counts        gc       len
 # <Rle> <IRanges>         <Rle>   <IRanges> | <integer> <numeric> <numeric> <numeric>
@@ -205,12 +204,16 @@ print("HiCDC+ run!")
 
 ####################################   Write outputs   ##################################################
 
+print("saving outputs...")
+
 #write normalized counts (observed/expected) to a .hic file
-hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC[[1]],
+hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
           hicfile=paste0(rds_path,'/HiCDC_output.hic'),
           mode='normcounts',
           gen_ver='galGal6')
 
 #write results to a text file
-gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC[[1]],
+gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
               fname=paste0(rds_path,'/HiCDC_output.txt.gz'))
+
+print("outputs saved!")
