@@ -48,6 +48,7 @@ Channel
     .value(params.gtf)
     .map { row -> [[sample_id:'dummy'], row] }
     .set{ch_dummy}
+//[[sample_id:dummy], /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf]
 
 
 //
@@ -61,18 +62,9 @@ workflow {
     // Turn gtf file into bed file - need to debug get bash syntax error!
     //GTF_TO_BED( ch_gtf )
 
-    ch_dummy.view()
-
     // Generate bins
     GENERATE_BINS ( ch_dummy )
-
-    GENERATE_BINS.out.view()
-    // [[sample_id:WE_HiChip_r2], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/0e/f4d93e32d8bb18ca1c1dd1f781bc49/plots, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/0e/f4d93e32d8bb18ca1c1dd1f781bc49/rds_files]]
-    // [[sample_id:WE_HiChip_r1], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/96/fc9346a0bd7dc603e92f2c45b79b56/plots, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/96/fc9346a0bd7dc603e92f2c45b79b56/rds_files]]
-    // [[sample_id:WE_HiChip_r3], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/08/0bc2685c386e77728aa0c4ee7c90e3/plots, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/08/0bc2685c386e77728aa0c4ee7c90e3/rds_files]]
-    // [[sample_id:NF_HiChip_r1], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/7e/72b5d662bcfce00a44041aa1181d27/plots, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/7e/72b5d662bcfce00a44041aa1181d27/rds_files]]
-    // [[sample_id:NF_HiChip_r2], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/1c/edee56567009b8db00073ffbf28941/plots, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/1c/edee56567009b8db00073ffbf28941/rds_files]]
-    // [[sample_id:NF_HiChip_r3], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/8b/d96cb8c5093bde704e01eb344e5829/plots, /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/8b/d96cb8c5093bde704e01eb344e5829/rds_files]]
+        // [[sample_id:dummy], [./work/c5/d2ca727dccb0dbb6645013d7e73c1e/plots, ./work/c5/d2ca727dccb0dbb6645013d7e73c1e/rds_files]]
 
     // Intersect bins with peaks
         //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
@@ -101,9 +93,10 @@ workflow {
         // [[sample_id:NF_HiChip_r3], /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/22/321e6b00beda5a892912d42175ab62/edited_ValidPairs.txt]
 
     // Run HiCDCPlus on ValidPairs data to find significant interactions
-    EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[meta], [edited_ValidPairs.txt]]
-        .combine( GENERATE_BINS.out )
-        .map{[it[0], it[1] + it[2]]}
+    EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[meta], edited_ValidPairs.txt]
+        .map { row -> [row[0], [row[1]]] }
+        // .combine( GENERATE_BINS.out )
+        // .map{[it[0], it[1] + it[3]]}
         .set { ch_validpairs }
 
     ch_validpairs.view()
