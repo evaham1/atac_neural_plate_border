@@ -23,6 +23,7 @@ include {R as GENERATE_BINS} from "$baseDir/modules/local/r/main"               
 // 2) Prep peak output and gtf and then intersect with bins to annotate them
 include {GTF_TO_BED} from "$baseDir/modules/local/gtf_to_bed/main"
 include {INTERSECT_BINS as INTERSECT_BINS_PEAKS} from "$baseDir/modules/local/intersect_bins/main"
+include {INTERSECT_BINS as INTERSECT_BINS_GENES} from "$baseDir/modules/local/intersect_bins/main"
 
 // 3) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find significant interactions
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -61,7 +62,7 @@ workflow {
 
     //////////  Sample-generic bins generation and annotation  //////////
 
-    // Turn gtf file into bed file - need to debug get bash syntax error!
+    // Turn gtf file into bed file
     GTF_TO_BED( ch_gtf )
 
     // Generate bins
@@ -69,19 +70,24 @@ workflow {
         // [[sample_id:dummy], [./work/c5/d2ca727dccb0dbb6645013d7e73c1e/plots, ./work/c5/d2ca727dccb0dbb6645013d7e73c1e/rds_files]]
 
     // Intersect bins with peaks
-        //here need channel manipulation to combine peaks file from param and GENERATE_BINS.out
     GENERATE_BINS.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
         //.view() //[[sample_id:dummy], [bed_files]]
         .flatMap {it[1][0].listFiles()} //bins.bed
         .combine( ch_peaks )
-        .view() //[bins.bed, FullData_PeakSet.bed]
+        //.view() //[bins.bed, FullData_PeakSet.bed]
         .set{ ch_peak_bins }
-
     INTERSECT_BINS_PEAKS( ch_peak_bins )
 
     // Intersect bins with genes
-        //here need channel manipulation to combine GTF_TO_BED.out and GENERATE_BINS.out
+    GENERATE_BINS.out
+        .map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
+        //.view() //[[sample_id:dummy], [bed_files]]
+        .flatMap {it[1][0].listFiles()} //bins.bed
+        .combine( GTF_TO_BED.out )
+        .view() //[bins.bed, FullData_PeakSet.bed]
+        .set{ ch_genes_bins }
+    INTERSECT_BINS_GENES( ch_genes_bins )
 
     //////////  HiChip-sample specific analysis  //////////
 
