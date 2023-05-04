@@ -76,6 +76,11 @@ if (length(label) == 0){
   paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 }
 
+############################## Check data #######################################
+
+print("Checking which data matrices are in ArchR object:")
+print(getAvailableMatrices(ArchR))
+
 ############################## Export data #######################################
 
 # Export
