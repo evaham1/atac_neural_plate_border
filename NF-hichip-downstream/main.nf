@@ -110,7 +110,7 @@ workflow {
         .map{[it[0], it[1] + it[3]]}
         .set { ch_validpairs } //[[sample_id:NF_HiChip_r3], [edited_ValidPairs.txt, plots, rds_files]]
 
-    //LOOP_CALL( ch_validpairs )
+    LOOP_CALL( ch_validpairs )
 
     //here need some channel manipulation to combine GENERATE_BINS.out and EDIT_VALIDPAIRS.out
 
