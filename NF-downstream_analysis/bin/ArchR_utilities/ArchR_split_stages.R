@@ -24,9 +24,9 @@ opt = getopt(spec)
     setwd("~/NF-downstream_analysis")
     ncores = 8
     
-    data_path = "../output/NF-downstream_analysis/Upstream_processing/FILTERING/FullData/rds_files/"
-    plot_path = "../output/NF-downstream_analysis/TEMP_split_stages/plots/" 
-    rds_path = "../output/NF-downstream_analysis/TEMP_split_stages/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Peak_call/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Processing/FullData/Split_stages/rds_files/" 
+    rds_path = "./output/NF-downstream_analysis/Processing/FullData/Split_stages/plots/"
     
 
     addArchRThreads(threads = 1) 

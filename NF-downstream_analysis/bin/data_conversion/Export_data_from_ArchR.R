@@ -32,22 +32,16 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1) 
     
-    # real data path - transfer labels object
-    data_path = "./output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Split_stages/rds_files/" # has all stages
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/0_ATAC_exported_data/exported_ArchR_data/" # for ss8
 
-    # test data path - ss8 object
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/PEAK_CALLING/peak_call/rds_files/"
-
-    # test output path for exported data
-    rds_path = "./scratch_SEACells/ArchR_exported_data/"
-    
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
-    rds_path = "./exported_ArchR_data/"
     data_path = "./input/rds_files/"
-    ncores = opt$cores
+    rds_path = "./exported_ArchR_data/"
     
+    ncores = opt$cores
     addArchRThreads(threads = ncores)
     
   } else {
@@ -67,6 +61,9 @@ if(opt$verbose) print(opt)
 # If files are not in rds_files subdirectory look in input dir 
 label <- sub('_.*', '', list.files(data_path))
 print(label) 
+
+# Interactive:
+# label <- label[5]
 
 if (length(label) == 0){
   data_path = "./input/"
