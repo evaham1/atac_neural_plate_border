@@ -62,7 +62,7 @@ workflow {
     //////////  Sample-generic bins generation and annotation  //////////
 
     // Turn gtf file into bed file - need to debug get bash syntax error!
-    //GTF_TO_BED( ch_gtf )
+    GTF_TO_BED( ch_gtf )
 
     // Generate bins
     GENERATE_BINS ( ch_dummy )
