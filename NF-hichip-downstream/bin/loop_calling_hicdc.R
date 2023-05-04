@@ -156,6 +156,10 @@ expanded_gi_list_with_valid_pairs <- expand_1D_features(gi_list_with_valid_pairs
 set.seed(1010) #HiC-DC downsamples rows for modeling
 # finds significant interactions in HiC-DC readable matrix and expresses statistical significance of counts with p-val, q-val, FDR corrected pval (mu)
 # ncore defaults to parallel::detectCores()-1
+
+print("Number of cores detected:")
+print(parallel::detectCores())
+
 expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
                                                               covariates = NULL,
                                                               distance_type = "spline",
