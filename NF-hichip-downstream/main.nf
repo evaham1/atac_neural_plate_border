@@ -31,6 +31,8 @@ include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
 include {R as LOOP_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/loop_calling_hicdc.R", checkIfExists: true) )
 
 // 4) Filter bins to pick out interactions of interest
+include {R as INVESTIGATE_LOOPS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/investigate_loop.R", checkIfExists: true) )
+
 
 //
 // SET CHANNELS
@@ -112,11 +114,17 @@ workflow {
 
     LOOP_CALL( ch_validpairs )
 
-    //here need some channel manipulation to combine GENERATE_BINS.out and EDIT_VALIDPAIRS.out
-
-
-
     //////////  Filter interesting interactions  //////////
+
+    LOOP_CALL.out
+        .combine( INTERSECT_BINS_PEAKS.out )
+        .combine( INTERSECT_BINS_GENES.out )
+        .map{[it[0], it[1] + + it[2] + it[3]]}
+        .set { ch_loops_merged } //[[sample_id:NF_HiChip_r3], [edited_ValidPairs.txt, plots, rds_files]]
+
+    ch_loops_merged.view()
+
+    //INVESTIGATE_LOOPS( ch_loops_merged )
 
 
 }
