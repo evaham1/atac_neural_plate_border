@@ -201,25 +201,6 @@ head(expanded_gi_list_with_valid_pairs_HiCDC)
 
 print("HiCDC+ run!")
 
-####################################   Visualisations   ##################################################
-
-## Plot counts over interaction distances - takes too long
-#plot(chr1_output[,1]$D, chr1_output[,2]$counts)
-
-## Plot distribution of significance 
-# hist(unique(chr1_output[,8]$qvalue), breaks = 100)
-# 
-# ### Filter to only include significant interactions
-# filtered_ch1_output <- chr1_output[chr1_output$qvalue < 0.05]
-# nrow(filtered_ch21_output)
-# 
-# hist(unique(filtered_ch21_output[,2]$counts), breaks = 100)
-# 
-# filtered_ch21_output[1,]
-# 
-# filtered_ch21_output_2 <- filtered_ch21_output[filtered_ch21_output$counts > 50]
-# filtered_ch21_output_2
-
 ####################################   Write outputs   ##################################################
 
 print("saving outputs...")
@@ -251,19 +232,31 @@ print("saving outputs...")
 #   filtered_list[[name]] <- temp_filtered_1
 # }
 
-# filter results by adjusted p value
-filtered_list <- list()
-for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
-  name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
-  temp <- expanded_gi_list_with_valid_pairs_HiCDC[i][[1]]
-  temp_filtered <- temp[!is.na(temp$qvalue), ]
-  temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
-  
-  filtered_list[[name]] <- temp_filtered_1
-}
+# filter results by adjusted p value - dont need to do this as done in saving
+# filtered_list <- list()
+# for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
+#   name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
+#   temp <- expanded_gi_list_with_valid_pairs_HiCDC[i][[1]]
+#   temp_filtered <- temp[!is.na(temp$qvalue), ]
+#   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
+#   
+#   filtered_list[[name]] <- temp_filtered_1
+# }
 
-#write results to a text file
-gi_list_write(filtered_list,
-              fname=paste0(rds_path,'/HiCDC_output_filtered.txt.gz'))
+#write significant results to a text file
+gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
+              fname=paste0(rds_path,'/HiCDC_output_filtered.txt'),
+              rows = "significant", significance_threshold = 0.05)
 
 print("outputs saved!")
+
+####################################   Visualisations   ##################################################
+
+## Plot counts over interaction distances
+#plot(temp$D, temp$counts)
+#plot(log10(temp$D), log10(temp$counts))
+
+## Plot distribution of significance 
+# hist(unique(temp$qvalue), breaks = 100)
+
+
