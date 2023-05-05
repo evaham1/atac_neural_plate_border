@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-### script to use HiCDCPlus to call significant loop from HiChip data
+### script to use HiCDCPlus to call significant loop from HiChip data
 print("script to use HiCDCPlus to call significant loop from HiChip data")
 
 ############################## Load libraries #######################################
@@ -32,9 +32,10 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    plot_path = "./output/NF-hichip/HicDC/plots/"
-    rds_path = "./output/NF-hichip/HicDC/rds_files/"
-    data_path = "./output/NF-hichip/HicDC/"
+    plot_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/plots/"
+    rds_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/rds_files/"
+    data_path = "./output/NF-hichip-downstream/NF_HiChip_r1/edit_validpairs/" # for valid pairs
+    data_path = "./output/NF-hichip-downstream/bins/" # for bins
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -160,6 +161,18 @@ set.seed(1010) #HiC-DC downsamples rows for modeling
 print("Number of cores detected:")
 print(parallel::detectCores())
 
+# expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
+#                                                               covariates = NULL,
+#                                                               distance_type = "spline",
+#                                                               model_distribution = "nb",
+#                                                               binned = TRUE,
+#                                                               df = 6,
+#                                                               Dmin = 0,
+#                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
+#                                                               ssize = 0.01,
+#                                                               splineknotting = "uniform"
+#                                                               )
+
 expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
                                                               covariates = NULL,
                                                               distance_type = "spline",
@@ -169,8 +182,9 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               Dmin = 0,
                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
                                                               ssize = 0.01,
-                                                              splineknotting = "uniform"
-                                                              )
+                                                              splineknotting = "uniform",
+                                                              chrs = c("chr21", "chr22")
+)
 
 # Check one chromosome
 head(expanded_gi_list_with_valid_pairs_HiCDC)
@@ -210,14 +224,46 @@ print("HiCDC+ run!")
 
 print("saving outputs...")
 
-#write normalized counts (observed/expected) to a .hic file
-hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
-          hicfile=paste0(rds_path,'/HiCDC_output.hic'),
-          mode='normcounts',
-          gen_ver='galGal6')
+# interactively
+# temp_output <- list()
+# temp_output$chr21 <- expanded_gi_list_with_valid_pairs_HiCDC$chr21
+# temp_output$chr22 <- expanded_gi_list_with_valid_pairs_HiCDC$chr22
+# hicdc2hic(temp_output,
+#           hicfile=paste0(rds_path,'/HiCDC_output_test.hic'),
+#           mode='normcounts',
+#           gen_ver='galGal6')
+# gi_list_write(temp_output,
+#               fname=paste0(rds_path,'/HiCDC_output_temp.txt.gz'))
+
+# #write normalized counts (observed/expected) to a .hic file
+# hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
+#           hicfile=paste0(rds_path,'/HiCDC_output.hic'),
+#           mode='normcounts',
+#           gen_ver='galGal6')
+
+# filtered_list <- list()
+# for (i in 1:length(temp_output)){
+#   name <- names(temp_output)[i]
+#   temp <- temp_output[i][[1]]
+#   temp_filtered <- temp[!is.na(temp$qvalue), ]
+#   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
+#   
+#   filtered_list[[name]] <- temp_filtered_1
+# }
+
+# filter results by adjusted p value
+filtered_list <- list()
+for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
+  name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
+  temp <- expanded_gi_list_with_valid_pairs_HiCDC[i][[1]]
+  temp_filtered <- temp[!is.na(temp$qvalue), ]
+  temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
+  
+  filtered_list[[name]] <- temp_filtered_1
+}
 
 #write results to a text file
-gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
-              fname=paste0(rds_path,'/HiCDC_output.txt.gz'))
+gi_list_write(filtered_list,
+              fname=paste0(rds_path,'/HiCDC_output_filtered.txt.gz'))
 
 print("outputs saved!")
