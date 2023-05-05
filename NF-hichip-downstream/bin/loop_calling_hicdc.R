@@ -62,7 +62,11 @@ if(opt$verbose) print(opt)
 
 print("reading in bins...")
 
-# Create gi_list from this bintolen object
+# Check bins object
+bins <- data.table::fread(paste0(data_path, "rds_files/bins_bintolen.txt.gz"))
+head(bins, 20)
+
+# Create gi_list from this bintolen object ie make all possible interactions
 gi_list<-generate_bintolen_gi_list(
   bintolen_path=paste0(data_path, "rds_files/bins_bintolen.txt.gz"),
   gen = "Ggallus", gen_ver = "galGal6")
@@ -220,7 +224,7 @@ print("saving outputs...")
 #   temp <- temp_output[i][[1]]
 #   temp_filtered <- temp[!is.na(temp$qvalue), ]
 #   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
-#
+# 
 #   filtered_list[[name]] <- temp_filtered_1
 # }
 
@@ -264,44 +268,82 @@ print("outputs saved!")
 ####################################   Visualisations   ##################################################
 
 ########################
-########## interactively
+########## interactively - chrom22
 ## Plot counts over interaction distances
 #plot(temp$D, temp$counts)
 #plot(log10(temp$D), log10(temp$counts))
 
-data <- data.frame(distance = temp$D,
-                  counts = temp$counts)
 
+#### CHECKING BIN SIZES
 
+# check bins of the whole chromosome are all same width
+bins <- as.data.frame(bins)
+bins_ch22 <- bins[grepl("chr22", bins$bins), ]
+first.word <- function(X){
+  unlist(strsplit(X, "-"))[1]
+}
+second.word <- function(X){
+  unlist(strsplit(X, "-"))[2]
+}
+third.word <- function(X){
+  unlist(strsplit(X, "-"))[3]
+}
+bins_ch22 <- bins_ch22 %>% 
+  mutate(chr = sapply(bins, first.word)) %>%
+  mutate(start = sapply(bins, second.word)) %>%
+  mutate(end = sapply(bins, third.word))
+bins_ch22 <- bins_ch22 %>%
+  mutate(bin_width = as.numeric(bins_ch22$end) - as.numeric(bins_ch22$start))
+
+# there are two bin lengths: 4999, 4461 (4461 is the last bin on the chromosome)
+unique(bins_ch22$bin_width)
+bins_ch22[bins_ch22$bin_width == 4461, ]
+tail(bins_ch22)
+
+#### CHECKING INTERACTION DISTANCES
+
+# check the range of interaction distances possible 
+summary(temp$D) # range of interaction distances is: min 0, max 2,000,000 ie 2 million ie 2 MB
+
+# check which interaction distances are divisible by 5000 (bin width)
 check.integer <- function(x) {
   x == round(x)
 }
+length(temp$D) - sum(check.integer(temp$D / 5000))
+# 375 interactions do not have a distance divisible by 5000
 
-length(temp$D)
-sum(check.integer(temp$D / 5000))
+# check which bins these interaction sizes are connected to
+temp_weird_interactions <- temp[!check.integer(temp$D / 5000), ]
+temp_weird_interactions
+# these interactions are all interacting with the mis-sized last bin
 
+# remove these 'weird' interactions
+temp_normal_interactions <- temp[check.integer(temp$D / 5000), ]
+temp_normal_interactions
+
+# plot distance by counts
+data <- data.frame(distance = temp_normal_interactions$D,
+                   counts = temp_normal_interactions$counts)
+
+# using means per distance
 mean_data <- aggregate(counts ~ distance, data, mean)
 ggplot(mean_data, aes(x=log10(distance), y=log10(counts))) +
   geom_line() +
   geom_point()
-
-mean_data <- aggregate(counts ~ distance, data, mean)
 ggplot(mean_data, aes(x=distance, y=counts)) +
   geom_line() +
   geom_point()
+# looks like around 1 to 1.5mb the profile become jagged. 
+# currently the max loop length is set as 1.5mb, could maybe reduce it to 1mb
 
+# using medians per distance
 median_data <- aggregate(counts ~ distance, data, median)
+ggplot(median_data, aes(x=distance, y=counts)) +
+  geom_line() +
+  geom_point()
 ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
   geom_line() +
   geom_point()
-
-
-bintolen <- data.table::fread(paste0(data_path, "rds_files/bins_bintolen.txt.gz"))
-head(bintolen,20)
-
-
-
-# 400 bins are not divisible by 5000
 
 ## Plot distribution of significance 
 # hist(unique(temp$qvalue), breaks = 100)
