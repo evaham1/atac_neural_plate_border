@@ -122,12 +122,10 @@ workflow {
         .combine( INTERSECT_BINS_PEAKS.out )
         .combine( INTERSECT_BINS_GENES.out )
         //.view() //[[sample_id:WE_HiChip_r2], rds_files, intersected_bins.bed, intersected_bins.bed]
-        .map{ meta, data1, data2, data3 -> [meta, [data1 + data2 + data3]] }
+        .map{ it[0], it[1] + it[2] + it[3] }
         .view()
         .set { ch_loops_merged } //[[sample_id:NF_HiChip_r3], [ ? ]]
     //INVESTIGATE_LOOPS( ch_loops_merged )
-
-
 }
 
 
