@@ -31,7 +31,7 @@ include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
 include {R as LOOP_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/loop_calling_hicdc.R", checkIfExists: true) )
 
 // 4) Filter bins to pick out interactions of interest
-include {R as INVESTIGATE_LOOPS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/investigate_loop.R", checkIfExists: true) )
+include {R as INVESTIGATE_LOOPS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/investigate_loops.R", checkIfExists: true) )
 
 
 //
