@@ -173,6 +173,8 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               splineknotting = "uniform"
                                                               )
 
+########################
+########## interactively
 # expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
 #                                                               covariates = NULL,
 #                                                               distance_type = "spline",
@@ -185,6 +187,7 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
 #                                                               splineknotting = "uniform",
 #                                                               chrs = c("chr21", "chr22")
 # )
+########################
 
 # Check one chromosome
 head(expanded_gi_list_with_valid_pairs_HiCDC)
@@ -205,10 +208,22 @@ print("HiCDC+ run!")
 
 print("saving outputs...")
 
-# interactively
+########################
+########## interactively
 # temp_output <- list()
 # temp_output$chr21 <- expanded_gi_list_with_valid_pairs_HiCDC$chr21
 # temp_output$chr22 <- expanded_gi_list_with_valid_pairs_HiCDC$chr22
+
+# filtered_list <- list()
+# for (i in 1:length(temp_output)){
+#   name <- names(temp_output)[i]
+#   temp <- temp_output[i][[1]]
+#   temp_filtered <- temp[!is.na(temp$qvalue), ]
+#   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
+#
+#   filtered_list[[name]] <- temp_filtered_1
+# }
+
 # hicdc2hic(temp_output,
 #           hicfile=paste0(rds_path,'/HiCDC_output_test.hic'),
 #           mode='normcounts',
@@ -221,42 +236,40 @@ print("saving outputs...")
 #           hicfile=paste0(rds_path,'/HiCDC_output.hic'),
 #           mode='normcounts',
 #           gen_ver='galGal6')
+########################
 
-# filtered_list <- list()
-# for (i in 1:length(temp_output)){
-#   name <- names(temp_output)[i]
-#   temp <- temp_output[i][[1]]
-#   temp_filtered <- temp[!is.na(temp$qvalue), ]
-#   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
-#   
-#   filtered_list[[name]] <- temp_filtered_1
-# }
+#write significant results to a text file - this doesnt work because there are NAs in q-values!
+# gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
+#               fname=paste0(rds_path,'/HiCDC_output_filtered.txt'),
+#               rows = "significant", significance_threshold = 0.05)
 
-# filter results by adjusted p value - dont need to do this as done in saving
-# filtered_list <- list()
-# for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
-#   name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
-#   temp <- expanded_gi_list_with_valid_pairs_HiCDC[i][[1]]
-#   temp_filtered <- temp[!is.na(temp$qvalue), ]
-#   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
-#   
-#   filtered_list[[name]] <- temp_filtered_1
-# }
 
-#write significant results to a text file
-gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
+# Filter results by adjusted p value - done manually as can then remove NAs myself
+filtered_list <- list()
+for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
+  name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
+  temp <- expanded_gi_list_with_valid_pairs_HiCDC[i][[1]]
+  temp_filtered <- temp[!is.na(temp$qvalue), ]
+  temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
+  
+  filtered_list[[name]] <- temp_filtered_1
+}
+
+gi_list_write(filtered_list,
               fname=paste0(rds_path,'/HiCDC_output_filtered.txt'),
-              rows = "significant", significance_threshold = 0.05)
+              rows = "all")
 
 print("outputs saved!")
 
 ####################################   Visualisations   ##################################################
 
+########################
+########## interactively
 ## Plot counts over interaction distances
 #plot(temp$D, temp$counts)
 #plot(log10(temp$D), log10(temp$counts))
 
 ## Plot distribution of significance 
 # hist(unique(temp$qvalue), breaks = 100)
-
+########################
 
