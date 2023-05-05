@@ -161,18 +161,6 @@ set.seed(1010) #HiC-DC downsamples rows for modeling
 print("Number of cores detected:")
 print(parallel::detectCores())
 
-# expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
-#                                                               covariates = NULL,
-#                                                               distance_type = "spline",
-#                                                               model_distribution = "nb",
-#                                                               binned = TRUE,
-#                                                               df = 6,
-#                                                               Dmin = 0,
-#                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
-#                                                               ssize = 0.01,
-#                                                               splineknotting = "uniform"
-#                                                               )
-
 expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
                                                               covariates = NULL,
                                                               distance_type = "spline",
@@ -182,9 +170,21 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               Dmin = 0,
                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
                                                               ssize = 0.01,
-                                                              splineknotting = "uniform",
-                                                              chrs = c("chr21", "chr22")
-)
+                                                              splineknotting = "uniform"
+                                                              )
+
+# expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
+#                                                               covariates = NULL,
+#                                                               distance_type = "spline",
+#                                                               model_distribution = "nb",
+#                                                               binned = TRUE,
+#                                                               df = 6,
+#                                                               Dmin = 0,
+#                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
+#                                                               ssize = 0.01,
+#                                                               splineknotting = "uniform",
+#                                                               chrs = c("chr21", "chr22")
+# )
 
 # Check one chromosome
 head(expanded_gi_list_with_valid_pairs_HiCDC)
