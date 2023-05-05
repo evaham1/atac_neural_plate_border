@@ -360,10 +360,10 @@ temp_path = paste0(rds_path, "FullData/")
 dir.create(temp_path)
 
 # export peak modules
-export_antler_modules(antler_temp, publish_dir = temp_path, names_list = "unbiasedPMs")
+export_antler_modules(antler_data, publish_dir = temp_path, names_list = "unbiasedPMs")
 
 # save antler object
-saveRDS(antler_temp, paste0(temp_path, 'antler.RDS'))
+saveRDS(antler_data, paste0(temp_path, 'antler.RDS'))
 
 
 ########################################################################################################
