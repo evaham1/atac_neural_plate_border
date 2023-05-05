@@ -119,13 +119,12 @@ workflow {
     LOOP_CALL.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
         .view() //[[sample_id:WE_HiChip_r2], [rds_files]]
-        .flatMap {it[0], it[1][0].listFiles()}
-        .view() //[[sample_id:WE_HiChip_r2], [ ? ]]
-        //.combine( INTERSECT_BINS_PEAKS.out )
-        //.combine( INTERSECT_BINS_GENES.out )
+        //.flatMap {it[0], it[1][0].listFiles()}
+        .combine( INTERSECT_BINS_PEAKS.out )
+        .combine( INTERSECT_BINS_GENES.out )
         .set { ch_loops_merged } //[[sample_id:NF_HiChip_r3], [ ? ]]
 
-    //ch_loops_merged.view()
+    ch_loops_merged.view()
 
     //INVESTIGATE_LOOPS( ch_loops_merged )
 
