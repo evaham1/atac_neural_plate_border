@@ -175,6 +175,14 @@ included_peaks <- included_peak_set$name
 annot_filtered_matrix <- normalised_counts[, which(colnames(normalised_counts) %in% included_peaks)]
 dim(annot_filtered_matrix)
 
+# plot how many peaks filtered
+peak_counts <- data.frame(unfiltered = dim(normalised_counts)[2], filtered = dim(annot_filtered_matrix)[2])
+
+png(paste0(plot_path, "annotation_filtering.png"), width=60, height=40, units = 'cm', res = 200)
+grid.arrange(top=textGrob("Remaining Peak Counts", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+               tableGrob(peak_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
 ############## 3) Filter peaks by variance #######################################
 ## pick peaks with most variance across all cells
 
@@ -186,6 +194,14 @@ print(paste0("Number of top variable features: ", length(top_features)))
 
 ## filter normalised matrix based on these features
 variable_filtered_matrix <- annot_filtered_matrix[, top_features]
+
+# plot how many peaks filtered
+peak_counts <- data.frame(unfiltered = dim(annot_filtered_matrix)[2], filtered = dim(variable_filtered_matrix)[2])
+
+png(paste0(plot_path, "variable_filtering.png"), width=60, height=40, units = 'cm', res = 200)
+grid.arrange(top=textGrob("Remaining Peak Counts", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+               tableGrob(peak_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 # check new matrix
 print("Preview of filtered normalised counts df:")
