@@ -85,7 +85,7 @@ workflow {
         //.view() //[[sample_id:dummy], [bed_files]]
         .flatMap {it[1][0].listFiles()} //bins.bed
         .combine( GTF_TO_BED.out )
-        .view() //[bins.bed, FullData_PeakSet.bed]
+        //.view() //[bins.bed, tag_chroms.bed]
         .set{ ch_genes_bins }
     INTERSECT_BINS_GENES( ch_genes_bins )
 
