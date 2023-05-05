@@ -269,6 +269,40 @@ print("outputs saved!")
 #plot(temp$D, temp$counts)
 #plot(log10(temp$D), log10(temp$counts))
 
+data <- data.frame(distance = temp$D,
+                  counts = temp$counts)
+
+
+check.integer <- function(x) {
+  x == round(x)
+}
+
+length(temp$D)
+sum(check.integer(temp$D / 5000))
+
+mean_data <- aggregate(counts ~ distance, data, mean)
+ggplot(mean_data, aes(x=log10(distance), y=log10(counts))) +
+  geom_line() +
+  geom_point()
+
+mean_data <- aggregate(counts ~ distance, data, mean)
+ggplot(mean_data, aes(x=distance, y=counts)) +
+  geom_line() +
+  geom_point()
+
+median_data <- aggregate(counts ~ distance, data, median)
+ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
+  geom_line() +
+  geom_point()
+
+
+bintolen <- data.table::fread(paste0(data_path, "rds_files/bins_bintolen.txt.gz"))
+head(bintolen,20)
+
+
+
+# 400 bins are not divisible by 5000
+
 ## Plot distribution of significance 
 # hist(unique(temp$qvalue), breaks = 100)
 ########################
