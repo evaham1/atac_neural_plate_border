@@ -119,15 +119,15 @@ workflow {
     LOOP_CALL.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
         //.view() //[[sample_id:WE_HiChip_r2], [rds_files]]
-        .map{ meta, data -> [meta, data.flatten()] }
+        .map{ meta, data -> [meta, data.listFiles()] }
         .view()
         .combine( INTERSECT_BINS_PEAKS.out )
         .combine( INTERSECT_BINS_GENES.out )
-        //.view() //[[sample_id:WE_HiChip_r1], [ ? ]
-        .map{ meta, data1, data2, data3 -> [meta, [data1 + data2 + data3]] }
+        .view() //[[sample_id:WE_HiChip_r1], [ ? ]
+        //.map{ meta, data1, data2, data3 -> [meta, [data1 + data2 + data3]] }
         .set { ch_loops_merged } //[[sample_id:NF_HiChip_r3], [ ? ]]
 
-    ch_loops_merged.view()
+    //ch_loops_merged.view()
 
     //INVESTIGATE_LOOPS( ch_loops_merged )
 
