@@ -119,7 +119,7 @@ workflow {
     LOOP_CALL.out
         .combine( INTERSECT_BINS_PEAKS.out )
         .combine( INTERSECT_BINS_GENES.out )
-        .map{[it[0], it[1] + + it[2] + it[3]]}
+        //.map{[it[0], it[1] + + it[2] + it[3]]}
         .set { ch_loops_merged } //[[sample_id:NF_HiChip_r3], [edited_ValidPairs.txt, plots, rds_files]]
 
     ch_loops_merged.view()
