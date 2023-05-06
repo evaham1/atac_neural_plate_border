@@ -560,7 +560,7 @@ for (i in seq(1:length(stage_order))){
                   col = PurpleAndYellow())
   
   png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype.png'), width = 60, height = 80, res = 400, units = 'cm')
-  plot
+  print(plot)
   graphics.off()
   
   ########  Plot all peak modules ordered hclust ########
@@ -579,7 +579,7 @@ for (i in seq(1:length(stage_order))){
                   col = PurpleAndYellow())
   
   png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_hclust.png'), width = 60, height = 80, res = 400, units = 'cm')
-  plot
+  print(plot)
   graphics.off()
   
   print(paste0(stage, " peak modules plotted!"))
