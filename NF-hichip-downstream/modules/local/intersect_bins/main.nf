@@ -15,5 +15,7 @@ process INTERSECT_BINS {
     output = features.toString() - ".bed" + "_bins_intersected.bed"
     """
     bedtools intersect -a $bins -b $features -wa -wb > $output
+    rm $bins
+    rm $features
     """
 }
