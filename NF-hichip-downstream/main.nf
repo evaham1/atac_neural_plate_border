@@ -130,10 +130,10 @@ workflow {
 
     LOOP_CALL.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-        .combine(INTERSECT_BINS_PEAKS.out) //FullData_PeakSet_bins_intersected.bed
-        .combine(INTERSECT_BINS_GENES.out) //tag_chroms_bins_intersected.bed
+        .zip(INTERSECT_BINS_PEAKS.out) //FullData_PeakSet_bins_intersected.bed
+        //.combine(INTERSECT_BINS_GENES.out) //tag_chroms_bins_intersected.bed
         //.view() //[[sample_id:NF_HiChip_r3], rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]
-        .map { sample, files1, files2 -> [sample[0], [sample[1], files1, files2]] }
+        //.map { sample, files1, files2 -> [sample[0], [sample[1], files1, files2]] }
         .view()
 
     //ch_intersect = Channel.zip(ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
