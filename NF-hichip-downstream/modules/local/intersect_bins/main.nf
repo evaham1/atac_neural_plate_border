@@ -6,7 +6,7 @@ process INTERSECT_BINS {
         'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
     
     input:
-    tuple bins, features
+    tuple path(bins), path(features)
 
     output:
     path "$output"       , emit: intersected_bed
