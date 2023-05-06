@@ -132,15 +132,21 @@ workflow {
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
         .set{ ch_loops_rds }
 
-    ch_intersect = Channel
-        .from([ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out])
-        // .map { tuple ->
-        //     def sample = tuple[0]
-        //     def files = tuple[1..-1]
-        //     [sample, files]
-        //     }
+    ch_loops_rds.view()
 
-    ch_intersect.view()
+    INTERSECT_BINS_PEAKS.out.view()
+
+    INTERSECT_BINS_GENES.out.view()
+
+    // ch_intersect = Channel
+    //     .from([ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out])
+    //     // .map { tuple ->
+    //     //     def sample = tuple[0]
+    //     //     def files = tuple[1..-1]
+    //     //     [sample, files]
+    //     //     }
+
+    // ch_intersect.view()
 
 
 
