@@ -130,24 +130,11 @@ workflow {
 
     LOOP_CALL.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-        .combine(INTERSECT_BINS_PEAKS.out)
-        .combine(INTERSECT_BINS_GENES.out)
-        .view() //[[sample_id:NF_HiChip_r3], rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]
+        .combine(INTERSECT_BINS_PEAKS.out) //FullData_PeakSet_bins_intersected.bed
+        .combine(INTERSECT_BINS_GENES.out) //tag_chroms_bins_intersected.bed
+        //.view() //[[sample_id:NF_HiChip_r3], rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]
         .map { sample, files1, files2 -> [sample[0], [sample[1], files1, files2]] }
-
-    // ch_loops_rds.view()
-    // [[sample_id:WE_HiChip_r1], c2/c9d72f072aeabdcc1d364f6cd956f0/rds_files]
-    // [[sample_id:WE_HiChip_r2], 48/29450c5a7a7b3fbd9574f52050f416/rds_files]
-    // [[sample_id:WE_HiChip_r3], f8/c2e16702e676de96cc32f75e31622e/rds_files]
-    // [[sample_id:NF_HiChip_r1], 20/eb2e6c33f05d5232f50fb92a986c64/rds_files]
-    // [[sample_id:NF_HiChip_r2], 20/f575fbce7b65579bca132f87993713/rds_files]
-    // [[sample_id:NF_HiChip_r3], 90/fd99fceb9864cede48b76a44136b20/rds_files]
-
-    //INTERSECT_BINS_PEAKS.out.view()
-    ///FullData_PeakSet_bins_intersected.bed
-
-    //INTERSECT_BINS_GENES.out.view()
-    //tag_chroms_bins_intersected.bed
+        .view()
 
     //ch_intersect = Channel.zip(ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
 
