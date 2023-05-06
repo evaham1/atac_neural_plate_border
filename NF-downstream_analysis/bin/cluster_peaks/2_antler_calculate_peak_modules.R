@@ -356,13 +356,22 @@ antler_data$load_dataset(folder_path = antler_path)
 antler_data$normalize(method = 'CPM')
 
 # Calculate GMs unbiasedly
-# params are default except: mod_min_cell from 10 to 5 because using SEACells and mod_consistency_thres 0.3 to 0.4 for more stringency
+
+# antler default params:
+# antler$gene_modules$identify(
+#     name                  = "unbiasedGMs",
+#     corr_t                = 0.3,  # the Spearman correlation treshold
+#     corr_min              = 3,    # min. number of genes a gene must correlate with
+#     mod_min_cell          = 10,   # min. number of cells expressing the module
+#     mod_consistency_thres = 0.3,  # ratio of expressed genes among "positive" cells
+#     process_plots         = TRUE) # plot optimal module number heuristics
+
 antler_data$gene_modules$identify(
   name                  = "unbiasedPMs",
-  corr_t                = 0.3,  # the Spearman correlation threshold
-  corr_min              = 3,    # min. number of genes a gene must correlate with
-  mod_min_cell          = 5,   # min. number of cells expressing the module
-  mod_consistency_thres = 0.4,  # ratio of expressed genes among "positive" cells
+  corr_t                = 0.3,
+  corr_min              = 3,
+  mod_min_cell          = 5,   # have reduced this because using SEACells not individual cells
+  mod_consistency_thres = 0.3,
   process_plots         = TRUE)
 
 # rename peak modules
@@ -388,76 +397,76 @@ print("Peak modules calculated for full data!")
 # ########################################################################################################
 # ################## use raw count matrix for this as Antler has its own normalisation step ##############
 
-# print("Calculating peak modules for each stage...")
+print("Calculating peak modules for each stage...")
 
-# number_of_PMs_calculated <- c(length(antler_data$gene_modules$lists$unbiasedPMs$content))
-# corr_t_range <- c(0.3, 0.3, 0.6, 0.4, 0.6) # have adjusted these so you get between 10-25 PMs per stage
+number_of_PMs_calculated <- c(length(antler_data$gene_modules$lists$unbiasedPMs$content))
+corr_t_range <- c(0.3, 0.3, 0.3, 0.3, 0.3) # have adjusted these so you get between 10-25 PMs per stage
 
-# for (i in seq(1:length(stage_order))){
+for (i in seq(1:length(stage_order))){
   
-#   # Extract stage
-#   stage <- stage_order[i]
-#   print(paste0("Calculating peak modules for stage: ", stage))
+  # Extract stage
+  stage <- stage_order[i]
+  print(paste0("Calculating peak modules for stage: ", stage))
   
-#   # subset data matrix
-#   SEACells_summarised_temp <- SEACells_summarised[grep(stage, rownames(SEACells_summarised)), ]
-#   dim(SEACells_summarised_temp)
+  # subset data matrix
+  SEACells_summarised_temp <- SEACells_summarised[grep(stage, rownames(SEACells_summarised)), ]
+  dim(SEACells_summarised_temp)
   
-#   # generate fake metadata needed for Antler
-#   pheno_data <- data.frame(row.names = rownames(SEACells_summarised_temp),
-#                            "timepoint" = rep(1, nrow(SEACells_summarised_temp)),
-#                            "treatment" = rep("null", nrow(SEACells_summarised_temp)),
-#                            "replicate_id" = rep(1, nrow(SEACells_summarised_temp))
-#   )
+  # generate fake metadata needed for Antler
+  pheno_data <- data.frame(row.names = rownames(SEACells_summarised_temp),
+                           "timepoint" = rep(1, nrow(SEACells_summarised_temp)),
+                           "treatment" = rep("null", nrow(SEACells_summarised_temp)),
+                           "replicate_id" = rep(1, nrow(SEACells_summarised_temp))
+  )
   
-#   # create antler folder
-#   antler_path = paste0("./antler_", stage, "/")
-#   dir.create(antler_path)
+  # create antler folder
+  antler_path = paste0("./antler_", stage, "/")
+  dir.create(antler_path)
   
-#   # save pheno data
-#   write.table(pheno_data, file = paste0(antler_path, "phenoData.csv"), row.names = T, sep = "\t", col.names = T)
+  # save pheno data
+  write.table(pheno_data, file = paste0(antler_path, "phenoData.csv"), row.names = T, sep = "\t", col.names = T)
   
-#   # save count data
-#   write.table(t(SEACells_summarised_temp), file = paste0(antler_path, "assayData.csv"), row.names = T, sep = "\t", col.names = T, quote = F)
+  # save count data
+  write.table(t(SEACells_summarised_temp), file = paste0(antler_path, "assayData.csv"), row.names = T, sep = "\t", col.names = T, quote = F)
   
-#   # Create Antler object
-#   antler_temp <- Antler$new(output_folder = plot_path, num_cores = ncores)
-#   antler_temp$load_dataset(folder_path = antler_path)
+  # Create Antler object
+  antler_temp <- Antler$new(output_folder = plot_path, num_cores = ncores)
+  antler_temp$load_dataset(folder_path = antler_path)
   
-#   # Normalize data
-#   antler_temp$normalize(method = 'CPM')
+  # Normalize data
+  antler_temp$normalize(method = 'CPM')
   
-#   # Calculate GMs unbiasedly
-#   antler_temp$gene_modules$identify(
-#     name                  = "unbiasedPMs",
-#     corr_t                = corr_t_range[i],  # the Spearman correlation threshold
-#     corr_min              = 3,    # min. number of genes a gene must correlate with
-#     mod_min_cell          = 5,   # min. number of cells expressing the module
-#     mod_consistency_thres = 0.4,  # ratio of expressed genes among "positive" cells
-#     process_plots         = TRUE)
+  # Calculate GMs unbiasedly
+  antler_temp$gene_modules$identify(
+    name                  = "unbiasedPMs",
+    corr_t                = corr_t_range[i],  # the Spearman correlation threshold
+    corr_min              = 3,    # min. number of genes a gene must correlate with
+    mod_min_cell          = 5,   # min. number of cells expressing the module
+    mod_consistency_thres = 0.3,  # ratio of expressed genes among "positive" cells
+    process_plots         = TRUE)
   
-#   # rename peak modules
-#   names(antler_temp$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:length(antler_temp$gene_modules$lists$unbiasedPMs$content))
+  # rename peak modules
+  names(antler_temp$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:length(antler_temp$gene_modules$lists$unbiasedPMs$content))
   
-#   # how many peak modules were generated
-#   print(paste0("Number of peak modules made: ", length(antler_temp$gene_modules$lists$unbiasedPMs$content)))
-#   number_of_PMs_calculated <- c(number_of_PMs_calculated, length(antler_temp$gene_modules$lists$unbiasedPMs$content))
+  # how many peak modules were generated
+  print(paste0("Number of peak modules made: ", length(antler_temp$gene_modules$lists$unbiasedPMs$content)))
+  number_of_PMs_calculated <- c(number_of_PMs_calculated, length(antler_temp$gene_modules$lists$unbiasedPMs$content))
   
-#   # stage-specific folder
-#   temp_path = paste0(rds_path, stage, "/")
-#   dir.create(temp_path)
-  
-#   # export peak modules
-#   export_antler_modules(antler_temp, publish_dir = temp_path, names_list = "unbiasedPMs")
-  
-#   # save antler object
-#   saveRDS(antler_temp, paste0(temp_path, 'antler.RDS'))
+  # export peak modules
+  temp_path = paste0(PMs_path, stage, "/")
+  dir.create(temp_path)
+  export_antler_modules(antler_temp, publish_dir = temp_path, names_list = "unbiasedPMs")
 
-#   print(paste0("Peak modules calculated for stage: ", stage))
-  
-# }
+  # save antler object
+  temp_path = paste0(rds_path, stage, "/")
+  dir.create(temp_path)
+  saveRDS(antler_temp, paste0(temp_path, 'antler.RDS'))
 
-# print("All peak modules calculated!")
+  print(paste0("Peak modules calculated for stage: ", stage))
+  
+}
+
+print("All peak modules calculated!")
 
 ########################################################################################################
 #                     Visualise peak modules calculated on full data                                  #
@@ -501,208 +510,88 @@ png(paste0(temp_plot_path, 'All_peak_modules.png'), width = 60, height = 80, res
 plot
 graphics.off()
 
-
-########  Plot manually grouped peak modules ######## !!! WILL HAVE TO CHANGE WITH RE-PROCESSED DATA
-# 
-# ##### Noneural #####
-# 
-# # Subset data
-# temp1 <- antler_data$gene_modules$lists$unbiasedPMs$content[1:10]
-# peaks <- unlist(temp1)
-# length(peaks)
-# filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
-# 
-# # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
-# plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-#                                    custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-#                                    peak_modules = temp1, peak_row_annotation = TRUE)
-# 
-# # Plot heatmap
-# plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-#                 show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-#                 row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-#                 bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_colours),
-#                 top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
-#                 col = PurpleAndYellow())
-# 
-# png(paste0(temp_plot_path, 'Noneural_peak_modules.png'), width = 60, height = 30, res = 400, units = 'cm')
-# plot
-# graphics.off()
-# 
-# ##### Early neural ##### (broadly on and then switch off leaving some accessibility in neural clusters, some AP differences)
-# 
-# # Subset data
-# temp1 <- antler_data$gene_modules$lists$unbiasedPMs$content[14:20]
-# peaks <- unlist(temp1)
-# length(peaks)
-# filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
-# 
-# # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
-# plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-#                                    custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-#                                    peak_modules = temp1, peak_row_annotation = TRUE)
-# 
-# # Plot heatmap
-# plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-#                 show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-#                 row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-#                 bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_colours),
-#                 top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
-#                 col = PurpleAndYellow())
-# 
-# png(paste0(temp_plot_path, 'Early_neural_peak_modules.png'), width = 60, height = 30, res = 400, units = 'cm')
-# plot
-# graphics.off()
-# 
-# ##### Late neural #####
-# 
-# # Subset data
-# temp1 <- antler_data$gene_modules$lists$unbiasedPMs$content[25:35]
-# peaks <- unlist(temp1)
-# length(peaks)
-# filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
-# 
-# # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
-# plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-#                                    custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-#                                    peak_modules = temp1, peak_row_annotation = TRUE)
-# 
-# # Plot heatmap
-# plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-#                 show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-#                 row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-#                 bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_colours),
-#                 top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
-#                 col = PurpleAndYellow())
-# 
-# png(paste0(temp_plot_path, 'Late_neural_peak_modules.png'), width = 60, height = 30, res = 400, units = 'cm')
-# plot
-# graphics.off()
-# 
-# ##### Anterior #####
-# 
-# # Subset data
-# temp1 <- antler_data$gene_modules$lists$unbiasedPMs$content[21:24]
-# peaks <- unlist(temp1)
-# length(peaks)
-# filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
-# 
-# # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
-# plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-#                                    custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-#                                    peak_modules = temp1, peak_row_annotation = TRUE)
-# 
-# # Plot heatmap
-# plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-#                 show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-#                 row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-#                 bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_colours),
-#                 top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
-#                 col = PurpleAndYellow())
-# 
-# png(paste0(temp_plot_path, 'Anterior_peak_modules.png'), width = 60, height = 30, res = 400, units = 'cm')
-# plot
-# graphics.off()
-# 
-# ##### Temporal #####
-# 
-# # Subset data
-# temp1 <- antler_data$gene_modules$lists$unbiasedPMs$content[11]
-# peaks <- unlist(temp1)
-# length(peaks)
-# filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
-# 
-# # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
-# plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-#                                    custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-#                                    peak_modules = temp1, peak_row_annotation = TRUE)
-# 
-# # Plot heatmap
-# plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-#                 show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-#                 row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-#                 bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_colours),
-#                 top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
-#                 col = PurpleAndYellow())
-# 
-# png(paste0(temp_plot_path, 'Temporal_peak_module.png'), width = 60, height = 30, res = 400, units = 'cm')
-# plot
-# graphics.off()
-
 print("Full data peak modules plotted!")
 
 ########################################################################################################
 #                     Visualise peak modules calculated on stages                                        #
 ########################################################################################################
 
-# print("Plotting stage peak modules...")
+print("Plotting stage peak modules...")
 
-# for (i in seq(1:length(stage_order))){
+for (i in seq(1:length(stage_order))){
   
-#   # Extract stage
-#   stage <- stage_order[i]
-#   print(paste0("Plotting peak modules for stage: ", stage))
+  # Extract stage
+  stage <- stage_order[i]
+  print(paste0("Plotting peak modules for stage: ", stage))
 
-#   # set plot path
-#   temp_plot_path = paste0(plot_path, stage, "/")
-#   dir.create(temp_plot_path, recursive = T)
+  # set plot path
+  temp_plot_path = paste0(plot_path, stage, "/")
+  dir.create(temp_plot_path, recursive = T)
 
-#   # read in antler RDS file:
-#   antler_data <- readRDS(paste0(rds_path, stage, '/', 'antler.RDS'))
+  # read in antler RDS file:
+  antler_data <- readRDS(paste0(rds_path, stage, '/', 'antler.RDS'))
 
-#   # subset matrix to only include peaks that are in PMs
-#   peaks <- unlist(antler_data$gene_modules$lists$unbiasedPMs$content)
-#   length(peaks)
-#   filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
+  # subset matrix to only include peaks that are in PMs
+  peaks <- unlist(antler_data$gene_modules$lists$unbiasedPMs$content)
+  length(peaks)
+  filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
 
-#   # subset matrix to only include SEACells that are in this stage
-#   filtered_normalised_matrix <- filtered_normalised_matrix[grep(stage, rownames(filtered_normalised_matrix)), ]
+  # subset matrix to only include SEACells that are in this stage
+  filtered_normalised_matrix <- filtered_normalised_matrix[grep(stage, rownames(filtered_normalised_matrix)), ]
 
-#   # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
-#   stage_metadata <- metadata %>% filter(stage == stage)
-#   order <- scHelper_cell_type_order[scHelper_cell_type_order %in% stage_metadata$scHelper_cell_type]
-#   scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
+  # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
+  stage_metadata <- metadata %>% filter(stage == stage)
+  order <- scHelper_cell_type_order[scHelper_cell_type_order %in% stage_metadata$scHelper_cell_type]
+  scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
 
-#   ########  Plot all peak modules ordered cell type ########
+  ########  Plot all peak modules ordered cell type ########
 
-#   # Prepare plot data - ordering by scHelper cell type and then by hclust
-#   plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, col_order = c('scHelper_cell_type'),
-#                                     custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-#                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
+  ### DEBUGGING
+  print("DEBUGGING!")
+  print(filtered_normalised_matrix[1:2, 1:2])
+  print(head(stage_metadata))
+  print(order)
+  print(antler_data$gene_modules$lists$unbiasedPMs$content)
+  ###
 
-#   # Plot heatmap
-#   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-#                   show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-#                   row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-#                   bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
-#                   top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
-#                   col = PurpleAndYellow())
+  # Prepare plot data - ordering by scHelper cell type and then by hclust
+  plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, col_order = c('scHelper_cell_type'),
+                                    custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
+                                    peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
 
-#   png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype.png'), width = 60, height = 80, res = 400, units = 'cm')
-#   plot
-#   graphics.off()
+  # Plot heatmap
+  plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                  show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                  row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
+                  bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
+                  top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
+                  col = PurpleAndYellow())
 
-#   ########  Plot all peak modules ordered hclust ########
+  png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype.png'), width = 60, height = 80, res = 400, units = 'cm')
+  plot
+  graphics.off()
 
-#   # Prepare plot data - ordering by hclust only
-#   plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, col_order = NULL,
-#                                     order_SEACells = TRUE,
-#                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
+  ########  Plot all peak modules ordered hclust ########
 
-#   # Plot heatmap
-#   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-#                   show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-#                   row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-#                   bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
-#                   top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
-#                   col = PurpleAndYellow())
+  # Prepare plot data - ordering by hclust only
+  plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, col_order = NULL,
+                                    order_SEACells = TRUE,
+                                    peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
 
-#   png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_hclust.png'), width = 60, height = 80, res = 400, units = 'cm')
-#   plot
-#   graphics.off()
+  # Plot heatmap
+  plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                  show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                  row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
+                  bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
+                  top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
+                  col = PurpleAndYellow())
 
-#   print(paste0(stage, " peak modules plotted!"))
+  png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_hclust.png'), width = 60, height = 80, res = 400, units = 'cm')
+  plot
+  graphics.off()
 
-# }
+  print(paste0(stage, " peak modules plotted!"))
 
-# print("Stage peak modules plotted!")
+}
+
+print("Stage peak modules plotted!")
