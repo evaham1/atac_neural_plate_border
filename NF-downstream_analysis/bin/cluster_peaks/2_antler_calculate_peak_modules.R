@@ -349,7 +349,7 @@ write.table(pheno_data, file = paste0(antler_path, "phenoData.csv"), row.names =
 write.table(t(SEACells_summarised), file = paste0(antler_path, "assayData.csv"), row.names = T, sep = "\t", col.names = T, quote = F)
 
 # Create Antler object
-antler_data <- Antler$new(output_folder = plot_path, num_cores = ncores)
+antler_data <- Antler$new(output_folder = paste0(plot_path, "FullData/"), num_cores = ncores)
 antler_data$load_dataset(folder_path = antler_path)
 
 # Normalize data
@@ -400,7 +400,7 @@ print("Peak modules calculated for full data!")
 print("Calculating peak modules for each stage...")
 
 number_of_PMs_calculated <- c(length(antler_data$gene_modules$lists$unbiasedPMs$content))
-corr_t_range <- c(0.3, 0.3, 0.3, 0.3, 0.3) # have adjusted these so you get between 10-25 PMs per stage
+corr_t_range <- c(0.3, 0.3, 0.4, 0.3, 0.4) # have adjusted these so you get between 10-25 PMs per stage
 
 for (i in seq(1:length(stage_order))){
   
@@ -430,7 +430,7 @@ for (i in seq(1:length(stage_order))){
   write.table(t(SEACells_summarised_temp), file = paste0(antler_path, "assayData.csv"), row.names = T, sep = "\t", col.names = T, quote = F)
   
   # Create Antler object
-  antler_temp <- Antler$new(output_folder = plot_path, num_cores = ncores)
+  antler_temp <- Antler$new(output_folder = paste0(plot_path, stage, "/"), num_cores = ncores)
   antler_temp$load_dataset(folder_path = antler_path)
   
   # Normalize data
@@ -582,7 +582,7 @@ for (i in seq(1:length(stage_order))){
   print(plot)
   graphics.off()
   
-  print(paste0(stage, " peak modules plotted!"))
+  print(paste0(temp_stage, " peak modules plotted!"))
   
 }
 
