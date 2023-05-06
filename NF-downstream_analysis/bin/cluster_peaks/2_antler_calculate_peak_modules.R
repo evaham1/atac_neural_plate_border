@@ -108,17 +108,39 @@ export_antler_modules <- function(antler_object, publish_dir, names_list){
   }
 }
 
+###### modify heatmap function
+##### test data
+# temp_metadata <- stage_metadata %>% filter(scHelper_cell_type %in% c("NNE", "aNP"))
+# dim(temp_metadata)
+# 
+# temp_normalised_matrix <- filtered_normalised_matrix[rownames(temp_metadata), ]
+# dim(temp_normalised_matrix)
+# 
+# peak_normalised_matrix <- temp_normalised_matrix
+# cell_metadata <- temp_metadata
+# custom_order_column <- "scHelper_cell_type"
+# order_SEACells <- TRUE
+# custom_order <- c("NNE", "aNP")
+# col_order <- c("scHelper_cell_type")
+
 ## Function to generate plot data for Complex Heatmap with ordering of data by cell metadata and peak modules
+
 # peak_normalised_matrix = normalised count matrix with seacells as rows and peaks as columns
 # cell_metadata = each row a metacell, columns correspond to metadata eg scHelper_cell_type, stage, etc
+      ## Ordering SEACells:
 # col_order = which columns of cell_metadata to use to order cells, if you specify more than one will respect ordering (e.g. if c('stage', 'cell_type'), cells will be ordered first by stage and then by cell type)
 # custom_order_column = for one columns of the cell_metadata you can specify a custom order of variables by which to order cells, this param is to select which column you use (eg 'cell_type')
 # custom_order = for one columns of the cell_metadata you can specify a custom order of variables by which to order cells, this param is to input the custom ordering (eg c('NC', 'PPR', 'NPB'))
-# order_SEACells = whether or not to hclust SEACells within their grouping and order by that
+# hclust_SEACells = whether or not to hclust SEACells
+# hclust_SEACells_within_groups = if hclust_SEACells == true, this param decides if you do hclust within each cell grouping (last value of col_order) or across cells and then secondarily by cell grouping
+
+  
 PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata, 
-                                   col_order, custom_order_column = metadata[1], custom_order = NULL, order_SEACells = FALSE,
+                                   col_order, custom_order_column = NULL, custom_order = NULL, 
+                                   hclust_SEACells = FALSE, hclust_SEACells_within_groups = TRUE,
                                    peak_modules, peak_row_annotation = TRUE,
-                                   scale_data = TRUE) 
+                                   scale_data = TRUE,
+                                   log_path = paste0(plot_path, "PrepPeakModuleHeatmap_logs/")) 
 {
   
   ### Cell-level ordering and annotations ###
@@ -141,25 +163,38 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
                                           list(decreasing = FALSE))), , drop = FALSE]
   }
   
-  # Optionally hclust cells - either within cell group if 'col_order' has been specified, or just on all cells
-  if (order_SEACells == TRUE) {
-    if (is.null(col_order)) {
-      dist_mat <- dist(peak_normalised_matrix, method = "euclidean")
-      hclust_avg <- hclust(dist_mat, method = "average")
-      ordered_SEACells <- hclust_avg$labels[c(hclust_avg$order)]
-      col_ann <- col_ann[order(match(rownames(col_ann), ordered_SEACells)), , drop = FALSE]
-    } else {
+  # Optionally hclust SEACells
+  if (hclust_SEACells == TRUE) {
+    
+    # creat log path to plot dendograms
+    dir.create(log_path, recursive = T)
+    
+    # Hclust SEACells within SEACell groups eg within scHelper_cell_type groups, which is specified by last col_order value
+    if (hclust_SEACells_within_groups == TRUE) {
       cell_groups <- split(col_ann, col_ann[[tail(col_order, n=1)]])
       CellGroups_ordered_SEACells <- c()
       for (i in names(cell_groups)) {
         mat <- peak_normalised_matrix[rownames(cell_groups[[i]]), ]
         dist_mat <- dist(mat, method = "euclidean")
         hclust_avg <- hclust(dist_mat, method = "average")
+        png(paste0(log_path, i, '_SEACells_dendogram.png'),  width = 60, height = 40, units = 'cm', res = 400)
+        plot(hclust_avg, main = paste0("SEACells dendogram for ", i))
+        graphics.off()
         ordered_SEACells <- hclust_avg$labels[c(hclust_avg$order)]
         CellGroups_ordered_SEACells[[i]] <- ordered_SEACells
       }
       col_ann <- col_ann[order(match(rownames(col_ann), unlist(CellGroups_ordered_SEACells))), , drop = FALSE]
-    }
+      
+    # Hclust SEACells across all SEACells, then if there is a col_order secondarily order by the last col_order value
+    } else {
+      dist_mat <- dist(peak_normalised_matrix, method = "euclidean")
+      hclust_avg <- hclust(dist_mat, method = "average")
+      if (!is.null(col_order)){ hclust_avg <- with(col_ann, reorder(hclust_avg, as.numeric(col_ann[[tail(col_order, n=1)]])))}
+      png(paste0(log_path, 'SEACells_dendogram.png'), width = 120, height = 40, units = 'cm', res = 400)
+      plot(hclust_avg, main = "SEACells dendogram")
+      graphics.off()}
+    ordered_SEACells <- hclust_avg$labels[c(hclust_avg$order)]
+    col_ann <- col_ann[order(match(rownames(col_ann), ordered_SEACells)), , drop = FALSE]
   }
   
   ### Peak-level ordering and annotations ###
@@ -193,6 +228,10 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
   return(output)
   
 }
+  
+  
+
+
 
 
 ## Function to create bottom annotation for Complex Heatmap
@@ -571,12 +610,14 @@ for (i in seq(1:length(stage_order))){
   order <- scHelper_cell_type_order[scHelper_cell_type_order %in% stage_metadata$scHelper_cell_type]
   scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
   
-  ########  Plot all peak modules ordered cell type ########
+  ########  Plot all peak modules ordered cell type, within each cell type hclust ########
   
   # Prepare plot data - ordering by scHelper cell type and then by hclust
-  plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, col_order = c('scHelper_cell_type'),
-                                     custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
+  plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, 
+                                     col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
+                                     hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
+                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
+                                     log_path = paste0(temp_plot_path, "logs/all_cells_hclust_within_celltypes/"))
   
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -593,10 +634,11 @@ for (i in seq(1:length(stage_order))){
   ########  Plot all peak modules ordered hclust ########
   
   # Prepare plot data - ordering by hclust only
-  plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, col_order = NULL,
-                                     order_SEACells = TRUE,
-                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
-  
+  plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, 
+                                     col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
+                                     hclust_SEACells = TRUE, hclust_SEACells_within_groups = FALSE,
+                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
+                                     log_path = paste0(temp_plot_path, "logs/all_cells_hclust/"))
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
                   show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
@@ -620,9 +662,11 @@ for (i in seq(1:length(stage_order))){
   scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
   
   # Prepare plot data - ordering by scHelper cell type and then by hclust
-  plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_filtered_metadata, col_order = c('scHelper_cell_type'),
-                                     custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
-                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
+  plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, 
+                                     col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
+                                     hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
+                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
+                                     log_path = paste0(temp_plot_path, "logs/subset_cells_hclust_within_groups/"))
   
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
