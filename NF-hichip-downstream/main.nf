@@ -156,7 +156,7 @@ workflow {
     //     //     [sample, files]
     //     //     }
 
-    outputChannel = ch_loops_rds.combine(INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.ou)
+    outputChannel = ch_loops_rds.combine(INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
                       .map { sample, files1, files2 ->
                           [sample[0], [sample[1], files1, files2]]
                       }
