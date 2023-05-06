@@ -146,7 +146,7 @@ workflow {
     //INTERSECT_BINS_GENES.out.view()
     //tag_chroms_bins_intersected.bed
 
-    ch_intersect = Channel.zip(ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
+    //ch_intersect = Channel.zip(ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
 
     // ch_intersect = Channel
     //     .from([ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out])
@@ -155,6 +155,12 @@ workflow {
     //     //     def files = tuple[1..-1]
     //     //     [sample, files]
     //     //     }
+
+    outputChannel = ch_loops_rds.combine(INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.ou)
+                      .map { sample, files1, files2 ->
+                          [sample[0], [sample[1], files1, files2]]
+                      }
+
 
     ch_intersect.view()
 
