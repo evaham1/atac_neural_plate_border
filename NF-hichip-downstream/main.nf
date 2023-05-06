@@ -134,17 +134,17 @@ workflow {
 
     ch_intersect = Channel
         .from([ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out])
-        .map { tuple ->
-            def sample = tuple[0]
-            def files = tuple[1..-1]
-            [sample, files]
-            }
+        // .map { tuple ->
+        //     def sample = tuple[0]
+        //     def files = tuple[1..-1]
+        //     [sample, files]
+        //     }
 
     ch_intersect.view()
 
 
 
-    
+
 }
 
 
