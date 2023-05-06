@@ -47,12 +47,14 @@ if(opt$verbose) print(opt)
     # output paths:
     rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/"
     plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/plots/"
+    PMs_path = ""
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
+    PMs_path = "./PMs/"
     data_path = "./input/rds_files/"
     ncores = opt$cores
     
@@ -64,6 +66,7 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
+  dir.create(PMs_path, recursive = T)
 }
 
 ########################       CELL STATE COLOURS    ########################################
@@ -368,93 +371,93 @@ names(antler_data$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:leng
 # how many peak modules were generated
 print(paste0("Number of peak modules made: ", length(antler_data$gene_modules$lists$unbiasedPMs$content)))
 
-# stage-specific folder
-temp_path = paste0(rds_path, "FullData/")
-dir.create(temp_path)
-
 # export peak modules
+temp_path = paste0(PMs_path, "FullData/")
+dir.create(temp_path)
 export_antler_modules(antler_data, publish_dir = temp_path, names_list = "unbiasedPMs")
 
 # save antler object
+temp_path = paste0(rds_path, "FullData/")
+dir.create(temp_path)
 saveRDS(antler_data, paste0(temp_path, 'antler.RDS'))
 
 print("Peak modules calculated for full data!")
 
-########################################################################################################
-#                             Calculate peak modules on each stage                                     #
-########################################################################################################
-################## use raw count matrix for this as Antler has its own normalisation step ##############
+# ########################################################################################################
+# #                             Calculate peak modules on each stage                                     #
+# ########################################################################################################
+# ################## use raw count matrix for this as Antler has its own normalisation step ##############
 
-print("Calculating peak modules for each stage...")
+# print("Calculating peak modules for each stage...")
 
-number_of_PMs_calculated <- c(length(antler_data$gene_modules$lists$unbiasedPMs$content))
-corr_t_range <- c(0.3, 0.3, 0.6, 0.4, 0.6) # have adjusted these so you get between 10-25 PMs per stage
+# number_of_PMs_calculated <- c(length(antler_data$gene_modules$lists$unbiasedPMs$content))
+# corr_t_range <- c(0.3, 0.3, 0.6, 0.4, 0.6) # have adjusted these so you get between 10-25 PMs per stage
 
-for (i in seq(1:length(stage_order))){
+# for (i in seq(1:length(stage_order))){
   
-  # Extract stage
-  stage <- stage_order[i]
-  print(paste0("Calculating peak modules for stage: ", stage))
+#   # Extract stage
+#   stage <- stage_order[i]
+#   print(paste0("Calculating peak modules for stage: ", stage))
   
-  # subset data matrix
-  SEACells_summarised_temp <- SEACells_summarised[grep(stage, rownames(SEACells_summarised)), ]
-  dim(SEACells_summarised_temp)
+#   # subset data matrix
+#   SEACells_summarised_temp <- SEACells_summarised[grep(stage, rownames(SEACells_summarised)), ]
+#   dim(SEACells_summarised_temp)
   
-  # generate fake metadata needed for Antler
-  pheno_data <- data.frame(row.names = rownames(SEACells_summarised_temp),
-                           "timepoint" = rep(1, nrow(SEACells_summarised_temp)),
-                           "treatment" = rep("null", nrow(SEACells_summarised_temp)),
-                           "replicate_id" = rep(1, nrow(SEACells_summarised_temp))
-  )
+#   # generate fake metadata needed for Antler
+#   pheno_data <- data.frame(row.names = rownames(SEACells_summarised_temp),
+#                            "timepoint" = rep(1, nrow(SEACells_summarised_temp)),
+#                            "treatment" = rep("null", nrow(SEACells_summarised_temp)),
+#                            "replicate_id" = rep(1, nrow(SEACells_summarised_temp))
+#   )
   
-  # create antler folder
-  antler_path = paste0("./antler_", stage, "/")
-  dir.create(antler_path)
+#   # create antler folder
+#   antler_path = paste0("./antler_", stage, "/")
+#   dir.create(antler_path)
   
-  # save pheno data
-  write.table(pheno_data, file = paste0(antler_path, "phenoData.csv"), row.names = T, sep = "\t", col.names = T)
+#   # save pheno data
+#   write.table(pheno_data, file = paste0(antler_path, "phenoData.csv"), row.names = T, sep = "\t", col.names = T)
   
-  # save count data
-  write.table(t(SEACells_summarised_temp), file = paste0(antler_path, "assayData.csv"), row.names = T, sep = "\t", col.names = T, quote = F)
+#   # save count data
+#   write.table(t(SEACells_summarised_temp), file = paste0(antler_path, "assayData.csv"), row.names = T, sep = "\t", col.names = T, quote = F)
   
-  # Create Antler object
-  antler_temp <- Antler$new(output_folder = plot_path, num_cores = ncores)
-  antler_temp$load_dataset(folder_path = antler_path)
+#   # Create Antler object
+#   antler_temp <- Antler$new(output_folder = plot_path, num_cores = ncores)
+#   antler_temp$load_dataset(folder_path = antler_path)
   
-  # Normalize data
-  antler_temp$normalize(method = 'CPM')
+#   # Normalize data
+#   antler_temp$normalize(method = 'CPM')
   
-  # Calculate GMs unbiasedly
-  antler_temp$gene_modules$identify(
-    name                  = "unbiasedPMs",
-    corr_t                = corr_t_range[i],  # the Spearman correlation threshold
-    corr_min              = 3,    # min. number of genes a gene must correlate with
-    mod_min_cell          = 5,   # min. number of cells expressing the module
-    mod_consistency_thres = 0.4,  # ratio of expressed genes among "positive" cells
-    process_plots         = TRUE)
+#   # Calculate GMs unbiasedly
+#   antler_temp$gene_modules$identify(
+#     name                  = "unbiasedPMs",
+#     corr_t                = corr_t_range[i],  # the Spearman correlation threshold
+#     corr_min              = 3,    # min. number of genes a gene must correlate with
+#     mod_min_cell          = 5,   # min. number of cells expressing the module
+#     mod_consistency_thres = 0.4,  # ratio of expressed genes among "positive" cells
+#     process_plots         = TRUE)
   
-  # rename peak modules
-  names(antler_temp$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:length(antler_temp$gene_modules$lists$unbiasedPMs$content))
+#   # rename peak modules
+#   names(antler_temp$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:length(antler_temp$gene_modules$lists$unbiasedPMs$content))
   
-  # how many peak modules were generated
-  print(paste0("Number of peak modules made: ", length(antler_temp$gene_modules$lists$unbiasedPMs$content)))
-  number_of_PMs_calculated <- c(number_of_PMs_calculated, length(antler_temp$gene_modules$lists$unbiasedPMs$content))
+#   # how many peak modules were generated
+#   print(paste0("Number of peak modules made: ", length(antler_temp$gene_modules$lists$unbiasedPMs$content)))
+#   number_of_PMs_calculated <- c(number_of_PMs_calculated, length(antler_temp$gene_modules$lists$unbiasedPMs$content))
   
-  # stage-specific folder
-  temp_path = paste0(rds_path, stage, "/")
-  dir.create(temp_path)
+#   # stage-specific folder
+#   temp_path = paste0(rds_path, stage, "/")
+#   dir.create(temp_path)
   
-  # export peak modules
-  export_antler_modules(antler_temp, publish_dir = temp_path, names_list = "unbiasedPMs")
+#   # export peak modules
+#   export_antler_modules(antler_temp, publish_dir = temp_path, names_list = "unbiasedPMs")
   
-  # save antler object
-  saveRDS(antler_temp, paste0(temp_path, 'antler.RDS'))
+#   # save antler object
+#   saveRDS(antler_temp, paste0(temp_path, 'antler.RDS'))
 
-  print(paste0("Peak modules calculated for stage: ", stage))
+#   print(paste0("Peak modules calculated for stage: ", stage))
   
-}
+# }
 
-print("All peak modules calculated!")
+# print("All peak modules calculated!")
 
 ########################################################################################################
 #                     Visualise peak modules calculated on full data                                  #
