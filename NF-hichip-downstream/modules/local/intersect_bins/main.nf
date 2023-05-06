@@ -6,13 +6,13 @@ process INTERSECT_BINS {
         'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
     
     input:
-    tuple path(bins), path(features)
+    tuple bins, features
 
     output:
     path "$output"       , emit: intersected_bed
 
     script:
-    output = gtf_file.toString() - ".bed" + "_bins_intersected.bed"
+    output = bins.toString() - ".bed" + "_bins_intersected.bed"
     """
     bedtools intersect -a $bins -b $features -wa -wb > $output
     """
