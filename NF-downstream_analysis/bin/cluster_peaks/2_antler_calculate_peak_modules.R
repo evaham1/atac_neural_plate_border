@@ -137,8 +137,8 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
   
   # If 'col_order' is use these columns to order cells
   if (!is.null(col_order)) {
-  col_ann <- col_ann[do.call("order", c(col_ann[col_order],
-                                        list(decreasing = FALSE))), , drop = FALSE]
+    col_ann <- col_ann[do.call("order", c(col_ann[col_order],
+                                          list(decreasing = FALSE))), , drop = FALSE]
   }
   
   # Optionally hclust cells - either within cell group if 'col_order' has been specified, or just on all cells
@@ -456,12 +456,12 @@ for (i in seq(1:length(stage_order))){
   temp_path = paste0(PMs_path, stage, "/")
   dir.create(temp_path)
   export_antler_modules(antler_temp, publish_dir = temp_path, names_list = "unbiasedPMs")
-
+  
   # save antler object
   temp_path = paste0(rds_path, stage, "/")
   dir.create(temp_path)
   saveRDS(antler_temp, paste0(temp_path, 'antler.RDS'))
-
+  
   print(paste0("Peak modules calculated for stage: ", stage))
   
 }
@@ -494,9 +494,9 @@ scHelper_cell_type_colours <- scHelper_cell_type_colours[order]
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                    custom_order_column = "scHelper_cell_type", custom_order = order,
-                                    order_SEACells = TRUE,
-                                    peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
+                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   order_SEACells = TRUE,
+                                   peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
 
 # Plot heatmap
 plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -556,7 +556,7 @@ for (i in seq(1:length(stage_order))){
                   show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
                   row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
                   bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
-                  top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
+                  top_annotation = create_stage_top_annotation(plot_data, stage_colours[i]), 
                   col = PurpleAndYellow())
   
   png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype.png'), width = 60, height = 130, res = 400, units = 'cm')
@@ -575,13 +575,43 @@ for (i in seq(1:length(stage_order))){
                   show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
                   row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
                   bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
-                  top_annotation = create_stage_top_annotation(plot_data, stage_colours), 
+                  top_annotation = create_stage_top_annotation(plot_data, stage_colours[i]), 
                   col = PurpleAndYellow())
   
   png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_hclust.png'), width = 60, height = 130, res = 400, units = 'cm')
   print(plot)
   graphics.off()
   
+  ########  Plot all peak modules ordered celltypes on cells which are mapped and not contam ########
+  
+  # subset matrix to only include SEACells that mapped and not contam
+  seacell_filtered_metadata <- stage_metadata %>% filter(!scHelper_cell_type %in% c("Unmapped", "streak", "meso", "endo", "BI"))
+  seacell_filtered_normalised_matrix <- filtered_normalised_matrix[rownames(filtered_metadata), ]
+  
+  # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
+  order <- scHelper_cell_type_order[scHelper_cell_type_order %in% seacell_filtered_metadata$scHelper_cell_type]
+  scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
+  
+  # Prepare plot data - ordering by scHelper cell type and then by hclust
+  plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_filtered_metadata, col_order = c('scHelper_cell_type'),
+                                     custom_order_column = "scHelper_cell_type", custom_order = order, order_SEACells = TRUE,
+                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE)
+  
+  # Plot heatmap
+  plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                  show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                  row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
+                  bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
+                  top_annotation = create_stage_top_annotation(plot_data, stage_colours[i]), 
+                  col = PurpleAndYellow())
+  
+  png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type.png.png'), width = 60, height = 130, res = 400, units = 'cm')
+  print(plot)
+  graphics.off()
+  
+  
+  
+  ## Finished plots
   print(paste0(temp_stage, " peak modules plotted!"))
   
 }
