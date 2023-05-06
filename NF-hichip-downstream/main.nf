@@ -130,7 +130,8 @@ workflow {
 
     LOOP_CALL.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-        .combine(INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
+        .combine(INTERSECT_BINS_PEAKS.out)
+        .combine(INTERSECT_BINS_GENES.out)
         .view()
 
     // ch_loops_rds.view()
