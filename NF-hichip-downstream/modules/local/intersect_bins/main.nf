@@ -9,10 +9,11 @@ process INTERSECT_BINS {
     tuple path(bins), path(features)
 
     output:
-    path('intersected_bins.bed')       , emit: outs
+    path "$output"       , emit: intersected_bed
 
     script:
+    output = gtf_file.toString() - ".bed" + "_bins_intersected.bed"
     """
-    bedtools intersect -a $bins -b $features -wa -wb > "intersected_bins.bed"
+    bedtools intersect -a $bins -b $features -wa -wb > $output
     """
 }
