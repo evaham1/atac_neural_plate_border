@@ -97,7 +97,7 @@ names(stage_colours) <- stage_order
 ## Function to write peak modules
 export_antler_modules <- function(antler_object, publish_dir, names_list){
   for(gm_list in names_list){
-    mods = antler_data$gene_modules$lists[[gm_list]]$content
+    mods = antler_object$gene_modules$lists[[gm_list]]$content
     for (i in seq(length(mods))) {
       modname = base::names(mods)[i]
       if (is.null(modname)) {
