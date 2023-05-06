@@ -116,13 +116,13 @@ workflow {
 
     //////////  Filter interesting interactions  //////////
 
-    LOOP_CALL.out
-        .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-        .combine( INTERSECT_BINS_PEAKS.out )
-        .combine( INTERSECT_BINS_GENES.out ) //[[sample_id:WE_HiChip_r2], rds_files, intersected_bins.bed, intersected_bins.bed]
-    //     .zip( INTERSECT_BINS_PEAKS.out )
-    //     .zip( INTERSECT_BINS_GENES.out )
-        .view()
+    // LOOP_CALL.out
+    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
+    //     .combine( INTERSECT_BINS_PEAKS.out )
+    //     .combine( INTERSECT_BINS_GENES.out ) //[[sample_id:WE_HiChip_r2], rds_files, intersected_bins.bed, intersected_bins.bed]
+    // //     .zip( INTERSECT_BINS_PEAKS.out )
+    // //     .zip( INTERSECT_BINS_GENES.out )
+    //     .view()
     //     //.map { tuple -> [tuple[0], tuple[1]] } 
     //     //.view()
     //     .set { ch_loops_merged } //[[sample_id:NF_HiChip_r3], [ ? ]]
@@ -130,7 +130,8 @@ workflow {
 
     LOOP_CALL.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-        .set{ ch_loops_rds }
+        .combine(INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
+        .view()
 
     // ch_loops_rds.view()
     // [[sample_id:WE_HiChip_r1], c2/c9d72f072aeabdcc1d364f6cd956f0/rds_files]
