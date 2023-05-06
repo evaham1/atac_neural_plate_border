@@ -133,7 +133,7 @@ workflow {
         .combine(INTERSECT_BINS_PEAKS.out) //FullData_PeakSet_bins_intersected.bed
         .combine(INTERSECT_BINS_GENES.out) //tag_chroms_bins_intersected.bed
         //.view() //[[sample_id:NF_HiChip_r3], rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]
-        .map { sample, files... -> [sample, files.toList()] }
+        //.map { sample, files... -> [sample, files.toList()] }
         .view()
 
     //ch_intersect = Channel.zip(ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
