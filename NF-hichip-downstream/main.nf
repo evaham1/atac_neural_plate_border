@@ -132,7 +132,8 @@ workflow {
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
         .combine(INTERSECT_BINS_PEAKS.out)
         .combine(INTERSECT_BINS_GENES.out)
-        .view()
+        .view() //[[sample_id:NF_HiChip_r3], rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]
+        .map { sample, files1, files2 -> [sample[0], [sample[1], files1, files2]] }
 
     // ch_loops_rds.view()
     // [[sample_id:WE_HiChip_r1], c2/c9d72f072aeabdcc1d364f6cd956f0/rds_files]
