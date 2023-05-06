@@ -12,7 +12,7 @@ process INTERSECT_BINS {
     path "$output"       , emit: intersected_bed
 
     script:
-    output = bins.toString() - ".bed" + "_bins_intersected.bed"
+    output = features.toString() - ".bed" + "_bins_intersected.bed"
     """
     bedtools intersect -a $bins -b $features -wa -wb > $output
     """
