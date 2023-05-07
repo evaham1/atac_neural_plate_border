@@ -71,21 +71,22 @@ workflow {
     GENERATE_BINS ( ch_dummy )
         // [[sample_id:dummy], [./work/c5/d2ca727dccb0dbb6645013d7e73c1e/plots, ./work/c5/d2ca727dccb0dbb6645013d7e73c1e/rds_files]]
 
-    // Intersect bins with peaks
+    // Extract bins bed file from generate_bins.R output
     GENERATE_BINS.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
         //.view() //[[sample_id:dummy], [bed_files]]
         .flatMap {it[1][0].listFiles()} //bins.bed
+        .set{ ch_bins }
+
+    // Intersect bins with peaks
+    ch_bins
         .combine( ch_peaks )
         //.view() //[bins.bed, FullData_PeakSet.bed]
         .set{ ch_peak_bins }
     INTERSECT_BINS_PEAKS( ch_peak_bins )
 
     // Intersect bins with genes
-    GENERATE_BINS.out
-        .map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
-        //.view() //[[sample_id:dummy], [bed_files]]
-        .flatMap {it[1][0].listFiles()} //bins.bed
+    ch_bins
         .combine( GTF_TO_BED.out )
         //.view() //[bins.bed, tag_chroms.bed]
         .set{ ch_genes_bins }
@@ -120,8 +121,9 @@ workflow {
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
         .combine( INTERSECT_BINS_PEAKS.out )
         .combine( INTERSECT_BINS_GENES.out )
-        .map{ [ it[0], [it[1], it[2], it[3]] ] }
-        //.view() [[sample_id:NF_HiChip_r2], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]]
+        .combine( ch_bins )
+        .map{ [ it[0], [it[1], it[2], it[3], it[4]] ] }
+        .view() [[sample_id:NF_HiChip_r2], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]]
         .set{ ch_intersect }
 
     INVESTIGATE_LOOPS( ch_intersect )
