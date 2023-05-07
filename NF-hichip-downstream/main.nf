@@ -140,6 +140,12 @@ workflow {
     LOOP_CALL.out
         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
         .flatMap {it[1][0].listFiles()}
+        //.view() //HiCDC_output_filtered.txt
+        .set{ ch_loops }
+
+    ch_intersect = Channel
+        .from( ch_loops, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out )
+        .toList()
         .view()
 
 //[[sample_id:NF_HiChip_r3], [[/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/90/fd99fceb9864cede48b76a44136b20/rds_files], flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-hichip-downstream, work, 95, 45e1230662ee36c076a7ff457cb787, FullData_PeakSet_bins_intersected.bed, flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-hichip-downstream, work, 5a, 9a9ed98c856714bb256019056a71c2, tag_chroms_bins_intersected.bed]]
