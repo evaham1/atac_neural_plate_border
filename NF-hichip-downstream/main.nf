@@ -144,7 +144,7 @@ workflow {
         .set{ ch_loops }
 
     ch_intersect = Channel
-        .from( ch_loops, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out )
+        .of( ch_loops, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out )
         .toList()
         .view()
 
