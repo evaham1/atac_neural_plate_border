@@ -121,68 +121,10 @@ workflow {
         .combine( INTERSECT_BINS_PEAKS.out )
         .combine( INTERSECT_BINS_GENES.out )
         .map{ [ it[0], [it[1], it[2], it[3]] ] }
-        .view()
+        //.view() [[sample_id:NF_HiChip_r2], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]]
+        .set{ ch_intersect }
 
-
-
-
-    // LOOP_CALL.out
-    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-    //     .combine( INTERSECT_BINS_PEAKS.out )
-    //     .combine( INTERSECT_BINS_GENES.out ) //[[sample_id:WE_HiChip_r2], rds_files, intersected_bins.bed, intersected_bins.bed]
-    // //     .zip( INTERSECT_BINS_PEAKS.out )
-    // //     .zip( INTERSECT_BINS_GENES.out )
-    //     .view()
-    //     //.map { tuple -> [tuple[0], tuple[1]] } 
-    //     //.view()
-    //     .set { ch_loops_merged } //[[sample_id:NF_HiChip_r3], [ ? ]]
-    // //INVESTIGATE_LOOPS( ch_loops_merged )
-
-    // LOOP_CALL.out
-    //     .map { row -> [ row[0], [ row[1].findAll { it =~ ".*rds_files" }[0] ] ] } //[[sample_id:WE_HiChip_r2], rds_files]
-    //     .combine(INTERSECT_BINS_PEAKS.out) //FullData_PeakSet_bins_intersected.bed
-    //     .combine(INTERSECT_BINS_GENES.out) //tag_chroms_bins_intersected.bed
-    //     .view() //[[sample_id:NF_HiChip_r3], [rds_files], FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]
-    //     .map{ sample, files, peaks, genes -> [ sample, [files] + peaks + genes ]}
-    //     //.map { it[0], it[1] }
-    //     .view()
-
-    // LOOP_CALL.out
-    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-    //     .flatMap {it[1][0].listFiles()}
-    //     //.view() //HiCDC_output_filtered.txt
-    //     .set{ ch_loops }
-
-    // ch_intersect = Channel
-    //     .of( ch_loops, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out )
-    //     .toList()
-    //     .view()
-
-    // ch_intersect = Channel.combine(ch_loops, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
-    // ch_intersect.view()
-
-//[[sample_id:NF_HiChip_r3], [[/flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/90/fd99fceb9864cede48b76a44136b20/rds_files], flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-hichip-downstream, work, 95, 45e1230662ee36c076a7ff457cb787, FullData_PeakSet_bins_intersected.bed, flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-hichip-downstream, work, 5a, 9a9ed98c856714bb256019056a71c2, tag_chroms_bins_intersected.bed]]
-
-
-    //ch_intersect = Channel.zip(ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
-
-    // ch_intersect = Channel
-    //     .from([ch_loops_rds, INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out])
-    //     // .map { tuple ->
-    //     //     def sample = tuple[0]
-    //     //     def files = tuple[1..-1]
-    //     //     [sample, files]
-    //     //     }
-
-    // ch_loops_rds
-    //     .combine(INTERSECT_BINS_PEAKS.out, INTERSECT_BINS_GENES.out)
-    //     .map { sample, files1, files2 -> [sample[0], [sample[1], files1, files2]] }
-    //     .set{ch_intersect}
-    // ch_intersect.view()
-
-
-
-
+    INVESTIGATE_LOOPS( ch_intersect )
 }
 
 
