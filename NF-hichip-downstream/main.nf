@@ -123,7 +123,7 @@ workflow {
         .combine( INTERSECT_BINS_GENES.out )
         .combine( ch_bins )
         .map{ [ it[0], [it[1], it[2], it[3], it[4]] ] }
-        .view() [[sample_id:NF_HiChip_r2], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]]
+        .view() //[[sample_id:NF_HiChip_r2], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed]]
         .set{ ch_intersect }
 
     INVESTIGATE_LOOPS( ch_intersect )
