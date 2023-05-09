@@ -267,6 +267,106 @@ print("outputs saved!")
 
 ####################################   Visualisations   ##################################################
 
+interactions <- expanded_gi_list_with_valid_pairs_HiCDC
+
+
+#### Check bin sizes
+
+# calculate bin sizes
+bins <- as.data.frame(bins)
+bins <- bins %>% mutate(bin_width = as.numeric(bins$end) - as.numeric(bins$start))
+
+# how many different bin sizes are there?
+png(paste0(plot_path, "freq_of_different_bin_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+plot(table(bins$bin_width))
+graphics.off()
+# most bins are 4999, but there are one of unique sizes
+
+# where are the bins that are not 4999bp long?
+print("Bins which are not 4999bp long:")
+print(bins[bins$bin_width != "4999", ])
+# can see there is one bin which is not 4999bp long in each chromosome
+
+#### Check interaction distances
+
+# check the range of interactions in the sig interactions table
+print(paste0("Minimum interaction size: ", min(interactions$D)))
+print(paste0("Maximum interaction size: ", max(interactions$D)))
+
+# check which interactions are not divisible by 5000 (bin width)
+print("Interactions which distance is not divisible by 5000:")
+check.integer <- function(x) {x == round(x)}
+weird_length_interactions <- interactions[!check.integer(interactions$D / 5000), ]
+print(head(weird_length_interactions))
+# these interactions are all interacting with the weirdly sized last bin
+
+# remove the weird sized interactions and extract counts vs distance
+normal_sized_interactions <- interactions[check.integer(interactions$D / 5000), ]
+
+#### Check counts
+
+# plot a histogram of distribution of counts
+png(paste0(plot_path, "hist_of_counts.png"), width=40, height=20, units = 'cm', res = 200)
+hist(normal_sized_interactions$counts, breaks = 100)
+graphics.off()
+
+png(paste0(plot_path, "hist_of_log_counts.png"), width=40, height=20, units = 'cm', res = 200)
+hist(log(normal_sized_interactions$counts), breaks = 100)
+graphics.off()
+
+# plot summary stats of range of counts
+print("Counts summary:")
+print(summary(normal_sized_interactions$counts))
+
+#### Check interaction distancs Vs counts
+
+# extract interactions distances and counts from normal sized bins
+data <- data.frame(distance = normal_sized_interactions$D,
+                   counts = normal_sized_interactions$counts)
+
+# plot means of counts per distance
+mean_data <- aggregate(counts ~ distance, data, mean)
+
+png(paste0(plot_path, "mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(mean_data, aes(x=distance, y=counts)) +
+  geom_line() +
+  geom_point()
+graphics.off()
+
+png(paste0(plot_path, "log_mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(mean_data, aes(x=log10(distance), y=log10(counts))) +
+  geom_line() +
+  geom_point()
+graphics.off()
+
+# plot medians of counts per distance
+median_data <- aggregate(counts ~ distance, data, median)
+
+png(paste0(plot_path, "median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(median_data, aes(x=distance, y=counts)) +
+  geom_line() +
+  geom_point()
+graphics.off()
+
+png(paste0(plot_path, "log_median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
+  geom_line() +
+  geom_point()
+graphics.off()
+
+#### Check significance values
+
+# Plot distribution of q values
+png(paste0(plot_path, "hist_q_val.png"), width=40, height=20, units = 'cm', res = 200)
+hist(unique(interactions$qvalue), breaks = 100)
+graphics.off()
+
+# Plot distribution of p values
+png(paste0(plot_path, "hist_p_val.png"), width=40, height=20, units = 'cm', res = 200)
+hist(unique(interactions$pvalue), breaks = 100)
+graphics.off()
+
+
 ########################
 ########## interactively - chrom22
 ## Plot counts over interaction distances
