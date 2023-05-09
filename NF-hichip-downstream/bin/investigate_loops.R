@@ -75,21 +75,21 @@ bins <- data.table::fread(paste0(data_path, "bins.bed"))
 colnames(bins) <- c("chr", "start", "end", "bin_ID")
 head(bins)
 
-# read in genes interse"cted with bins
+# read in genes intersected with bins
 print("Genes intersected with bins:")
 genes_bins <- data.table::fread(paste0(data_path, "tag_chroms_bins_intersected.bed"))
 colnames(genes_bins) <- c("bin_chr", "bin_start", "bin_end", "bin_ID", "gene_chr", "gene_start", "gene_end", "gene_ID", "gene_name", "strand")
 head(genes_bins)
 dim(genes_bins)
 
-# read in peaks interse"cted with bins
+# read in peaks intersected with bins
 print("Peaks intersected with bins:")
 peaks_bins <- data.table::fread(paste0(data_path, "FullData_PeakSet_bins_intersected.bed"))
 colnames(peaks_bins) <- c("bin_chr", "bin_start", "bin_end", "bin_ID", "peak_chr", "peak_start", "peak_end", "peak_ID", "dunno", "strand")
 head(peaks_bins)
 dim(peaks_bins)
 
-# read in Hi"CD"CPlus output
+# read in HiCDCPlus output
 print("HiCDCPlus output:")
 interactions <- data.table::fread(paste0(data_path, "rds_files/HiCDC_output_filtered.txt"))
 head(interactions)
