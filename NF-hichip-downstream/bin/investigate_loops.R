@@ -66,8 +66,10 @@ if(opt$verbose) print(opt)
 
 ######################################   Read in data   ####################################################
 
+print("reading in data...")
+
 # read in HiCDCPlus output
-interactions <- data.table::fread(paste0(data_path, "HiCDC_output_filtered.txt"))
+interactions <- data.table::fread(paste0(data_path, "rds_files/HiCDC_output_filtered.txt"))
 head(interactions)
 dim(interactions)
 
@@ -86,6 +88,8 @@ dim(peaks_bins)
 # read in all bins
 bins <- data.table::fread(paste0(data_path, "bins_bintolen.txt.gz"))
 head(bins)
+
+print("data read in!")
 
 ##############  Looking at anchors and how many times they appear    ###########################################
 
