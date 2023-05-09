@@ -68,26 +68,32 @@ if(opt$verbose) print(opt)
 
 print("reading in data...")
 
-# read in HiCDCPlus output
-interactions <- data.table::fread(paste0(data_path, "rds_files/HiCDC_output_filtered.txt"))
-head(interactions)
-dim(interactions)
+# read in all bins
+print("All bins:")
+bins <- data.table::fread(paste0(data_path, "bins.bed"))
+colnames(bins) <- c("chr", "start", "end", "bin_ID")
+head(bins)
 
 # read in genes intersected with bins
+print("Genes intersected with bins:")
 genes_bins <- data.table::fread(paste0(data_path, "tag_chroms_bins_intersected.bed"))
 colnames(genes_bins) <- c("bin_chr", "bin_start", "bin_end", "bin_ID", "gene_chr", "gene_start", "gene_end", "gene_ID", "gene_name", "strand")
 head(genes_bins)
 dim(genes_bins)
 
 # read in peaks intersected with bins
+print("Peaks intersected with bins:")
 peaks_bins <- data.table::fread(paste0(data_path, "FullData_PeakSet_bins_intersected.bed"))
 colnames(peaks_bins) <- c("bin_chr", "bin_start", "bin_end", "bin_ID", "peak_chr", "peak_start", "peak_end", "peak_ID", "dunno", "strand")
 head(peaks_bins)
 dim(peaks_bins)
 
-# read in all bins
-bins <- data.table::fread(paste0(data_path, "bins.bed"))
-head(bins)
+# read in HiCDCPlus output
+print("HiCDCPlus output:")
+interactions <- data.table::fread(paste0(data_path, "rds_files/HiCDC_output_filtered.txt"))
+head(interactions)
+dim(interactions)
+
 
 print("data read in!")
 
@@ -214,11 +220,12 @@ grid.arrange(tableGrob(bins_numbers, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
 # sanity check that all anchors are in the bins
-if (sum(unique(all_anchors$bin_ID) %in% bins$bins)){
+if (sum(unique(all_anchors$bin_ID) %in% bins$bin_ID)){
   print("All anchors are in the bins!")
 }else{stop("PROBLEM: NOT ALL ANCHORS ARE IN THE BINS!")}
 
 # Venn diagram of bins between interactions, peaks and genes
+png(paste0(plot_path, 'Venn_bins_in_peaks_genes_interactions.png'), height = 50, width = 70, units = 'cm', res = 400)
 venn.diagram(
   x = list(unique(all_anchors$bin_ID), unique(genes_bins$bin_ID), unique(peaks_bins$bin_ID)),
   category.names = c("Interactions" , "Genes" , "Peaks"),
@@ -247,6 +254,6 @@ venn.diagram(
   cat.fontfamily = "sans",
   rotation = 1
 )
-
+graphics.off()
 
 ##############  Overlap of anchors with peaks and genes of interest    ###########################################
