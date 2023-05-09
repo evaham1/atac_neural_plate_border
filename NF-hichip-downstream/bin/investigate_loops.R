@@ -86,7 +86,7 @@ head(peaks_bins)
 dim(peaks_bins)
 
 # read in all bins
-bins <- data.table::fread(paste0(data_path, "bins_bintolen.txt.gz"))
+bins <- data.table::fread(paste0(data_path, "bins.bed"))
 head(bins)
 
 print("data read in!")
