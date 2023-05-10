@@ -22,7 +22,7 @@ wait
 cat input_part*.edited > "$output_file"
 
 # Remove the intermediate files
-rm input.txt input_part*
+rm input_part* "${input_file%.*}.txt"
 
 # Remove the input folder
 rm -r input
