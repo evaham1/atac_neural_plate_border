@@ -69,7 +69,7 @@ workflow {
 
     // Generate bins
     GENERATE_BINS ( ch_dummy )
-        // [[sample_id:dummy], [./work/c5/d2ca727dccb0dbb6645013d7e73c1e/plots, ./work/c5/d2ca727dccb0dbb6645013d7e73c1e/rds_files]]
+        // [[sample_id:dummy], [./work/c5/d2ca727dccb0dbb6645013d7e73c1e/plots, ./work/c5/d2ca727dccb0dbb6645013d7e73c1e/rds_files, ./bed_files]]
 
     // Extract bins bed file from generate_bins.R output
     GENERATE_BINS.out
@@ -105,6 +105,9 @@ workflow {
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
+
+    EDIT_VALIDPAIRS.out.view()
+    GENERATE_BINS.out.view()
 
     // Run HiCDCPlus on ValidPairs data to find significant interactions
     EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r1], edited_ValidPairs.txt]
