@@ -69,7 +69,7 @@ workflow {
 
     // Generate bins
     GENERATE_BINS ( ch_dummy )
-        // [[sample_id:dummy], [/81/948d0cab593da14341dd3fb00ebdc6/bed_files, /81/948d0cab593da14341dd3fb00ebdc6/plots, /81/948d0cab593da14341dd3fb00ebdc6/rds_files]]
+        // [[sample_id:dummy], [bed_files, plots, rds_files]]
 
     // Extract bins bed file from generate_bins.R output
     GENERATE_BINS.out
@@ -105,20 +105,18 @@ workflow {
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
-
-    EDIT_VALIDPAIRS.out.view()
-        // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/f6/5f387e28158d20d54bdb9825be3137/WE_HiChip_r2_edited.allValidPairs
-        // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/63/5c215c3285e67ba1b10da286aaf5a2/WE_HiChip_r1_edited.allValidPairs
-        // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/b6/507a4d889f71a341d05dadbc0c5de8/WE_HiChip_r3_edited.allValidPairs
-        // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/ca/387797417c462833e88dbc97965220/NF_HiChip_r1_edited.allValidPairs
-        // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/19/4723cf3020c3fda9de571a41609486/NF_HiChip_r2_edited.allValidPairs
+        // [[sample_id:WE_HiChip_r2], f6/5f387e28158d20d54bdb9825be3137/WE_HiChip_r2_edited.allValidPairs]
+        // [[sample_id:WE_HiChip_r1], 63/5c215c3285e67ba1b10da286aaf5a2/WE_HiChip_r1_edited.allValidPairs]
+        // [[sample_id:WE_HiChip_r3], b6/507a4d889f71a341d05dadbc0c5de8/WE_HiChip_r3_edited.allValidPairs]
+        // [[sample_id:NF_HiChip_r1], ca/387797417c462833e88dbc97965220/NF_HiChip_r1_edited.allValidPairs]
+        // [[sample_id:NF_HiChip_r2], 19/4723cf3020c3fda9de571a41609486/NF_HiChip_r2_edited.allValidPairs]
 
     // Run HiCDCPlus on ValidPairs data to find significant interactions
-    EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r1], edited_ValidPairs.txt]
-        .map { row -> [row[0], [row[1]]] } //[[sample_id:WE_HiChip_r1], [edited_ValidPairs.txt]]
-        .combine( GENERATE_BINS.out )
+    EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r2], WE_HiChip_r2_edited.allValidPairs]
+        .map { row -> [row[0], [row[1]]] } //[[sample_id:WE_HiChip_r2], [WE_HiChip_r2_edited.allValidPairs]]
+        .combine( GENERATE_BINS.out ) //[[sample_id:dummy], [bed_files, plots, rds_files]]
         .map{[it[0], it[1] + it[3]]}
-        .set { ch_validpairs } //[[sample_id:NF_HiChip_r3], [edited_ValidPairs.txt, plots, rds_files]]
+        .set { ch_validpairs } //[[sample_id:WE_HiChip_r1], [WE_HiChip_r2_edited.allValidPairs, bed_files, plots, rds_files]]
 
     LOOP_CALL( ch_validpairs )
 
