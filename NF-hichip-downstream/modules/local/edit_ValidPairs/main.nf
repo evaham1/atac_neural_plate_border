@@ -9,7 +9,7 @@ process EDIT_VALIDPAIRS {
     tuple val(meta), path(input_file)
 
     output:
-    path "$output_file"       , emit: bed
+    tuple val(meta), path(output_file)          , emit: validpairs
 
     script:
     output_file = input_file.toString() - ".allValidPairs" + "_edited.allValidPairs"
