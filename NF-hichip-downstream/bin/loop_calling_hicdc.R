@@ -91,8 +91,15 @@ print("bins read in!")
 
 print("reading in HiChip counts...")
 
-# Add Validpairs
-valid_pair_path = paste0(data_path, "edited_ValidPairs.txt") #### NEED TO EDIT THIS
+# Extract paths - should look like: 'WE_HiChip_r2_edited.allValidPairs'
+valid_pair_path <- list.files(path = data_path, pattern = "*.allValidPairs", full.names = TRUE)
+print(paste0("Valid pair path: ", valid_pair_path))
+
+# Extract sample name
+sample_name <- gsub(pattern = "_edited.allValidPairs", replacement = "", x = basename(valid_pair_path))
+print(paste0("Detected sample name: ", sample_name))
+
+# Add Validpairs to gi_list
 gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
 
 # Check file now
@@ -269,7 +276,7 @@ for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
 }
 
 gi_list_write(filtered_list,
-              fname=paste0(rds_path,'/HiCDC_output_filtered.txt'),
+              fname = paste0(rds_path, filename, '_HiCDC_output_filtered.txt'),
               rows = "all")
 
 print("outputs saved!")
