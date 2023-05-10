@@ -75,7 +75,7 @@ gi_list<-generate_bintolen_gi_list(
 
 # Check gi_list
 gi_list_validate(gi_list) # passes without errors
-head(gi_list)
+#head(gi_list)
 # GInteractions object with 1457234 interactions and 1 metadata column:
 #   seqnames1           ranges1     seqnames2           ranges2 |         D
 # <Rle>         <IRanges>         <Rle>         <IRanges> | <integer>
@@ -276,7 +276,7 @@ for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
 }
 
 gi_list_write(filtered_list,
-              fname = paste0(rds_path, filename, '_HiCDC_output_filtered.txt'),
+              fname = paste0(rds_path, sample_name, '_HiCDC_output_filtered.txt'),
               rows = "all")
 
 print("outputs saved!")
