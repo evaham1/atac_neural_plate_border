@@ -18,6 +18,8 @@ library(HiCDCPlus)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-m", "--Dmin"), action = "store", type = "integer", help = "Minimum distance (included) to check for significant interactions"),
+  make_option(c("-n", "--Dmax"), action = "store", type = "integer", help = "Maximum distance (included) to check for significant interactions"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
@@ -90,7 +92,7 @@ print("bins read in!")
 print("reading in HiChip counts...")
 
 # Add Validpairs
-valid_pair_path = paste0(data_path, "edited_ValidPairs.txt")
+valid_pair_path = paste0(data_path, "edited_ValidPairs.txt") #### NEED TO EDIT THIS
 gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path = valid_pair_path)
 
 # Check file now
@@ -154,7 +156,7 @@ print("HiChip counts read in!")
 
 print("running HiCDC+...")
 
-# Expand features for modeling - adds 2D features in metadata handle? what does that mean?
+# Expand features for modeling - 1D = genomic features for each bin, 2D = features belonging to an interaction.
 expanded_gi_list_with_valid_pairs <- expand_1D_features(gi_list_with_valid_pairs)
 
 # Run HiC-DC+
@@ -166,15 +168,21 @@ print("Number of cores detected:")
 print(parallel::detectCores())
 
 expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
-                                                              covariates = NULL,
-                                                              distance_type = "spline",
-                                                              model_distribution = "nb",
-                                                              binned = TRUE,
-                                                              df = 6,
-                                                              Dmin = 0,
-                                                              Dmax = 1.5e6, # recommended for HiChip data in manual
-                                                              ssize = 0.01,
-                                                              splineknotting = "uniform"
+                                                              # Covariates:
+                                                              covariates = NULL, # covariates to be considered in addition to D, defaults to all covariates besides D, counts, mu, sdev, pvalue, qvalue
+                                                              # Modelling params:
+                                                              distance_type = "spline", # distance covariate form, 'spline' or 'log'
+                                                              model_distribution = "nb", # 'nb' uses negative binomial model, 'nb_vardisp' uses nb model with distance specific dispersion inferred from data, 'nb_hurdle' uses legacy HiC-DC model
+                                                              df = 6, # degrees of freedom for the genomic distance spline function if distance_type='spline', defaults to 6 which corresponds to cubic splines
+                                                              ssize = 0.01, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
+                                                              splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
+                                                              # Cores:
+                                                              ncore = parallel::detectCores()-1, # number of cores to parallelize
+                                                              # Types of bins:
+                                                              binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
+                                                              # Resulting loops params:
+                                                              Dmin = Dmin, # minimum distance (included) to check for significant interactions, defaults to 0
+                                                              Dmax = Dmax # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
                                                               )
 
 ########################
@@ -249,6 +257,7 @@ print("saving outputs...")
 
 
 # Filter results by adjusted p value - done manually as can then remove NAs myself
+# There will be NAs for every interactions that falls outside DMin or DMax, so need to remove these from gi_list altogether
 filtered_list <- list()
 for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
   name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
