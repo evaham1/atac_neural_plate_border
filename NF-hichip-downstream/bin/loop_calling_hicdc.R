@@ -104,7 +104,7 @@ gi_list_with_valid_pairs <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpai
 
 # Check file now
 gi_list_validate(gi_list_with_valid_pairs)
-head(gi_list_with_valid_pairs)
+# head(gi_list_with_valid_pairs)
 # length(gi_list_with_valid_pairs) # 42 - each element in list is a chromosome
 # gi_list_with_valid_pairs[[1]]
 # mcols(gi_list[[1]])
@@ -209,7 +209,7 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
 ########################
 
 # Check one chromosome
-head(expanded_gi_list_with_valid_pairs_HiCDC)
+# head(expanded_gi_list_with_valid_pairs_HiCDC)
 # GInteractions object with 6 interactions and 4 metadata columns:
 #   seqnames1   ranges1     seqnames2     ranges2 |         D    counts        gc       len
 # <Rle> <IRanges>         <Rle>   <IRanges> | <integer> <numeric> <numeric> <numeric>
@@ -283,8 +283,17 @@ print("outputs saved!")
 
 ####################################   Visualisations   ##################################################
 
-interactions <- expanded_gi_list_with_valid_pairs_HiCDC
+print("Visualisations...")
 
+# Read in bins bed object
+bins <- data.table::fread(paste0(data_path, "bed_files/bins.bed"))
+colnames(bins) <- c("chr", "start", "end", "bin_ID")
+head(bins)
+
+# Read in significant interactions object
+interactions <- data.table::fread(paste0(rds_path, sample_name, '_HiCDC_output_filtered.txt'))
+head(interactions)
+dim(interactions)
 
 #### Check bin sizes
 
