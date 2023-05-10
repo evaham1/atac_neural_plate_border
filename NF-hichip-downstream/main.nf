@@ -105,6 +105,8 @@ workflow {
 
     // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
+
+    EDIT_VALIDPAIRS.out.view()
         // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/f6/5f387e28158d20d54bdb9825be3137/WE_HiChip_r2_edited.allValidPairs
         // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/63/5c215c3285e67ba1b10da286aaf5a2/WE_HiChip_r1_edited.allValidPairs
         // /flask/scratch/briscoej/hamrude/atac_neural_plate_border/NF-hichip-downstream/work/b6/507a4d889f71a341d05dadbc0c5de8/WE_HiChip_r3_edited.allValidPairs
