@@ -6,7 +6,7 @@ process EDIT_VALIDPAIRS {
         'ubuntu:20.04' }"
 
     input:
-    path input_file
+    tuple val(meta), path(input_file)
 
     output:
     path "$output_file"       , emit: bed
