@@ -188,8 +188,8 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               # Types of bins:
                                                               binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
                                                               # Resulting loops params:
-                                                              Dmin = Dmin, # minimum distance (included) to check for significant interactions, defaults to 0
-                                                              Dmax = Dmax # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
+                                                              Dmin = opt$Dmin, # minimum distance (included) to check for significant interactions, defaults to 0
+                                                              Dmax = opt$Dmax # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
                                                               )
 
 ########################
