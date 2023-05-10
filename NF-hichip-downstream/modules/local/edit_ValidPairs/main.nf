@@ -12,7 +12,7 @@ process EDIT_VALIDPAIRS {
     path "$output_file"       , emit: bed
 
     script:
-    output = input_file.toString() - ".allValidPairs" + "_edited.allValidPairs"
+    output_file = input_file.toString() - ".allValidPairs" + "_edited.allValidPairs"
     """
     edit_validpairs.sh $input_file $output_file
     """
