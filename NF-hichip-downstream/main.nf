@@ -25,10 +25,11 @@ include {GTF_TO_BED} from "$baseDir/modules/local/gtf_to_bed/main"
 include {INTERSECT_BINS as INTERSECT_BINS_PEAKS} from "$baseDir/modules/local/intersect_bins/main"
 include {INTERSECT_BINS as INTERSECT_BINS_GENES} from "$baseDir/modules/local/intersect_bins/main"
 
-// 3) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find significant interactions
+// 3) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find differential significant interactions
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include {EDIT_VALIDPAIRS} from "$baseDir/modules/local/edit_ValidPairs/main"
 include {R as LOOP_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/loop_calling_hicdc.R", checkIfExists: true) )
+include {R as DIFF_LOOPS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_loops_hicdc.R", checkIfExists: true) )
 
 // 4) Filter bins to pick out interactions of interest
 include {R as INVESTIGATE_LOOPS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/investigate_loops.R", checkIfExists: true) )
@@ -120,18 +121,28 @@ workflow {
 
     LOOP_CALL( ch_validpairs )
 
-    //////////  Filter interesting interactions  //////////
+    //////////  Find differential interactions between NF and WE  //////////
 
-    LOOP_CALL.out
-        .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-        .combine( INTERSECT_BINS_PEAKS.out )
-        .combine( INTERSECT_BINS_GENES.out )
-        .combine( ch_bins )
-        .map{ [ it[0], [it[1], it[2], it[3], it[4]] ] }
-        .view() // [[sample_id:WE_HiChip_r1], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed, bins.bed]]
-        .set{ ch_intersect }
+    ch_interactions_combined = LOOP_CALL.out
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'AllSamples'], it] } //
 
-    INVESTIGATE_LOOPS( ch_intersect )
+    DIFF_LOOPS( ch_interactions_combined )
+
+    //////////  Pull out interesting interactions  //////////
+
+    // DIFF_LOOPS.out
+    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
+    //     .combine( INTERSECT_BINS_PEAKS.out )
+    //     .combine( INTERSECT_BINS_GENES.out )
+    //     .combine( ch_bins )
+    //     .map{ [ it[0], [it[1], it[2], it[3], it[4]] ] }
+    //     .view() // [[sample_id:WE_HiChip_r1], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed, bins.bed]]
+    //     .set{ ch_intersect }
+
+    // INVESTIGATE_LOOPS( ch_intersect )
+
 }
 
 /*
