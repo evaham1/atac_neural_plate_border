@@ -28,3 +28,4 @@ awk -F'\t' '$3 ~ /gene/ {
     output = "chr"$1 "\t" $4 "\t" $5 "\t" $6 "\t" $7 "\t" gene_id "\t" gene_name
     print output
 }' "$gtf_file" > "$output_file"
+rm "$gtf_file"
