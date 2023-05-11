@@ -21,6 +21,7 @@ nextflow.enable.dsl = 2
 include {R as GENERATE_BINS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/generate_bins.R", checkIfExists: true) )
 
 // 2) Prep peak output and gtf and then intersect with bins to annotate them
+include {SAMTOOLS_FAIDX} from "$baseDir/modules/local/samtools_faidx/main"
 include {EXTRACT_PROMOTERS} from "$baseDir/modules/local/extract_promoters/main"
 include {INTERSECT_BINS as INTERSECT_BINS_PEAKS} from "$baseDir/modules/local/intersect_bins/main"
 include {INTERSECT_BINS as INTERSECT_BINS_PROMOTERS} from "$baseDir/modules/local/intersect_bins/main"
@@ -39,7 +40,12 @@ include {R as INVESTIGATE_LOOPS} from "$baseDir/modules/local/r/main"           
 // SET CHANNELS
 //
 
-// set channel for gtf file
+// set channel for genome fasta file
+Channel
+    .value(params.fasta)
+    .set{ch_fasta}
+
+// set channel for genome gtf file
 Channel
     .value(params.gtf)
     .set{ch_gtf}
@@ -65,8 +71,11 @@ workflow {
 
     //////////  Sample-generic bins generation and annotation  //////////
 
+    // Extract chromosome lengths from reference fasta
+    SAMTOOLS_FAIDX( ch_fasta )
+
     // Turn gtf file into bed file
-    EXTRACT_PROMOTERS( ch_gtf )
+    EXTRACT_PROMOTERS( ch_gtf, SAMTOOLS_FAIDX.out )
 
     // Generate bins
     GENERATE_BINS ( ch_dummy )

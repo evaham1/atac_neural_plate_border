@@ -5,10 +5,10 @@ gtf_file="$1"
 output_file="$2"
 
 # Extracts all genes
-# Identifies orientation of gene and then extract promoter which is gene start +/- 2kb
+
 # Changes chromosome names to 'chr1'
-# Extracts gene name or if there is no gene name, gene ID
 awk -F'\t' '$3 ~ /gene/ {
+    # Identify orientation of gene and then extract promoter which is gene start +/- 2kb
     if ($7 == "+") {
         $5 = $4
         $4 = $4 - 2000
@@ -16,6 +16,12 @@ awk -F'\t' '$3 ~ /gene/ {
         $4 = $5
         $5 = $5 + 2000
     }
+    # If resulting coordinate is negative set it to 0
+    if ($4 < 0){ 
+        $4 = 0
+    }
+    # If resulting coordinate is more than the length of the chromosome?
+    # would need to check if $5 is more than max for that particular chromosome
     # Extract gene_id and gene_name values within quotations
     split($9, a, "\"");
     gene_id=a[2];
