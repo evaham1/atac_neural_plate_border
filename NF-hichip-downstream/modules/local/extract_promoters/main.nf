@@ -14,6 +14,6 @@ process GTF_TO_BED {
     script:
     output = gtf_file.toString() - ".gtf" + ".bed"
     """
-    convert_gtf_to_bed.sh $gtf_file $output
+    extract_promoters.sh $gtf_file $output
     """
 }
