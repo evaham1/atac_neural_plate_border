@@ -75,32 +75,32 @@ workflow {
     SAMTOOLS_FAIDX( ch_fasta )
 
     // Turn gtf file into bed file
-    EXTRACT_PROMOTERS( ch_gtf, SAMTOOLS_FAIDX.out )
+    // EXTRACT_PROMOTERS( ch_gtf, SAMTOOLS_FAIDX.out )
 
-    // Generate bins
-    GENERATE_BINS ( ch_dummy )
-        // [[sample_id:dummy], [bed_files, plots, rds_files]]
+    // // Generate bins
+    // GENERATE_BINS ( ch_dummy )
+    //     // [[sample_id:dummy], [bed_files, plots, rds_files]]
 
-    // Extract bins bed file from generate_bins.R output
-    GENERATE_BINS.out
-        .map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
-        //.view() //[[sample_id:dummy], [bed_files]]
-        .flatMap {it[1][0].listFiles()} //bins.bed
-        .set{ ch_bins }
+    // // Extract bins bed file from generate_bins.R output
+    // GENERATE_BINS.out
+    //     .map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
+    //     //.view() //[[sample_id:dummy], [bed_files]]
+    //     .flatMap {it[1][0].listFiles()} //bins.bed
+    //     .set{ ch_bins }
 
-    // Intersect bins with peaks
-    ch_bins
-        .combine( ch_peaks )
-        //.view() //[bins.bed, FullData_PeakSet.bed]
-        .set{ ch_peak_bins }
-    INTERSECT_BINS_PEAKS( ch_peak_bins )
+    // // Intersect bins with peaks
+    // ch_bins
+    //     .combine( ch_peaks )
+    //     //.view() //[bins.bed, FullData_PeakSet.bed]
+    //     .set{ ch_peak_bins }
+    // INTERSECT_BINS_PEAKS( ch_peak_bins )
 
-    // Intersect bins with promoters
-    ch_bins
-        .combine( EXTRACT_PROMOTERS.out )
-        //.view() //[bins.bed, tag_chroms.bed]
-        .set{ ch_promoters_bins }
-    INTERSECT_BINS_PROMOTERS( ch_promoters_bins )
+    // // Intersect bins with promoters
+    // ch_bins
+    //     .combine( EXTRACT_PROMOTERS.out )
+    //     //.view() //[bins.bed, tag_chroms.bed]
+    //     .set{ ch_promoters_bins }
+    // INTERSECT_BINS_PROMOTERS( ch_promoters_bins )
 
     //////////  HiChip-sample specific analysis  //////////
 
@@ -114,32 +114,32 @@ workflow {
         // [[sample_id:NF_HiChip_r3], [/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r3.allValidPairs]]
 
     // Edit ValidPairs data to add 'chr' to chromosome names
-    EDIT_VALIDPAIRS ( METADATA.out )
-        // [[sample_id:WE_HiChip_r2], f6/5f387e28158d20d54bdb9825be3137/WE_HiChip_r2_edited.allValidPairs]
-        // [[sample_id:WE_HiChip_r1], 63/5c215c3285e67ba1b10da286aaf5a2/WE_HiChip_r1_edited.allValidPairs]
-        // [[sample_id:WE_HiChip_r3], b6/507a4d889f71a341d05dadbc0c5de8/WE_HiChip_r3_edited.allValidPairs]
-        // [[sample_id:NF_HiChip_r1], ca/387797417c462833e88dbc97965220/NF_HiChip_r1_edited.allValidPairs]
-        // [[sample_id:NF_HiChip_r2], 19/4723cf3020c3fda9de571a41609486/NF_HiChip_r2_edited.allValidPairs]
+    // EDIT_VALIDPAIRS ( METADATA.out )
+    //     // [[sample_id:WE_HiChip_r2], f6/5f387e28158d20d54bdb9825be3137/WE_HiChip_r2_edited.allValidPairs]
+    //     // [[sample_id:WE_HiChip_r1], 63/5c215c3285e67ba1b10da286aaf5a2/WE_HiChip_r1_edited.allValidPairs]
+    //     // [[sample_id:WE_HiChip_r3], b6/507a4d889f71a341d05dadbc0c5de8/WE_HiChip_r3_edited.allValidPairs]
+    //     // [[sample_id:NF_HiChip_r1], ca/387797417c462833e88dbc97965220/NF_HiChip_r1_edited.allValidPairs]
+    //     // [[sample_id:NF_HiChip_r2], 19/4723cf3020c3fda9de571a41609486/NF_HiChip_r2_edited.allValidPairs]
 
-    // Run HiCDCPlus on ValidPairs data to find significant interactions
-    EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r2], WE_HiChip_r2_edited.allValidPairs]
-        .map { row -> [row[0], [row[1]]] } //[[sample_id:WE_HiChip_r2], [WE_HiChip_r2_edited.allValidPairs]]
-        .combine( GENERATE_BINS.out ) //[[sample_id:dummy], [bed_files, plots, rds_files]]
-        .map{[it[0], it[1] + it[3]]}
-        .set { ch_validpairs } //[[sample_id:WE_HiChip_r1], [WE_HiChip_r2_edited.allValidPairs, bed_files, plots, rds_files]]
+    // // Run HiCDCPlus on ValidPairs data to find significant interactions
+    // EDIT_VALIDPAIRS.out // EDIT_VALIDPAIRS.out: [[sample_id:WE_HiChip_r2], WE_HiChip_r2_edited.allValidPairs]
+    //     .map { row -> [row[0], [row[1]]] } //[[sample_id:WE_HiChip_r2], [WE_HiChip_r2_edited.allValidPairs]]
+    //     .combine( GENERATE_BINS.out ) //[[sample_id:dummy], [bed_files, plots, rds_files]]
+    //     .map{[it[0], it[1] + it[3]]}
+    //     .set { ch_validpairs } //[[sample_id:WE_HiChip_r1], [WE_HiChip_r2_edited.allValidPairs, bed_files, plots, rds_files]]
 
-    LOOP_CALL( ch_validpairs )
+    // LOOP_CALL( ch_validpairs )
 
-    //////////  Find differential interactions between NF and WE  //////////
+    // //////////  Find differential interactions between NF and WE  //////////
 
-    LOOP_CALL.out
-        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-        .collect()
-        .map { [[sample_id:'AllSamples'], it] } //
-        .view()
-        .set{ ch_interactions_combined }
+    // LOOP_CALL.out
+    //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+    //     .collect()
+    //     .map { [[sample_id:'AllSamples'], it] } //
+    //     .view()
+    //     .set{ ch_interactions_combined }
 
-    DIFF_LOOPS( ch_interactions_combined )
+    // DIFF_LOOPS( ch_interactions_combined )
 
     //////////  Pull out interesting interactions  //////////
 
