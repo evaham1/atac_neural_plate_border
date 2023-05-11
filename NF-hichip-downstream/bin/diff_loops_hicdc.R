@@ -13,11 +13,15 @@ library(dplyr)
 library(GenomicFeatures)
 library(HiCDCPlus)
 
+install.packages("DESeq2")
+
 ############################## Set up script options #######################################
 # Read in command line opts
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-m", "--Dmin"), action = "store", type = "integer", help = "Minimum distance (included) to check for significant interactions"),
+  make_option(c("-n", "--Dmax"), action = "store", type = "integer", help = "Maximum distance (included) to check for significant interactions"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
@@ -32,9 +36,11 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    plot_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_diff_interactions/plots/"
-    rds_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_diff_interactions/rds_files/"
-    data_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/rds_files/" 
+    plot_path = "./output/NF-hichip-downstream/AllSamples/HicDCPlus_diff_interactions/plots/"
+    rds_path = "./output/NF-hichip-downstream/AllSamples/HicDCPlus_diff_interactions/rds_files/"
+    
+    ## Created folder with all HiCDC+ outputs to test interactively
+    data_path = "./local_test_data/all_HiCDC_outputs/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -61,36 +67,59 @@ if(opt$verbose) print(opt)
 
 print("reading in loops...")
 
-## read in loops for all WE samples
-# interactions <- data.table::fread(paste0(data_path, "HiCDC_output_filtered.txt"))
-# head(interactions)
-# dim(interactions)
+# read in all file paths
+print("All samples:")
+files <- list.files(data_path, full.names = TRUE)
+print(files)
 
-## read in loops for all NF samples
-# interactions <- data.table::fread(paste0(data_path, "HiCDC_output_filtered.txt"))
-# head(interactions)
-# dim(interactions)
+# read in loops for all WE samples
+print("WE samples:")
+WE_samples <-  grep("WE", files, invert = T, value = TRUE)
+print(WE_samples)
 
-## turn into index file
-# #save index file---union of significants at 50kb
-# colnames(indexfile)<-c('chr','startI','startJ')
-# data.table::fwrite(indexfile,
-#             paste0(outdir,'/GSE131651_analysis_indices.txt.gz'),
-#             sep='\t',row.names=FALSE,quote=FALSE)
+# read in loops for all NF samples
+print("NF samples:")
+NF_samples <-  grep("NF", files, invert = T, value = TRUE)
+print(NF_samples)
+
+######################################   Create index file   ####################################################
+# union of significant interactions, chr, startI, startJ
+
+indexfile <- data.frame()
+for (file in files) {
+  # read in hicDC+ output
+  output <- data.table::fread(file)
+  # add unique interactions to indexfile
+  indexfile <- unique(rbind(indexfile, output[,c('chrI','startI','startJ')]))
+}
+
+print(head(indexfile))
+dim(indexfile)
+
+#save index file
+colnames(indexfile) <- c('chr','startI','startJ')
+data.table::fwrite(indexfile,
+                   paste0(rds_path,'/Indexfile.txt.gz'),
+                   sep='\t',row.names=FALSE,quote=FALSE)
 
 ####################################   Run hicdcdiff   ###################################################
+# Differential analysis using modified DESeq2 (see ?hicdcdiff)
 
-# #Differential analysis using modified DESeq2 (see ?hicdcdiff)
-
-# hicdcdiff(input_paths=list(NSD2=c(paste0(outdir,'/GSE131651_NSD2_LOW_arima_example.txt.gz'),
-#                  paste0(outdir,'/GSE131651_NSD2_HIGH_arima_example.txt.gz')),
-# TKO=c(paste0(outdir,'/GSE131651_TKOCTCF_new_example.txt.gz'),
-# paste0(outdir,'/GSE131651_NTKOCTCF_new_example.txt.gz'))),
-# filter_file=paste0(outdir,'/GSE131651_analysis_indices.txt.gz'),
-# output_path=paste0(outdir,'/diff_analysis_example/'),
-# fitType = 'mean',
-# binsize=50000,
-# diagnostics=TRUE)
+hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
+          filter_file = paste0(rds_path,'/Indexfile.txt.gz'),
+          output_path=paste0(rds_path,'/HicDCDiff_output/'),
+          # Bins
+          bin_type = 'Bins-uniform',
+          binsize = 5000,
+          # Interaction sizes
+          Dmin = opt$Dmin,
+          Dmax = opt$Dmax,
+          # fitType in DESeq2::estimateDispersions
+          fitType = 'mean',
+          # What objects are made
+          diagnostics=TRUE, # generates diagnostic plots of normalisation factors and MA plots
+          DESeq.save = TRUE # saves DESEq objects for each chromosome
+          )
 
 #### LOOK FOR CONSISTENCY BETWEEN SAMPLES, PCA PLOT??? - venn diagram of all interactions across 6 samples
 
