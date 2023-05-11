@@ -21,9 +21,9 @@ nextflow.enable.dsl = 2
 include {R as GENERATE_BINS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/generate_bins.R", checkIfExists: true) )
 
 // 2) Prep peak output and gtf and then intersect with bins to annotate them
-include {GTF_TO_BED} from "$baseDir/modules/local/gtf_to_bed/main"
+include {EXTRACT_PROMOTERS} from "$baseDir/modules/local/extract_promoters/main"
 include {INTERSECT_BINS as INTERSECT_BINS_PEAKS} from "$baseDir/modules/local/intersect_bins/main"
-include {INTERSECT_BINS as INTERSECT_BINS_GENES} from "$baseDir/modules/local/intersect_bins/main"
+include {INTERSECT_BINS as INTERSECT_BINS_PROMOTERS} from "$baseDir/modules/local/intersect_bins/main"
 
 // 3) Prep ValidPairs output from HiC pipeline and run with HiCDC+ to find differential significant interactions
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -66,7 +66,7 @@ workflow {
     //////////  Sample-generic bins generation and annotation  //////////
 
     // Turn gtf file into bed file
-    GTF_TO_BED( ch_gtf )
+    EXTRACT_PROMOTERS( ch_gtf )
 
     // Generate bins
     GENERATE_BINS ( ch_dummy )
@@ -86,12 +86,12 @@ workflow {
         .set{ ch_peak_bins }
     INTERSECT_BINS_PEAKS( ch_peak_bins )
 
-    // Intersect bins with genes
+    // Intersect bins with promoters
     ch_bins
-        .combine( GTF_TO_BED.out )
+        .combine( EXTRACT_PROMOTERS.out )
         //.view() //[bins.bed, tag_chroms.bed]
-        .set{ ch_genes_bins }
-    INTERSECT_BINS_GENES( ch_genes_bins )
+        .set{ ch_promoters_bins }
+    INTERSECT_BINS_PROMOTERS( ch_promoters_bins )
 
     //////////  HiChip-sample specific analysis  //////////
 
@@ -137,7 +137,7 @@ workflow {
     // DIFF_LOOPS.out
     //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
     //     .combine( INTERSECT_BINS_PEAKS.out )
-    //     .combine( INTERSECT_BINS_GENES.out )
+    //     .combine( INTERSECT_BINS_PROMOTERS.out )
     //     .combine( ch_bins )
     //     .map{ [ it[0], [it[1], it[2], it[3], it[4]] ] }
     //     .view() // [[sample_id:WE_HiChip_r1], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed, bins.bed]]
