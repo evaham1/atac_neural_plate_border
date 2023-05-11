@@ -18,6 +18,7 @@ library(HiCDCPlus)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-b", "--binsize"), action = "store", type = "integer", help = "Size of uniform bins to make"),
   make_option(c("-m", "--Dmin"), action = "store", type = "integer", help = "Minimum distance (included) to check for significant interactions"),
   make_option(c("-n", "--Dmax"), action = "store", type = "integer", help = "Maximum distance (included) to check for significant interactions"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
@@ -34,6 +35,9 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     chrs = c("chr21", "chr22")
+    opt$binsize = 5000
+    opt$Dmin = 10000
+    opt$Dmax = 1000000
     
     plot_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/plots/"
     rds_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/rds_files/"
@@ -263,10 +267,10 @@ plot(table(bins$bin_width))
 graphics.off()
 # most bins are 4999, but there are one of unique sizes
 
-# where are the bins that are not 4999bp long?
-print("Bins which are not 4999bp long:")
-print(bins[bins$bin_width != "4999", ])
-# can see there is one bin which is not 4999bp long in each chromosome
+# where are the bins that are not specified bin size?
+print("Bins which are not specified bin size:")
+print(bins[bins$bin_width != opt$binsize-1, ])
+# can see there is one bin which is not the specified bin size in each chromosome
 
 #### Check interaction distances
 
@@ -274,15 +278,15 @@ print(bins[bins$bin_width != "4999", ])
 print(paste0("Minimum interaction size: ", min(interactions$D)))
 print(paste0("Maximum interaction size: ", max(interactions$D)))
 
-# check which interactions are not divisible by 5000 (bin width)
-print("Interactions which distance is not divisible by 5000:")
+# check which interactions are not divisible by bin size
+print("Interactions which distance is not divisible by bin size:")
 check.integer <- function(x) {x == round(x)}
-weird_length_interactions <- interactions[!check.integer(interactions$D / 5000), ]
+weird_length_interactions <- interactions[!check.integer(interactions$D / opt$binsize), ]
 print(head(weird_length_interactions))
 # these interactions are all interacting with the weirdly sized last bin
 
 # remove the weird sized interactions and extract counts vs distance
-normal_sized_interactions <- interactions[check.integer(interactions$D / 5000), ]
+normal_sized_interactions <- interactions[check.integer(interactions$D / opt$binsize), ]
 
 #### Check counts
 

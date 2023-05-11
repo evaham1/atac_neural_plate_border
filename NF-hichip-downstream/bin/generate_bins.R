@@ -18,6 +18,7 @@ library(HiCDCPlus)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-b", "--binsize"), action = "store", type = "integer", help = "Size of uniform bins to make"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
@@ -31,6 +32,7 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
+    opt$binsize = 5000
     
     plot_path = "./output/NF-hichip-downstream/1_bins/plots/"
     rds_path = "./output/NF-hichip-downstream/1_bins/rds_files/"
@@ -64,7 +66,7 @@ construct_features(output_path = paste0(rds_path, "bins"),
                    gen = "Ggallus", gen_ver = "galGal6", # BSgenome.Ggallus.UCSC.galGal6, same as used for ArchR preprocessing
                    sig = c("GATC"), # this is the cut site of restriction enzyme Mboi which was used to make HiChip data
                    bin_type = "Bins-uniform", 
-                   binsize = 5000 # resolution = 5kb
+                   binsize = opt$binsize # resolution = 5kb
                    )
 
 # read in bintolen object to check
