@@ -12,8 +12,13 @@ library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
 library(HiCDCPlus)
+library(DESeq2)
+library(VennDiagram)
+library(gridExtra)
+library(grid)
 
-install.packages("DESeq2")
+library(RColorBrewer)
+myCol <- brewer.pal(3, "Pastel2")
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -63,34 +68,43 @@ if(opt$verbose) print(opt)
 ################################## Find Differential loops #################################################
 ############################################################################################################
 
-######################################   Read in loops   ####################################################
+######################################   Extract file names   ####################################################
 
 print("reading in loops...")
 
 # read in all file paths
 print("All samples:")
-files <- list.files(data_path, full.names = TRUE)
+all_files <- list.files(data_path, full.names = TRUE)
+files <-  grep("_HiCDC_output.txt.gz", all_files, value = TRUE)
 print(files)
 
 # read in loops for all WE samples
 print("WE samples:")
-WE_samples <-  grep("WE", files, invert = T, value = TRUE)
+WE_samples <-  grep("WE", files, value = TRUE)
 print(WE_samples)
 
 # read in loops for all NF samples
 print("NF samples:")
-NF_samples <-  grep("NF", files, invert = T, value = TRUE)
+NF_samples <-  grep("NF", files, value = TRUE)
 print(NF_samples)
 
-######################################   Create index file   ####################################################
-# union of significant interactions, chr, startI, startJ
+
+##############################   Read in data and create index file for hicdcdiff  ##############################################
+# index file = union of significant interactions, chr, startI, startJ
 
 indexfile <- data.frame()
+hidc_outputs <- list()
 for (file in files) {
+  # extract sample name
+  sample_name <- gsub(pattern = "_HiCDC_output_filtered.txt", replacement = "", x = basename(file))
   # read in hicDC+ output
   output <- data.table::fread(file)
   # add unique interactions to indexfile
   indexfile <- unique(rbind(indexfile, output[,c('chrI','startI','startJ')]))
+  # add an interaction name to the hicDC+ output
+  output <- output %>% mutate(interaction_ID = paste0(chrI, "-", startI, "-", startJ))
+  # add the hicDC+ output to the list of outputs
+  hidc_outputs[[sample_name]] <- output
 }
 
 print(head(indexfile))
@@ -115,12 +129,100 @@ hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
           Dmin = opt$Dmin,
           Dmax = opt$Dmax,
           # fitType in DESeq2::estimateDispersions
-          fitType = 'mean',
+          fitType = 'local', # 'parametric' (parametric regression),'local' (local regression), and 'mean' (constant across interaction bins). Default is 'local'.
           # What objects are made
           diagnostics=TRUE, # generates diagnostic plots of normalisation factors and MA plots
-          DESeq.save = TRUE # saves DESEq objects for each chromosome
+          DESeq.save = TRUE, # saves DESEq objects for each chromosome
+          chrs = c('chr10')
           )
 
 #### LOOK FOR CONSISTENCY BETWEEN SAMPLES, PCA PLOT??? - venn diagram of all interactions across 6 samples
 
 #### LOOK IF DIFF INTERACTIONS ARE FOUND IN AT LEAST 2 OF 3 REPLICATES
+
+######################   Look at how much overlap there is between samples   ######################################
+
+names(hidc_outputs)
+
+# Table of how many interactions found in each sample
+
+interaction_numbers <- data.frame(
+  NF_HiChip_r1 = length(hidc_outputs[[1]]$interaction_ID),
+  NF_HiChip_r2 = length(hidc_outputs[[2]]$interaction_ID),
+  NF_HiChip_r3 = length(hidc_outputs[[3]]$interaction_ID),
+  WE_HiChip_r1 = length(hidc_outputs[[4]]$interaction_ID),
+  WE_HiChip_r2 = length(hidc_outputs[[5]]$interaction_ID),
+  WE_HiChip_r3 = length(hidc_outputs[[6]]$interaction_ID)
+)
+
+png(paste0(plot_path, 'how_many_interaction_in_each_sample_table.png'), height = 10, width = 30, units = 'cm', res = 400)
+grid.arrange(tableGrob(interaction_numbers, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+
+# Venn diagram of interactions between WE samples
+venn.diagram(
+  x = list(hidc_outputs[[4]]$interaction_ID, hidc_outputs[[5]]$interaction_ID, hidc_outputs[[6]]$interaction_ID),
+  category.names = c("WE_HiChip_r1", "WE_HiChip_r2", "WE_HiChip_r3"),
+  filename = paste0(plot_path, 'Venn_WE_interactions.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600, 
+  width = 600, 
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol,
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-27, 27, 135),
+  cat.dist = c(0.055, 0.055, 0.085),
+  cat.fontfamily = "sans",
+  rotation = 1
+)
+
+# Venn diagram of interactions between NF samples
+venn.diagram(
+  x = list(hidc_outputs[[1]]$interaction_ID, hidc_outputs[[2]]$interaction_ID, hidc_outputs[[3]]$interaction_ID),
+  category.names = c("NF_HiChip_r1", "NF_HiChip_r2", "NF_HiChip_r3"),
+  filename = paste0(plot_path, 'Venn_NF_interactions.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600, 
+  width = 600, 
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol,
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-27, 27, 135),
+  cat.dist = c(0.055, 0.055, 0.085),
+  cat.fontfamily = "sans",
+  rotation = 1
+)
+
+
+
+
+
+
+
