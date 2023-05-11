@@ -33,6 +33,7 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
+    chrs = c("chr21", "chr22")
     
     plot_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/plots/"
     rds_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/rds_files/"
@@ -42,10 +43,12 @@ if(opt$verbose) print(opt)
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
     
+    ncores = opt$cores
+    chrs = NULL
+    
     plot_path = "./plots/"
     rds_path = "./rds_files/"
     data_path = "./input/"
-    ncores = opt$cores
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -179,34 +182,20 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               covariates = NULL, # covariates to be considered in addition to D, defaults to all covariates besides D, counts, mu, sdev, pvalue, qvalue
                                                               # Modelling params:
                                                               distance_type = "spline", # distance covariate form, 'spline' or 'log'
-                                                              model_distribution = "nb", # 'nb' uses negative binomial model, 'nb_vardisp' uses nb model with distance specific dispersion inferred from data, 'nb_hurdle' uses legacy HiC-DC model
+                                                              model_distribution = "nb", # 'nb' uses negative binomial model, 'nb_vardisp' uses nb model with distance specific dispersion inferred from data, 'nb_hurdle' uses legacy HiC-DC model
                                                               df = 6, # degrees of freedom for the genomic distance spline function if distance_type='spline', defaults to 6 which corresponds to cubic splines
                                                               ssize = 0.01, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
-                                                              splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
+                                                              splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
                                                               # Cores:
                                                               ncore = parallel::detectCores()-1, # number of cores to parallelize
-                                                              # Types of bins:
-                                                              binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
+                                                              # Types of bins:
+                                                              binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
                                                               # Resulting loops params:
                                                               Dmin = opt$Dmin, # minimum distance (included) to check for significant interactions, defaults to 0
-                                                              Dmax = opt$Dmax # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
+                                                              Dmax = opt$Dmax, # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
+                                                              # Which chroms (if interactive will be chr21 and ch22, if not will be all)
+                                                              chrs = chrs
                                                               )
-
-########################
-########## interactively
-# expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
-#                                                               covariates = NULL,
-#                                                               distance_type = "spline",
-#                                                               model_distribution = "nb",
-#                                                               binned = TRUE,
-#                                                               df = 6,
-#                                                               Dmin = 0,
-#                                                               Dmax = 1.5e6, # recommended for HiChip data in manual
-#                                                               ssize = 0.01,
-#                                                               splineknotting = "uniform",
-#                                                               chrs = c("chr21", "chr22")
-# )
-########################
 
 # Check one chromosome
 # head(expanded_gi_list_with_valid_pairs_HiCDC)
@@ -227,44 +216,11 @@ print("HiCDC+ run!")
 
 print("saving outputs...")
 
-########################
-########## interactively
-# temp_output <- list()
-# temp_output$chr21 <- expanded_gi_list_with_valid_pairs_HiCDC$chr21
-# temp_output$chr22 <- expanded_gi_list_with_valid_pairs_HiCDC$chr22
-
-# filtered_list <- list()
-# for (i in 1:length(temp_output)){
-#   name <- names(temp_output)[i]
-#   temp <- temp_output[i][[1]]
-#   temp_filtered <- temp[!is.na(temp$qvalue), ]
-#   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
-# 
-#   filtered_list[[name]] <- temp_filtered_1
-# }
-
-# hicdc2hic(temp_output,
-#           hicfile=paste0(rds_path,'/HiCDC_output_test.hic'),
-#           mode='normcounts',
-#           gen_ver='galGal6')
-# gi_list_write(temp_output,
-#               fname=paste0(rds_path,'/HiCDC_output_temp.txt.gz'))
-
-# #write normalized counts (observed/expected) to a .hic file
-# hicdc2hic(expanded_gi_list_with_valid_pairs_HiCDC,
-#           hicfile=paste0(rds_path,'/HiCDC_output.hic'),
-#           mode='normcounts',
-#           gen_ver='galGal6')
-########################
-
-#write significant results to a text file - this doesnt work because there are NAs in q-values!
-# gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC,
-#               fname=paste0(rds_path,'/HiCDC_output_filtered.txt'),
-#               rows = "significant", significance_threshold = 0.05)
-
+# Save results as is for differential interaction testing
+gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC, fname = paste0(rds_path, sample_name, '_HiCDC_output.txt.gz'))
 
 # Filter results by adjusted p value - done manually as can then remove NAs myself
-# There will be NAs for every interactions that falls outside DMin or DMax, so need to remove these from gi_list altogether
+# There will be NAs for every interactions that falls outside DMin or DMax, so need to remove these from gi_list altogether
 filtered_list <- list()
 for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
   name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
@@ -390,87 +346,3 @@ graphics.off()
 png(paste0(plot_path, "hist_p_val.png"), width=40, height=20, units = 'cm', res = 200)
 hist(unique(interactions$pvalue), breaks = 100)
 graphics.off()
-
-
-########################
-########## interactively - chrom22
-## Plot counts over interaction distances
-#plot(temp$D, temp$counts)
-#plot(log10(temp$D), log10(temp$counts))
-
-
-# #### CHECKING BIN SIZES
-
-# # check bins of the whole chromosome are all same width
-# bins <- as.data.frame(bins)
-# bins_ch22 <- bins[grepl("chr22", bins$bins), ]
-# first.word <- function(X){
-#   unlist(strsplit(X, "-"))[1]
-# }
-# second.word <- function(X){
-#   unlist(strsplit(X, "-"))[2]
-# }
-# third.word <- function(X){
-#   unlist(strsplit(X, "-"))[3]
-# }
-# bins_ch22 <- bins_ch22 %>% 
-#   mutate(chr = sapply(bins, first.word)) %>%
-#   mutate(start = sapply(bins, second.word)) %>%
-#   mutate(end = sapply(bins, third.word))
-# bins_ch22 <- bins_ch22 %>%
-#   mutate(bin_width = as.numeric(bins_ch22$end) - as.numeric(bins_ch22$start))
-
-# # there are two bin lengths: 4999, 4461 (4461 is the last bin on the chromosome)
-# unique(bins_ch22$bin_width)
-# bins_ch22[bins_ch22$bin_width == 4461, ]
-# tail(bins_ch22)
-
-# #### CHECKING INTERACTION DISTANCES
-
-# # check the range of interaction distances possible 
-# summary(temp$D) # range of interaction distances is: min 0, max 2,000,000 ie 2 million ie 2 MB
-
-# # check which interaction distances are divisible by 5000 (bin width)
-# check.integer <- function(x) {
-#   x == round(x)
-# }
-# length(temp$D) - sum(check.integer(temp$D / 5000))
-# # 375 interactions do not have a distance divisible by 5000
-
-# # check which bins these interaction sizes are connected to
-# temp_weird_interactions <- temp[!check.integer(temp$D / 5000), ]
-# temp_weird_interactions
-# # these interactions are all interacting with the mis-sized last bin
-
-# # remove these 'weird' interactions
-# temp_normal_interactions <- temp[check.integer(temp$D / 5000), ]
-# temp_normal_interactions
-
-# # plot distance by counts
-# data <- data.frame(distance = temp_normal_interactions$D,
-#                    counts = temp_normal_interactions$counts)
-
-# # using means per distance
-# mean_data <- aggregate(counts ~ distance, data, mean)
-# ggplot(mean_data, aes(x=log10(distance), y=log10(counts))) +
-#   geom_line() +
-#   geom_point()
-# ggplot(mean_data, aes(x=distance, y=counts)) +
-#   geom_line() +
-#   geom_point()
-# # looks like around 1 to 1.5mb the profile become jagged. 
-# # currently the max loop length is set as 1.5mb, could maybe reduce it to 1mb
-
-# # using medians per distance
-# median_data <- aggregate(counts ~ distance, data, median)
-# ggplot(median_data, aes(x=distance, y=counts)) +
-#   geom_line() +
-#   geom_point()
-# ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
-#   geom_line() +
-#   geom_point()
-
-# ## Plot distribution of significance 
-# # hist(unique(temp$qvalue), breaks = 100)
-# ########################
-
