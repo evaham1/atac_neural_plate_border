@@ -123,10 +123,12 @@ workflow {
 
     //////////  Find differential interactions between NF and WE  //////////
 
-    ch_interactions_combined = LOOP_CALL.out
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'AllSamples'], it] } //
+    LOOP_CALL.out
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        .collect()
+        .map { [[sample_id:'AllSamples'], it] } //
+        .view()
+        .set{ ch_interactions_combined }
 
     DIFF_LOOPS( ch_interactions_combined )
 

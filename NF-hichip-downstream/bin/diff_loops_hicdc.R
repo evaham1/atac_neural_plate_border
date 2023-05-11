@@ -92,6 +92,6 @@ print("reading in loops...")
 # binsize=50000,
 # diagnostics=TRUE)
 
-#### LOOK FOR CONSISTENCY BETWEEN SAMPLES, PCA PLOT???
+#### LOOK FOR CONSISTENCY BETWEEN SAMPLES, PCA PLOT??? - venn diagram of all interactions across 6 samples
 
 #### LOOK IF DIFF INTERACTIONS ARE FOUND IN AT LEAST 2 OF 3 REPLICATES
