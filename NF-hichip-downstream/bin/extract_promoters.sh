@@ -2,36 +2,44 @@
 
 # Specify inputs
 gtf_file="$1"
-output_file="$2"
+index_file="$2"
+output_file="$3"
 
-# Extracts all genes
+awk -F'\t' '$3 ~ /gene/' "$gtf_file" > temp.gtf
 
-# Changes chromosome names to 'chr1'
-awk -F'\t' '$3 ~ /gene/ {
-    # Identify orientation of gene and then extract promoter which is gene start +/- 2kb
-    if ($7 == "+") {
-        $5 = $4
-        $4 = $4 - 2000
-    } else if ($7 == "-") {
-        $4 = $5
-        $5 = $5 + 2000
-    }
-    # If resulting coordinate is negative set it to 0
-    if ($4 < 0){ 
-        $4 = 0
-    }
-    # If resulting coordinate is more than the length of the chromosome?
-    # would need to check if $5 is more than max for that particular chromosome
+while IFS=$'\t' read -r -a line; do
+    # Extract the chromosome and store it as a variable
+    chrom="${line[0]}"
+
+    if [ "${line[6]}" == "+" ]; then
+        start=$(( ${line[3]} - 2000 ))
+        end="${line[3]}"
+    elif [ "${line[6]}" == "-" ]; then
+        start="${line[4]}"
+        end=$(( ${line[4]} + 2000 ))
+    fi
+
+    chrom_length=$(awk -v chrom="$chrom" '$1 == chrom {print $2}' "$index_file")
+
+    if (( start < 0 )); then
+        start=0
+    fi
+
+    if (( end > chrom_length )); then
+        end=$chrom_length
+    fi
+
     # Extract gene_id and gene_name values within quotations
-    split($9, a, "\"");
-    gene_id=a[2];
-         if (a[10]=="") { 
-             gene_name=gene_id;
-         } else { 
-             gene_name=a[6];
-         }
-    # Create output with selected columns and added gene_id and gene_name variables
-    output = "chr"$1 "\t" $4 "\t" $5 "\t" $6 "\t" $7 "\t" gene_id "\t" gene_name
-    print output
-}' "$gtf_file" > "$output_file"
-rm "$gtf_file"
+    a=()
+    IFS='\ ' read -ra a <<< "${line[8]}"
+
+    gene_id=$(echo "${a[1]}" | sed 's/"//g; s/;//g')
+
+    if [[ "${a[4]}" == 'gene_name' ]]; then
+        gene_name=$(echo "${a[5]}" | sed 's/"//g; s/;//g')
+    else
+        gene_name=$gene_id
+    fi
+
+    echo -e "chr$chrom\t$start\t$end\t${line[5]}\t${line[6]}\t$gene_id\t$gene_name"
+done < temp.gtf > "$output_file"
