@@ -75,6 +75,12 @@ workflow {
     SAMTOOLS_FAIDX( ch_fasta )
     //SAMTOOLS_FAIDX.out.view()
 
+    SAMTOOLS_FAIDX.out
+        .//map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
+        .view() //[[sample_id:dummy], [bed_files]]
+        //.flatMap {it[1][0].listFiles()} //bins.bed
+        .set{ ch_bins }
+
     // Extract promoters of genes from gtf and turn into bed file
     //EXTRACT_PROMOTERS( ch_gtf, SAMTOOLS_FAIDX.out )
 
