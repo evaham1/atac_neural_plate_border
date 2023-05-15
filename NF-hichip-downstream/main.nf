@@ -114,7 +114,7 @@ workflow {
         // [[sample_id:NF_HiChip_r2], [/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r2.allValidPairs]]
         // [[sample_id:NF_HiChip_r3], [/flask/scratch/briscoej/thierya/atac_neural_plate_border/output/NF-hichip_alignment/hicpro/valid_pairs/NF_HiChip_r3.allValidPairs]]
 
-    Edit ValidPairs data to add 'chr' to chromosome names
+    // Edit ValidPairs data to add 'chr' to chromosome names
     EDIT_VALIDPAIRS ( METADATA.out )
         // [[sample_id:WE_HiChip_r2], f6/5f387e28158d20d54bdb9825be3137/WE_HiChip_r2_edited.allValidPairs]
         // [[sample_id:WE_HiChip_r1], 63/5c215c3285e67ba1b10da286aaf5a2/WE_HiChip_r1_edited.allValidPairs]
@@ -140,7 +140,7 @@ workflow {
         .view()
         .set{ ch_interactions_combined }
 
-    // DIFF_LOOPS( ch_interactions_combined )
+    DIFF_LOOPS( ch_interactions_combined )
 
     //////////  Pull out interesting interactions  //////////
 
