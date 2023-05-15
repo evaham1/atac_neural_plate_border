@@ -125,8 +125,8 @@ print(dim(SEACells_summarised_numeric))
 print("Preview of summarised count df:")
 print(SEACells_summarised_numeric[1:4, 1:4])
 
-# Write out unaltered raw counts matrix
-write.csv(SEACells_summarised_numeric, paste0(rds_path, "Combined_summarised_by_metacells_counts.csv"), row.names = TRUE, col.names = TRUE)
+# Write out unfiltered raw counts matrix
+write.csv(SEACells_summarised_numeric, paste0(rds_path, "Unfiltered_raw_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
 
 
 ############################## 1) Normalise #######################################
@@ -162,6 +162,10 @@ hist(variance_after, breaks = 1000, xlim = c(0, 0.0005))
 graphics.off()
 
 print("Counts normalised!")
+
+# Write out unfiltered normalised counts matrix
+write.csv(normalised_counts, paste0(rds_path, "Unfiltered_normalised_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
+
 
 ################ 2) Filter peaks by annotation #########################
 ## only include intergenic and intronic peaks
@@ -243,4 +247,4 @@ print(filtered_raw_matrix[1:2, 1:2])
 dim(filtered_raw_matrix)
 
 # write to file
-write.csv(filtered_raw_matrix, paste0(rds_path, "Filtered_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
+write.csv(filtered_raw_matrix, paste0(rds_path, "Filtered_raw_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
