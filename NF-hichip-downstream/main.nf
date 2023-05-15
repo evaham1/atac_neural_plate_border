@@ -73,7 +73,7 @@ workflow {
 
     // Extract chromosome lengths from reference fasta
     SAMTOOLS_FAIDX( ch_fasta )
-    SAMTOOLS_FAIDX.out.view()
+    //SAMTOOLS_FAIDX.out.view()
 
     // Extract promoters of genes from gtf and turn into bed file
     //EXTRACT_PROMOTERS( ch_gtf, SAMTOOLS_FAIDX.out )
