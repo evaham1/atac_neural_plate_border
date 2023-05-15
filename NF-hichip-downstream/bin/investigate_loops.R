@@ -42,9 +42,9 @@ if(opt$verbose) print(opt)
     plot_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output_investigating/plots/"
     rds_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output_investigating/rds_files/"
     
-    data_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/" # for HiCDCPlus output of sample 1
     data_path = "./output/NF-hichip-downstream/bins/peaks_intersect/" # for filtering by peaks
     data_path = "./output/NF-hichip-downstream/bins/promoters_intersect/" # for filtering by promoters
+    data_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/" # for HiCDCPlus output of sample 1
     data_path = "./output/NF-hichip-downstream/bins/bed_files/" # for bins
     
   } else if (opt$runtype == "nextflow"){
@@ -75,19 +75,19 @@ bins <- data.table::fread(paste0(data_path, "bins.bed"))
 colnames(bins) <- c("chr", "start", "end", "bin_ID")
 head(bins)
 
-# read in promoters intersected with bins
-print("Promoters intersected with bins:")
-promoters_bins <- data.table::fread(paste0(data_path, "tag_chroms_bins_intersected.bed"))
-colnames(promoters_bins) <- c("bin_chr", "bin_start", "bin_end", "bin_ID", "promoter_chr", "promoter_start", "promoter_end", "dunno", "strand", "gene_ID", "gene_name")
-head(promoters_bins)
-dim(promoters_bins)
-
 # read in peaks intersected with bins
 print("Peaks intersected with bins:")
 peaks_bins <- data.table::fread(paste0(data_path, "FullData_PeakSet_bins_intersected.bed"))
 colnames(peaks_bins) <- c("bin_chr", "bin_start", "bin_end", "bin_ID", "peak_chr", "peak_start", "peak_end", "peak_ID", "dunno", "strand")
 head(peaks_bins)
 dim(peaks_bins)
+
+# read in promoters intersected with bins
+print("Promoters intersected with bins:")
+promoters_bins <- data.table::fread(paste0(data_path, "tag_chroms_bins_intersected.bed"))
+colnames(promoters_bins) <- c("bin_chr", "bin_start", "bin_end", "bin_ID", "promoter_chr", "promoter_start", "promoter_end", "dunno", "strand", "gene_ID", "gene_name")
+head(promoters_bins)
+dim(promoters_bins)
 
 # read in HiCDCPlus output
 print("HiCDCPlus output:")
@@ -105,7 +105,7 @@ print("Investigating interaction anchor frequencies...")
 how_many_interactions <- nrow(interactions)
 print(paste0("Number of sig interactions: ", how_many_interactions))
 
-# extract all an"chors in the significant interactions
+# extract all anchors in the significant interactions
 anchors_I <- interactions[, 1:3]
 colnames(anchors_I) <- c("chr", "start", "end")
 anchors_I <- anchors_I %>% mutate(bin_ID = paste0(chr, "-", start+1, "-", end))
@@ -290,7 +290,7 @@ extract_bins_from_features <- function(features, feature_type, bin_dictionary){
 #############
 
 ##############
-## function to extract all bins that interact with input bins
+## function to extract all bins that interact with input bins (removes any within input_bin interactions)
 extract_interacting_bins <- function(input_bins, interactions){
   selected_interactions <- interactions %>%
     dplyr::filter(anchor_I %in% input_bins$bin_ID | anchor_J %in% input_bins$bin_ID)
@@ -324,11 +324,11 @@ extract_features_from_bins <- function(bins, peak_bin_dictionary, promoter_bin_d
 ####### Running through process:
 
 # 1) Extract input_bins from input features
-#input_bins <- extract_bins_from_features(features="SIX1", feature_type="gene_name", bin_dictionary=promoters_bins)
+input_bins <- extract_bins_from_features(features="SIX1", feature_type="gene_name", bin_dictionary=promoters_bins)
 input_bins <- extract_bins_from_features(features=PPR_peaks, feature_type="peak_ID", bin_dictionary=peaks_bins)
 input_bins <- extract_bins_from_features(features=shared_peaks, feature_type="peak_ID", bin_dictionary=peaks_bins)
 
-# 2) See which output_bins are interacting with these input_bins
+# 2) See which output_bins are interacting with these input_bins (removes input bins)
 output_bins <- extract_interacting_bins(input_bins = input_bins, interactions = interactions)
 
 # 3) See which features are in these output_bins
@@ -337,4 +337,15 @@ output_features <- extract_features_from_bins(output_bins, peaks_bins, promoters
 output_features
 
 
+selected_interactions <- interactions %>%
+  dplyr::filter(anchor_I %in% input_bins$bin_ID | anchor_J %in% input_bins$bin_ID)
 
+nrow(selected_interactions)
+sum(selected_interactions$anchor_I %in% input_bins$bin_ID) + sum(selected_interactions$anchor_J %in% input_bins$bin_ID)
+
+# for each interaction, how many interactions are between input_bins and how many are input_bin to output_bin
+investigate_interactions <- selected_interactions %>% 
+  mutate(anchor_I_in_input = anchor_I %in% input_bins$bin_ID) %>% 
+  mutate(anchor_J_in_input = anchor_J %in% input_bins$bin_ID) %>% 
+  mutate(Number_input_bins = rowSums(across(where(is.logical))))
+table(investigate_interactions$Number_input_bins)
