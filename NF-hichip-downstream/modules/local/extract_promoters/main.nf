@@ -6,7 +6,7 @@ process EXTRACT_PROMOTERS {
         'ubuntu:20.04' }"
 
     input:
-    path gtf_file
+    tuple path(gtf_file), path(index_file)
 
     output:
     path "$output"       , emit: bed
@@ -14,6 +14,6 @@ process EXTRACT_PROMOTERS {
     script:
     output = gtf_file.toString() - ".gtf" + ".bed"
     """
-    extract_promoters.sh $gtf_file $output
+    extract_promoters.sh $gtf_file $index_file $output
     """
 }
