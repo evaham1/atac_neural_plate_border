@@ -6,7 +6,7 @@ process EXTRACT_PROMOTERS {
         'ubuntu:20.04' }"
 
     input:
-    tuple path(gtf_file), path(index_file)
+    path(gtf_file), path(index_file)
 
     output:
     path "$output"       , emit: bed
