@@ -72,7 +72,11 @@ workflow {
     //////////  Sample-generic bins generation and annotation  //////////
 
     // Extract promoters of genes from gtf and turn into bed file
-    EXTRACT_PROMOTERS( ch_gtf, ch_index )
+    ch_gtf
+        .combine( ch_index )
+        .view() //[bins.bed, FullData_PeakSet.bed]
+        .set{ ch_extract_bins }
+    EXTRACT_PROMOTERS( ch_extract_bins )
 
     // // Generate bins
     // GENERATE_BINS ( ch_dummy )
