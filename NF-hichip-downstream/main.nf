@@ -74,7 +74,7 @@ workflow {
     // Extract promoters of genes from gtf and turn into bed file
     ch_gtf
         .combine( ch_index )
-        .view() //[bins.bed, FullData_PeakSet.bed]
+        //.view() // [/nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf, /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/Gallus_gallus.GRCg6a.dna.toplevel.fa.fai]
         .set{ ch_extract_bins }
     EXTRACT_PROMOTERS( ch_extract_bins )
 

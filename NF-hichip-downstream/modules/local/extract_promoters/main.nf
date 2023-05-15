@@ -15,5 +15,6 @@ process EXTRACT_PROMOTERS {
     output = gtf_file.toString() - ".gtf" + ".bed"
     """
     extract_promoters.sh $gtf_file $index_file $output
+    rm -r $gtf_file $index_file 
     """
 }
