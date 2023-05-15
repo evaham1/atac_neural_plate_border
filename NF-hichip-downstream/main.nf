@@ -40,10 +40,10 @@ include {R as INVESTIGATE_LOOPS} from "$baseDir/modules/local/r/main"           
 // SET CHANNELS
 //
 
-// set channel for genome fasta file
+// set channel for genome index file
 Channel
-    .value(params.fasta)
-    .set{ch_fasta}
+    .value(params.index)
+    .set{ch_index}
 
 // set channel for genome gtf file
 Channel
@@ -71,18 +71,8 @@ workflow {
 
     //////////  Sample-generic bins generation and annotation  //////////
 
-    // Extract chromosome lengths from reference fasta
-    SAMTOOLS_FAIDX( ch_fasta )
-    //SAMTOOLS_FAIDX.out.view()
-
-    SAMTOOLS_FAIDX.out
-        .//map { row -> [row[0], row[1].findAll { it =~ ".*bed_files" }] }
-        .view() //[[sample_id:dummy], [bed_files]]
-        //.flatMap {it[1][0].listFiles()} //bins.bed
-        .set{ ch_bins }
-
     // Extract promoters of genes from gtf and turn into bed file
-    //EXTRACT_PROMOTERS( ch_gtf, SAMTOOLS_FAIDX.out )
+    EXTRACT_PROMOTERS( ch_gtf, ch_index )
 
     // // Generate bins
     // GENERATE_BINS ( ch_dummy )
