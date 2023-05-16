@@ -269,7 +269,7 @@ create_stage_top_annotation <- function(plot_data, stage_colours){
 print("Reading in raw count data...")
 
 # read in SEACells data
-SEACells_summarised <- fread(paste0(data_path, "Filtered_summarised_counts.csv"), header = TRUE)
+SEACells_summarised <- fread(paste0(data_path, "Filtered_raw_summarised_counts.csv"), header = TRUE)
 print("Raw data read in!")
 
 # Check input
