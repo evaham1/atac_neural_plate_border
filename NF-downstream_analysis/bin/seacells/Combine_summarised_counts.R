@@ -65,8 +65,6 @@ all_identical <- function(df_list) {
   return(TRUE)
 }
 
-stop("Check input!")
-
 ############################## Identify .csv files and list of stages #######################################
 input_files <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE)
 print(paste0("Input paths detected: ", input_files))
@@ -180,6 +178,9 @@ print(stages)
 for (i in 1:length(stages)){
   stage <- stages[i]
   data <- count_files[[i]]
+  
+  print("preview of data:")
+  data[1:4, 1:4]
   
   data <- data %>% mutate(SEACell = paste0(V1, "-", stage))
   data <- data[, -1]
