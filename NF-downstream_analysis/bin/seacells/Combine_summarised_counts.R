@@ -65,6 +65,8 @@ all_identical <- function(df_list) {
   return(TRUE)
 }
 
+stop("Check input!")
+
 ############################## Identify .csv files and list of stages #######################################
 input_files <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE)
 print(paste0("Input paths detected: ", input_files))
@@ -187,16 +189,23 @@ for (i in 1:length(stages)){
 }
 
 # Should all have the same number of columns - can have variable row numbers
+print("Checking dimensions of resulting dfs: ")
 print(dim(HH5_data))
 print(dim(HH6_data))
 print(dim(HH7_data))
 print(dim(ss4_data))
 print(dim(ss8_data))
 
+# Should all have the same number of columns - can have variable row numbers
+print("Checking format of resulting dfs: ")
+print(HH5_data[1:2, 1:2])
+print(HH6_data[1:2, 1:2])
+print(HH7_data[1:2, 1:2])
+print(ss4_data[1:2, 1:2])
 print(ss8_data[1:2, 1:2])
 
+# Combine all into one
 combined_df <- rbindlist(list(HH5_data, HH6_data, HH7_data, ss4_data, ss8_data))
-dim(combined_df)
 
 ## write out new csv
 write.csv(combined_df, paste0(rds_path, 'Combined_summarised_by_metacells_counts.csv'))
