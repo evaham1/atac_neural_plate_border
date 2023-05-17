@@ -2,37 +2,52 @@
 library(tidyverse)
 library(data.table)
 
-# read in normalised SEACells data with all peaks and all SEACells (output from 1_peak_filtering)
+# working dir as base of repository
 data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/"
-SEACells_normalised_summarised <- fread(paste0(data_path, "Unfiltered_normalised_summarised_counts.csv"), header = TRUE)
-print("Normalised data read in!")
+
+#####  Normalised SEACells peak count matrix
+
+# read in SEACells data
+SEACells_normalised_summarised <- fread(paste0(data_path, "Filtered_normalised_summarised_counts.csv"), header = TRUE)
 
 # Extract SEACell IDs from first column
 SEACells_IDs <- SEACells_normalised_summarised$V1
 length(SEACells_IDs)
 
-# Clean up df
+# Check for duplicates
+table(duplicated(SEACells_IDs))
+
+#Clean up df
 SEACells_normalised_summarised <- SEACells_normalised_summarised[,-1]
 
-# Turn into numeric matrix for downstream processing
-SEACells_normalised_summarised_numeric <- as.matrix(sapply(SEACells_normalised_summarised, as.numeric))
-
 # Add SEACell IDs as rownames
-rownames(SEACells_normalised_summarised_numeric) <- SEACells_IDs
-
-# change cell names for Antler
-rownames(SEACells_normalised_summarised_numeric) <- gsub('-', '_', rownames(SEACells_normalised_summarised_numeric))
+rownames(SEACells_normalised_summarised) <- SEACells_IDs
 
 # Check resulting matrix
-print(dim(SEACells_normalised_summarised_numeric))
+print(dim(SEACells_normalised_summarised))
 print("Preview of summarised count df:")
-print(SEACells_normalised_summarised_numeric[1:4, 1:4])
+print(SEACells_normalised_summarised[1:4, 1:4])
 
-# Overwrite cleaned data
-SEACells_normalised_summarised <- SEACells_normalised_summarised_numeric
-
-# Make tiny data
-tiny_df <- SEACells_normalised_summarised[1:100, ]
+# Make tiny data with all SEACells and only 100 peaks
+tiny_df <- SEACells_normalised_summarised[, 1:100]
+rownames(tiny_df) <- rownames(SEACells_normalised_summarised)
+print(tiny_df[1:4, 1:4])
 
 # write to file
-write.csv(tiny_df, "output/Rshiny_input.csv", row.names = TRUE, col.names = TRUE)
+write.csv(tiny_df, "./output/Rshiny_input_SEACells_matrix.csv", row.names = TRUE, col.names = TRUE)
+
+#####  SEACells metadata
+metadata <- read.csv(paste0(data_path, "Combined_SEACell_integrated_metadata.csv"), row.names = 'ATAC')
+substrRight <- function(x, n){
+  sapply(x, function(xx)
+    substr(xx, (nchar(xx)-n+1), nchar(xx))
+  )
+}
+metadata <- metadata %>% mutate(stage = substrRight(rownames(metadata), 3))
+metadata <- metadata[,-1]
+
+# Check metadata
+print(head(metadata))
+
+# write to file
+write.csv(tiny_df, "./output/Rshiny_input_SEACells_metadata.csv", row.names = TRUE, col.names = TRUE)
