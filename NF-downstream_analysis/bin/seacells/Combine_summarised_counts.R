@@ -11,7 +11,6 @@ library(plyr)
 library(dplyr)
 library(parallel)
 library(data.table)
-#library(sqldf)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -32,14 +31,8 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    # local interactive paths
-    #data_path = "./local_test_data/SEACells_from_camp/SEACELLS_ATAC_WF/2_SEACells_computation/exported_data/"
-    #rds_path = "./local_test_data/SEACells_outputs_renamed/csv_files/"
-    
-    # NEMO interactive paths
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/TEMP_renamed_SEACells_exports/csv_files/"
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/Integrated_SEACells_label_transfer/rds_files/"
-    data_path = "./output/temp/"
+    # interactive paths
+    data_path = "./output/temp_renamed_seacell_outputs//"
     rds_path = "./output/NF-downstream_analysis/Processing/FullData/Combined_SEACell_outputs/"
     
   } else if (opt$runtype == "nextflow"){
@@ -131,7 +124,8 @@ for (i in 1:length(SEACell_integrated_metadata_paths)){
   path <- SEACell_integrated_metadata_paths[i]
   
   # detect stage from file name
-  stage <- str_sub(path,-32,-30)
+  filename <- sub(".*/", "", path)
+  stage <- sub("*_filtered_SEACells_integration_map.csv", "", filename) 
   print(paste0("Stage detected from file name: ", stage))
   
   # add stage to SEACell IDs as otherwise they wont be unique when you combine the stages together
@@ -156,6 +150,7 @@ print(SEACell_integrated_metadata_files[[5]][1:5, ])
 
 ## combine all cell metacell csvs into one
 combined_SEACell_metacell <- ldply(SEACell_integrated_metadata_files, data.frame)
+combined_SEACell_metacell <- combined_SEACell_metacell[,-1]
 dim(combined_SEACell_metacell)
 print(combined_SEACell_metacell[1:5, ])
 
@@ -184,7 +179,6 @@ for (i in 1:length(stages)){
   stage <- stages[i]
   data <- count_files[[i]]
   
-  data <- data[, -1]
   data <- data %>% mutate(SEACell = paste0(V1, "-", stage))
   data <- data[, -1]
   data <- data %>% select(SEACell, everything())
@@ -200,27 +194,6 @@ print(dim(ss4_data))
 print(dim(ss8_data))
 
 print(ss8_data[1:2, 1:2])
-
-# # Default maxcol for sqldf is less than the number of columns here
-# print(paste0("Number of columns (peaks): ", dim(HH5_data)[2]))
-# maxcol <- dim(HH5_data)[2]+1
-# print(paste0("Setting sqldf maxcol as: ", maxcol))
-# options(sqldf.maxcol = maxcol)
-
-# ## Combine all data csvs into one
-# # combined_df <- sqldf("SELECT * FROM ss4_data
-# #                       UNION ALL 
-# #                       SELECT * FROM ss8_data")
-
-# combined_df <- sqldf("SELECT * FROM HH5_data
-#                       UNION ALL 
-#                       SELECT * FROM HH6_data
-#                       UNION ALL 
-#                       SELECT * FROM HH7_data
-#                       UNION ALL 
-#                       SELECT * FROM ss4_data
-#                       UNION ALL 
-#                       SELECT * FROM ss8_data")
 
 combined_df <- rbindlist(list(HH5_data, HH6_data, HH7_data, ss4_data, ss8_data))
 dim(combined_df)
