@@ -180,7 +180,7 @@ for (i in 1:length(stages)){
   data <- count_files[[i]]
   
   print("preview of data:")
-  data[1:4, 1:4]
+  print(data[1:4, 1:4])
   
   data <- data %>% mutate(SEACell = paste0(V1, "-", stage))
   data <- data[, -1]
