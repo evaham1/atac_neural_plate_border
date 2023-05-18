@@ -3,6 +3,9 @@
 
 plot_shiny_heatmap <- function(stage, cell_types, peaks){
   
+  #peaks <- c(PPR_hichip_peaks, NC_hichip_peaks)
+  #peaks <- c(PPR_peaks. shared_peaks)
+  
   # init data from global data
   matrix <- SEACells_peak_matrix
   metadata <- as.data.frame(SEACells_metadata)
@@ -20,6 +23,7 @@ plot_shiny_heatmap <- function(stage, cell_types, peaks){
   scHelper_cell_type_colours <- scHelper_cell_type_colours[order]
   
   # filter matrix by selected peaks
+  peaks <- peaks[peaks %in% colnames(matrix)]
   matrix <- matrix[, which(colnames(matrix) %in% peaks)]
   
   # make heatmap
@@ -28,8 +32,8 @@ plot_shiny_heatmap <- function(stage, cell_types, peaks){
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = peaks, peak_row_annotation = FALSE,
                                      log_path = NULL)
-  plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-                  show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+  plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = TRUE,
+                  show_column_names = FALSE, column_title = NULL, show_row_names = TRUE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
                   column_split = plot_data$col_ann$stage,
                   bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_colours),
                   top_annotation = create_stage_top_annotation(plot_data, stage_colours),

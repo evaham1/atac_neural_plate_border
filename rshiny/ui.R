@@ -30,7 +30,7 @@ tab_heatmap <- tabItem(tabName = "SEACell_heatmaps",
                        fluidRow(
                          column(12,
                                 box(
-                                  plotOutput("heatmap", width = "1000"),
+                                  plotOutput("heatmap", width = "1000", height = "3000"),
                                   width = 12,
                                   style='height:35vw'
                                 )
