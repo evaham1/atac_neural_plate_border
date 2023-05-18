@@ -302,7 +302,9 @@ extract_interacting_bins <- function(input_bins, interactions){
 ########################
 ## function to extract features from binIDs
 # output is collapsed so each row = binID, annotated with all interacting peaks and promoters
+# need to modify this to keep all input bins
 extract_features_from_bins <- function(bins, peak_bin_dictionary, promoter_bin_dictionary){
+  list <- output_features
   # extract all peaks in these bins and collapse
   peaks <- peak_bin_dictionary %>% 
     dplyr::filter(bin_ID %in% bins) %>%
@@ -323,25 +325,31 @@ extract_features_from_bins <- function(bins, peak_bin_dictionary, promoter_bin_d
 
 ####### Running through process:
 
-# 1) Extract input_bins from input features
-input_bins <- extract_bins_from_features(features="SIX1", feature_type="gene_name", bin_dictionary=promoters_bins)
-input_bins <- extract_bins_from_features(features=PPR_peaks, feature_type="peak_ID", bin_dictionary=peaks_bins)
-input_bins <- extract_bins_from_features(features=shared_peaks, feature_type="peak_ID", bin_dictionary=peaks_bins)
+# 1) Extract input_bins from PPR genes
+input_bins <- extract_bins_from_features(features=PPR_genes, feature_type="gene_name", bin_dictionary=promoters_bins)
 
 # 2) See which output_bins are interacting with these input_bins (removes input bins)
 output_bins <- extract_interacting_bins(input_bins = input_bins, interactions = interactions)
 
 # 3) See which features are in these output_bins
 output_features <- extract_features_from_bins(output_bins, peaks_bins, promoters_bins)
+peaks <- peaks_bins %>% dplyr::filter(bin_ID %in% output_bins)
+length(peaks$peak_ID)
+write.csv(peaks$peak_ID, "./output/Rshiny_PPR_input_peaks.csv")
 
-output_features
+# 1) Extract input_bins from NC genes
+input_bins <- extract_bins_from_features(features=NC_genes, feature_type="gene_name", bin_dictionary=promoters_bins)
+
+# 2) See which output_bins are interacting with these input_bins (removes input bins)
+output_bins <- extract_interacting_bins(input_bins = input_bins, interactions = interactions)
+
+# 3) See which features are in these output_bins
+output_features <- extract_features_from_bins(output_bins, peaks_bins, promoters_bins)
+peaks <- peaks_bins %>% dplyr::filter(bin_ID %in% output_bins)
+length(peaks$peak_ID)
+write.csv(peaks$peak_ID, "./output/Rshiny_NC_input_peaks.csv")
 
 
-selected_interactions <- interactions %>%
-  dplyr::filter(anchor_I %in% input_bins$bin_ID | anchor_J %in% input_bins$bin_ID)
-
-nrow(selected_interactions)
-sum(selected_interactions$anchor_I %in% input_bins$bin_ID) + sum(selected_interactions$anchor_J %in% input_bins$bin_ID)
 
 # for each interaction, how many interactions are between input_bins and how many are input_bin to output_bin
 investigate_interactions <- selected_interactions %>% 
