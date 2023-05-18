@@ -5,15 +5,46 @@ library(tidyverse)
 library(viridis)
 library(mgcv)
 library(patchwork)
+library(Seurat)
+library(ComplexHeatmap)
 #library(shinycssloaders)
 
-#source('./custom_functions.R')
+source('./custom_functions.R')
 
 # Don't know what this does
 options(scipen = 1)
 options(digits = 2)
 
-########################       CELL STATE COLOURS    ########################################
+##########################################################################
+###################       Read in data      ##############################
+
+# Read in normalised matrix of SEACells x all peaks (temp with only 100 peaks)
+SEACells_peak_matrix <- fread('../output/Rshiny_input_SEACells_matrix.csv')
+SEACells_IDs <- SEACells_peak_matrix$V1
+table(duplicated(SEACells_IDs))
+SEACells_peak_matrix <- SEACells_peak_matrix[,-1]
+SEACells_peak_matrix <- as.matrix(sapply(SEACells_peak_matrix, as.numeric))
+rownames(SEACells_peak_matrix) <- SEACells_IDs
+SEACells_peak_matrix[1:2, 1:2]
+dim(SEACells_peak_matrix)
+
+# Read in metadata for all SEACells
+SEACells_metadata <- fread('../output/Rshiny_input_metadata.csv')
+SEACells_metadata <- SEACells_metadata %>% mutate(stage = sub(".*-", "", ATAC))
+head(SEACells_metadata)
+
+# Read in test SEACells seurat object
+SEACells_seurat <- readRDS('../output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/5_Classify_metacells/rds_files/Classified_metacells.RDS')
+
+# # Read in peak modules
+# FullData_PMs <- read.csv("./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/FullData/unbiasedPMs.txt", header = F)
+# FullData_PMs <- FullData_PMs %>% separate(V1, c("PM", "1"), sep = ";")
+# dim(FullData_PMs)
+# FullData_PMs[1:5, 1:5]
+
+############################################################################
+##################       Read in aesthetic params      #####################
+
 scHelper_cell_type_order <- c('node', 'streak', 'PGC', 'BI', 'meso', 'endo',
                               'EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
@@ -30,26 +61,19 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo', 'Unmapped')
-########################       STAGE COLOURS     ###########################################
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 names(stage_colours) <- stage_order
-############################################################################################
 
-############################################################################################
-# Read in normalised matrix of SEACells x all peaks (temp with only 100 peaks)
-SEACells_peak_matrix <- fread('../output/Rshiny_input_SEACells_matrix.csv')
-SEACells_peak_matrix <- column_to_rownames(SEACells_peak_matrix, var = "V1")
-SEACells_peak_matrix[1:2, 1:2]
+my_theme <- theme(axis.text=element_text(size=14),
+                  axis.title=element_text(size=16))
 
-# Read in metadata for all SEACells
-SEACells_metadata <- fread('../output/Rshiny_input_metadata.csv')
-SEACells_metadata <- SEACells_metadata %>% mutate(stage = sub(".*-", "", ATAC))
-head(SEACells_metadata)
-############################################################################################
+############################################################################
+####################       Read in UI options      ##########################
 
 # Potential ways to subset the SEACells matrix to make heatmaps
 data_subsets = c("Full Data", "HH5", "HH6", "HH7", "ss4", "ss8")
 
-my_theme <- theme(axis.text=element_text(size=14),
-                  axis.title=element_text(size=16))
+# Potential ways to group UMAP
+dimplot_groupby_options = c("seurat_clusters", "scHelper_cell_type")
+

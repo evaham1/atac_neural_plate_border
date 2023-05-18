@@ -1,4 +1,61 @@
 
+## Function to make shiny heatmap
+
+plot_shiny_heatmap <- function(stage, cell_types, peaks){
+  
+  # init data from global data
+  matrix <- SEACells_peak_matrix
+  metadata <- as.data.frame(SEACells_metadata)
+  metadata <- column_to_rownames(metadata, var = "ATAC")
+  
+  # subset metadata to only include SEACells that are in that chosen cell type
+  if (!stage == "Full Data"){metadata <- metadata %>% filter(stage == !!stage)}
+  metadata <- metadata %>% filter(scHelper_cell_type %in% !!cell_types)
+  
+  # subset matrix to only include cells in the metadata
+  matrix <- matrix[which(rownames(matrix) %in% rownames(metadata)), ]
+  
+  # extract cols and order based on seacells subset
+  order <- scHelper_cell_type_order[scHelper_cell_type_order %in% metadata$scHelper_cell_type]
+  scHelper_cell_type_colours <- scHelper_cell_type_colours[order]
+  
+  # filter matrix by selected peaks
+  matrix <- matrix[, which(colnames(matrix) %in% peaks)]
+  
+  # make heatmap
+  plot_data <- PrepPeakModuleHeatmap(matrix, metadata, 
+                                     col_order = c('stage', 'scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
+                                     hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
+                                     peak_modules = peaks, peak_row_annotation = FALSE,
+                                     log_path = NULL)
+  plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                  show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                  column_split = plot_data$col_ann$stage,
+                  bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_colours),
+                  top_annotation = create_stage_top_annotation(plot_data, stage_colours),
+                  col = PurpleAndYellow())
+  
+  # return the plot
+  return(plot)
+  
+}
+
+## Function to extract cell types avaliable for a given stage
+
+check_cell_types <- function(stage){
+  metadata <- SEACells_metadata
+  if (!stage == "Full Data"){metadata <- metadata %>% filter(stage == !!stage)}
+  cell_types <- unique(metadata$scHelper_cell_type)
+  return(cell_types)
+}
+
+
+
+
+###################################################################################################################
+########### functions to go into schelper package
+
+
 PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata, 
                                    col_order, custom_order_column = NULL, custom_order = NULL, 
                                    hclust_SEACells = FALSE, hclust_SEACells_within_groups = TRUE,
@@ -23,15 +80,11 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
   
   # If 'col_order' is use these columns to order cells
   if (!is.null(col_order)) {
-    col_ann <- col_ann[do.call("order", c(col_ann[col_order],
-                                          list(decreasing = FALSE))), , drop = FALSE]
+    col_ann <- col_ann[do.call("order", c(col_ann[col_order], list(decreasing = FALSE))), , drop = FALSE]
   }
   
   # Optionally hclust SEACells
   if (hclust_SEACells == TRUE) {
-    
-    # creat log path to plot dendograms
-    dir.create(log_path, recursive = T)
     
     # Hclust SEACells within SEACell groups eg within scHelper_cell_type groups, which is specified by last col_order value
     if (hclust_SEACells_within_groups == TRUE) {
@@ -41,22 +94,28 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
         mat <- peak_normalised_matrix[rownames(cell_groups[[i]]), ]
         dist_mat <- dist(mat, method = "euclidean")
         hclust_avg <- hclust(dist_mat, method = "average")
-        png(paste0(log_path, i, '_SEACells_dendogram.png'),  width = 60, height = 40, units = 'cm', res = 400)
-        plot(hclust_avg, main = paste0("SEACells dendogram for ", i))
-        graphics.off()
+        if (!is.null(log_path)){
+          dir.create(log_path, recursive = T)
+          png(paste0(log_path, i, '_SEACells_dendogram.png'),  width = 60, height = 40, units = 'cm', res = 400)
+          plot(hclust_avg, main = paste0("SEACells dendogram for ", i))
+          graphics.off()
+        }
         ordered_SEACells <- hclust_avg$labels[c(hclust_avg$order)]
         CellGroups_ordered_SEACells[[i]] <- ordered_SEACells
       }
       col_ann <- col_ann[order(match(rownames(col_ann), unlist(CellGroups_ordered_SEACells))), , drop = FALSE]
       
-    # Hclust SEACells across all SEACells, then if there is a col_order secondarily order by the last col_order value
+      # Hclust SEACells across all SEACells, then if there is a col_order secondarily order by the last col_order value
     } else {
       dist_mat <- dist(peak_normalised_matrix, method = "euclidean")
       hclust_avg <- hclust(dist_mat, method = "average")
       if (!is.null(col_order)){ hclust_avg <- with(col_ann, reorder(hclust_avg, as.numeric(col_ann[[tail(col_order, n=1)]])))}
-      png(paste0(log_path, 'SEACells_dendogram.png'), width = 120, height = 40, units = 'cm', res = 400)
-      plot(hclust_avg, main = "SEACells dendogram")
-      graphics.off()}
+      if (!is.null(log_path)){
+        dir.create(log_path, recursive = T)
+        png(paste0(log_path, 'SEACells_dendogram.png'), width = 120, height = 40, units = 'cm', res = 400)
+        plot(hclust_avg, main = "SEACells dendogram")
+        graphics.off()
+        }
     ordered_SEACells <- hclust_avg$labels[c(hclust_avg$order)]
     col_ann <- col_ann[order(match(rownames(col_ann), ordered_SEACells)), , drop = FALSE]
   }
@@ -91,12 +150,8 @@ PrepPeakModuleHeatmap <- function (peak_normalised_matrix, cell_metadata,
                  col_ann = col_ann)
   return(output)
   
+  }
 }
-  
-  
-
-
-
 
 ## Function to create bottom annotation for Complex Heatmap
 # plot_data has to be generated by `PrepPeakModuleHeatmap` function and include $col_ann, scHelper_cell_type_colors should be named and ordered vector of colours
@@ -121,23 +176,4 @@ create_stage_top_annotation <- function(plot_data, stage_colours){
                       simple_anno_size = unit(1, "cm"),
                       annotation_label = "stage", gp = gpar(fontsize = 20))
   )
-}
-
-
-## Wrap plotting functions into one
-
-plot_shiny_heatmap <- function(matrix, peaks){
-    
-    plot_data <- PrepPeakModuleHeatmap(matrix, stage_metadata, 
-                                     col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
-                                     hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
-                                     peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = NULL)
-    plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-                  show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-                  row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-                  bottom_annotation = create_scHelper_cell_type_bottom_annotation(plot_data, scHelper_cell_type_cols),
-                  top_annotation = create_stage_top_annotation(plot_data, stage_colours[i]), 
-                  col = PurpleAndYellow())
-    return(plot)
 }

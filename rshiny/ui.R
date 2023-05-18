@@ -1,66 +1,83 @@
-library(shinythemes)
-tab_home          <- tabItem(tabName = "home",
-                             fluidRow(
-                               column(8, offset = 2,
-                                      includeMarkdown("home.md")
-                               )
+# library(shinythemes)
+
+tab_umap <- tabItem(tabName = "SEACell_UMAP",
+                    fluidRow(
+                      column(12,
+                             radioButtons("dimplot_groupby", "How to colour UMAP", dimplot_groupby_options, inline = TRUE, selected = 'seurat_clusters', width = '800')
+                      )
+                    ),
+                    fluidRow(
+                      column(5,
+                             box(
+                               plotOutput("dimplot_test"),
+                               width = 12,
+                               style='height:35vw'
                              )
+                      )
+                    )
 )
 
-tab_heatmaps <- tabItem(tabName = "heatmaps",
-                             fluidRow(
-                               column(12,
-                                      radioButtons("subset_heatmap", "Select dataset to visualise", data_subsets, inline = TRUE, selected = 'Full data', width = '800')
-                               )
-                             ),
-                               column(5,
-                                      box(
-                                        selectizeInput("peak_id", "Select Peak", choices = NULL, width = "250"),
-                                        plotOutput("heatmap"),
-                                        width = 12,
-                                        style='height:35vw'
-                                      )
-                               )
-                             )
+tab_heatmap <- tabItem(tabName = "SEACell_heatmaps",
+                       fluidRow(
+                         column(5, radioButtons("heatmap_stage", "Select stage to visualise", data_subsets, inline = TRUE, selected = 'Full Data', width = '800'))
+                         ),
+                       fluidRow(
+                         column(12, selectInput("heatmap_celltype", "Select cell type to visualise", choices = NULL, multiple = TRUE, width = "250"))
+                       ),
+                       fluidRow(
+                         column(12, selectInput("heatmap_peaks", "Select peaks to visualise", choices = colnames(SEACells_peak_matrix), multiple = TRUE, width = "250"))
+                       ),
+                       fluidRow(
+                         column(12,
+                                box(
+                                  plotOutput("heatmap", width = "1000"),
+                                  width = 12,
+                                  style='height:35vw'
+                                )
+                         )
+)
+)
+
+
 
 ui <- dashboardPage(
-  fullscreen = TRUE,
+  #fullscreen = TRUE,
   header = dashboardHeader(
     title = dashboardBrand(
-      title = "10x scATAC Neural Plate Border",
+      title = "10x ATAC Neural Plate Border",
       href = "https://github.com/evaham1/atac_neural_plate_border"
     )
-    # skin = "light",
-    # status = "white",
-    # border = TRUE,
-    # sidebarIcon = icon("bars"),
-    
+
   ),
-  
-  
-  
+
+
   dashboardSidebar(
     # tags$style("@import url(https://use.fontawesome.com/releases/v5.7.2/css/all.css);"),
-    
+
     sidebarMenu(
-      menuItem("Home", tabName = "home", icon = icon('home')),
-      menuItem("Heatmaps", tabName = "heatmaps", icon = icon("border-none")),
-      menuItem("Lineage Dynamics", tabName = "lineage_dynamics", icon = icon('chart-line')),
-      menuItem("UMAP co-expression", tabName = "coexpression_umaps", icon = icon("braille")),
-      menuItem("Differential expression", tabName = "dea", icon = icon("arrows-alt"))
+      # menuItem("Home", tabName = "dashboard", icon = icon('home')),
+      menuItem("Heatmaps", tabName = "SEACell_heatmaps", icon = icon("border-none")),
+      # menuItem("Genome tracks", tabName = "SEACell_genome_tracks", icon = icon('chart-line')),
+      # menuItem("UMAP", tabName = "SEACell_UMAP", icon = icon("braille")),
+      menuItem("Test", tabName = "SEACell_UMAP", icon = icon("arrows-alt"))
     )
   ),
-  
+
   dashboardBody(
-    tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
-    ),
+    # tags$head(
+    #   tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+    # ),
+    ## do these need to be in the same order as above??
     tabItems(
-      tab_home,
-      tab_heatmaps,
-      tab_lineage_dynamics,
-      tab_coexpression_umaps,
-      tab_dea
-    )
+      tab_umap,
+      # tab_test1,
+      tab_heatmap
+      # tab_umap,
+      # tab_test
   )
 )
+)
+
+
+
+
