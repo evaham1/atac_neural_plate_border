@@ -56,7 +56,7 @@ if(opt$verbose) print(opt)
 
 #################### R script to take gtf and turn into txdb #########################
 
-txdb <- makeTxDbFromGFF(paste0(data_path, "temp.gtf"))
+txdb <- makeTxDbFromGFF(paste0(data_path, "galgal6/tag_chroms.gtf"))
 print("txdb made")
 
 print(genes(txdb))
