@@ -45,7 +45,7 @@ include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCES
 
 // MISC
 include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/gtf_to_txdb.R", checkIfExists: true) )
-
+include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
 
 // DOWNSTREAM PROCESSING WORKFLOWS
 
@@ -74,6 +74,11 @@ Channel
 Channel
     .value("$baseDir/binary_knowledge_matrix_contam.csv")
     .set{ch_binary_knowledge_matrix}
+
+// set channel to just gtf file
+Channel
+    .value(params.gtf)
+    .set{ch_gtf}
 
 
 //
@@ -197,6 +202,8 @@ workflow A {
         //[[sample_id:dummy], /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf]
 
         MAKE_TXDB(ch_dummy)
+
+        EXTRACT_EXONS(ch_gtf)
 
     }
 
