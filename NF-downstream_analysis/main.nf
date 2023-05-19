@@ -43,6 +43,9 @@ include { SEACELLS_INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/SE
 //PEAK CLUSTERING
 include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
 
+// MISC
+include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_make_TxDb.R", checkIfExists: true) )
+
 
 // DOWNSTREAM PROCESSING WORKFLOWS
 
@@ -184,6 +187,10 @@ workflow A {
 
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING.out.processed_integration_output )
+
+        ///////     Visualise SEACells on single cell      ///////
+        // and make Txdb object for plotting - at some point just save the TxDB object saved in the first preprocessing step instead
+        MAKE_TXDB(ch_reference)
 
     }
 
