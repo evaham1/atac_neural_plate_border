@@ -44,7 +44,7 @@ include { SEACELLS_INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/SE
 include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
 
 // MISC
-include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_make_TxDb.R", checkIfExists: true) )
+include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/gtf_to_txdb.R", checkIfExists: true) )
 
 
 // DOWNSTREAM PROCESSING WORKFLOWS
