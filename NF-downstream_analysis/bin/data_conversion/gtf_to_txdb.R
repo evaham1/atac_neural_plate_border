@@ -8,9 +8,13 @@ library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
-library(plyr)
 library(dplyr)
+library(GenomicFeatures)
+library(hexbin)
+library(gridExtra)
+library(grid)
 library(parallel)
+library(Rsamtools)
 
 ############################## Set up script options #######################################
 # Read in command line opts
