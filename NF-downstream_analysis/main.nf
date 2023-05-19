@@ -190,7 +190,8 @@ workflow A {
 
         ///////     Visualise SEACells on single cell      ///////
         // and make Txdb object for plotting - at some point just save the TxDB object saved in the first preprocessing step instead
-        MAKE_TXDB(ch_reference)
+        ch_reference.view()
+        //MAKE_TXDB(ch_reference)
 
     }
 
