@@ -12,7 +12,8 @@ library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
 library(HiCDCPlus)
-library(data.table); setDTthreads(percent = 65)
+library(data.table)
+setDTthreads(threads = 1) # to try to overcome data.table error in gi_list_write
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -42,7 +43,12 @@ if(opt$verbose) print(opt)
     
     plot_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/plots/"
     rds_path = "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/rds_files/"
-    data_path = "./output/NF-hichip-downstream/NF_HiChip_r1/edit_validpairs/" # for valid pairs
+    rds_path = "./output/NF-hichip-downstream/NF_HiChip_r3/HicDCPlus_output/rds_files/"
+    
+    data_path = "./output/NF-hichip-downstream/NF_HiChip_r1/edit_validpairs/" # for valid pairs NF replicate 1
+    data_path = "./output/NF-hichip-downstream/NF_HiChip_r2/edit_validpairs/" # for valid pairs NF replicate 2
+    data_path = "./output/NF-hichip-downstream/NF_HiChip_r3/edit_validpairs/" # for valid pairs NF replicate 3
+    
     data_path = "./output/NF-hichip-downstream/bins/" # for bins
     
   } else if (opt$runtype == "nextflow"){
@@ -63,8 +69,6 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
-
-setDTthreads(threads = 1) # to try to overcome data.table error in gi_list_write
 
 ############################################################################################################
 ############################################# Call loops ###################################################
@@ -194,7 +198,7 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_w
                                                               ssize = 0.01, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
                                                               splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
                                                               # Cores:
-                                                              ncore = parallel::detectCores()-1, # number of cores to parallelize
+                                                              ncore = 1, # number of cores to parallelize
                                                               # Types of bins:
                                                               binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
                                                               # Resulting loops params:
@@ -306,7 +310,7 @@ graphics.off()
 print("Counts summary:")
 print(summary(normal_sized_interactions$counts))
 
-#### Check interaction distancs Vs counts
+#### Check interaction distances Vs counts
 
 # extract interactions distances and counts from normal sized bins
 data <- data.frame(distance = normal_sized_interactions$D,
@@ -352,4 +356,22 @@ graphics.off()
 # Plot distribution of p values
 png(paste0(plot_path, "hist_p_val.png"), width=40, height=20, units = 'cm', res = 200)
 hist(unique(interactions$pvalue), breaks = 100)
+graphics.off()
+
+
+#### Check fragment sizes
+HiC_data <- fread(valid_pair_path)
+frag_sizes <- HiC_data$V8
+print(summary(frag_sizes))
+
+png(paste0(plot_path, "hist_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+hist(frag_sizes, breaks = 100)
+graphics.off()
+
+png(paste0(plot_path, "hist_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+hist(log(frag_sizes), breaks = 100)
+graphics.off()
+
+png(paste0(plot_path, "boxplot_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+BiocGenerics::boxplot(log(frag_sizes))
 graphics.off()
