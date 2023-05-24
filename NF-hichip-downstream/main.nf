@@ -137,9 +137,8 @@ workflow {
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
         .collect()
         .flatMap()
+        .map { [[sample_id:'AllSamples'], it] } //
         .view()
-    //     .map { [[sample_id:'AllSamples'], it] } //
-    //     .view()
     //     .set{ ch_interactions_combined }
 
     // //[[sample_id:AllSamples], [WE_HiChip_r1_HiCDC_output_filtered.txt, NF_HiChip_r1_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r2_HiCDC_output_filtered.txt]]
