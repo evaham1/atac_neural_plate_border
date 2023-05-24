@@ -12,6 +12,7 @@ library(ggplot2)
 library(dplyr)
 library(GenomicFeatures)
 library(HiCDCPlus)
+library(data.table); setDTthreads(percent = 65)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -62,6 +63,8 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
+
+setDTthreads(threads = 1) # to try to overcome data.table error in gi_list_write
 
 ############################################################################################################
 ############################################# Call loops ###################################################
