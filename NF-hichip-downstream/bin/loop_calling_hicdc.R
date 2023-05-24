@@ -188,25 +188,43 @@ set.seed(1010) #HiC-DC downsamples rows for modeling
 print("Number of cores detected:")
 print(parallel::detectCores())
 
-expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
-                                                              # Covariates:
-                                                              covariates = NULL, # covariates to be considered in addition to D, defaults to all covariates besides D, counts, mu, sdev, pvalue, qvalue
-                                                              # Modelling params:
-                                                              distance_type = "spline", # distance covariate form, 'spline' or 'log'
-                                                              model_distribution = "nb", # 'nb' uses negative binomial model, 'nb_vardisp' uses nb model with distance specific dispersion inferred from data, 'nb_hurdle' uses legacy HiC-DC model
-                                                              df = 6, # degrees of freedom for the genomic distance spline function if distance_type='spline', defaults to 6 which corresponds to cubic splines
-                                                              ssize = 0.01, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
-                                                              splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
-                                                              # Cores:
-                                                              ncore = 1, # number of cores to parallelize
-                                                              # Types of bins:
-                                                              binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
-                                                              # Resulting loops params:
-                                                              Dmin = opt$Dmin, # minimum distance (included) to check for significant interactions, defaults to 0
-                                                              Dmax = opt$Dmax, # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
-                                                              # Which chroms (if interactive will be chr21 and ch22, if not will be all)
-                                                              chrs = chrs
-                                                              )
+# expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus_parallel(expanded_gi_list_with_valid_pairs,
+#                                                               # Covariates:
+#                                                               covariates = NULL, # covariates to be considered in addition to D, defaults to all covariates besides D, counts, mu, sdev, pvalue, qvalue
+#                                                               # Modelling params:
+#                                                               distance_type = "spline", # distance covariate form, 'spline' or 'log'
+#                                                               model_distribution = "nb", # 'nb' uses negative binomial model, 'nb_vardisp' uses nb model with distance specific dispersion inferred from data, 'nb_hurdle' uses legacy HiC-DC model
+#                                                               df = 6, # degrees of freedom for the genomic distance spline function if distance_type='spline', defaults to 6 which corresponds to cubic splines
+#                                                               ssize = 0.01, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
+#                                                               splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
+#                                                               # Cores:
+#                                                               ncore = 1, # number of cores to parallelize
+#                                                               # Types of bins:
+#                                                               binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
+#                                                               # Resulting loops params:
+#                                                               Dmin = opt$Dmin, # minimum distance (included) to check for significant interactions, defaults to 0
+#                                                               Dmax = opt$Dmax, # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
+#                                                               # Which chroms (if interactive will be chr21 and ch22, if not will be all)
+#                                                               chrs = chrs
+#                                                               )
+
+expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus(expanded_gi_list_with_valid_pairs,
+                                                     # Covariates:
+                                                     covariates = NULL, # covariates to be considered in addition to D, defaults to all covariates besides D, counts, mu, sdev, pvalue, qvalue
+                                                     # Modelling params:
+                                                     distance_type = "spline", # distance covariate form, 'spline' or 'log'
+                                                     model_distribution = "nb", # 'nb' uses negative binomial model, 'nb_vardisp' uses nb model with distance specific dispersion inferred from data, 'nb_hurdle' uses legacy HiC-DC model
+                                                     df = 6, # degrees of freedom for the genomic distance spline function if distance_type='spline', defaults to 6 which corresponds to cubic splines
+                                                     ssize = 0.01, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
+                                                     splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
+                                                     # Types of bins:
+                                                     binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
+                                                     # Resulting loops params:
+                                                     Dmin = opt$Dmin, # minimum distance (included) to check for significant interactions, defaults to 0
+                                                     Dmax = opt$Dmax, # maximum distance (included) to check for significant interactions, 1.5e6 is recommended for HiChip data in manual
+                                                     # Which chroms (if interactive will be chr21 and ch22, if not will be all)
+                                                     chrs = chrs
+                                                     )
 
 # Check one chromosome
 # head(expanded_gi_list_with_valid_pairs_HiCDC)
