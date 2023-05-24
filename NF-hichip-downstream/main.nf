@@ -130,11 +130,12 @@ workflow {
         .set { ch_validpairs } //[[sample_id:WE_HiChip_r1], [WE_HiChip_r2_edited.allValidPairs, bed_files, plots, rds_files]]
 
     LOOP_CALL( ch_validpairs )
+    LOOP_CALL.out.view()
 
     // //////////  Find differential interactions between NF and WE  //////////
 
     LOOP_CALL.out
-        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0][1]}
         .collect()
         .map { [[sample_id:'AllSamples'], it] } //
         .view()
