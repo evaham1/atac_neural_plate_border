@@ -130,19 +130,19 @@ workflow {
         .set { ch_validpairs } //[[sample_id:WE_HiChip_r1], [WE_HiChip_r2_edited.allValidPairs, bed_files, plots, rds_files]]
 
     LOOP_CALL( ch_validpairs )
-    LOOP_CALL.out.view()
 
     // //////////  Find differential interactions between NF and WE  //////////
 
-    LOOP_CALL.out
-        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0][1]}
+    LOOP_CALL.out //[[sample_id:WE_HiChip_r1], [plots, rds_files]]
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
         .collect()
-        .map { [[sample_id:'AllSamples'], it] } //
         .view()
-        .set{ ch_interactions_combined }
+    //     .map { [[sample_id:'AllSamples'], it] } //
+    //     .view()
+    //     .set{ ch_interactions_combined }
 
-    //[[sample_id:AllSamples], [WE_HiChip_r1_HiCDC_output_filtered.txt, NF_HiChip_r1_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r2_HiCDC_output_filtered.txt]]
-    DIFF_LOOPS( ch_interactions_combined )
+    // //[[sample_id:AllSamples], [WE_HiChip_r1_HiCDC_output_filtered.txt, NF_HiChip_r1_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r2_HiCDC_output_filtered.txt]]
+    // DIFF_LOOPS( ch_interactions_combined )
 
     //////////  Pull out interesting interactions  //////////
 
