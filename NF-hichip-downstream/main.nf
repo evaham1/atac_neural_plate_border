@@ -136,6 +136,7 @@ workflow {
     LOOP_CALL.out //[[sample_id:WE_HiChip_r1], [plots, rds_files]]
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
         .collect()
+        .flatMap()
         .view()
     //     .map { [[sample_id:'AllSamples'], it] } //
     //     .view()
