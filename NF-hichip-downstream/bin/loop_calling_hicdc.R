@@ -285,6 +285,8 @@ dim(interactions)
 # calculate bin sizes
 bins <- as.data.frame(bins)
 bins <- bins %>% mutate(bin_width = as.numeric(bins$end) - as.numeric(bins$start))
+print("Bins:")
+head(bins)
 
 # how many different bin sizes are there?
 png(paste0(plot_path, "freq_of_different_bin_sizes.png"), width=40, height=20, units = 'cm', res = 200)
