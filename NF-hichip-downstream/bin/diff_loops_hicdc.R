@@ -40,6 +40,7 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
+    chrs = c("chr21", "chr22")
     
     plot_path = "./output/NF-hichip-downstream/AllSamples/HicDCPlus_diff_interactions/plots/"
     rds_path = "./output/NF-hichip-downstream/AllSamples/HicDCPlus_diff_interactions/rds_files/"
@@ -55,6 +56,8 @@ if(opt$verbose) print(opt)
     data_path = "./input/"
     ncores = opt$cores
     
+    chrs = NULL
+    
   } else {
     stop("--runtype must be set to 'nextflow'")
   }
@@ -64,9 +67,6 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
-############################################################################################################
-################################## Find Differential loops #################################################
-############################################################################################################
 
 ######################################   Extract file names   ####################################################
 
@@ -75,7 +75,10 @@ print("reading in loops...")
 # read in all file paths
 print("All samples:")
 all_files <- list.files(data_path, full.names = TRUE)
+
+##### read in unfiltered loops #####
 files <-  grep("_HiCDC_output.txt.gz", all_files, value = TRUE)
+print("Unfiltered outputs:")
 print(files)
 
 # read in loops for all WE samples
@@ -88,15 +91,153 @@ print("NF samples:")
 NF_samples <-  grep("NF", files, value = TRUE)
 print(NF_samples)
 
+##### read in filtered loops #####
+filtered_files <- grep("_HiCDC_output_filtered.txt", all_files, value = TRUE)
+print("Filtered files:")
+print(filtered_files)
 
-##############################   Read in data and create index file for hicdcdiff  ##############################################
+# read in loops for all WE samples
+print("WE samples:")
+WE_samples <-  grep("WE", filtered_files, value = TRUE)
+print(WE_samples)
+
+# read in loops for all NF samples
+print("NF samples:")
+NF_samples <-  grep("NF", filtered_files, value = TRUE)
+print(NF_samples)
+
+
+############################################################################################################
+################################## Find consensus loops #################################################
+############################################################################################################
+
+######################   Read in filtered outputs   ######################################
+
+# read in filtered loops
+hidc_filtered_outputs <- list()
+for (file in filtered_files) {
+  # extract sample name
+  sample_name <- gsub(pattern = "_HiCDC_output_filtered.txt", replacement = "", x = basename(file))
+  # read in hicDC+ output
+  output <- data.table::fread(file)
+  # add an interaction name to the hicDC+ output
+  output <- output %>% mutate(interaction_ID = paste0(chrI, "-", startI, "-", startJ))
+  # add the hicDC+ output to the list of outputs
+  hidc_filtered_outputs[[sample_name]] <- output
+}
+
+######################   How many sig interactions in each sample   ######################################
+
+# Table of how many interactions found in each sample
+interaction_numbers <- data.frame(
+  NF_HiChip_r1 = length(hidc_filtered_outputs[[1]]$interaction_ID),
+  NF_HiChip_r2 = length(hidc_filtered_outputs[[2]]$interaction_ID),
+  NF_HiChip_r3 = length(hidc_filtered_outputs[[3]]$interaction_ID),
+  WE_HiChip_r1 = length(hidc_filtered_outputs[[4]]$interaction_ID),
+  WE_HiChip_r2 = length(hidc_filtered_outputs[[5]]$interaction_ID),
+  WE_HiChip_r3 = length(hidc_filtered_outputs[[6]]$interaction_ID)
+)
+
+png(paste0(plot_path, 'how_many_interaction_in_each_sample_table.png'), height = 10, width = 30, units = 'cm', res = 400)
+grid.arrange(tableGrob(interaction_numbers, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+######################   Number of overlapping interactions in replicates   ######################################
+
+# Venn diagram of interactions between WE samples
+venn.diagram(
+  x = list(hidc_filtered_outputs[[4]]$interaction_ID, hidc_filtered_outputs[[5]]$interaction_ID, hidc_filtered_outputs[[6]]$interaction_ID),
+  category.names = c("WE_HiChip_r1", "WE_HiChip_r2", "WE_HiChip_r3"),
+  filename = paste0(plot_path, 'Venn_WE_interactions.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600, 
+  width = 600, 
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol,
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-27, 27, 135),
+  cat.dist = c(0.055, 0.055, 0.085),
+  cat.fontfamily = "sans",
+  rotation = 1
+)
+
+# Venn diagram of interactions between NF samples
+venn.diagram(
+  x = list(hidc_filtered_outputs[[1]]$interaction_ID, hidc_filtered_outputs[[2]]$interaction_ID, hidc_filtered_outputs[[3]]$interaction_ID),
+  category.names = c("NF_HiChip_r1", "NF_HiChip_r2", "NF_HiChip_r3"),
+  filename = paste0(plot_path, 'Venn_NF_interactions.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600, 
+  width = 600, 
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol,
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0.6,
+  cat.fontface = "bold",
+  cat.default.pos = "outer",
+  cat.pos = c(-27, 27, 135),
+  cat.dist = c(0.055, 0.055, 0.085),
+  cat.fontfamily = "sans",
+  rotation = 1
+)
+
+######################   Extract consistent interactions from NF samples   ######################################
+# consistent interaction = present in at least 2 of the 3 replicates
+r1 <- hidc_filtered_outputs[[1]]$interaction_ID
+r2 <- hidc_filtered_outputs[[2]]$interaction_ID
+r3 <- hidc_filtered_outputs[[3]]$interaction_ID
+
+common_interactions <- unique(c(intersect(r1, r2), intersect(r1, r3), intersect(r2, r3)))
+length(common_interactions)
+
+# extract table of these interactions (p vals not important but chrom start end useful)
+r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
+remaining_interactions <- common_interactions[!common_interactions %in% r1]
+length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
+r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
+nrow(r2_subset) == length(remaining_interactions)
+
+common_interactions_table <- rbind(r1_subset, r2_subset)
+nrow(common_interactions_table) == length(common_interactions)
+
+# save common interactions table
+write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions.txt'))
+
+############################################################################################################
+################################## Find differential loops #################################################
+############################################################################################################
+
+######################   Read in unfiltered outputs + create index file   ######################################
 # index file = union of significant interactions, chr, startI, startJ
 
 indexfile <- data.frame()
 hidc_outputs <- list()
 for (file in files) {
   # extract sample name
-  sample_name <- gsub(pattern = "_HiCDC_output_filtered.txt", replacement = "", x = basename(file))
+  sample_name <- gsub(pattern = "_HiCDC_output.txt.gz", replacement = "", x = basename(file))
   # read in hicDC+ output
   output <- data.table::fread(file)
   # add unique interactions to indexfile
@@ -133,96 +274,12 @@ hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
           # What objects are made
           diagnostics=TRUE, # generates diagnostic plots of normalisation factors and MA plots
           DESeq.save = TRUE, # saves DESEq objects for each chromosome
-          chrs = c('chr10')
+          chrs = chrs
           )
 
 #### LOOK FOR CONSISTENCY BETWEEN SAMPLES, PCA PLOT??? - venn diagram of all interactions across 6 samples
 
 #### LOOK IF DIFF INTERACTIONS ARE FOUND IN AT LEAST 2 OF 3 REPLICATES
-
-######################   Look at how much overlap there is between samples   ######################################
-
-names(hidc_outputs)
-
-# Table of how many interactions found in each sample
-
-interaction_numbers <- data.frame(
-  NF_HiChip_r1 = length(hidc_outputs[[1]]$interaction_ID),
-  NF_HiChip_r2 = length(hidc_outputs[[2]]$interaction_ID),
-  NF_HiChip_r3 = length(hidc_outputs[[3]]$interaction_ID),
-  WE_HiChip_r1 = length(hidc_outputs[[4]]$interaction_ID),
-  WE_HiChip_r2 = length(hidc_outputs[[5]]$interaction_ID),
-  WE_HiChip_r3 = length(hidc_outputs[[6]]$interaction_ID)
-)
-
-png(paste0(plot_path, 'how_many_interaction_in_each_sample_table.png'), height = 10, width = 30, units = 'cm', res = 400)
-grid.arrange(tableGrob(interaction_numbers, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-
-# Venn diagram of interactions between WE samples
-venn.diagram(
-  x = list(hidc_outputs[[4]]$interaction_ID, hidc_outputs[[5]]$interaction_ID, hidc_outputs[[6]]$interaction_ID),
-  category.names = c("WE_HiChip_r1", "WE_HiChip_r2", "WE_HiChip_r3"),
-  filename = paste0(plot_path, 'Venn_WE_interactions.png'),
-  output=TRUE, disable.logging = TRUE,
-  # Output features
-  imagetype="png",
-  height = 600, 
-  width = 600, 
-  resolution = 300,
-  compression = "lzw",
-  # Circles
-  lwd = 2,
-  lty = 'blank',
-  fill = myCol,
-  # Numbers
-  cex = .6,
-  fontface = "bold",
-  fontfamily = "sans",
-  # Set names
-  cat.cex = 0.6,
-  cat.fontface = "bold",
-  cat.default.pos = "outer",
-  cat.pos = c(-27, 27, 135),
-  cat.dist = c(0.055, 0.055, 0.085),
-  cat.fontfamily = "sans",
-  rotation = 1
-)
-
-# Venn diagram of interactions between NF samples
-venn.diagram(
-  x = list(hidc_outputs[[1]]$interaction_ID, hidc_outputs[[2]]$interaction_ID, hidc_outputs[[3]]$interaction_ID),
-  category.names = c("NF_HiChip_r1", "NF_HiChip_r2", "NF_HiChip_r3"),
-  filename = paste0(plot_path, 'Venn_NF_interactions.png'),
-  output=TRUE, disable.logging = TRUE,
-  # Output features
-  imagetype="png",
-  height = 600, 
-  width = 600, 
-  resolution = 300,
-  compression = "lzw",
-  # Circles
-  lwd = 2,
-  lty = 'blank',
-  fill = myCol,
-  # Numbers
-  cex = .6,
-  fontface = "bold",
-  fontfamily = "sans",
-  # Set names
-  cat.cex = 0.6,
-  cat.fontface = "bold",
-  cat.default.pos = "outer",
-  cat.pos = c(-27, 27, 135),
-  cat.dist = c(0.055, 0.055, 0.085),
-  cat.fontfamily = "sans",
-  rotation = 1
-)
-
-
-
-
 
 
 
