@@ -59,7 +59,7 @@ if(opt$verbose) print(opt)
 
     #### TEMP TO DEBUG:
     ncores = 8
-    chrs = c("chr21", "chr22")
+    chrs = NULL
     opt$binsize = 5000
     opt$Dmin = 10000
     opt$Dmax = 1000000
