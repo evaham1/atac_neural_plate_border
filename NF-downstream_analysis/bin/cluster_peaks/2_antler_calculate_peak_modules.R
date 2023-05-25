@@ -374,7 +374,7 @@ plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata,
                                      col_order = c('stage', 'scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = paste0(plot_path, "logs/fulldata/"))
+                                     log_path = paste0(plot_path, "logs/fulldata/"), scale_data = TRUE)
 
 # Plot heatmap
 plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -403,7 +403,7 @@ plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_f
                                    custom_order_column = "scHelper_cell_type", custom_order = order,
                                    hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                    peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                   paste0(temp_plot_path, "logs/fulldata_no_contam/"))
+                                   paste0(temp_plot_path, "logs/fulldata_no_contam/"), scale_data = TRUE)
 
 # Plot heatmap
 plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -458,7 +458,7 @@ for (i in seq(1:length(stage_order))){
                                      col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = paste0(temp_plot_path, "logs/all_cells_hclust_within_celltypes/"))
+                                     log_path = paste0(temp_plot_path, "logs/all_cells_hclust_within_celltypes/"), scale_data = TRUE)
   
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -479,7 +479,7 @@ for (i in seq(1:length(stage_order))){
                                      col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = FALSE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = paste0(temp_plot_path, "logs/all_cells_hclust/"))
+                                     log_path = paste0(temp_plot_path, "logs/all_cells_hclust/"), scale_data = TRUE)
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
                   show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
@@ -507,7 +507,7 @@ for (i in seq(1:length(stage_order))){
                                      col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = paste0(temp_plot_path, "logs/subset_cells_hclust_within_groups/"))
+                                     log_path = paste0(temp_plot_path, "logs/subset_cells_hclust_within_groups/"), scale_data = TRUE)
   
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
