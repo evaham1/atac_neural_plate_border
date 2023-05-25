@@ -28,6 +28,9 @@ tab_heatmap <- tabItem(tabName = "SEACell_heatmaps",
                          column(12, selectInput("heatmap_peaks", "Select peaks to visualise", choices = colnames(SEACells_peak_matrix), multiple = TRUE, width = "250"))
                        ),
                        fluidRow(
+                         column(12, selectInput("heatmap_peak_modules", "OR Select peak modules to visualise", choices = rownames(PMs_df), multiple = TRUE, width = "250"))
+                       ),
+                       fluidRow(
                          column(12,
                                 box(
                                   plotOutput("heatmap", width = "1000", height = "3000"),
