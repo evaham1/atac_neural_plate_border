@@ -387,7 +387,7 @@ antler_data$gene_modules$identify(
   process_plots         = TRUE)
 
 # rename peak modules
-names(antler_data$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:length(antler_data$gene_modules$lists$unbiasedPMs$content))
+names(antler_data$gene_modules$lists$unbiasedPMs$content) <- paste0("FullData_PM", 1:length(antler_data$gene_modules$lists$unbiasedPMs$content))
 
 # how many peak modules were generated
 print(paste0("Number of peak modules made: ", length(antler_data$gene_modules$lists$unbiasedPMs$content)))
@@ -458,7 +458,7 @@ for (i in seq(1:length(stage_order))){
     process_plots         = TRUE)
   
   # rename peak modules
-  names(antler_temp$gene_modules$lists$unbiasedPMs$content) <- paste0("PM", 1:length(antler_temp$gene_modules$lists$unbiasedPMs$content))
+  names(antler_temp$gene_modules$lists$unbiasedPMs$content) <- paste0(stage, "_PM", 1:length(antler_temp$gene_modules$lists$unbiasedPMs$content))
   
   # how many peak modules were generated
   print(paste0("Number of peak modules made: ", length(antler_temp$gene_modules$lists$unbiasedPMs$content)))
