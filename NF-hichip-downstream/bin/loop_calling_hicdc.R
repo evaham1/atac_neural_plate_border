@@ -56,6 +56,14 @@ if(opt$verbose) print(opt)
     
     ncores = opt$cores
     chrs = NULL
+
+    #### TEMP TO DEBUG:
+    ncores = 8
+    chrs = c("chr21", "chr22")
+    opt$binsize = 5000
+    opt$Dmin = 10000
+    opt$Dmax = 1000000
+    ####
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
@@ -69,6 +77,8 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
+
+sessionInfo()
 
 ############################################################################################################
 ############################################# Call loops ###################################################
