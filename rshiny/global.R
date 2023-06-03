@@ -38,12 +38,12 @@ head(SEACells_metadata)
 SEACells_seurat <- readRDS('../output/NF-downstream_analysis/Processing/ss8/SEACELLS_ATAC_WF/5_Classify_metacells/rds_files/Classified_metacells.RDS')
 
 # Read in peak modules
-paths <- c("./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/FullData/unbiasedPMs.txt",
-           "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/HH5/unbiasedPMs.txt",
-           "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/HH6/unbiasedPMs.txt",
-           "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/HH7/unbiasedPMs.txt",
-           "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/ss4/unbiasedPMs.txt",
-           "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/ss8/unbiasedPMs.txt")
+paths <- c("../output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/FullData/unbiasedPMs.txt",
+           "../output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/HH5/unbiasedPMs.txt",
+           "../output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/HH6/unbiasedPMs.txt",
+           "../output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/HH7/unbiasedPMs.txt",
+           "../output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/ss4/unbiasedPMs.txt",
+           "../output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/ss8/unbiasedPMs.txt")
 
 dfs <- list()
 
