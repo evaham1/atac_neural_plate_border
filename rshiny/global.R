@@ -70,22 +70,24 @@ for (path in paths){
   
   # Combine the list of data frames into a single data frame
   df <- do.call(rbind, data)
-  
   df <- df %>% separate(V1, c("PM", "1"), sep = ";")
   df <- column_to_rownames(df, "PM")
   
   # Add to list of dfs
-  dfs[[substr(path, 91, 93)]] <- df
+  dfs[[substr(path, 92, 94)]] <- df
   
 }
 
-PM_df <- bind_rows(dfs)
+PMs_df <- bind_rows(dfs)
 
 # Read in peaks found from HiChip
 PPR_hichip_peaks <- read.csv(("../output/Rshiny_PPR_input_peaks.csv"))
 PPR_hichip_peaks <- PPR_hichip_peaks$x
 NC_hichip_peaks <- read.csv(("../output/Rshiny_NC_input_peaks.csv"))
 NC_hichip_peaks <- NC_hichip_peaks$x
+hichip_peaks_list <- list()
+hichip_peaks_list[["PPR"]] <- PPR_hichip_peaks
+hichip_peaks_list[["NC"]] <- NC_hichip_peaks
 
 ############################################################################
 ##################       Read in aesthetic params      #####################

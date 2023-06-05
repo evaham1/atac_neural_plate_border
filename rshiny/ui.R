@@ -25,20 +25,17 @@ tab_heatmap <- tabItem(tabName = "SEACell_heatmaps",
                          column(12, selectInput("heatmap_celltype", "Select cell type to visualise", choices = NULL, multiple = TRUE, width = "250"))
                        ),
                        fluidRow(
-                         column(12, selectInput("heatmap_peaks", "Select peaks to visualise", choices = colnames(SEACells_peak_matrix), multiple = TRUE, width = "250"))
+                         column(5, radioButtons("how_to_choose_peaks", "How do you want to choose your peaks?", c("Individual peaks", "Peak modules", "From HiChip"), inline = TRUE, selected = 'Individual peaks', width = '800'))
                        ),
                        fluidRow(
-                         column(12, selectInput("heatmap_peak_modules", "OR Select peak modules to visualise", choices = rownames(PMs_df), multiple = TRUE, width = "250"))
+                         column(5, uiOutput("peak_module_selection"))
                        ),
                        fluidRow(
-                         column(12,
-                                box(
-                                  plotOutput("heatmap", width = "1000", height = "3000"),
-                                  width = 12,
-                                  style='height:35vw'
-                                )
+                         column(12, selectInput("heatmap_peaks", "Select peaks/PMs to visualise", choices = NULL, multiple = TRUE, width = "250"))
+                       ),
+                       fluidRow(
+                         column(12, plotOutput("heatmap", width = "1000", height = "3000"))
                          )
-)
 )
 
 
