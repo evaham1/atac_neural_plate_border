@@ -70,7 +70,7 @@ if(opt$verbose) print(opt)
     #          "chr21", "chr22", "chr23", "chr24", "chr25", "chr26", "chr27", "chr28",
     #          "chr31", "chr32", "chr33", "chrZ", "chrW") ### THIS WORKS FOR ALL SAMPLES - ONLY ISSUES WITH 29 AND 30
 
-    chrs = c("chr29")
+    chrs = c("chr30")
 
     opt$binsize = 5000
     opt$Dmin = 10000
