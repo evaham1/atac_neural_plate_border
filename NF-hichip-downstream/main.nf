@@ -137,8 +137,8 @@ workflow {
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
         .collect()
         .flatMap().collect() //[[WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt], [WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt], [NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]
-        .map{[it[0][0], it[0][1], it[1][0], it[1][1]]}
-        //.map { [[sample_id:'AllSamples'], it] } //
+        .map{[it[0][0], it[0][1], it[1][0], it[1][1], it[2][0], it[2][1], it[3][0], it[3][1], it[4][0], it[4][1], it[5][0], it[5][1]]}
+        .map { [[sample_id:'AllSamples'], it] } //
         .set{ ch_interactions_combined }
         //[[sample_id:AllSamples], [[WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz], [WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt], [NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt], [NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]]
 
