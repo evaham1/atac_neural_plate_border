@@ -241,7 +241,7 @@ print("Table of common interactions saved!")
 
 print("Finding differential loops...")
 
-######################   Read in unfiltered outputs + create index file   ######################################
+######################   Create index file of interactions to test   ######################################
 # index file = union of significant interactions, chr, startI, startJ
 # use the filtered file as these interactions have a qval < 0.05
 
@@ -274,7 +274,29 @@ data.table::fwrite(indexfile,
 ####################################   Run hicdcdiff   ###################################################
 # Differential analysis using modified DESeq2 (see ?hicdcdiff)
 
-hicdcdiff(input_paths = list(WE = WE_samples_unfiltered, NF = NF_samples_unfiltered),
+## try running with all interactions - error:
+# Error in data.table::fread(filepath) : 
+#   R character strings are limited to 2^31-1 bytes
+# Calls: hicdcdiff ... .readDiffInputFiles -> gi_list_read -> input.file.read -> <Anonymous> 
+# hicdcdiff(input_paths = list(WE = WE_samples_unfiltered, NF = NF_samples_unfiltered),
+#           filter_file = paste0(rds_path,'/Indexfile.txt.gz'),
+#           output_path=paste0(rds_path,'/HicDCDiff_output/'),
+#           # Bins
+#           bin_type = 'Bins-uniform',
+#           binsize = 5000,
+#           # Interaction sizes
+#           Dmin = opt$Dmin,
+#           Dmax = opt$Dmax,
+#           # fitType in DESeq2::estimateDispersions
+#           fitType = 'local', # 'parametric' (parametric regression),'local' (local regression), and 'mean' (constant across interaction bins). Default is 'local'.
+#           # What objects are made
+#           diagnostics=TRUE, # generates diagnostic plots of normalisation factors and MA plots
+#           DESeq.save = TRUE, # saves DESEq objects for each chromosome
+#           chrs = chrs
+#           )
+
+# try running with filtered samples
+hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
           filter_file = paste0(rds_path,'/Indexfile.txt.gz'),
           output_path=paste0(rds_path,'/HicDCDiff_output/'),
           # Bins
@@ -290,10 +312,3 @@ hicdcdiff(input_paths = list(WE = WE_samples_unfiltered, NF = NF_samples_unfilte
           DESeq.save = TRUE, # saves DESEq objects for each chromosome
           chrs = chrs
           )
-
-#### LOOK FOR CONSISTENCY BETWEEN SAMPLES, PCA PLOT??? - venn diagram of all interactions across 6 samples
-
-#### LOOK IF DIFF INTERACTIONS ARE FOUND IN AT LEAST 2 OF 3 REPLICATES
-
-
-
