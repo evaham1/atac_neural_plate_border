@@ -73,7 +73,6 @@ if(opt$verbose) print(opt)
 print("reading in loops...")
 
 # read in all file paths
-print("All samples:")
 all_files <- list.files(data_path, full.names = TRUE)
 
 ##### read in unfiltered loops #####
@@ -111,6 +110,8 @@ print(NF_samples)
 ################################## Find consensus loops #################################################
 ############################################################################################################
 
+print("Finding consensus loops...")
+
 ######################   Read in filtered outputs   ######################################
 
 # read in filtered loops
@@ -125,6 +126,8 @@ for (file in filtered_files) {
   # add the hicDC+ output to the list of outputs
   hidc_filtered_outputs[[sample_name]] <- output
 }
+
+print("filtered loops read in!")
 
 ######################   How many sig interactions in each sample   ######################################
 
@@ -141,6 +144,8 @@ interaction_numbers <- data.frame(
 png(paste0(plot_path, 'how_many_interaction_in_each_sample_table.png'), height = 10, width = 30, units = 'cm', res = 400)
 grid.arrange(tableGrob(interaction_numbers, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
+
+print("Table of how many interactions found in each sample saved!")
 
 ######################   Number of overlapping interactions in replicates   ######################################
 
@@ -204,6 +209,8 @@ venn.diagram(
   rotation = 1
 )
 
+print("Venn diagrams of interactions in WE and NF samples saved!")
+
 ######################   Extract consistent interactions from NF samples   ######################################
 # consistent interaction = present in at least 2 of the 3 replicates
 r1 <- hidc_filtered_outputs[[1]]$interaction_ID
@@ -226,20 +233,30 @@ nrow(common_interactions_table) == length(common_interactions)
 # save common interactions table
 write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions.txt'))
 
+print("Table of common interactions saved!")
+
 ############################################################################################################
 ################################## Find differential loops #################################################
 ############################################################################################################
+
+print("Finding differential loops...")
 
 ######################   Read in unfiltered outputs + create index file   ######################################
 # index file = union of significant interactions, chr, startI, startJ
 
 indexfile <- data.frame()
 hidc_outputs <- list()
+
+### DEBUGGING
+print(files)
+
 for (file in files) {
   # extract sample name
   sample_name <- gsub(pattern = "_HiCDC_output.txt.gz", replacement = "", x = basename(file))
+  print(sample_name)
   # read in hicDC+ output
   output <- data.table::fread(file)
+  print(head(output))
   # add unique interactions to indexfile
   indexfile <- unique(rbind(indexfile, output[,c('chrI','startI','startJ')]))
   # add an interaction name to the hicDC+ output
