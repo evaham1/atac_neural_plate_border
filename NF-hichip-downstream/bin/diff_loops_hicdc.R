@@ -82,25 +82,25 @@ print(files)
 
 # read in loops for all WE samples
 print("WE samples:")
-WE_samples <-  grep("WE", files, value = TRUE)
-print(WE_samples)
+WE_samples_unfiltered <-  grep("WE", files, value = TRUE)
+print(WE_samples_unfiltered)
 
 # read in loops for all NF samples
 print("NF samples:")
-NF_samples <-  grep("NF", files, value = TRUE)
-print(NF_samples)
+NF_samples_unfiltered <-  grep("NF", files, value = TRUE)
+print(NF_samples_unfiltered)
 
 ##### read in filtered loops #####
 filtered_files <- grep("_HiCDC_output_filtered.txt", all_files, value = TRUE)
 print("Filtered files:")
 print(filtered_files)
 
-# read in loops for all WE samples
+# read in loops for filtered WE samples
 print("WE samples:")
 WE_samples <-  grep("WE", filtered_files, value = TRUE)
 print(WE_samples)
 
-# read in loops for all NF samples
+# read in loops for filtered NF samples
 print("NF samples:")
 NF_samples <-  grep("NF", filtered_files, value = TRUE)
 print(NF_samples)
@@ -243,20 +243,17 @@ print("Finding differential loops...")
 
 ######################   Read in unfiltered outputs + create index file   ######################################
 # index file = union of significant interactions, chr, startI, startJ
+# use the filtered file as these interactions have a qval < 0.05
 
 indexfile <- data.frame()
 hidc_outputs <- list()
 
-### DEBUGGING
-print(files)
-
-for (file in files) {
+for (file in filtered_files) {
   # extract sample name
-  sample_name <- gsub(pattern = "_HiCDC_output.txt.gz", replacement = "", x = basename(file))
+  sample_name <- gsub(pattern = "_HiCDC_output_filtered.txt", replacement = "", x = basename(file))
   print(sample_name)
   # read in hicDC+ output
   output <- data.table::fread(file)
-  print(head(output))
   # add unique interactions to indexfile
   indexfile <- unique(rbind(indexfile, output[,c('chrI','startI','startJ')]))
   # add an interaction name to the hicDC+ output
@@ -277,7 +274,7 @@ data.table::fwrite(indexfile,
 ####################################   Run hicdcdiff   ###################################################
 # Differential analysis using modified DESeq2 (see ?hicdcdiff)
 
-hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
+hicdcdiff(input_paths = list(WE = WE_samples_unfiltered, NF = NF_samples_unfiltered),
           filter_file = paste0(rds_path,'/Indexfile.txt.gz'),
           output_path=paste0(rds_path,'/HicDCDiff_output/'),
           # Bins
