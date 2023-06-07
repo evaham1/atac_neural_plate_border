@@ -143,7 +143,7 @@ workflow {
 
     ch_interactions_combined.view()
 
-    //DIFF_LOOPS( ch_interactions_combined )
+    DIFF_LOOPS( ch_interactions_combined )
 
     //////////  Pull out interesting interactions  //////////
 
