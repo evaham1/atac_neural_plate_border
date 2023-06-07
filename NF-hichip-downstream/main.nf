@@ -136,6 +136,7 @@ workflow {
     LOOP_CALL.out //[[sample_id:WE_HiChip_r1], [plots, rds_files]]
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
         .collect()
+        .flatMap().collect() //[[WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt], [WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt], [NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]
         .flatMap().collect()
         //.map { [[sample_id:'AllSamples'], it] } //
         .set{ ch_interactions_combined }
