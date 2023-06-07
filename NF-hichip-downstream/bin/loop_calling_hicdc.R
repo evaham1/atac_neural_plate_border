@@ -261,157 +261,157 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus(expanded_gi_list_with_valid
 
 print("HiCDC+ run!")
 
-# ####################################   Write outputs   ##################################################
+####################################   Write outputs   ##################################################
 
-# print("saving outputs...")
+print("saving outputs...")
 
-# # Save results as is for differential interaction testing
-# gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC, fname = paste0(rds_path, sample_name, '_HiCDC_output.txt.gz'))
+# Save unfiltered results for differential interaction testing
+gi_list_write(expanded_gi_list_with_valid_pairs_HiCDC, fname = paste0(rds_path, sample_name, '_HiCDC_output.txt.gz'))
 
-# # Filter results by adjusted p value - done manually as can then remove NAs myself
-# # There will be NAs for every interactions that falls outside DMin or DMax, so need to remove these from gi_list altogether
-# filtered_list <- list()
-# for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
-#   name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
-#   temp <- expanded_gi_list_with_valid_pairs_HiCDC[i][[1]]
-#   temp_filtered <- temp[!is.na(temp$qvalue), ]
-#   temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
+# Filter results by adjusted p value - done manually as can then remove NAs myself
+# There will be NAs for every interactions that falls outside DMin or DMax, so need to remove these from gi_list altogether
+filtered_list <- list()
+for (i in 1:length(expanded_gi_list_with_valid_pairs_HiCDC)){
+  name <- names(expanded_gi_list_with_valid_pairs_HiCDC)[i]
+  temp <- expanded_gi_list_with_valid_pairs_HiCDC[i][[1]]
+  temp_filtered <- temp[!is.na(temp$qvalue), ]
+  temp_filtered_1 <- temp_filtered[temp_filtered$qvalue < 0.05, ]
   
-#   filtered_list[[name]] <- temp_filtered_1
-# }
+  filtered_list[[name]] <- temp_filtered_1
+}
 
-# gi_list_write(filtered_list,
-#               fname = paste0(rds_path, sample_name, '_HiCDC_output_filtered.txt'),
-#               rows = "all")
+gi_list_write(filtered_list,
+              fname = paste0(rds_path, sample_name, '_HiCDC_output_filtered.txt'),
+              rows = "all")
 
-# print("outputs saved!")
+print("outputs saved!")
 
-# ####################################   Visualisations   ##################################################
+####################################   Visualisations   ##################################################
 
-# print("Visualisations...")
+print("Visualisations...")
 
-# # Read in bins bed object
-# bins <- data.table::fread(paste0(data_path, "bed_files/bins.bed"))
-# colnames(bins) <- c("chr", "start", "end", "bin_ID")
-# head(bins)
+# Read in bins bed object
+bins <- data.table::fread(paste0(data_path, "bed_files/bins.bed"))
+colnames(bins) <- c("chr", "start", "end", "bin_ID")
+head(bins)
 
-# # Read in significant interactions object
-# interactions <- data.table::fread(paste0(rds_path, sample_name, '_HiCDC_output_filtered.txt'))
-# head(interactions)
-# dim(interactions)
+# Read in significant interactions object
+interactions <- data.table::fread(paste0(rds_path, sample_name, '_HiCDC_output_filtered.txt'))
+head(interactions)
+dim(interactions)
 
-# #### Check bin sizes
+#### Check bin sizes
 
-# # calculate bin sizes
-# bins <- as.data.frame(bins)
-# bins <- bins %>% mutate(bin_width = as.numeric(bins$end) - as.numeric(bins$start))
-# print("Bins:")
-# head(bins)
+# calculate bin sizes
+bins <- as.data.frame(bins)
+bins <- bins %>% mutate(bin_width = as.numeric(bins$end) - as.numeric(bins$start))
+print("Bins:")
+head(bins)
 
-# # how many different bin sizes are there?
-# png(paste0(plot_path, "freq_of_different_bin_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-# plot(table(bins$bin_width))
-# graphics.off()
-# # most bins are 4999, but there are one of unique sizes
+# how many different bin sizes are there?
+png(paste0(plot_path, "freq_of_different_bin_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+plot(table(bins$bin_width))
+graphics.off()
+# most bins are 4999, but there are one of unique sizes
 
-# # where are the bins that are not specified bin size?
-# print("Bins which are not specified bin size:")
-# print(bins[bins$bin_width != opt$binsize-1, ])
-# # can see there is one bin which is not the specified bin size in each chromosome
+# where are the bins that are not specified bin size?
+print("Bins which are not specified bin size:")
+print(bins[bins$bin_width != opt$binsize-1, ])
+# can see there is one bin which is not the specified bin size in each chromosome
 
-# #### Check interaction distances
+#### Check interaction distances
 
-# # check the range of interactions in the sig interactions table
-# print(paste0("Minimum interaction size: ", min(interactions$D)))
-# print(paste0("Maximum interaction size: ", max(interactions$D)))
+# check the range of interactions in the sig interactions table
+print(paste0("Minimum interaction size: ", min(interactions$D)))
+print(paste0("Maximum interaction size: ", max(interactions$D)))
 
-# # check which interactions are not divisible by bin size
-# print("Interactions which distance is not divisible by bin size:")
-# check.integer <- function(x) {x == round(x)}
-# weird_length_interactions <- interactions[!check.integer(interactions$D / opt$binsize), ]
-# print(head(weird_length_interactions))
-# # these interactions are all interacting with the weirdly sized last bin
+# check which interactions are not divisible by bin size
+print("Interactions which distance is not divisible by bin size:")
+check.integer <- function(x) {x == round(x)}
+weird_length_interactions <- interactions[!check.integer(interactions$D / opt$binsize), ]
+print(head(weird_length_interactions))
+# these interactions are all interacting with the weirdly sized last bin
 
-# # remove the weird sized interactions and extract counts vs distance
-# normal_sized_interactions <- interactions[check.integer(interactions$D / opt$binsize), ]
+# remove the weird sized interactions and extract counts vs distance
+normal_sized_interactions <- interactions[check.integer(interactions$D / opt$binsize), ]
 
-# #### Check counts
+#### Check counts
 
-# # plot a histogram of distribution of counts
-# png(paste0(plot_path, "hist_of_counts.png"), width=40, height=20, units = 'cm', res = 200)
-# hist(normal_sized_interactions$counts, breaks = 100)
-# graphics.off()
+# plot a histogram of distribution of counts
+png(paste0(plot_path, "hist_of_counts.png"), width=40, height=20, units = 'cm', res = 200)
+hist(normal_sized_interactions$counts, breaks = 100)
+graphics.off()
 
-# png(paste0(plot_path, "hist_of_log_counts.png"), width=40, height=20, units = 'cm', res = 200)
-# hist(log(normal_sized_interactions$counts), breaks = 100)
-# graphics.off()
+png(paste0(plot_path, "hist_of_log_counts.png"), width=40, height=20, units = 'cm', res = 200)
+hist(log(normal_sized_interactions$counts), breaks = 100)
+graphics.off()
 
-# # plot summary stats of range of counts
-# print("Counts summary:")
-# print(summary(normal_sized_interactions$counts))
+# plot summary stats of range of counts
+print("Counts summary:")
+print(summary(normal_sized_interactions$counts))
 
-# #### Check interaction distances Vs counts
+#### Check interaction distances Vs counts
 
-# # extract interactions distances and counts from normal sized bins
-# data <- data.frame(distance = normal_sized_interactions$D,
-#                    counts = normal_sized_interactions$counts)
+# extract interactions distances and counts from normal sized bins
+data <- data.frame(distance = normal_sized_interactions$D,
+                   counts = normal_sized_interactions$counts)
 
-# # plot means of counts per distance
-# mean_data <- aggregate(counts ~ distance, data, mean)
+# plot means of counts per distance
+mean_data <- aggregate(counts ~ distance, data, mean)
 
-# png(paste0(plot_path, "mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
-# ggplot(mean_data, aes(x=distance, y=counts)) +
-#   geom_line() +
-#   geom_point()
-# graphics.off()
+png(paste0(plot_path, "mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(mean_data, aes(x=distance, y=counts)) +
+  geom_line() +
+  geom_point()
+graphics.off()
 
-# png(paste0(plot_path, "log_mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
-# ggplot(mean_data, aes(x=log10(distance), y=log10(counts))) +
-#   geom_line() +
-#   geom_point()
-# graphics.off()
+png(paste0(plot_path, "log_mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(mean_data, aes(x=log10(distance), y=log10(counts))) +
+  geom_line() +
+  geom_point()
+graphics.off()
 
-# # plot medians of counts per distance
-# median_data <- aggregate(counts ~ distance, data, median)
+# plot medians of counts per distance
+median_data <- aggregate(counts ~ distance, data, median)
 
-# png(paste0(plot_path, "median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
-# ggplot(median_data, aes(x=distance, y=counts)) +
-#   geom_line() +
-#   geom_point()
-# graphics.off()
+png(paste0(plot_path, "median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(median_data, aes(x=distance, y=counts)) +
+  geom_line() +
+  geom_point()
+graphics.off()
 
-# png(paste0(plot_path, "log_median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
-# ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
-#   geom_line() +
-#   geom_point()
-# graphics.off()
+png(paste0(plot_path, "log_median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
+  geom_line() +
+  geom_point()
+graphics.off()
 
-# #### Check significance values
+#### Check significance values
 
-# # Plot distribution of q values
-# png(paste0(plot_path, "hist_q_val.png"), width=40, height=20, units = 'cm', res = 200)
-# hist(unique(interactions$qvalue), breaks = 100)
-# graphics.off()
+# Plot distribution of q values
+png(paste0(plot_path, "hist_q_val.png"), width=40, height=20, units = 'cm', res = 200)
+hist(unique(interactions$qvalue), breaks = 100)
+graphics.off()
 
-# # Plot distribution of p values
-# png(paste0(plot_path, "hist_p_val.png"), width=40, height=20, units = 'cm', res = 200)
-# hist(unique(interactions$pvalue), breaks = 100)
-# graphics.off()
+# Plot distribution of p values
+png(paste0(plot_path, "hist_p_val.png"), width=40, height=20, units = 'cm', res = 200)
+hist(unique(interactions$pvalue), breaks = 100)
+graphics.off()
 
 
-# #### Check fragment sizes
-# HiC_data <- fread(valid_pair_path)
-# frag_sizes <- HiC_data$V8
-# print(summary(frag_sizes))
+#### Check fragment sizes
+HiC_data <- fread(valid_pair_path)
+frag_sizes <- HiC_data$V8
+print(summary(frag_sizes))
 
-# png(paste0(plot_path, "hist_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-# hist(frag_sizes, breaks = 100)
-# graphics.off()
+png(paste0(plot_path, "hist_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+hist(frag_sizes, breaks = 100)
+graphics.off()
 
-# png(paste0(plot_path, "hist_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-# hist(log(frag_sizes), breaks = 100)
-# graphics.off()
+png(paste0(plot_path, "hist_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+hist(log(frag_sizes), breaks = 100)
+graphics.off()
 
-# png(paste0(plot_path, "boxplot_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-# BiocGenerics::boxplot(log(frag_sizes))
-# graphics.off()
+png(paste0(plot_path, "boxplot_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+BiocGenerics::boxplot(log(frag_sizes))
+graphics.off()
