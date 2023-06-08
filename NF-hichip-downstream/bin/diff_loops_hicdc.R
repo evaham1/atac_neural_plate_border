@@ -72,7 +72,7 @@ if(opt$verbose) print(opt)
     # newsplit: out of vertex space
     # Calls: hicdcdiff ... estimateDispersionsFit -> localDispersionFit -> locfit -> lfproc
     # Execution halted
-    chrs = "chr1"
+    chrs = c("chr1", "chr2", "chr3", "chr4", "chr5")
     
   } else {
     stop("--runtype must be set to 'nextflow'")
