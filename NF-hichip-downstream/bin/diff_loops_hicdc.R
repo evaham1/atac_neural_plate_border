@@ -57,16 +57,22 @@ if(opt$verbose) print(opt)
     ncores = opt$cores
     
     # chrs = NULL
-    chrs = c("chr1", "chr2", "chr3", "chr4", "chr5", "chr7", "chr9",
-             "chr11", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20",
-             "chr21", "chr22", "chr23", "chr24", "chr25", "chr26", "chr27", "chr28",
-             "chr31", "chr32", "chr33", "chrZ", "chrW")
+    # chrs = c("chr1", "chr2", "chr3", "chr4", "chr5", "chr7", "chr9",
+    #          "chr11", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20",
+    #          "chr21", "chr22", "chr23", "chr24", "chr25", "chr26", "chr27", "chr28",
+    #          "chr31", "chr32", "chr33", "chrZ", "chrW")
     # chr10, chr6, chr8, chr12 all fail with error:
     #  fitType failed to fit for chr8. Overriding with gene estimates
     #   Error in lfproc(x, y, weights = weights, cens = cens, base = base, geth = geth,  : 
     #     newsplit: out of vertex space
     #   Calls: hicdcdiff ... estimateDispersionsFit -> localDispersionFit -> locfit -> lfproc
     #   Execution halted
+    # now gives this error:
+    # Error in lfproc(x, y, weights = weights, cens = cens, base = base, geth = geth,  : 
+    # newsplit: out of vertex space
+    # Calls: hicdcdiff ... estimateDispersionsFit -> localDispersionFit -> locfit -> lfproc
+    # Execution halted
+    chrs = "chr1"
     
   } else {
     stop("--runtype must be set to 'nextflow'")
