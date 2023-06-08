@@ -71,7 +71,7 @@ if(opt$verbose) print(opt)
              "chr31", "chr32", "chr33", "chrZ", "chrW") ### THIS WORKS FOR ALL SAMPLES - ONLY ISSUES WITH chr30 (chr29 doesnt exist)
 
     opt$binsize = 5000
-    opt$Dmin = 10000
+    opt$Dmin = 0
     opt$Dmax = 1000000
     ####
     
