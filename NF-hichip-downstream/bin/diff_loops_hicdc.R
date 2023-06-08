@@ -306,7 +306,7 @@ hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
           Dmin = opt$Dmin,
           Dmax = opt$Dmax,
           # fitType in DESeq2::estimateDispersions
-          fitType = 'local', # 'parametric' (parametric regression),'local' (local regression), and 'mean' (constant across interaction bins). Default is 'local'.
+          fitType = 'parametric', # 'parametric' (parametric regression),'local' (local regression), and 'mean' (constant across interaction bins). Default is 'local'.
           # What objects are made
           diagnostics=TRUE, # generates diagnostic plots of normalisation factors and MA plots
           DESeq.save = TRUE, # saves DESEq objects for each chromosome
