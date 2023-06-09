@@ -124,6 +124,13 @@ print("NF samples:")
 NF_samples <-  grep("NF", filtered_files, value = TRUE)
 print(NF_samples)
 
+## Interactively get overlap of NF samples as they only ran interactively after a few tries:
+NF_r1_path <- "./output/NF-hichip-downstream/NF_HiChip_r1/HicDCPlus_output/rds_files/NF_HiChip_r1_HiCDC_output_filtered.txt"
+NF_r2_path <- "./output/NF-hichip-downstream/NF_HiChip_r2/HicDCPlus_output/rds_files/NF_HiChip_r2_HiCDC_output_filtered.txt"
+NF_r3_path <- "./output/NF-hichip-downstream/NF_HiChip_r3/HicDCPlus_output/rds_files/NF_HiChip_r3_HiCDC_output_filtered.txt"
+
+NF_samples <- c(NF_r1_path, NF_r2_path, NF_r3_path)
+filtered_files <- NF_samples
 
 ############################################################################################################
 ################################## Find consensus loops #################################################
@@ -154,10 +161,10 @@ print("filtered loops read in!")
 interaction_numbers <- data.frame(
   NF_HiChip_r1 = length(hidc_filtered_outputs[[1]]$interaction_ID),
   NF_HiChip_r2 = length(hidc_filtered_outputs[[2]]$interaction_ID),
-  NF_HiChip_r3 = length(hidc_filtered_outputs[[3]]$interaction_ID),
-  WE_HiChip_r1 = length(hidc_filtered_outputs[[4]]$interaction_ID),
-  WE_HiChip_r2 = length(hidc_filtered_outputs[[5]]$interaction_ID),
-  WE_HiChip_r3 = length(hidc_filtered_outputs[[6]]$interaction_ID)
+  NF_HiChip_r3 = length(hidc_filtered_outputs[[3]]$interaction_ID)
+  # WE_HiChip_r1 = length(hidc_filtered_outputs[[4]]$interaction_ID),
+  # WE_HiChip_r2 = length(hidc_filtered_outputs[[5]]$interaction_ID),
+  # WE_HiChip_r3 = length(hidc_filtered_outputs[[6]]$interaction_ID)
 )
 
 png(paste0(plot_path, 'how_many_interaction_in_each_sample_table.png'), height = 10, width = 30, units = 'cm', res = 400)
@@ -236,7 +243,9 @@ r1 <- hidc_filtered_outputs[[1]]$interaction_ID
 r2 <- hidc_filtered_outputs[[2]]$interaction_ID
 r3 <- hidc_filtered_outputs[[3]]$interaction_ID
 
+##### these are interactions that appear in AT LEAST 2 out of the 3 samples
 common_interactions <- unique(c(intersect(r1, r2), intersect(r1, r3), intersect(r2, r3)))
+print("Number of interactions in at least 2 of 3 samples:")
 length(common_interactions)
 
 # extract table of these interactions (p vals not important but chrom start end useful)
@@ -252,7 +261,25 @@ nrow(common_interactions_table) == length(common_interactions)
 # save common interactions table
 write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions.txt'))
 
-print("Table of common interactions saved!")
+##### these are interactions that appear in ALL 3 samples
+common_interactions <- Reduce(intersect, list(r1, r2, r3))
+print("Number of interactions in all 3 samples:")
+length(common_interactions)
+
+# extract table of these interactions (p vals not important but chrom start end useful)
+r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
+remaining_interactions <- common_interactions[!common_interactions %in% r1]
+length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
+r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
+nrow(r2_subset) == length(remaining_interactions)
+
+common_interactions_table <- rbind(r1_subset, r2_subset)
+nrow(common_interactions_table) == length(common_interactions)
+
+# save common interactions table
+write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions_stringent.txt'))
+
+print("Tables of common interactions saved!")
 
 # ############################################################################################################
 # ################################## Find differential loops #################################################
