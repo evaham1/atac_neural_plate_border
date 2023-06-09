@@ -73,7 +73,8 @@ if(opt$verbose) print(opt)
     # Calls: hicdcdiff ... estimateDispersionsFit -> localDispersionFit -> locfit -> lfproc
     # Execution halted
     #chrs = c("chr1", "chr2", "chr3", "chr4", "chr5") # this works!
-    chrs = c("chr7", "chr9", "chr11", "chr13", "chr14", "chr15")
+    #chrs = c("chr7", "chr9", "chr11", "chr13", "chr14", "chr15") # doesn't work - error in lfproc(x, y, weights = weights, cens = cens, base = base, geth = geth,  : 
+    #newsplit: out of vertex space
     #chrs = c("chr16", "chr17", "chr18", "chr19", "chr20")
     
   } else {
@@ -253,50 +254,68 @@ write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interact
 
 print("Table of common interactions saved!")
 
-############################################################################################################
-################################## Find differential loops #################################################
-############################################################################################################
+# ############################################################################################################
+# ################################## Find differential loops #################################################
+# ############################################################################################################
 
-print("Finding differential loops...")
+# print("Finding differential loops...")
 
-######################   Create index file of interactions to test   ######################################
-# index file = union of significant interactions, chr, startI, startJ
-# use the filtered file as these interactions have a qval < 0.05
+# ######################   Create index file of interactions to test   ######################################
+# # index file = union of significant interactions, chr, startI, startJ
+# # use the filtered file as these interactions have a qval < 0.05
 
-indexfile <- data.frame()
-hidc_outputs <- list()
+# indexfile <- data.frame()
+# hidc_outputs <- list()
 
-for (file in filtered_files) {
-  # extract sample name
-  sample_name <- gsub(pattern = "_HiCDC_output_filtered.txt", replacement = "", x = basename(file))
-  print(sample_name)
-  # read in hicDC+ output
-  output <- data.table::fread(file)
-  # add unique interactions to indexfile
-  indexfile <- unique(rbind(indexfile, output[,c('chrI','startI','startJ')]))
-  # add an interaction name to the hicDC+ output
-  output <- output %>% mutate(interaction_ID = paste0(chrI, "-", startI, "-", startJ))
-  # add the hicDC+ output to the list of outputs
-  hidc_outputs[[sample_name]] <- output
-}
+# for (file in filtered_files) {
+#   # extract sample name
+#   sample_name <- gsub(pattern = "_HiCDC_output_filtered.txt", replacement = "", x = basename(file))
+#   print(sample_name)
+#   # read in hicDC+ output
+#   output <- data.table::fread(file)
+#   # add unique interactions to indexfile
+#   indexfile <- unique(rbind(indexfile, output[,c('chrI','startI','startJ')]))
+#   # add an interaction name to the hicDC+ output
+#   output <- output %>% mutate(interaction_ID = paste0(chrI, "-", startI, "-", startJ))
+#   # add the hicDC+ output to the list of outputs
+#   hidc_outputs[[sample_name]] <- output
+# }
 
-print(head(indexfile))
-dim(indexfile)
+# print(head(indexfile))
+# dim(indexfile)
 
-#save index file
-colnames(indexfile) <- c('chr','startI','startJ')
-data.table::fwrite(indexfile,
-                   paste0(rds_path,'/Indexfile.txt.gz'),
-                   sep='\t',row.names=FALSE,quote=FALSE)
+# #save index file
+# colnames(indexfile) <- c('chr','startI','startJ')
+# data.table::fwrite(indexfile,
+#                    paste0(rds_path,'/Indexfile.txt.gz'),
+#                    sep='\t',row.names=FALSE,quote=FALSE)
 
-####################################   Run hicdcdiff   ###################################################
-# Differential analysis using modified DESeq2 (see ?hicdcdiff)
+# ####################################   Run hicdcdiff   ###################################################
+# # Differential analysis using modified DESeq2 (see ?hicdcdiff)
 
-## try running with all interactions - error:
-# Error in data.table::fread(filepath) : 
-#   R character strings are limited to 2^31-1 bytes
-# Calls: hicdcdiff ... .readDiffInputFiles -> gi_list_read -> input.file.read -> <Anonymous> 
-# hicdcdiff(input_paths = list(WE = WE_samples_unfiltered, NF = NF_samples_unfiltered),
+# ## try running with all interactions - error:
+# # Error in data.table::fread(filepath) : 
+# #   R character strings are limited to 2^31-1 bytes
+# # Calls: hicdcdiff ... .readDiffInputFiles -> gi_list_read -> input.file.read -> <Anonymous> 
+# # hicdcdiff(input_paths = list(WE = WE_samples_unfiltered, NF = NF_samples_unfiltered),
+# #           filter_file = paste0(rds_path,'/Indexfile.txt.gz'),
+# #           output_path=paste0(rds_path,'/HicDCDiff_output/'),
+# #           # Bins
+# #           bin_type = 'Bins-uniform',
+# #           binsize = 5000,
+# #           # Interaction sizes
+# #           Dmin = opt$Dmin,
+# #           Dmax = opt$Dmax,
+# #           # fitType in DESeq2::estimateDispersions
+# #           fitType = 'local', # 'parametric' (parametric regression),'local' (local regression), and 'mean' (constant across interaction bins). Default is 'local'.
+# #           # What objects are made
+# #           diagnostics=TRUE, # generates diagnostic plots of normalisation factors and MA plots
+# #           DESeq.save = TRUE, # saves DESEq objects for each chromosome
+# #           chrs = chrs
+# #           )
+
+# # try running with filtered samples
+# hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
 #           filter_file = paste0(rds_path,'/Indexfile.txt.gz'),
 #           output_path=paste0(rds_path,'/HicDCDiff_output/'),
 #           # Bins
@@ -312,21 +331,3 @@ data.table::fwrite(indexfile,
 #           DESeq.save = TRUE, # saves DESEq objects for each chromosome
 #           chrs = chrs
 #           )
-
-# try running with filtered samples
-hicdcdiff(input_paths = list(WE = WE_samples, NF = NF_samples),
-          filter_file = paste0(rds_path,'/Indexfile.txt.gz'),
-          output_path=paste0(rds_path,'/HicDCDiff_output/'),
-          # Bins
-          bin_type = 'Bins-uniform',
-          binsize = 5000,
-          # Interaction sizes
-          Dmin = opt$Dmin,
-          Dmax = opt$Dmax,
-          # fitType in DESeq2::estimateDispersions
-          fitType = 'local', # 'parametric' (parametric regression),'local' (local regression), and 'mean' (constant across interaction bins). Default is 'local'.
-          # What objects are made
-          diagnostics=TRUE, # generates diagnostic plots of normalisation factors and MA plots
-          DESeq.save = TRUE, # saves DESEq objects for each chromosome
-          chrs = chrs
-          )

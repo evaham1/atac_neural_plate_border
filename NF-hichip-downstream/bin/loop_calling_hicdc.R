@@ -69,6 +69,7 @@ if(opt$verbose) print(opt)
              "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20",
              "chr21", "chr22", "chr23", "chr24", "chr25", "chr26", "chr27", "chr28",
              "chr31", "chr32", "chr33", "chrZ", "chrW") ### THIS WORKS FOR ALL SAMPLES - ONLY ISSUES WITH chr30 (chr29 doesnt exist)
+             ### but now I've tried again and it doesn't work with chrom15???
 
     opt$binsize = 5000
     opt$Dmin = 0
