@@ -17,6 +17,9 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
+// 0) overlap peaks with enhancers from the literature
+include {INTERSECT_BINS as INTERSECT_PEAKS_ENHANCERS} from "$baseDir/modules/local/intersect_bins/main"
+
 // 1) Create bins
 include {R as GENERATE_BINS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/generate_bins.R", checkIfExists: true) )
 
@@ -62,12 +65,22 @@ Channel
     .set{ch_dummy}
 //[[sample_id:dummy], /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf]
 
+// set channel for bed file of literature enhancers
+Channel
+    .value(params.lit_enhancers)
+    .set{ch_lit_enhancers}
 
 //
 // WORKFLOW: Run main nf-core/NF-hichip-downstream analysis pipeline
 //
 
 workflow {
+
+    //////////  Overlap peaks with lit enhancers  /////////
+    ch_peaks
+        .combine( ch_lit_enhancers )
+        .set{ ch_peak_lit_enhancers }
+    INTERSECT_PEAKS_ENHANCERS( ch_peak_lit_enhancers )
 
     //////////  Sample-generic bins generation and annotation  //////////
 
