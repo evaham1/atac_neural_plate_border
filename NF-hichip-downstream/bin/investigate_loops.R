@@ -236,21 +236,21 @@ nrow(filtered_interactions)
 # GM13; AKAP12, ASS1, BASP1, CD99, ENSGALG00000011296, ENSGALG00000041054, ENSGALG00000042443, EYA2, FERMT2, LGMN, METTL24, NR2F2, NUCKS1, SIX1
 
 
-PPR_genes <- c("AKR1D1", "ATP1A1", "ATP1B1", "ATP2B1", "B3GNT7", "CCDC25", "CGNL1", "DAG1", "EMILIN2", "ENSGALG00000004814", "EPCAM", "FAM184B", "FAM89A", "GATA2", "GATA3", "IRAK2", "IRF6", "MAP7", "METRNL", "MPZL3", "NET1", "PLEKHA5", "POGLUT2", "PPFIBP1", "RGN", "SLC16A10", "SLC25A4", "TSPAN13", "TTC39A", "UNC5B", "Z-TJP2",
-               "BRINP1", "CITED4", "DLX5", "DLX6", "ENSGALG00000023936", "ENSGALG00000040010", "FN1", "HESX1", "HIF1A", "KCNAB1", "LAMB1", "LRP11", "NFKB1", "PAX6", "PITX1", "PITX2", "SEM1", "SFRP1", "SH3D19", "SHISA2", "SIX3", "SPON1", "SST", "WDR1", "Z-HAPLN1",
-               "AKAP12", "ASS1", "BASP1", "CD99", "ENSGALG00000011296", "ENSGALG00000041054", "ENSGALG00000042443", "EYA2", "FERMT2", "LGMN", "METTL24", "NR2F2", "NUCKS1", "SIX1")
-
-# NC specific GMs
-# GM40; AGTRAP, BRINP2, CDH11, CMTM8, ENSGALG00000001136, FRZB, GADD45A, HUNK, LARP7, LMX1B, MRAS, MSX1, SFRP2, SOX11, SPSB4, Z-FST, ZEB2, ZIC1
-# GM42; BMP5, CDH6, CSRNP1, DRAXIN, EN1, ENSGALG00000013505, FOXD3, NKD1, NRP2, OLFM1, PAX7, SNAI2, SOX9, TFAP2B, TMEM132C, TSPAN18, WLS, WNT6, Z-ENC1, ZFHX4, ZNF423
-# GM43; COL9A3, ENSGALG00000037717, ENSGALG00000053185, ERMN, ETS1, LMO4, PPP1R1C, RASL11B, RFTN2, SOX10, SOX8, TNC, Z-MEF2C, Z-PLK2
-# GM44; CXCR4, ENSGALG00000030512, ENSGALG00000031427, FABP7, FKBP11, GLIPR2, ID1, ID2, MEOX1, MYL4, OLFML3, SOX5, WNT1
-
-NC_genes <- c("AGTRAP", "BRINP2", "CDH11", "CMTM8", "ENSGALG00000001136", "FRZB", "GADD45A", "HUNK", "LARP7", "LMX1B", "MRAS", "MSX1", "SFRP2", "SOX11", "SPSB4", "Z-FST", "ZEB2", "ZIC1",
-              "BMP5", "CDH6", "CSRNP1", "DRAXIN", "EN1", "ENSGALG00000013505", "FOXD3", "NKD1", "NRP2", "OLFM1", "PAX7", "SNAI2", "SOX9", "TFAP2B", "TMEM132C", "TSPAN18", "WLS", "WNT6", "Z-ENC1", "ZFHX4", "ZNF423",
-              "CDON", "COTL1", "ENSGALG00000048488", "MFAP2", "PRTG", "TUBB3",
-              "COL9A3", "ENSGALG00000037717", "ENSGALG00000053185", "ERMN", "ETS1", "LMO4", "PPP1R1C", "RASL11B", "RFTN2", "SOX10", "SOX8", "TNC", "Z-MEF2C", "Z-PLK2",
-              "CXCR4", "ENSGALG00000030512", "ENSGALG00000031427", "FABP7", "FKBP11", "GLIPR2", "ID1", "ID2", "MEOX1", "MYL4", "OLFML3", "SOX5", "WNT1")
+# PPR_genes <- c("AKR1D1", "ATP1A1", "ATP1B1", "ATP2B1", "B3GNT7", "CCDC25", "CGNL1", "DAG1", "EMILIN2", "ENSGALG00000004814", "EPCAM", "FAM184B", "FAM89A", "GATA2", "GATA3", "IRAK2", "IRF6", "MAP7", "METRNL", "MPZL3", "NET1", "PLEKHA5", "POGLUT2", "PPFIBP1", "RGN", "SLC16A10", "SLC25A4", "TSPAN13", "TTC39A", "UNC5B", "Z-TJP2",
+#                "BRINP1", "CITED4", "DLX5", "DLX6", "ENSGALG00000023936", "ENSGALG00000040010", "FN1", "HESX1", "HIF1A", "KCNAB1", "LAMB1", "LRP11", "NFKB1", "PAX6", "PITX1", "PITX2", "SEM1", "SFRP1", "SH3D19", "SHISA2", "SIX3", "SPON1", "SST", "WDR1", "Z-HAPLN1",
+#                "AKAP12", "ASS1", "BASP1", "CD99", "ENSGALG00000011296", "ENSGALG00000041054", "ENSGALG00000042443", "EYA2", "FERMT2", "LGMN", "METTL24", "NR2F2", "NUCKS1", "SIX1")
+# 
+# # NC specific GMs
+# # GM40; AGTRAP, BRINP2, CDH11, CMTM8, ENSGALG00000001136, FRZB, GADD45A, HUNK, LARP7, LMX1B, MRAS, MSX1, SFRP2, SOX11, SPSB4, Z-FST, ZEB2, ZIC1
+# # GM42; BMP5, CDH6, CSRNP1, DRAXIN, EN1, ENSGALG00000013505, FOXD3, NKD1, NRP2, OLFM1, PAX7, SNAI2, SOX9, TFAP2B, TMEM132C, TSPAN18, WLS, WNT6, Z-ENC1, ZFHX4, ZNF423
+# # GM43; COL9A3, ENSGALG00000037717, ENSGALG00000053185, ERMN, ETS1, LMO4, PPP1R1C, RASL11B, RFTN2, SOX10, SOX8, TNC, Z-MEF2C, Z-PLK2
+# # GM44; CXCR4, ENSGALG00000030512, ENSGALG00000031427, FABP7, FKBP11, GLIPR2, ID1, ID2, MEOX1, MYL4, OLFML3, SOX5, WNT1
+# 
+# NC_genes <- c("AGTRAP", "BRINP2", "CDH11", "CMTM8", "ENSGALG00000001136", "FRZB", "GADD45A", "HUNK", "LARP7", "LMX1B", "MRAS", "MSX1", "SFRP2", "SOX11", "SPSB4", "Z-FST", "ZEB2", "ZIC1",
+#               "BMP5", "CDH6", "CSRNP1", "DRAXIN", "EN1", "ENSGALG00000013505", "FOXD3", "NKD1", "NRP2", "OLFM1", "PAX7", "SNAI2", "SOX9", "TFAP2B", "TMEM132C", "TSPAN18", "WLS", "WNT6", "Z-ENC1", "ZFHX4", "ZNF423",
+#               "CDON", "COTL1", "ENSGALG00000048488", "MFAP2", "PRTG", "TUBB3",
+#               "COL9A3", "ENSGALG00000037717", "ENSGALG00000053185", "ERMN", "ETS1", "LMO4", "PPP1R1C", "RASL11B", "RFTN2", "SOX10", "SOX8", "TNC", "Z-MEF2C", "Z-PLK2",
+#               "CXCR4", "ENSGALG00000030512", "ENSGALG00000031427", "FABP7", "FKBP11", "GLIPR2", "ID1", "ID2", "MEOX1", "MYL4", "OLFML3", "SOX5", "WNT1")
 
 ##############  Read in peaks of interest    ###########################################
 
@@ -283,6 +283,8 @@ epiblast_peaks <- c(
   "chr1-110281882-110282382", "chr11-8925624-8926124", "chr14-3706879-3707379", "chr18-1600943-1601443", "chr18-5994505-5995005", "chr18-9739470-9739970", "chr19-8482522-8483022", "chr2-106895115-106895615", "chr2-113123525-113124025", "chr2-114269644-114270144", "chr2-126301655-126302155", "chr2-142451443-142451943", "chr2-38837219-38837719", "chr2-45419343-45419843", "chr2-68174576-68175076", "chr2-73341546-73342046", "chr2-74258115-74258615", "chr2-78063433-78063933", "chr2-78256853-78257353", "chr2-78556854-78557354", "chr2-79869348-79869848", "chr2-80039828-80040328", "chr2-81301583-81302083", "chr2-85765249-85765749", "chr2-87799837-87800337", "chr2-89608377-89608877", "chr20-1215812-1216312", "chr20-2435081-2435581", "chr21-1425482-1425982", "chr22-1221930-1222430", "chr22-1223279-1223779", "chr22-2694735-2695235", "chr24-2230342-2230842", "chr26-4429645-4430145", "chr28-3743828-3744328", "chr3-103855082-103855582", "chr3-107043466-107043966", "chr3-109761452-109761952", "chr3-27313048-27313548", "chr3-38464922-38465422", "chr3-51455828-51456328", "chr3-65736216-65736716", "chr3-7676617-7677117", "chr3-91321007-91321507", "chr3-91418181-91418681", "chr4-1092590-1093090", "chr4-1166664-1167164", "chr4-32359369-32359869", "chr4-44150493-44150993", "chr4-49797480-49797980", "chr4-553198-553698", "chr4-82536788-82537288", "chr5-22208723-22209223", "chr7-9765533-9766033"
 )
 
+# Peaks associated with known enhancers (loaded with Rshiny global script)
+enhancer_peaks <- lit_enhancer_peaks
 
 ##############  Look at which interactions include PPR genes    ###########################################
 
@@ -391,6 +393,32 @@ extract_features_from_bins <- function(output_bins, peak_bin_dictionary, promote
   output_interactions <- merge(output_interactions, promoters, by = "anchor_J", all.x = TRUE)
   return(output_interactions)
 }
+
+####### Running through processes from peaks to genes:
+## for enhancer peaks
+lit_enhancer_peaks_bed <- read.csv("./output/NF-hichip-downstream/enhancers_peaks_intersect/literature_enhancers_bins_intersected.bed", sep = "\t", header = F)
+six1_peaks <- lit_enhancer_peaks_bed[lit_enhancer_peaks_bed$V11 %in% c("Six1"),]
+six1_peaks <- lit_enhancer_peaks_bed[lit_enhancer_peaks_bed$V11 %in% c("Six1"),]
+colnames(lit_enhancer_peaks_bed)
+
+barchart(lit_enhancer_peaks_bed$V14)
+
+lit_enhancer_peaks <- six1_peaks$V4
+
+# 1) Extract input_bins from PPR peaks
+input_bins <- extract_bins_from_features(features=lit_enhancer_peaks, feature_type="peak_ID", bin_dictionary=peaks_bins)
+length(unique(lit_enhancer_peaks))
+nrow(input_bins)
+
+# 2) See which output_bins are interacting with these input_bins
+output_bins <- extract_interacting_bins(input_bins = input_bins, input_feature_type = "peak", interactions = filtered_interactions)
+
+# 3) See which features are in these output_bins
+output_features <- extract_features_from_bins(output_bins, peak_bin_dictionary = peaks_bins, promoter_bin_dictionary = promoters_bins)
+
+# 4) Investigate if interacting genes correspond with enhancer annotations
+enhancer_interactions <- output_features %>% select(anchor_I_peak_ID.x, anchor_I_gene_name, anchor_J_peak_ID.x, anchor_J_gene_name)
+
 
 ####### Running through processes from peaks to genes:
 ## for PPR PMs 6, 7, 9 (should connect with GM23 on full data)
