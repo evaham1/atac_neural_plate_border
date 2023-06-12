@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 ### script to use HiCDCPlus to call significant loop from HiChip data
-print("script to use HiCDCPlus to call significant loop from HiChip data")
+print("script to use HiCDCPlus to call significant loop from HiChip data") 
 
 ############################## Load libraries #######################################
 library(getopt)
