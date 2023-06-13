@@ -347,8 +347,8 @@ png(paste0(plot_path, "hist_of_counts.png"), width=40, height=20, units = 'cm', 
 hist(normal_sized_interactions$counts, breaks = 100)
 graphics.off()
 
-png(paste0(plot_path, "hist_of_log_counts.png"), width=40, height=20, units = 'cm', res = 200)
-hist(log(normal_sized_interactions$counts), breaks = 100)
+png(paste0(plot_path, "hist_of_log10_counts.png"), width=40, height=20, units = 'cm', res = 200)
+hist(log10(normal_sized_interactions$counts), breaks = 100)
 graphics.off()
 
 # plot summary stats of range of counts
@@ -370,7 +370,7 @@ ggplot(mean_data, aes(x=distance, y=counts)) +
   geom_point()
 graphics.off()
 
-png(paste0(plot_path, "log_mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "log10_mean_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
 ggplot(mean_data, aes(x=log10(distance), y=log10(counts))) +
   geom_line() +
   geom_point()
@@ -385,7 +385,7 @@ ggplot(median_data, aes(x=distance, y=counts)) +
   geom_point()
 graphics.off()
 
-png(paste0(plot_path, "log_median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "log10_median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
 ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
   geom_line() +
   geom_point()
@@ -413,10 +413,10 @@ png(paste0(plot_path, "hist_frag_sizes.png"), width=40, height=20, units = 'cm',
 hist(frag_sizes, breaks = 100)
 graphics.off()
 
-png(paste0(plot_path, "hist_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-hist(log(frag_sizes), breaks = 100)
+png(paste0(plot_path, "hist_log10_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+hist(log10(frag_sizes), breaks = 100)
 graphics.off()
 
-png(paste0(plot_path, "boxplot_log_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-BiocGenerics::boxplot(log(frag_sizes))
+png(paste0(plot_path, "boxplot_log10_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
+BiocGenerics::boxplot(log10(frag_sizes))
 graphics.off()
