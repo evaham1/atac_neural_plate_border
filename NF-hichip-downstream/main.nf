@@ -144,31 +144,31 @@ workflow {
 
     LOOP_CALL( ch_validpairs )
 
-    // // //////////  Find differential interactions between NF and WE  //////////
+    // //////////  Find differential interactions between NF and WE  //////////
 
-    // LOOP_CALL.out //[[sample_id:WE_HiChip_r1], [plots, rds_files]]
-    //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
-    //     .collect()
-    //     .flatMap().collect() //[[WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt], [WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt], [NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]
-    //     .map{[it[0][0], it[0][1], it[1][0], it[1][1], it[2][0], it[2][1], it[3][0], it[3][1], it[4][0], it[4][1], it[5][0], it[5][1]]}
-    //     .map { [[sample_id:'AllSamples'], it] } //
-    //     .set{ ch_interactions_combined }
-    //     // //[[sample_id:AllSamples], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz, WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt, NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]
+    LOOP_CALL.out //[[sample_id:WE_HiChip_r1], [plots, rds_files]]
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
+        .collect()
+        .flatMap().collect() //[[WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt], [WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt], [NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz], [NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]
+        .map{[it[0][0], it[0][1], it[1][0], it[1][1], it[2][0], it[2][1], it[3][0], it[3][1], it[4][0], it[4][1], it[5][0], it[5][1]]}
+        .map { [[sample_id:'AllSamples'], it] } //
+        .set{ ch_interactions_combined }
+        // //[[sample_id:AllSamples], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz, WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt, NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]
 
-    // DIFF_LOOPS( ch_interactions_combined )
+    DIFF_LOOPS( ch_interactions_combined )
 
-    //////////  Pull out interesting interactions  //////////
+    ////////  Pull out interesting interactions  //////////
 
-    // DIFF_LOOPS.out
-    //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
-    //     .combine( INTERSECT_BINS_PEAKS.out )
-    //     .combine( INTERSECT_BINS_PROMOTERS.out )
-    //     .combine( ch_bins )
-    //     .map{ [ it[0], [it[1], it[2], it[3], it[4]] ] }
-    //     .view() // [[sample_id:WE_HiChip_r1], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed, bins.bed]]
-    //     .set{ ch_intersect }
+    DIFF_LOOPS.out
+        .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }[0]] } //[[sample_id:WE_HiChip_r2], rds_files]
+        .combine( INTERSECT_BINS_PEAKS.out )
+        .combine( INTERSECT_BINS_PROMOTERS.out )
+        .combine( ch_bins )
+        .map{ [ it[0], [it[1], it[2], it[3], it[4]] ] }
+        .view() // [[sample_id:WE_HiChip_r1], [rds_files, FullData_PeakSet_bins_intersected.bed, tag_chroms_bins_intersected.bed, bins.bed]]
+        .set{ ch_intersect }
 
-    // INVESTIGATE_LOOPS( ch_intersect )
+    INVESTIGATE_LOOPS( ch_intersect )
 
 }
 
