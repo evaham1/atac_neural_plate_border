@@ -161,7 +161,7 @@ print("filtered loops read in!")
 interaction_numbers <- data.frame(
   NF_HiChip_r1 = length(hidc_filtered_outputs[[1]]$interaction_ID),
   NF_HiChip_r2 = length(hidc_filtered_outputs[[2]]$interaction_ID),
-  NF_HiChip_r3 = length(hidc_filtered_outputs[[3]]$interaction_ID)
+  NF_HiChip_r3 = length(hidc_filtered_outputs[[3]]$interaction_ID),
   WE_HiChip_r1 = length(hidc_filtered_outputs[[4]]$interaction_ID),
   WE_HiChip_r2 = length(hidc_filtered_outputs[[5]]$interaction_ID),
   WE_HiChip_r3 = length(hidc_filtered_outputs[[6]]$interaction_ID)
