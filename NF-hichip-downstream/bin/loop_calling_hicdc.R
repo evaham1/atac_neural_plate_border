@@ -240,7 +240,7 @@ expanded_gi_list_with_valid_pairs_HiCDC <- HiCDCPlus(expanded_gi_list_with_valid
                                                      distance_type = "spline", # distance covariate form, 'spline' or 'log'
                                                      model_distribution = "nb", # 'nb' uses negative binomial model, 'nb_vardisp' uses nb model with distance specific dispersion inferred from data, 'nb_hurdle' uses legacy HiC-DC model
                                                      df = 6, # degrees of freedom for the genomic distance spline function if distance_type='spline', defaults to 6 which corresponds to cubic splines
-                                                     ssize = 0.01, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
+                                                     ssize = 0.015, # distance stratified sampling size. increase recommended if model fails to converge, defaults to 0.01
                                                      splineknotting = "uniform", # spline knotting strategy, either 'uniform' or 'count-based' (ie more closed spaces where counts are more dense)
                                                      # Types of bins:
                                                      binned = TRUE, # TRUE if uniform binning, FALSE if restriction enzyme fragment cutsites
