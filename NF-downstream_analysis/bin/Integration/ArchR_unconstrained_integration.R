@@ -86,6 +86,8 @@ seurat_data <- readRDS(rna_path)
 ############################################################################################
 ############################## Pre-Integration Plots #######################################
 
+print("Making pre-integration plots...")
+
 #### Prepare RNA labels and colours #######
 
 #### combine contamination and old scHelper_cell_state labels
@@ -157,9 +159,12 @@ png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), 
 print(umap_rna_old + umap_atac)
 graphics.off()
 
+print("Pre-integration plots made.")
 
 ################################################################################################
 ############################## Unconstrained integration #######################################
+
+print("Starting unconstrained integration...")
 
 ArchR <- addGeneIntegrationMatrix(
   ArchRProj = ArchR, 
@@ -189,12 +194,16 @@ ArchR$rna_run <- extracted_rna_metadata[, "run"]
 ArchR$rna_clusters <- extracted_rna_metadata[, "seurat_clusters"]
 
 # save integrated ArchR project
+print("Saving integrated ArchR project...")
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
-
+print("Integrated ArchR project saved.")
 
 #############################################################################################
 ############################## Post-Integration Plots #######################################
+
+print("Making post-integration plots...")
 
 # set colour palettes for UMAPs
 atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
@@ -243,3 +252,5 @@ png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units 
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
   name = "predictedScore_Un", plotAs = "Violin", alpha = 0.4)
 graphics.off()
+
+print("Post-integration plots made.")
