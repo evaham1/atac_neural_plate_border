@@ -186,10 +186,13 @@ workflow A {
 
     if(!skip_singlecell_processing){
 
+        ch_peakcall_processed.view()
+
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
+        METADATA_RNA_SC.out.view()
    
         // combine ATAC and RNA data
         ch_peakcall_processed // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
@@ -199,7 +202,17 @@ workflow A {
             .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        ch_integrate.view()
+        //ch_integrate.view()
+        // [[sample_id:HH5], [null, /HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]
+        // [[sample_id:HH6], [null, /HH6_splitstage_data/rds_files/HH6_clustered_data.RDS]]
+        // [[sample_id:HH5], [null, /HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]
+        // [[sample_id:HH7], [null, /HH7_splitstage_data/rds_files/HH7_clustered_data.RDS]]
+        // [[sample_id:HH6], [null, /HH6_splitstage_data/rds_files/HH6_clustered_data.RDS]]
+        // [[sample_id:ss4], [null, /ss4_splitstage_data/rds_files/ss4_clustered_data.RDS]]
+        // [[sample_id:HH7], [null, /HH7_splitstage_data/rds_files/HH7_clustered_data.RDS]]
+        // [[sample_id:ss8], [null, /ss8_splitstage_data/rds_files/ss8_clustered_data.RDS]]
+        // [[sample_id:ss4], [null, /ss4_splitstage_data/rds_files/ss4_clustered_data.RDS]]
+        // [[sample_id:ss8], [null, /ss8_splitstage_data/rds_files/ss8_clustered_data.RDS]]
 
         // ARCHR: Integrate + filter out contaminating cells
         //INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
