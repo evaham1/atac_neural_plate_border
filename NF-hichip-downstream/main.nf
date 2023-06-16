@@ -144,7 +144,7 @@ workflow {
 
     LOOP_CALL( ch_validpairs )
 
-    // //////////  Find differential interactions between NF and WE  //////////
+    // visualise loops for each sample using HiContacts
 
     LOOP_CALL.out //[[sample_id:WE_HiChip_r1], [plots, rds_files]]
         .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
@@ -155,7 +155,8 @@ workflow {
         .set{ ch_interactions_combined }
         // //[[sample_id:AllSamples], [WE_HiChip_r2_HiCDC_output_filtered.txt, WE_HiChip_r2_HiCDC_output.txt.gz, WE_HiChip_r1_HiCDC_output_filtered.txt, WE_HiChip_r1_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output.txt.gz, WE_HiChip_r3_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output_filtered.txt, NF_HiChip_r2_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output.txt.gz, NF_HiChip_r1_HiCDC_output_filtered.txt, NF_HiChip_r3_HiCDC_output.txt.gz, NF_HiChip_r3_HiCDC_output_filtered.txt]]
 
-    DIFF_LOOPS( ch_interactions_combined )
+    // replace this with getting union of all interactions and plotting them with HiContacts
+    // DIFF_LOOPS( ch_interactions_combined )
 
     ////////  Pull out interesting interactions  //////////
 
