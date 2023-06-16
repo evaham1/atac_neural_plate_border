@@ -31,6 +31,8 @@ include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addPar
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
 
+include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
+
 //CALCULATING SEACELL WFs
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
 
@@ -54,11 +56,11 @@ include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
 //include { COMPARE_VARIABILITY } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_compare_variability"
 //include { NPB_SUBSET } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/archr_npb_subset"
 
-// PARAMS
+// PARAMS FOR PIPELINE SWITCHING
 def skip_upstream_processing = params.skip_upstream_processing ? true : false
 def skip_peakcall_processing = params.skip_peakcall_processing ? true : false
 def skip_metacell_processing = params.skip_metacell_processing ? true : false
-
+def skip_singlecell_processing = params.skip_singlecell_processing ? true : false
 
 
 //
@@ -173,6 +175,42 @@ workflow A {
        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
 
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /////////////////////    SINGLE CELL PROCESSING      //////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    // integrates stages at single cell level using ArchR
+    // transfers labels from stages to full data object
+    // calculates differential peaks between clusters + plots?
+    // calculates variability between clusters + plots?
+
+    if(!skip_singlecell_processing){
+
+        // read in RNA data
+        METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                            // etc
+   
+        // combine ATAC and RNA data
+        ch_peakcall_processed // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+            .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+            .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
+            .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
+            .view()
+            .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+
+        ch_integrate.view()
+
+        // ARCHR: Integrate + filter out contaminating cells
+        //INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+
+    } else {
+       
+    //    METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
+    //    ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
+
+    }
+
 
     /////////////////////////////////////////////////////////////////////////
     /////////////////////    METACELLS PROCESSING      //////////////////////
