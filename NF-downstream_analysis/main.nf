@@ -151,12 +151,21 @@ workflow A {
             .map { row -> [[sample_id:dummy], row] }
             .set { ch_peakcall_processed }
 
+        SPLIT_STAGES_PROCESSED.out.view()
+
         // ch_peakcall_processed.view()
         // [[sample_id:HH6], rds_files/HH6_Save-ArchR]
         // [[sample_id:HH7], rds_files/HH7_Save-ArchR]
         // [[sample_id:ss4], rds_files/ss4_Save-ArchR]
         // [[sample_id:ss8], rds_files/ss8_Save-ArchR]
         // [[sample_id:HH5], rds_files/HH5_Save-ArchR]
+
+        // on each stage: 
+                // do integration + label the clusters accordingly
+                // compare variability (can that be done on the full data peaks which are already calculated or need to re-calculate?)
+                // find differential peaks between clusters
+
+
 
     } else {
        
