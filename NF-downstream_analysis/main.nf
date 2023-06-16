@@ -186,13 +186,11 @@ workflow A {
 
     if(!skip_singlecell_processing){
 
-        ch_peakcall_processed.view()
-
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
-        //METADATA_RNA_SC.out.view()
+        METADATA_RNA_SC.out.view()
    
         // combine ATAC and RNA data
         ch_peakcall_processed // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
