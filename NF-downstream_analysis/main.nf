@@ -21,25 +21,24 @@ nextflow.enable.dsl = 2
 include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 
-// UPSTREAM PROCESSING WORKFLOWS
+// UPSTREAM PROCESSING
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Preprocessing"
 include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filtering"
 
-// PROCESSING WORKFLOWS AND MODULES
+// PROCESSING
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
 
+// SINGLE CELL PROCESSING
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
+include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
 
-//CALCULATING SEACELL WFs
+// METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
-
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_RNA_WF"
-
-//INTEGRATING SEACELLS
 include { SEACELLS_INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/SEACells_integration"
 
 //PEAK CLUSTERING
@@ -196,23 +195,11 @@ workflow A {
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .view()
+            // .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        //ch_integrate.view()
-        // [[sample_id:HH5], [null, /HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]
-        // [[sample_id:HH6], [null, /HH6_splitstage_data/rds_files/HH6_clustered_data.RDS]]
-        // [[sample_id:HH5], [null, /HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]
-        // [[sample_id:HH7], [null, /HH7_splitstage_data/rds_files/HH7_clustered_data.RDS]]
-        // [[sample_id:HH6], [null, /HH6_splitstage_data/rds_files/HH6_clustered_data.RDS]]
-        // [[sample_id:ss4], [null, /ss4_splitstage_data/rds_files/ss4_clustered_data.RDS]]
-        // [[sample_id:HH7], [null, /HH7_splitstage_data/rds_files/HH7_clustered_data.RDS]]
-        // [[sample_id:ss8], [null, /ss8_splitstage_data/rds_files/ss8_clustered_data.RDS]]
-        // [[sample_id:ss4], [null, /ss4_splitstage_data/rds_files/ss4_clustered_data.RDS]]
-        // [[sample_id:ss8], [null, /ss8_splitstage_data/rds_files/ss8_clustered_data.RDS]]
-
-        // ARCHR: Integrate + filter out contaminating cells
-        //INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        // ARCHR: Integrates RNA and ATAC data at single cell level
+        INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
     } else {
        
