@@ -190,14 +190,13 @@ workflow A {
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
-        METADATA_RNA_SC.out.view()
    
         // combine ATAC and RNA data
         ch_peakcall_processed // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) //[ [sample_id:HH5], [ [rds_files], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS] ] ]
-            .map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
-            //.view()
+            //.map{ [ it[0], [ it[1][0][3], it[1][1][0] ] ] }
+            .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         //ch_integrate.view()
