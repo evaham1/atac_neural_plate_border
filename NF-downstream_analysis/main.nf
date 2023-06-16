@@ -195,7 +195,7 @@ workflow A {
         ch_peakcall_processed // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
-            .map{ [ it[0], [ it[1][0], it[1][1] ] ] }
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
