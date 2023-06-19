@@ -18,6 +18,9 @@ library(presto)
 library(Seurat)
 library(plyr)
 
+# check that ArchR version is 1.0.3
+sessionInfo()
+
 ############################## Set up script options #######################################
 spec = matrix(c(
   'runtype', 'l', 2, "character",
