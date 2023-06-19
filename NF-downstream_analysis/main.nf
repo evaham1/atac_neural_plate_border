@@ -96,7 +96,7 @@ workflow A {
 
     if(!skip_upstream_processing){
 
-        METADATA( params.sample_sheet )    
+        METADATA( params.aligned_sample_sheet )    
         METADATA.out // METADATA.out: [[meta], [cellranger_output]]
             .combine(ch_reference)
             .map{[it[0], it[1] + it[2]]}
