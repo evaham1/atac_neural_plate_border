@@ -21,7 +21,7 @@ nextflow run ./main.nf \
 --outdir ../output/NF-downstream_analysis \
 --skip_upstream_processing true \
 --skip_peakcall_processing false \
---skip_singlecell_processing false \
---skip_metacell_processing false \
+--skip_singlecell_processing true \
+--skip_metacell_processing true \
 -profile crick_full \
 -resume
