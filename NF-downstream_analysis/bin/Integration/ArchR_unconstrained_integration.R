@@ -34,14 +34,13 @@ opt = getopt(spec)
     
     plot_path = "./output/NF-downstream_analysis/ArchR_integration/plots/"
     rds_path = "./output/NF-downstream_analysis/ArchR_integration/rds_files/"
-    #data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/7_ArchR_clustering_postfiltering_twice/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/ss8/ArchR_clustering//rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/HH5/ArchR_clustering//rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_preprocessing/FULL_PROCESSINGHH5/ArchR_clustering//rds_files/"
     
+    # temp folder with ss8 ATAC and ss8 RNA input
+    data_path = "./output/NF-downstream_analysis/temp_archr_integration_inputs/"
+
     # already integrated
-    data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
-    data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
+    # data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
+    # data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
     
     addArchRThreads(threads = 1) 
     
