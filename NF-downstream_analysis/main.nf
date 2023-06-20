@@ -33,13 +33,13 @@ include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"      
 
 // SINGLE CELL PROCESSING
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
-include { INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
+include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
 
 // METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
 include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_RNA_WF"
-include { SEACELLS_INTEGRATING } from "$baseDir/subworkflows/local/PROCESSING/SEACells_integration"
+include { SEACELLS_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/SEACells_integration_WF"
 
 //PEAK CLUSTERING
 include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
@@ -140,7 +140,7 @@ workflow A {
             .set{ ch_full }
 
         // Cluster and call peaks on full data
-        //ch_full.view() //[[sample_id:FullData], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Upstream_processing/FILTERING/FullData/rds_files/FullData_Save-ArchR]]
+        //ch_full.view() //[[sample_id:FullData], [Upstream_processing/FILTERING/FullData/rds_files/FullData_Save-ArchR]]
         CLUSTER( ch_full )
         PEAK_CALL( CLUSTER.out )
 
@@ -190,7 +190,15 @@ workflow A {
             .filter{ meta, data -> meta.sample_id != 'FullData'}
             .set{ ch_atac_stages }
 
-        ch_atac_stages.view()
+        // ch_atac_stages.view()
+        // [[sample_id:HH5], [Upstream_processing/FILTERING/HH5/rds_files/HH5_Save-ArchR]]
+        // [[sample_id:HH6], [Upstream_processing/FILTERING/HH6/rds_files/HH6_Save-ArchR]]
+        // [[sample_id:HH7], [Upstream_processing/FILTERING/HH7/rds_files/HH7_Save-ArchR]]
+        // [[sample_id:ss4], [Upstream_processing/FILTERING/ss4/rds_files/ss4_Save-ArchR]]
+        // [[sample_id:ss8], [Upstream_processing/FILTERING/ss8/rds_files/ss8_Save-ArchR]]
+
+        // re-run clustering and peak calling to get plots for individual stages
+        ARCHR_STAGE_PEAKS_WF( ch_atac_stages )
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -198,7 +206,7 @@ workflow A {
                                             // etc
    
         // combine ATAC and RNA data
-        ch_atac_stages // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        ARCHR_STAGE_PEAKS_WF.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
@@ -206,7 +214,10 @@ workflow A {
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         // ARCHR: Integrates RNA and ATAC data at single cell level
-        INTEGRATING( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+
+        // subworkflow to call peaks and compare diff peaks between clusters at each stage
+        
 
     } else {
        
@@ -239,7 +250,7 @@ workflow A {
         ///////     Integrate SEACells      ///////
 
         // will these different outputs channel in stage by stage??
-        SEACELLS_INTEGRATING( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed_classified, SEACELLS_ATAC_WF.out.seacell_outputs_named )
+        SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed_classified, SEACELLS_ATAC_WF.out.seacell_outputs_named )
 
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING.out.processed_integration_output )

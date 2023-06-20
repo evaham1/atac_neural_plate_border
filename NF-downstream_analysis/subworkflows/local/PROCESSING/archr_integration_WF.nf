@@ -14,7 +14,7 @@ include {R as CLUSTER_IDENTIFY} from "$baseDir/modules/local/r/main"            
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-workflow INTEGRATING {
+workflow ARCHR_INTEGRATING_WF {
     take:
     input
 
@@ -25,15 +25,6 @@ workflow INTEGRATING {
 
     // Examine the resulting integration
     CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
-    
-// ////////////    FILTER OUT CONTAMINATION    ///////////////////////
-
-//     // Filter contaminating cells from all channels and re-cluster all channels
-//     SUBSET_INTEGRATION ( UNCON_INTEGRATE.out )
-//     CLUSTER_INTEGRATION ( SUBSET_INTEGRATION.out )
-
-//     // Examine the resulting integration
-//     CLUSTER_IDENTIFY_FILTERED ( CLUSTER_INTEGRATION.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
 
     //emit integrated ArchR objects:
     emit:

@@ -10,7 +10,7 @@ include {R as LABEL_TRANSFER} from "$baseDir/modules/local/r/main"              
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-workflow SEACELLS_INTEGRATING {
+workflow SEACELLS_INTEGRATING_WF {
     take:
     RNA_SEACells //SEACELLS_RNA_WF.out.seacells_anndata_processed_classified
     ATAC_SEACells //SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified
