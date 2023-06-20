@@ -33,6 +33,7 @@ include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"      
 
 // SINGLE CELL PROCESSING
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
+include { ARCHR_STAGE_PEAKS_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_stage_peaks_WF"
 include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
 
 // METACELL PROCESSING
