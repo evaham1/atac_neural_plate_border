@@ -3,6 +3,7 @@ nextflow.enable.dsl = 2
 
 // processing modules
 include {R as CALCULATE_SE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/calculate_se.R", checkIfExists: true) )
+include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plot.R", checkIfExists: true) )
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,11 +16,11 @@ workflow ARCHR_STAGE_DIFF_PEAKS_WF {
     // Calculate se object for each stage
     CALCULATE_SE( input )
 
-    // Make plots of differential peaks from different annotations
-    
-    // Find differential peaks between clusters and see how these change over time
+    // Make plots of differential peaks for each stage (eg from different annotations, heatmaps, volcano plots, which clusters contribute to most differential peaks, etc)
+    PLOT_DIFF_PEAKS( CALCULATE_SE.out )
 
-    // Idetify which clusters become different first?
+    // Combine all stages into one channel?
+    // how do these differential peaks change over time?
 
     //outputs:
     emit:

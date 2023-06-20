@@ -99,6 +99,18 @@ add_unique_ids_to_se <- function(seMarker, ArchR, matrix_type) {
   return(seMarker)
 }
 
+### function to turn summarised experiment object into a df that can be printed to see diff features
+extract_features_table <- function(markersPeaks) {
+  markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 1") # keep all peaks
+  df <- data.frame()
+  for (i in 1:length(names(markerList))) {
+    print(i)
+    df_i <- as.data.frame(markerList[i])
+    df <- rbind(df, df_i)
+  }
+  return(df)
+}
+
 ###########################################################################################
 ############################## Read in ArchR project #####################################
 
@@ -139,3 +151,9 @@ se <- getMarkerFeatures(
 se <- add_unique_ids_to_se(se, ArchR, matrix_type = "PeakMatrix")
 
 saveRDS(se, file = paste0(rds_path, label, "_SE.RDS"))
+
+###########################################################################################
+########################## Extract table of differentially accessible peaks ###############################
+
+peaks_table <- extract_features_table(markersPeaks)
+write.csv(peaks_table, paste0(plot_path, "all_differentially_accessible_peaks.csv"), row.names = FALSE)
