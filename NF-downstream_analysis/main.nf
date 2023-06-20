@@ -185,13 +185,20 @@ workflow A {
 
     if(!skip_singlecell_processing){
 
+        // Extract just the stage objects from upstream processing
+        ch_upstream_processed
+            .filter{ meta, data -> meta.sample_id != 'FullData'}
+            .set{ ch_atac_stages }
+
+        ch_atac_stages.view()
+
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
    
         // combine ATAC and RNA data
-        ch_peakcall_processed // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        ch_atac_stages // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
