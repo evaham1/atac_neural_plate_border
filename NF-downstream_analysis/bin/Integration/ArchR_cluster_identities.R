@@ -65,7 +65,11 @@ print(label)
 # load ArchR object using its retrieved name
 ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+print('data read in')
+print(ArchR)
 
+# check that gene score matrix and gene integration matrix are available
+getAvailableMatrices(ArchRProj = ArchR)
 
 ############################################################################################
 ############################## COLOURS #######################################
@@ -101,6 +105,7 @@ plot_path = "./plots/gene_scores_vs_integrated_gex/"
 dir.create(plot_path, recursive = T)
 
 ArchR <- addImputeWeights(ArchR)
+print("Impute weights added")
 
 # look for late marker genes
 late_markers <- c(
