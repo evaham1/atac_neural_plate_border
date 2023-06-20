@@ -1,8 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-// integration
+// processing modules
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
