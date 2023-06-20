@@ -17,7 +17,7 @@ workflow ARCHR_STAGE_PEAKS_WF {
     CLUSTER( input )
 
     // Call peaks on individual stages
-    PEAK_CALL ( CLUSTER.out )
+    PEAK_CALL( CLUSTER.out )
 
     //outputs:
     emit:
