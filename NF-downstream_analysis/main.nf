@@ -35,6 +35,7 @@ include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"      
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_STAGE_PEAKS_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_stage_peaks_WF"
 include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
+include { ARCHR_STAGE_DIFF_PEAKS_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_stage_diff_peaks_WF"
 
 // METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -209,9 +210,10 @@ workflow A {
         // ARCHR: Integrates RNA and ATAC data at single cell level
         ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
+        // Run differential accessibility tests between stage-specific peaks
+        ARCHR_STAGE_DIFF_PEAKS_WF( ARCHR_INTEGRATING_WF.out )
+
                 /// THINGS TO ADD ///
-                // subworkflow to call peaks and compare diff peaks between clusters at each stage
-                // comparing variability between clusters?
                 // recreate how I found the enhancers I tested
         
 
