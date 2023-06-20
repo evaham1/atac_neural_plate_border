@@ -128,10 +128,10 @@ workflow A {
     }
 
 
-    /////////////////////////////////////////////////////////////////
-    /////////////////////    PEAK CALLING      //////////////////////
-    /////////////////////////////////////////////////////////////////
-    // calls peaks on full data object to obtain consensus peak set and peak counts
+    //////////////////////////////////////////////////////////////////////////////////
+    /////////////////////      GENERATE CONSENSUS PEAK SET      //////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    // calls peaks on full data object to obtain consensus peak set, then splits full data into stages
 
     if(!skip_peakcall_processing){
 
@@ -162,12 +162,6 @@ workflow A {
         // [[sample_id:ss8], rds_files/ss8_Save-ArchR]
         // [[sample_id:HH5], rds_files/HH5_Save-ArchR]
 
-        // on each stage: 
-                // do integration + label the clusters accordingly
-                // compare variability (can that be done on the full data peaks which are already calculated or need to re-calculate?)
-                // find differential peaks between clusters
-
-
 
     } else {
        
@@ -179,10 +173,8 @@ workflow A {
     ///////////////////////////////////////////////////////////////////////////
     /////////////////////    SINGLE CELL PROCESSING      //////////////////////
     ///////////////////////////////////////////////////////////////////////////
+    // reclusters and calls peaks on stages using ArchR 
     // integrates stages at single cell level using ArchR
-    // transfers labels from stages to full data object
-    // calculates differential peaks between clusters + plots?
-    // calculates variability between clusters + plots?
 
     if(!skip_singlecell_processing){
 
@@ -217,9 +209,10 @@ workflow A {
         // ARCHR: Integrates RNA and ATAC data at single cell level
         ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
-        // subworkflow to call peaks and compare diff peaks between clusters at each stage
-
-        // integrate peaks called on full peaks here??
+                /// THINGS TO ADD ///
+                // subworkflow to call peaks and compare diff peaks between clusters at each stage
+                // integrate peaks called on full peaks here??
+                // dim reduction on different subsets of genome?
 
         // visualise metacells on the single cell level?
         
