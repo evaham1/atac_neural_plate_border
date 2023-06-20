@@ -193,6 +193,7 @@ workflow A {
 
         // re-run clustering and peak calling to get plots for individual stages
         ARCHR_STAGE_PEAKS_WF( ch_atac_stages )
+        ARCHR_STAGE_PEAKS_WF.out.peak_called.view()
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -200,7 +201,7 @@ workflow A {
                                             // etc
    
         // combine ATAC and RNA data
-        ARCHR_STAGE_PEAKS_WF.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        ARCHR_STAGE_PEAKS_WF.out.peak_called // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
