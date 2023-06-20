@@ -23,5 +23,5 @@ workflow ARCHR_STAGE_DIFF_PEAKS_WF {
 
     //outputs:
     emit:
-    peak_called = PEAK_CALL.out
+    output = CALCULATE_SE.out
 }
