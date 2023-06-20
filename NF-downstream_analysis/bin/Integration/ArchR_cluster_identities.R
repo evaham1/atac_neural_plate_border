@@ -101,27 +101,27 @@ atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_
 ############################## Gene scores plots #######################################
 #### compare gene scores with integrated gene exp values
 
-plot_path = "./plots/gene_scores_vs_integrated_gex/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/gene_scores_vs_integrated_gex/"
+# dir.create(plot_path, recursive = T)
 
-ArchR <- addImputeWeights(ArchR)
-print("Impute weights added")
+# ArchR <- addImputeWeights(ArchR)
+# print("Impute weights added")
 
-# look for late marker genes
-late_markers <- c(
-  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
-  "MSX1", "TFAP2A", "TFAP2B", #mix
-  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
-  "SOX2", "SOX21" # neural
-)
+# # look for late marker genes
+# late_markers <- c(
+#   "GATA3", "DLX5", "SIX1", "EYA2", #PPR
+#   "MSX1", "TFAP2A", "TFAP2B", #mix
+#   "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
+#   "SOX2", "SOX21" # neural
+# )
 
-png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", late_markers)
-graphics.off()
+# png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", late_markers)
+# graphics.off()
 
-png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
-graphics.off()
+# png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
+# graphics.off()
 
 
 ##################### Distribution of labels across clusters ##################################
