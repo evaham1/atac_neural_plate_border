@@ -218,6 +218,10 @@ workflow A {
         ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
         // subworkflow to call peaks and compare diff peaks between clusters at each stage
+
+        // integrate peaks called on full peaks here??
+
+        // visualise metacells on the single cell level?
         
 
     } else {
