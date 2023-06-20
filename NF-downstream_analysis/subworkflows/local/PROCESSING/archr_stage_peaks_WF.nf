@@ -19,9 +19,7 @@ workflow ARCHR_STAGE_PEAKS_WF {
     // Call peaks on individual stages
     PEAK_CALL ( CLUSTER.out )
 
-    // Find differential peaks between clusters and see how these change over time
-
     //outputs:
     emit:
-    peak_called = PEAK_CALL.out
+    output = PEAK_CALL.out
 }
