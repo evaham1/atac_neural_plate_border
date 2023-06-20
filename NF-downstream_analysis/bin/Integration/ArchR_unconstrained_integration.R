@@ -70,11 +70,15 @@ opt = getopt(spec)
 
 ############################## Read in ArchR project and seurat object #######################################
 
-# Pull out label, input folder should look like: rds_files, HH5_clustered_data.RDS
+# Pull out label, input folder should look like: rds_files/HH5-SaveArchR, HH5_clustered_data.RDS
+
+files <- list.files(data_path)
 print("Files: ")
-print(list.files(data_path))
+print(files)
+
+files <- files[!files %in% "rds_files"]
+label <- unique(sub('_.*', '', files))
 print("label: ")
-label <- unique(sub('_.*', '', list.files(data_path)))
 print(label)
 
 # Load atac data in rds_files
