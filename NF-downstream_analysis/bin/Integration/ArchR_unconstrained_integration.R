@@ -78,7 +78,7 @@ label <- unique(sub('_.*', '', list.files(data_path)))
 print(label)
 
 # Load atac data in rds_files
-ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/", label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 # load seurat object by reading in any rds object
 rna_path <- list.files(path = data_path, pattern = "*.RDS", full.names = TRUE)
