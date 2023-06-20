@@ -339,7 +339,7 @@ if (isTRUE(run_heatmaps)) {
     subsetted_matrix <- normalised_matrix[ids, ]
     
     png(paste0(plot_path_temp, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-    print(ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal))
+    print(ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, labelRows = TRUE))
     graphics.off()
   }
 
@@ -348,7 +348,7 @@ if (isTRUE(run_heatmaps)) {
   subsetted_matrix <- normalised_matrix[ids, ]
   
   png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-  ArchR_PlotMarkerHeatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE)
+  print(ArchR_PlotMarkerHeatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
   graphics.off()
   
 }
