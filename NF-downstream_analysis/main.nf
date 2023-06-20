@@ -211,10 +211,8 @@ workflow A {
 
                 /// THINGS TO ADD ///
                 // subworkflow to call peaks and compare diff peaks between clusters at each stage
-                // integrate peaks called on full peaks here??
-                // dim reduction on different subsets of genome?
-
-        // visualise metacells on the single cell level?
+                // comparing variability between clusters?
+                // recreate how I found the enhancers I tested
         
 
     } else {
@@ -270,24 +268,19 @@ workflow A {
 
 
 
-
+        // need a final section that integrates:
+                // output of single cell processing: 
+                    // single cell integrated cell type labels
+                    // clusters and cluster labels
+                    // peaks called at individual stages
+                // output of metacell processing:
+                    // metacell identities for single cells
+                    // metacell integrated labels
+                    // peaks called on full data + some of which are variable + in peak modules
 
 
 
     
-    // IN PROGRESS: compare variability of clusters between stages
-    // currently just uses differential peak tests, would be better to measure in another way
-    //COMPARE_VARIABILITY( ch_processed )
-
-    // IN PROGRESS: check validity of cell state labels
-    // can try reclustering on differet peak sets and see if get more distinct label separation
-    // script in integration/compare_clusters_and_labels
-    // predict enhancers using diff accessibility and validate them
-    // findenhancers script
-
-    // IN PROGRESS: subset out NPB subset from transfer labels object and focus on that
-    //NPB_SUBSET( TRANSFER_LABELS? )
-
 }
 
 /*
