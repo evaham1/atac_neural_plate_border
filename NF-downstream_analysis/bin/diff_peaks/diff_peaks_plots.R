@@ -301,6 +301,29 @@ for (group in groups){
 
 freq_table <- table(final_df$Cell_group, final_df$Passed)
 
-png(paste0(plot_path, 'Freq_peaks_passed_by_cell_group.png'), height = 23, width = 20, units = 'cm', res = 400)
+png(paste0(plot_path, 'Freq_peaks_passed_by_cell_group_grey.png'), height = 23, width = 20, units = 'cm', res = 400)
 plot(freq_table)
 graphics.off()
+
+df <- data.frame(
+  failed = c(83945, 77804),
+  passed = c(12177, 6690),
+  row.names = c("C1", "C2")
+)
+
+# Convert the data frame to a tidy format
+freq_table <- as.data.frame(freq_table)
+colnames(freq_table) <- c("Group_name", "Status", "Freq")
+
+# Stacked
+png(paste0(plot_path, 'Freq_peaks_passed_by_cell_group_stacked_boxplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(freq_table, aes(fill=Status, y=Freq, x=Group_name)) + 
+  geom_bar(position="stack", stat="identity") +
+  scale_fill_manual(values=c("black", "4f7942")) +
+  ylim(0, 100000) +
+  theme_minimal()
+graphics.off()
+
+
+       
+       
