@@ -44,12 +44,14 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    # peaks already called on ss8
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/Peak_call/rds_files/"
+    # peaks not called, to save time make smaller data
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Clustering/rds_files/"
     
-    # peaks already called on FullData
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/Peak_call/rds_files/"
-    rds_path = "./local_test_data/HiChip_processing/"
+    # once read in ArchR run this to speed it up
+    ArchR_backup <- ArchR
+    idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C1", "C2"))
+    cellsSample <- ArchR$cellNames[idxSample]
+    ArchR <- ArchR[cellsSample, ]
     
     addArchRThreads(threads = 1) 
     
@@ -194,10 +196,16 @@ if (opt$group_by == "scHelper_cell_type_old") {
 counts <- counts %>% tibble::add_row(ID = "Total", nPeaks = sum(counts$nPeaks))
 print(counts)
 
-## Plot how many peaks found per cluster
-png(paste0(plot_path, 'peak_counts_per_group.png'), height = 45, width = 10, units = 'cm', res = 400)
+## Plot how many peaks found per cluster - table
+png(paste0(plot_path, 'peak_counts_per_group_table.png'), height = 45, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Peak Counts per group", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+## Plot how many peaks found per cluster - bar chart
+png(paste0(plot_path, 'peak_counts_per_group_barchart.png'), height = 45, width = 10, units = 'cm', res = 400)
+ggplot(data=counts, aes(x=`ID`, y=`nPeaks`)) +
+  geom_bar(stat="identity")
 graphics.off()
 
 print("peaks per group calculated")
