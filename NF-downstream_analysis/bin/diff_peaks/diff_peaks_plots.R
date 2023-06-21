@@ -135,37 +135,43 @@ matrix <- scHelper::ArchR_ExtractMeansFromSe(se) # extract means df from se obje
 normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cell group
 
 
-##### Plot all differential peaks
-ids <- scHelper::ArchR_ExtractIds(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE)
-print(paste0("all peaks: ", length(ids)))
+# ##### Plot all differential peaks
+# ids <- scHelper::ArchR_ExtractIds(se, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE)
+# print(paste0("all peaks: ", length(ids)))
 
-if (length(ids) > 4){
-  matrix <- ArchR_ExtractMeansFromSe(se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+# if (length(ids) > 4){
+#   matrix <- ArchR_ExtractMeansFromSe(se)
+#   normalised_matrix <- Log2norm(matrix)
+#   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'full_heatmap.png'), height = 70, width = 60, units = 'cm', res = 400)
-  print(scHelper::ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
-  graphics.off()
-}
+#   png(paste0(plot_path, 'full_heatmap.png'), height = 70, width = 60, units = 'cm', res = 400)
+#   print(scHelper::ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+#   graphics.off()
+# }
 
-ids <- scHelper::ArchR_ExtractIds(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE)
-print(paste0("all peaks top 10: ", length(ids)))
+# ids <- scHelper::ArchR_ExtractIds(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE)
+# print(paste0("all peaks top 10: ", length(ids)))
 
-if (length(ids) > 4){
-  matrix <- scHelper::ArchR_ExtractMeansFromSe(se)
-  normalised_matrix <- Log2norm(matrix)
-  subsetted_matrix <- subset_matrix(normalised_matrix, ids)
+# if (length(ids) > 4){
+#   matrix <- scHelper::ArchR_ExtractMeansFromSe(se)
+#   normalised_matrix <- Log2norm(matrix)
+#   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
-  png(paste0(plot_path, 'full_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
-  print(scHelper::ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
-  graphics.off()
-}
+#   png(paste0(plot_path, 'full_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
+#   print(scHelper::ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+#   graphics.off()
+# }
+
+print(normalised_matrix[1:2, 1:2])
+print(head(se))
+
 
 ############################# Add peak information to markersPeaks object #######################################
 
 tmp_peaks = data.frame(ArchR@peakSet)
 tmp_diff_peaks = data.frame(rowData(se))
+
+print(head(tmp_diff_peaks))
 
 diff_peaks_join_peakset = left_join(tmp_diff_peaks, tmp_peaks, by = c("seqnames" = "seqnames", "start" = "start", "end" = "end"))
 diff_peaks_join_peakset$name = paste(diff_peaks_join_peakset$nearestGene, diff_peaks_join_peakset$distToTSS,sep="_")
