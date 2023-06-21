@@ -182,12 +182,16 @@ write.csv(marker_tables_promoter_tmp, paste0(plot_path, "differentially_accessib
 
 # plot them in heatmap
 ids <- marker_tables_promoter_tmp$unique_id
-subsetted_matrix <- normalised_matrix[ids, ]
-dim(subsetted_matrix)
-
-png(paste0(plot_path_temp, 'diff_cutoff_promoter_peaks_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, labelRows = TRUE, fontSizeCols = 20)
-graphics.off()
+if (length(ids) < 2){
+  print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
+} else {
+  print(paste0(length(ids), " features passed cutoff - now plotting heatmap"))
+  subsetted_matrix <- normalised_matrix[ids, ]
+    
+  png(paste0(plot_path_temp, 'diff_cutoff_promoter_peaks_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
+  print(ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, fontSizeCols = 20))
+  graphics.off()
+}
 
 ############################# Distal Peaks #######################################
 
@@ -201,12 +205,16 @@ write.csv(marker_tables_distal_tmp, paste0(plot_path, "differentially_accessible
 
 # plot them in heatmap
 ids <- marker_tables_distal_tmp$unique_id
-subsetted_matrix <- normalised_matrix[ids, ]
-dim(subsetted_matrix)
-
-png(paste0(plot_path_temp, 'diff_cutoff_distal_peaks_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, labelRows = TRUE, fontSizeCols = 20)
-graphics.off()
+if (length(ids) < 2){
+  print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
+} else {
+  print(paste0(length(ids), " features passed cutoff - now plotting heatmap"))
+  subsetted_matrix <- normalised_matrix[ids, ]
+    
+  png(paste0(plot_path_temp, 'diff_cutoff_distal_peaks_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
+  print(ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, fontSizeCols = 20))
+  graphics.off()
+}
 
 
 ###################### Boxplots showing distribution of FDR and Logf2c values #############################
