@@ -25,7 +25,7 @@ library(gtools)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-m", "--min_threshold"), action = "store", type = "double", help = "minimum proportion of cells a label must contain", default = 0.5),
+  make_option(c("-m", "--min_threshold"), action = "store", type = "integer", help = "minimum percentage of cells a label must contain", default = 40),
   make_option(c("-l", "--max_label"), action = "store", type = "integer", help = "maximum number of labels a cluster can have", default = 3),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
@@ -42,6 +42,9 @@ if(opt$verbose) print(opt)
     ncores = 8
 
     data_path = "./output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/HH5/ARCHR_INTEGRATING_WF/Single_cell_integration/rds_files/"
+    
+    data_path = "./output/NF-downstream_analysis/Processing/HH5/INTEGRATING/Single_cell_integration/rds_files/"
     
     addArchRThreads(threads = 1) 
     
