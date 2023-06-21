@@ -4,6 +4,7 @@ print("ArchR cell state plots and assign identities based on label proportions")
 
 ############################## Load libraries #######################################
 library(getopt)
+library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
@@ -20,11 +21,18 @@ library(plyr)
 library(gtools)
 
 ############################## Set up script options #######################################
-spec = matrix(c(
-  'runtype', 'l', 2, "character",
-  'cores'   , 'c', 2, "integer"
-), byrow=TRUE, ncol=4)
-opt = getopt(spec)
+
+option_list <- list(
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-m", "--min_threshold"), action = "store", type = "double", help = "minimum proportion of cells a label must contain", default = 0.5),
+  make_option(c("-l", "--max_label"), action = "store", type = "integer", help = "maximum number of labels a cluster can have", default = 3),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
+)
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
 # Set paths and load data
 {
@@ -33,7 +41,7 @@ opt = getopt(spec)
     
     ncores = 8
 
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/INTEGRATING/Single_cell_integration/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration/rds_files/"
     
     addArchRThreads(threads = 1) 
     
@@ -68,7 +76,7 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 print('data read in')
 print(ArchR)
 
-# check that gene score matrix and gene integration matrix are available
+# check that gene score matrix and gene integration matrix are available
 getAvailableMatrices(ArchRProj = ArchR)
 
 ############################################################################################
@@ -159,19 +167,19 @@ graphics.off()
 plot_path = "./plots/label_by_cluster_distribution/assigned_cluster_labels/"
 dir.create(plot_path, recursive = T)
 
-min_threshold = 0.15
-max_label = 3
 identities <- c()
 
-for(i in 1:ncol(percentage_counts)) {       # for-loop over columns
+for(i in 1:ncol(percentage_counts)) {       # for-loop over columns (ie clusters)
   column <- percentage_counts[ , i]
   names(column) <- rownames(percentage_counts)
   
   identity <- ifelse(
-    any(sum(column > min_threshold) == 0 | sum(column > min_threshold) > max_label), "MIXED", # condition - mixed
+    # do any labels pass the minimum threshold? 
+    # if NO labels label more than the minimum threshold, OR MORE THAN max_label labels pass the minimum threshold -> mixed
+    any(sum(column > opt$min_threshold) == 0 | sum(column > opt$min_threshold) > opt$max_label), "MIXED", # condition - mixed
                      ifelse(
-                       sum(column > min_threshold) == 1, names(column[column > min_threshold]), # condition 2 - monolabel
-                            paste(names( sort(column[column > min_threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
+                       sum(column > opt$min_threshold) == 1, names(column[column > opt$min_threshold]), # condition 2 - monolabel
+                            paste(names( sort(column[column > opt$min_threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
                      ) 
   )
   identities <- c(identities, identity)
