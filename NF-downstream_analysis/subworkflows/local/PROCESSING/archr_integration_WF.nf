@@ -23,7 +23,7 @@ workflow ARCHR_INTEGRATING_WF {
     CLUSTER_IDENTIFY ( UNCON_INTEGRATE.out ) // Visualise contributions of labels to each cluster and label clusters to summarise this
 
     // Try dimensionality reduction with different subsets of genome to see if they improve the separation of cell type labels
-    DIM_RED_GENOMIC_SUBSETS ( UNCON_INTEGRATE.out )
+    //DIM_RED_GENOMIC_SUBSETS ( UNCON_INTEGRATE.out )
 
     //emit integrated ArchR objects:
     emit:
