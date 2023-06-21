@@ -162,74 +162,74 @@ normalised_matrix <- Log2norm(matrix) # log2norm across all features in each cel
 #   graphics.off()
 # }
 
-print(normalised_matrix[1:2, 1:2])
-print(head(se))
+# print(normalised_matrix[1:2, 1:2])
+# print(head(se))
 
 
-############################# Add peak information to markersPeaks object #######################################
+# ############################# Add peak information to markersPeaks object #######################################
 
-tmp_peaks = data.frame(ArchR@peakSet)
-tmp_diff_peaks = data.frame(rowData(se))
+# tmp_peaks = data.frame(ArchR@peakSet)
+# tmp_diff_peaks = data.frame(rowData(se))
 
-print(head(tmp_diff_peaks))
+# print(head(tmp_diff_peaks))
 
-diff_peaks_join_peakset = left_join(tmp_diff_peaks, tmp_peaks, by = c("seqnames" = "seqnames", "start" = "start", "end" = "end"))
-diff_peaks_join_peakset$name = paste(diff_peaks_join_peakset$nearestGene, diff_peaks_join_peakset$distToTSS,sep="_")
-diff_peaks_join_peakset$unique_id = paste(diff_peaks_join_peakset$seqnames, diff_peaks_join_peakset$start, diff_peaks_join_peakset$end, sep=":")
-rowData(se) = diff_peaks_join_peakset
+# diff_peaks_join_peakset = left_join(tmp_diff_peaks, tmp_peaks, by = c("seqnames" = "seqnames", "start" = "start", "end" = "end"))
+# diff_peaks_join_peakset$name = paste(diff_peaks_join_peakset$nearestGene, diff_peaks_join_peakset$distToTSS,sep="_")
+# diff_peaks_join_peakset$unique_id = paste(diff_peaks_join_peakset$seqnames, diff_peaks_join_peakset$start, diff_peaks_join_peakset$end, sep=":")
+# rowData(se) = diff_peaks_join_peakset
 
-############################# Promoter Peaks #######################################
+# ############################# Promoter Peaks #######################################
 
-markersPeaks_promoter <- subset(se, rowData(se)$peakType == "Promoter")
-marker_tables_promoter = markersPeaks_promoter %>% getMarkers(cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
-marker_tables_promoter_tmp = marker_tables_promoter %>%  as.data.frame()
-write.csv(marker_tables_promoter_tmp, paste0(plot_path, "all_differentially_expressed_peaks_promoter.csv"), row.names = FALSE)
+# markersPeaks_promoter <- subset(se, rowData(se)$peakType == "Promoter")
+# marker_tables_promoter = markersPeaks_promoter %>% getMarkers(cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+# marker_tables_promoter_tmp = marker_tables_promoter %>%  as.data.frame()
+# write.csv(marker_tables_promoter_tmp, paste0(plot_path, "all_differentially_expressed_peaks_promoter.csv"), row.names = FALSE)
 
-heatmapPeaks <- plotMarkerHeatmap(
-  seMarker = markersPeaks_promoter,
-  cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
-  nLabel = 3)
-png(paste0(plot_path, 'diff_promoter_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
-draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-graphics.off()
+# heatmapPeaks <- plotMarkerHeatmap(
+#   seMarker = markersPeaks_promoter,
+#   cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
+#   nLabel = 3)
+# png(paste0(plot_path, 'diff_promoter_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+# draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+# graphics.off()
 
-############################# Distal Peaks #######################################
+# ############################# Distal Peaks #######################################
 
-markersPeaks_distal <- subset(se, rowData(se)$peakType == "Distal")
-marker_tables_distal = markersPeaks_distal %>% getMarkers(cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
-marker_tables_distal_tmp = marker_tables_distal %>%  as.data.frame()
-write.csv(marker_tables_distal_tmp, paste0(plot_path, "all_differentially_expressed_peaks_distal.csv"), row.names = FALSE)
+# markersPeaks_distal <- subset(se, rowData(se)$peakType == "Distal")
+# marker_tables_distal = markersPeaks_distal %>% getMarkers(cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+# marker_tables_distal_tmp = marker_tables_distal %>%  as.data.frame()
+# write.csv(marker_tables_distal_tmp, paste0(plot_path, "all_differentially_expressed_peaks_distal.csv"), row.names = FALSE)
 
-heatmapPeaks <- plotMarkerHeatmap(
-  seMarker = markersPeaks_distal,
-  cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
-  nLabel = 3)
-png(paste0(plot_path, 'diff_distal_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
-draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-graphics.off()
+# heatmapPeaks <- plotMarkerHeatmap(
+#   seMarker = markersPeaks_distal,
+#   cutOff = "FDR <= 0.3 & Log2FC >= 0.5",
+#   nLabel = 3)
+# png(paste0(plot_path, 'diff_distal_peak_cutoff_heatmap.png'), height = 50, width = 40, units = 'cm', res = 400)
+# draw(heatmapPeaks, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+# graphics.off()
 
-###################### Plots showing distribution of FDR and Logf2c values #############################
+# ###################### Plots showing distribution of FDR and Logf2c values #############################
 
-png(paste0(plot_path, 'Log2FC_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
-boxplot(assays(se)$Log2FC)
-graphics.off()
+# png(paste0(plot_path, 'Log2FC_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+# boxplot(assays(se)$Log2FC)
+# graphics.off()
 
-png(paste0(plot_path, 'FDR_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
-boxplot(assays(se)$FDR)
-graphics.off()
+# png(paste0(plot_path, 'FDR_boxplot.png'), height = 20, width = 20, units = 'cm', res = 400)
+# boxplot(assays(se)$FDR)
+# graphics.off()
 
-df <- data.frame(LogFC = c(t(assays(se)$Log2FC)), FDR = c(t(assays(se)$FDR)), 
-                 LogFDR = log10(c(t(assays(se)$FDR))), stringsAsFactors=FALSE)
+# df <- data.frame(LogFC = c(t(assays(se)$Log2FC)), FDR = c(t(assays(se)$FDR)), 
+#                  LogFDR = log10(c(t(assays(se)$FDR))), stringsAsFactors=FALSE)
 
-df <- df %>% mutate(Passed = as.factor(ifelse(FDR < 0.01 & LogFC > 1,"passed", "failed")))
+# df <- df %>% mutate(Passed = as.factor(ifelse(FDR < 0.01 & LogFC > 1,"passed", "failed")))
 
-set.seed(42)
-rows <- sample(nrow(df))
-df <- df[rows, ]
+# set.seed(42)
+# rows <- sample(nrow(df))
+# df <- df[rows, ]
 
-png(paste0(plot_path, 'FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
-ggplot(df, aes(x = -LogFDR, y = LogFC, color = Passed, shape = Passed)) + 
-  geom_point() + 
-  scale_color_manual(values=c("black", "red")) +
-  scale_shape_manual(values=c(16, 17))
-graphics.off()
+# png(paste0(plot_path, 'FDR_Log2FC_scatterplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+# ggplot(df, aes(x = -LogFDR, y = LogFC, color = Passed, shape = Passed)) + 
+#   geom_point() + 
+#   scale_color_manual(values=c("black", "red")) +
+#   scale_shape_manual(values=c(16, 17))
+# graphics.off()
