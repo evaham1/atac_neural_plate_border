@@ -71,70 +71,11 @@ Log2norm <- function(mat, scaleTo = 10^4) {
   return(mat)
 }
 
-
-
 ### Function to subset normalised matrix using IDs
 subset_matrix <- function(mat, ids) {
   subsetted_matrix <- mat[ids, ]
   return(subsetted_matrix)
 }
-
-### Function to plot marker heatmap
-marker_heatmap <- function(mat, pal = NULL, 
-                           labelRows = FALSE, fontSizeRows = 12, clusterRows = TRUE,
-                           labelCols = TRUE, fontSizeCols = 12, clusterCols = TRUE) {
-  
-  # scale each feature independently and add min/max limits
-  limits <- c(-2, 2) # could make this user-defined
-  mat <- sweep(mat - rowMeans(mat), 1, matrixStats::rowSds(mat), 
-               `/`)
-  mat[mat > max(limits)] <- max(limits)
-  mat[mat < min(limits)] <- min(limits)
-  
-  # colours - set default if NULL
-  if (is.null(pal) == TRUE) {
-    pal <- paletteContinuous(set = "solarExtra", n = 100)
-  }
-  
-  # order rows by eucladian distance
-  if (clusterRows == TRUE){
-    dist_mat <- dist(mat, method = 'euclidean')
-    hclust_avg <- hclust(dist_mat, method = 'average')
-    ordered_features <- hclust_avg$labels[c(hclust_avg$order)]
-    mat <- mat[match(ordered_features, rownames(mat)), ]
-  }
-  
-  # order columns by eucladian distance
-  if (clusterCols == TRUE){
-    dist_mat <- dist(t(mat), method = 'euclidean')
-    hclust_avg <- hclust(dist_mat, method = 'average')
-    ordered_cell_groups <- hclust_avg$labels[c(hclust_avg$order)]
-    mat <- mat[ , match(ordered_cell_groups, colnames(mat))]
-  }
-  
-  Heatmap(
-    matrix = mat,
-    col = pal,
-    heatmap_legend_param = list(title = "z-scores"),
-    #top_annotation = topAnno, 
-    # add raster stuff?
-    
-    #Column Options
-    cluster_columns = FALSE,
-    show_column_names = labelCols,
-    column_names_gp = gpar(fontsize = fontSizeCols),
-    column_names_max_height = unit(100, "mm"),
-    #column_split = colData$stage,
-    
-    #Row Options
-    cluster_rows = FALSE,
-    show_row_names = labelRows,
-    row_names_gp = gpar(fontsize = fontSizeRows)
-    #row_split = row_split_params
-  )
-  
-}
-
 
 ###########################################################################################
 ############################## Read in data #####################################
@@ -204,20 +145,20 @@ if (length(ids) > 4){
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
   png(paste0(plot_path, 'full_heatmap.png'), height = 70, width = 60, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
+  print(scHelper::ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, clusterCols = FALSE))
   graphics.off()
 }
 
-ids <- extract_ids(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE)
+ids <- scHelper::ArchR_ExtractIds(se, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE)
 print(paste0("all peaks top 10: ", length(ids)))
 
 if (length(ids) > 4){
-  matrix <- ArchR_ExtractMeansFromSe(se)
+  matrix <- scHelper::ArchR_ExtractMeansFromSe(se)
   normalised_matrix <- Log2norm(matrix)
   subsetted_matrix <- subset_matrix(normalised_matrix, ids)
 
   png(paste0(plot_path, 'full_heatmap_top10.png'), height = 40, width = 30, units = 'cm', res = 400)
-  print(marker_heatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
+  print(scHelper::ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal, clusterCols = FALSE, labelRows = TRUE))
   graphics.off()
 }
 
