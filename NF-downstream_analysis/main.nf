@@ -20,6 +20,7 @@ nextflow.enable.dsl = 2
 // METADATA WORKFLOWS FOR CHANNEL SWITCHES
 include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 
 // UPSTREAM PROCESSING
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -257,7 +258,12 @@ workflow A {
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING.out.processed_integration_output )
 
         ///////     Using SEACells labels on single cells      ///////
-        SEACELLS_ATAC_WF.out.seacell_outputs_named
+        SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
+
+        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
+        ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
+
+        ch_singlecell_processed.view()
 
 
         // and make Txdb object for plotting - at some point just save the TxDB object saved in the first preprocessing step instead
