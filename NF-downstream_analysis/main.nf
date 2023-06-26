@@ -237,6 +237,10 @@ workflow A {
 
     if(!skip_metacell_processing){
 
+        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
+        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
+        ch_peakcall_processed.view()
+
         ///////     Calculate SEACells      ///////
 
         // Run Metacells on ATAC stages
