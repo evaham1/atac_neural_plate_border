@@ -111,6 +111,7 @@ print("ArchR object saved")
 ###########################################################################################
 ########################## Calculate se across all clusters ###############################
 
+print("Calculating se across all cell groups...")
 print(paste0("Cells grouped by: ", opt$group_by))
 
 se <- getMarkerFeatures(
@@ -121,8 +122,12 @@ se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
 
 saveRDS(se, file = paste0(rds_path, label, "_SE.RDS"))
 
+print("se RDS saved")
+
 ###########################################################################################
 ########################## Extract table of differentially accessible peaks ###############################
 
 peaks_table <- extract_features_table(se)
 write.csv(peaks_table, paste0(plot_path, "all_differentially_accessible_peaks.csv"), row.names = FALSE)
+
+print("diff peaks table saved")
