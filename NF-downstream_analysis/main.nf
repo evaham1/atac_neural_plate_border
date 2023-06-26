@@ -239,7 +239,12 @@ workflow A {
 
         METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
         ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
-        ch_peakcall_processed.view()
+        // ch_peakcall_processed.view()
+        // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
+        // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
+        // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
+        // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
+        // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
 
         ///////     Calculate SEACells      ///////
 
@@ -267,7 +272,13 @@ workflow A {
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
-        ch_singlecell_processed.view()
+        // ch_singlecell_processed.view()
+        // [[sample_id:HH5], [HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR]]
+        // [[sample_id:HH6], [HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR]]
+        // [[sample_id:HH7], [HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR]]
+        // [[sample_id:ss4], [ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR]]
+        // [[sample_id:ss8], [ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR]]
+
 
 
         // and make Txdb object for plotting - at some point just save the TxDB object saved in the first preprocessing step instead
