@@ -258,7 +258,7 @@ workflow A {
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING.out.processed_integration_output )
 
         ///////     Using SEACells labels on single cells      ///////
-        SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
+        //SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
 
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
