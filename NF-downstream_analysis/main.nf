@@ -166,6 +166,7 @@ workflow A {
 
     } else {
        
+       // NEED TO UPDATE
        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
 
@@ -220,6 +221,7 @@ workflow A {
 
     } else {
        
+         // NEED TO UPDATE
     //    METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
     //    ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
@@ -254,19 +256,26 @@ workflow A {
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING.out.processed_integration_output )
 
-        ///////     Visualise SEACells on single cell      ///////
+        ///////     Using SEACells labels on single cells      ///////
+        SEACELLS_ATAC_WF.out.seacell_outputs_named
+
+
         // and make Txdb object for plotting - at some point just save the TxDB object saved in the first preprocessing step instead
-        Channel
-            .value(params.reference)
-            .map { row -> [[sample_id:'dummy'], row] }
-            .set{ch_dummy}
+        // Channel
+        //     .value(params.reference)
+        //     .map { row -> [[sample_id:'dummy'], row] }
+        //     .set{ch_dummy}
         //[[sample_id:dummy], /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf]
 
-        MAKE_TXDB(ch_dummy)
+        // MAKE_TXDB(ch_dummy)
 
-        EXTRACT_EXONS(ch_gtf)
+        // EXTRACT_EXONS(ch_gtf)
 
     }
+
+
+
+    
 
 
 
