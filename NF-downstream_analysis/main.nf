@@ -164,6 +164,10 @@ workflow A {
         // [[sample_id:ss8], rds_files/ss8_Save-ArchR]
         // [[sample_id:HH5], rds_files/HH5_Save-ArchR]
 
+        // Each stage is now a separate object in the channel,
+        // NOTE: stage objects are not reclustered so UMAPs will look weird
+        // NOTE: all stage objects should have the same peak set which was calculated on the full data
+
 
     } else {
        
@@ -218,6 +222,10 @@ workflow A {
 
                 /// THINGS TO ADD ///
                 // recreate how I found the enhancers I tested
+
+        // Each stage is a separate object in the channel,
+        // NOTE: stage objects are reclustered individually
+        // NOTE: all stage objects have a different peak set which was calculated on each stage individually
         
 
     } else {
@@ -232,8 +240,11 @@ workflow A {
     /////////////////////////////////////////////////////////////////////////
     /////////////////////    METACELLS PROCESSING      //////////////////////
     /////////////////////////////////////////////////////////////////////////
+    // takes the RNA stage objects and
+    // takes the ATAC stage objects which were clustered and peak called altogether (consensus peak set)
     // calculates metacells for RNA and ATAC stages
-    // run integration between RNA and ATAC metacells
+    // runs integration between RNA and ATAC metacells
+    // finds most variable peaks and clusters them into modules
 
     if(!skip_metacell_processing){
 
@@ -266,7 +277,7 @@ workflow A {
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING_WF.out.processed_integration_output )
 
-        ///////     Using SEACells labels on single cells      ///////
+        ///////     Transfer SEACells labels onto single cells      ///////
         //SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
 
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
@@ -278,8 +289,6 @@ workflow A {
         // [[sample_id:HH7], [HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR]]
         // [[sample_id:ss4], [ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR]]
         // [[sample_id:ss8], [ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR]]
-
-
 
         // and make Txdb object for plotting - at some point just save the TxDB object saved in the first preprocessing step instead
         // Channel
@@ -294,22 +303,16 @@ workflow A {
 
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////    INTEGRATE CLUSTERS AND METACELLS AT SINGLE CELL LEVEL: STAGES   //////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // takes the metacell ID : single cell ID dictionary
+    // takes the consensus peak set GRanges object written as a .csv
+    // takes the individually processed single cell data
+    // transfers the consensus peakset onto each stage of the ATAC data object 
+    // transfer the metacell IDs + integrated labels onto each stage of the ATAC data object
 
-
-    
-
-
-
-
-        // need a final section that integrates:
-                // output of single cell processing: 
-                    // single cell integrated cell type labels
-                    // clusters and cluster labels
-                    // peaks called at individual stages
-                // output of metacell processing:
-                    // metacell identities for single cells
-                    // metacell integrated labels
-                    // peaks called on full data + some of which are variable + in peak modules
+    // runs differential peak analysis on metacells to see how that differs from clusters (using stage-specific peaks)
 
 
 
