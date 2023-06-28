@@ -314,6 +314,20 @@ workflow A {
 
     // runs differential peak analysis on metacells to see how that differs from clusters (using stage-specific peaks)
 
+    // script to transfer metacell IDs to individual stages (with individual peak sets calculated for each)
+    // then re-run the ARCHR_STAGE_DIFF_PEAKS_WF using metacell labels as group_by instead of clusters
+
+    // then transfer full consensus peak set onto each stage
+    
+    // then make genome browser plots for all data grouped by metacell labels or clusters
+    // in these genome browser plots will want to see the regions around known enhancers + Sox8 targets
+
+    // save these ArchR objects so can add them to the Rshiny:
+    // ALL OBJECTS SHOULD HAVE THE SAME PEAK SET: CONSENSUS PEAK SET
+    // add the ArchR full data and stage objects so can plots UMAPs and feature plots of peaks and gene scores
+    // modify/improve the genome browser plot so can see gene bodies, peaks, on different subsets of data
+
+
 
 
     
