@@ -27,7 +27,7 @@ library(parallel)
 library(clustree)
 library(ComplexHeatmap)
 library(BSgenome.Ggallus.UCSC.galGal6)
-library(scHelper)
+# library(scHelper)
 
 home_directory <- path.expand("~")
 print(paste0("Home directory 1: ", home_directory))
