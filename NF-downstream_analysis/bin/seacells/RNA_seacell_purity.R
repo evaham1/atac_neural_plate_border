@@ -68,70 +68,54 @@ if(opt$verbose) print(opt)
 
 ############################## Functions #######################################
 
-# function to take ArchR object and a category and make a freq table of how frequently metacells found in each category
-SEACells_MetacellFrequencies <- function(ArchR, metacell_slot = "SEACell_ID", category = "stage"){
+### need to update schelper with this function
+SEACells_MetacellFrequencies <- function(input_data, input_data_type, metacell_slot = "SEACell_ID", category = "clusters", calc_proportions = FALSE){
   
-  df <- data.frame(getCellColData(ArchR, select = metacell_slot), getCellColData(ArchR, select = category))
-  colnames(df) <- c("Metacell", "Category")
+  # check if input data is in ArchR or Seurat format
+  ifelse(input_data_type %in% c("seurat", "ArchR"), print(""), stop("Input data type should be seurat or ArchR!"))
   
-  if (metacell_slot == "SEACell_ID"){
-    freq <- df %>%
-      group_by(Metacell, Category) %>% 
-      dplyr::summarize(count = n()) %>%
-      mutate(Metacell = as.numeric(Metacell)) %>% 
-      arrange(Metacell) %>% 
-      mutate(count = as.numeric(count))
-  } else {
-    if (metacell_slot == "SEACell_cluster"){
-      freq <- df %>%
-        group_by(Metacell, Category) %>% 
-        dplyr::summarize(count = n()) %>%
-        mutate(Metacell = str_split(Metacell, "_", simplify = TRUE)[ , 3]) %>%
-        mutate(Metacell = as.numeric(Metacell)) %>% 
-        arrange(Metacell) %>% 
-        mutate(count = as.numeric(count))
-    } else {
-      stop("metacell_slot must be either SEACell_ID or SEACell_cluster!")
-    }
+  # if data input type is seurat...
+  if (input_data_type == "seurat"){
+    print("input data: seurat")
+    df <- data.frame(FetchData(object = seurat, vars = c(metacell_slot, category)))
+    colnames(df) <- c("Metacell", "Category")
   }
   
-  print(paste0("Number of metacells: ", length(unique(freq$Metacell))))
-  print(paste0("Number of categories: ", length(unique(freq$Category))))
+  # if data input type is ArchR...
+  if (input_data_type == "ArchR"){
+    print("input data: ArchR")
+    df <- data.frame(getCellColData(ArchR, select = c(metacell_slot, category)))
+    colnames(df) <- c("Metacell", "Category")
+  }
   
-  return(freq)
+  df <- df %>%
+    group_by(Metacell, Category) %>% 
+    dplyr::summarize(count = n()) %>%
+    mutate(Metacell = str_split(Metacell, "-", simplify = TRUE)[ , 2]) %>%
+    mutate(Metacell = as.numeric(Metacell)) %>% 
+    arrange(Metacell) %>% 
+    mutate(count = as.numeric(count))
+  
+  print(paste0("Number of metacells: ", length(unique(df$Metacell))))
+  print(paste0("Number of categories: ", length(unique(df$Category))))
+  
+  if (calc_proportions){
+    
+    # calculate total cell counts per metacell
+    totals_df <- aggregate(count ~ Metacell, data=df, FUN=sum)
+    totals <- totals_df$count
+    print(length(totals))
+    
+    # calculate proportions per metacell
+    prop_table <- df %>%
+      mutate(prop = count/totals[Metacell+1])
+    
+    df <- prop_table
+  }
+  
+  return(df)
+  
 }
-
-## Function to take freq table and turn it into proportions per metacell
-calculate_metacell_proportions <- function(freq_table){
-  
-  # calculate total cell counts per metacell
-  totals_df <- aggregate(count ~ Metacell, data=freq_table, FUN=sum)
-  totals <- totals_df$count
-  print(length(totals))
-  
-  # calculate proportions per metacell
-  prop_table <- freq_table %>%
-    mutate(prop = count/totals[Metacell])
-  
-  return(prop_table)
-}
-
-## Function to plot piechart of how many metacells pass threshold for proportion of cells coming from one label
-SEACells_PiechartProportionThreshold <- function(prop_table, threshold = 0.5){
-  
-  # filter cells to only include those that pass threshold
-  passed_cells <- prop_table %>% filter(prop > threshold)
-  # number of cells that pass threshold:
-  passed_cells <- length(unique(passed_cells$Metacell))
-  # number of cells that didn't pass threshold:
-  failed_cells <- length(unique(prop_table$Metacell)) - passed_cells
-  # plot piechart
-  slices <- c(passed_cells, failed_cells)
-  lbls <- c(paste0("Passed: ", passed_cells), paste0("Didn't pass: ", failed_cells))
-  
-  return(pie(slices, labels = lbls, main = paste0("Number of cells that passed threshold (", threshold, ") of label proportions")))
-}
-
 
 
 ############################## Set colours #######################################
@@ -157,16 +141,25 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo')
 
-############################## Read in ArchR TL project + Metacell assignments #######################################
+############################## Read in seurat object + Metacell assignments #######################################
 
-ArchR <- loadArchRProject(path = paste0(data_path, "TransferLabels_Save-ArchR"), force = FALSE, showLogo = TRUE)
+label <- unique(sub('_.*', '', list.files(data_path)))
+print(label) 
 
-SEACells_metadata <- read_csv(paste0(data_path, "AnnData_metacells_assigned_cell_metadata.csv"))
+# read in seurat object
+seurat <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))
 
-############################## Read in SEACells assignments and add to ArchR object #######################################
+# read in metacell assignments
+SEACells_metadata <- as.data.frame(read_delim(paste0(data_path, label, "_ATAC_singlecell_integration_map.csv"), delim = ","))
+print(head(SEACells_metadata))
 
-# extract just SEACell assignments for each cell id
-SEACells_cell_assignments <- SEACells_metadata %>% select(index, SEACell)
+############################## Add Metacell data to seurat object #######################################
+
+# Reorder seacells metadata to match cell order in seurat object
+metacell_dictionary <- metacell_dictionary[match(rownames(seurat@meta.data), SEACells_metadata$index),]
+
+# Add seacells metadata to seurat object
+seurat <- AddMetaData(seurat, metacell_dictionary$SEACell, col.name = "SEACell")
 
 # check these match
 dim(SEACells_cell_assignments)
@@ -203,8 +196,6 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(
 
 print("Cell metadata added to ArchR object!")
 print(getCellColData(ArchR))
-
-
 
 ############################## Explore individual seacell purity #######################################
 

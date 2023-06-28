@@ -268,6 +268,7 @@ workflow A {
                                                 // etc
         // Run Metacells on RNA stages
         SEACELLS_RNA_WF( METADATA_RNA.out.metadata, ch_binary_knowledge_matrix )
+        // maybe in here repurpose the metacell purity script to check they are pure in the RNA data?
 
         ///////     Integrate SEACells      ///////
 
@@ -312,12 +313,17 @@ workflow A {
     // transfers the consensus peakset onto each stage of the ATAC data object 
     // transfer the metacell IDs + integrated labels onto each stage of the ATAC data object
 
+
+    // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
+    // need to input: the processed stage ArchR objects and the csv file with the metacell IDs
+
     // runs differential peak analysis on metacells to see how that differs from clusters (using stage-specific peaks)
 
     // script to transfer metacell IDs to individual stages (with individual peak sets calculated for each)
     // then re-run the ARCHR_STAGE_DIFF_PEAKS_WF using metacell labels as group_by instead of clusters
 
     // then transfer full consensus peak set onto each stage
+    // and transfer stage labels onto full data?
     
     // then make genome browser plots for all data grouped by metacell labels or clusters
     // in these genome browser plots will want to see the regions around known enhancers + Sox8 targets
