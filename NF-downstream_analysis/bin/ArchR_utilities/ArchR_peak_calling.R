@@ -128,67 +128,67 @@ getOutputDirectory(ArchR)
 ##############################################################################################
 ############################## Generating pseudo-replicates ##################################
 
-plot_path_temp <- paste0(plot_path, "pseudoreplicates/")
-dir.create(plot_path_temp, recursive = T)
+# plot_path_temp <- paste0(plot_path, "pseudoreplicates/")
+# dir.create(plot_path_temp, recursive = T)
 
-# If there is more than one sample, plot number of cells in each group that come from each sample
-if (length(unique(ArchR$Sample)) > 1){
-  png(paste0(plot_path_temp, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
-  ArchRCellCounting(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
-  graphics.off()
-}
+# # If there is more than one sample, plot number of cells in each group that come from each sample
+# if (length(unique(ArchR$Sample)) > 1){
+#   png(paste0(plot_path_temp, 'cell_counts_by_sample_table.png'), height = 25, width = 30, units = 'cm', res = 400)
+#   ArchRCellCounting(ArchR = ArchR, group1 = opt$group_by, group2 = "Sample")
+#   graphics.off()
+# }
 
-# Make pseudo replicates
-pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE, force = TRUE)
+# # Make pseudo replicates
+# pseudo_replicates <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = TRUE, force = TRUE)
 
-# Plot table to see which samples and groups the pseudo replicate cells come from 
-png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_sample_table.png'), height = 40, width = 30, units = 'cm', res = 400)
-ArchR_PseudoreplicateCounts(ArchR, pseudo_replicates, group_by = "Sample")
-graphics.off()
+# # Plot table to see which samples and groups the pseudo replicate cells come from 
+# png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_sample_table.png'), height = 40, width = 30, units = 'cm', res = 400)
+# ArchR_PseudoreplicateCounts(ArchR, pseudo_replicates, group_by = "Sample")
+# graphics.off()
 
-png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 40, width = 70, units = 'cm', res = 400)
-ArchR_PseudoreplicateCounts(ArchR, pseudo_replicates, group_by = opt$group_by)
-graphics.off()
+# png(paste0(plot_path_temp, 'pseudoreplicate_cell_counts_per_group_table.png'), height = 40, width = 70, units = 'cm', res = 400)
+# ArchR_PseudoreplicateCounts(ArchR, pseudo_replicates, group_by = opt$group_by)
+# graphics.off()
 
-#####  Make actual pseudo-replicates for peak calling:
-ArchR <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = FALSE, force = TRUE)
-print("pseudo replicates created")
+# #####  Make actual pseudo-replicates for peak calling:
+# ArchR <- addGroupCoverages(ArchR, groupBy = opt$group_by, returnGroups = FALSE, force = TRUE)
+# print("pseudo replicates created")
 
 ##############################################################################################
 ############################## Call peaks on pseudo-replicates ###############################
 
-ArchR <- addReproduciblePeakSet(
-  ArchRProj = ArchR,
-  groupBy = opt$group_by,
-  pathToMacs2 = "/opt/conda/bin/macs2",
-  force = TRUE,
-  genomeSize = 1230258557, # copied from Grace's paper, need to check this
-)
-print("peaks called using Macs2")
+# ArchR <- addReproduciblePeakSet(
+#   ArchRProj = ArchR,
+#   groupBy = opt$group_by,
+#   pathToMacs2 = "/opt/conda/bin/macs2",
+#   force = TRUE,
+#   genomeSize = 1230258557, # copied from Grace's paper, need to check this
+# )
+# print("peaks called using Macs2")
 
-getPeakSet(ArchR)
-getAvailableMatrices(ArchR)
+# getPeakSet(ArchR)
+# getAvailableMatrices(ArchR)
 
-## add unique names to peaks
-ps_df <- data.frame(ArchR@peakSet)
-ps <- ArchR@peakSet
-ps$name <- paste0(ps_df$seqnames, "-", ps_df$start, "-", ps_df$end)
-ArchR@peakSet <- ps
-ArchR_peaks <- addPeakMatrix(ArchR, force = TRUE)
+# ## add unique names to peaks
+# ps_df <- data.frame(ArchR@peakSet)
+# ps <- ArchR@peakSet
+# ps$name <- paste0(ps_df$seqnames, "-", ps_df$start, "-", ps_df$end)
+# ArchR@peakSet <- ps
+# ArchR_peaks <- addPeakMatrix(ArchR, force = TRUE)
 
-## write out peakset
-peakset_granges <- getPeakSet(ArchR_peaks)
-head(peakset_granges)
-write.csv(peakset_granges, file = paste0(rds_path, label, "_GRanges_PeakSet.csv"), quote = F)
+# ## write out peakset
+# peakset_granges <- getPeakSet(ArchR_peaks)
+# head(peakset_granges)
+# write.csv(peakset_granges, file = paste0(rds_path, label, "_GRanges_PeakSet.csv"), quote = F)
 
-df <- data.frame(chrom = seqnames(peakset_granges),
-                 chromStart = start(peakset_granges)-1,
-                 chromEnd = end(peakset_granges),
-                 name = peakset_granges[,14]$name,
-                 score = c(score(peakset_granges)),
-                 strand = strand(peakset_granges))
-head(df)
-write.table(df, file = paste0(rds_path, label, "_PeakSet.bed"), sep="\t", row.names=F, col.names=F, quote = F)
+# df <- data.frame(chrom = seqnames(peakset_granges),
+#                  chromStart = start(peakset_granges)-1,
+#                  chromEnd = end(peakset_granges),
+#                  name = peakset_granges[,14]$name,
+#                  score = c(score(peakset_granges)),
+#                  strand = strand(peakset_granges))
+# head(df)
+# write.table(df, file = paste0(rds_path, label, "_PeakSet.bed"), sep="\t", row.names=F, col.names=F, quote = F)
 
 #################################################################################
 ############################## Save ArchR project ###############################
