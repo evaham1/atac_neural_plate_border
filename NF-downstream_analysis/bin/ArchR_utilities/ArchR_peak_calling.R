@@ -3,6 +3,13 @@
 print("peak_calling_ArchR ")
 # creates pseudorepicates and calls peaks on user-defined groups of cells
 
+## ISSUE: group coverage paths do not seem to update and therefore the ArchR object saved from here cannot be loaded
+# error = Error in loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), :
+# all(file.exists(zfiles)) is not TRUE
+# see https://github.com/GreenleafLab/ArchR/issues/529
+# have tried to fix the issue by overwriting the coverage paths but this does not seem to work
+# alternative workaround is to just add peak set to the original archr object and save that
+
 ############################## Load libraries #######################################
 library(getopt)
 library(optparse)
@@ -47,9 +54,12 @@ if(opt$verbose) print(opt)
     # peaks not called, to save time make smaller data
     data_path = "./output/NF-downstream_analysis/Processing/ss8/Clustering/rds_files/"
     
+    # rds_path
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/Peak_call/test/rds_files/"
+    
     # once read in ArchR run this to speed it up
     ArchR_backup <- ArchR
-    idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C1", "C2"))
+    idxSample <- BiocGenerics::which(ArchR$clusters %in% c("C10"))
     cellsSample <- ArchR$cellNames[idxSample]
     ArchR <- ArchR[cellsSample, ]
     
@@ -77,7 +87,7 @@ if(opt$verbose) print(opt)
 ############################## Read in ArchR project #######################################
 
 # If files are not in rds_files subdirectory look in input dir
-label <- sub('_.*', '', list.files(data_path))
+label <- unique(sub('_.*', '', list.files(data_path)))
 print(paste0("Label: ", label))
 
 if (length(label) == 0){
@@ -93,7 +103,21 @@ if (length(label) == 0){
   paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 }
 
+# see what is in the ArchR object already
+print("ArchR object info: ")
+print(ArchR)
+getPeakSet(ArchR)
+getAvailableMatrices(ArchR)
+
+# how cells are grouped for pseudobulk replicates + peak calling
 print(paste0("Cells grouped by: ", opt$group_by))
+
+# set the output directory now so that the coverage metadata is saved in the correct place
+output_directory <- paste0(rds_path, label, "_Save-ArchR")
+print(paste0("Output directory: ", output_directory))
+
+ArchR@projectMetadata$outputDirectory <- output_directory
+getOutputDirectory(ArchR)
 
 ##############################################################################################
 ############################## Generating pseudo-replicates ##################################
@@ -162,8 +186,29 @@ write.table(df, file = paste0(rds_path, label, "_PeakSet.bed"), sep="\t", row.na
 
 #################################################################################
 ############################## Save ArchR project ###############################
-saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
-print("ArchR project saved")
+# 
+# ## saving
+# output_directory <- paste0(rds_path, label, "_Save-ArchR")
+# print(paste0("Output directory: ", output_directory))
+# 
+# ArchR@projectMetadata$outputDirectory <- output_directory
+# 
+# # Fix the path to these group coverage files - this doesn't seem to fix the loading problem!
+# print("Old coverage metadata:")
+# ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata
+# ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File
+# 
+# paths <- ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File 
+# extracted_paths <- gsub(".*ArchR(.*)", "\\1", paths)
+# new_paths <- paste0(output_directory, extracted_paths)
+# ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File <- new_paths
+# 
+# print("New coverage metadata:")
+# ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata
+# ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File
+
+# Save ArchR object
+saveArchRProject(ArchRProj = ArchR, outputDirectory = output_directory, load = FALSE)
 
 ##############################################################################
 ##################### How many peaks per cell group ###########################
