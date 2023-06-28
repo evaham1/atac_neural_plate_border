@@ -29,6 +29,9 @@ library(ComplexHeatmap)
 library(BSgenome.Ggallus.UCSC.galGal6)
 library(scHelper)
 
+home_directory <- path.expand("~")
+print(paste0("Home directory: ", home_directory))
+
 ############################## Set up script options #######################################
 # Read in command line opts
 option_list <- list(
@@ -115,8 +118,9 @@ print(paste0("Cells grouped by: ", opt$group_by))
 # set the output directory now so that the coverage metadata is saved in the correct place
 output_directory <- paste0(rds_path, label, "_Save-ArchR")
 print(paste0("Output directory: ", output_directory))
+print(paste0("Full output directory: ", home_directory, output_directory))
 
-ArchR@projectMetadata$outputDirectory <- output_directory
+ArchR@projectMetadata$outputDirectory <- paste0(home_directory, output_directory)
 getOutputDirectory(ArchR)
 
 ##############################################################################################
