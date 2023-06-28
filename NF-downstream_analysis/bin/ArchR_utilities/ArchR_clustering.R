@@ -79,7 +79,7 @@ if(opt$verbose) print(opt)
 ############################## Read in ArchR project #######################################
 
 # If files are not in rds_files subdirectory look in input dir 
-label <- sub('_.*', '', list.files(data_path))
+label <- unique(sub('_.*', '', list.files(data_path)))
 print(label) 
 
 if (length(label) == 0){
@@ -92,6 +92,12 @@ if (length(label) == 0){
   ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
   paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 }
+
+# see what is in the ArchR object already
+print("ArchR object info: ")
+print(ArchR)
+getPeakSet(ArchR)
+getAvailableMatrices(ArchR)
 
 ###### stage colours
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
