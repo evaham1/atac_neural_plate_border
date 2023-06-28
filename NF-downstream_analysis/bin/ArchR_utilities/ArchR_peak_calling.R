@@ -122,7 +122,7 @@ output_directory <- paste0(rds_path, label, "_Save-ArchR")
 print(paste0("Output directory: ", output_directory))
 print(paste0("Full output directory: ", home_directory, output_directory))
 
-ArchR@projectMetadata$outputDirectory <- paste0(home_directory, output_directory)
+# ArchR@projectMetadata$outputDirectory <- paste0(home_directory, output_directory)
 getOutputDirectory(ArchR)
 
 ##############################################################################################
