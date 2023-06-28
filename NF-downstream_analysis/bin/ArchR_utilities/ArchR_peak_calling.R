@@ -30,7 +30,9 @@ library(BSgenome.Ggallus.UCSC.galGal6)
 library(scHelper)
 
 home_directory <- path.expand("~")
-print(paste0("Home directory: ", home_directory))
+print(paste0("Home directory 1: ", home_directory))
+home_directory <- normalizePath("~/", winslash = "/")
+print(paste0("Home directory 2: ", home_directory))
 
 ############################## Set up script options #######################################
 # Read in command line opts
