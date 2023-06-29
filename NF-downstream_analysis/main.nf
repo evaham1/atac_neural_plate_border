@@ -200,25 +200,25 @@ workflow A {
         // re-run clustering and peak calling to get plots for individual stages
         ARCHR_STAGE_PEAKS_WF( ch_atac_stages )
 
-        // // read in RNA data
-        // METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-        //                                     // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-        //                                     // etc
+        // read in RNA data
+        METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                            // etc
    
-        // // combine ATAC and RNA data
-        // ARCHR_STAGE_PEAKS_WF.out.output // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
-        //     .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
-        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-        //     // .view()
-        //     .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+        // combine ATAC and RNA data
+        ARCHR_STAGE_PEAKS_WF.out.output // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+            .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            // .view()
+            .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        // // ARCHR: Integrates RNA and ATAC data at single cell level
-        // ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        // ARCHR: Integrates RNA and ATAC data at single cell level
+        ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
 
-        // // Run differential accessibility tests between stage-specific peaks
-        // ARCHR_STAGE_DIFF_PEAKS_WF( ARCHR_INTEGRATING_WF.out )
+        // Run differential accessibility tests between stage-specific peaks
+        ARCHR_STAGE_DIFF_PEAKS_WF( ARCHR_INTEGRATING_WF.out )
 
                 /// THINGS TO ADD ///
                 // recreate how I found the enhancers I tested
