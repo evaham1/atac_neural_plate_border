@@ -158,7 +158,9 @@ if (length(label) == 0){
 # see what is in the ArchR object already
 print("ArchR object info: ")
 print(ArchR)
-getPeakSet(ArchR)
+head(getCellColData(ArchR))
+colnames(getCellColData(ArchR))
+head(getPeakSet(ArchR))
 getAvailableMatrices(ArchR)
 
 # read in metacell assignments
