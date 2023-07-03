@@ -23,5 +23,6 @@ nextflow run ./main.nf \
 --skip_peakcall_processing true \
 --skip_singlecell_processing true \
 --skip_metacell_processing false \
+--skip_multiview_processing true \
 -profile crick_full \
 -resume

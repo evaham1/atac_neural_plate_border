@@ -21,6 +21,7 @@ nextflow.enable.dsl = 2
 include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
 
 // UPSTREAM PROCESSING
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -63,6 +64,7 @@ def skip_upstream_processing = params.skip_upstream_processing ? true : false
 def skip_peakcall_processing = params.skip_peakcall_processing ? true : false
 def skip_metacell_processing = params.skip_metacell_processing ? true : false
 def skip_singlecell_processing = params.skip_singlecell_processing ? true : false
+def skip_multiview_processing = params.skip_multiview_processing ? true : false
 
 
 //
@@ -277,11 +279,7 @@ workflow A {
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING_WF.out.processed_integration_output )
 
-        ///////     Transfer SEACells labels onto single cells      ///////
-        //SEACELLS_ATAC_WF.out.seacell_outputs_named.view()
-
-        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
-        ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
+        
 
         // ch_singlecell_processed.view()
         // [[sample_id:HH5], [HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR]]
@@ -303,30 +301,39 @@ workflow A {
     // transfers the consensus peakset onto each stage of the ATAC data object 
     // transfer the metacell IDs + integrated labels onto each stage of the ATAC data object
 
+    if(!skip_multiview_processing){
 
-    // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
-    // need to input: the processed stage ArchR objects and the csv file with the metacell IDs
+        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet ) // single cell data with consensus peaks called
+        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
 
-    // runs differential peak analysis on metacells to see how that differs from clusters (using stage-specific peaks)
+        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with individual peaks called
+        ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
-    // script to transfer metacell IDs to individual stages (with individual peak sets calculated for each)
-    // then re-run the ARCHR_STAGE_DIFF_PEAKS_WF using metacell labels as group_by instead of clusters
+        METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
+        ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
 
-    // then transfer full consensus peak set onto each stage
-    // and transfer stage labels onto full data?
-    
-    // then make genome browser plots for all data grouped by metacell labels or clusters
-    // in these genome browser plots will want to see the regions around known enhancers + Sox8 targets
-
-    // save these ArchR objects so can add them to the Rshiny:
-    // ALL OBJECTS SHOULD HAVE THE SAME PEAK SET: CONSENSUS PEAK SET
-    // add the ArchR full data and stage objects so can plots UMAPs and feature plots of peaks and gene scores
-    // modify/improve the genome browser plot so can see gene bodies, peaks, on different subsets of data
+        ///////     Transfer SEACells labels onto single cells      ///////
+        // and check how they correspond with other single cell labels - script made 'ArchR_seacell_purity'
+        // run peak calling and diff peak analysis to see how this compares to cluster-level analysis (just rerun ARCHR_STAGE_DIFF_PEAKS_WF)
 
 
+        ///////     Transfer full data peak set onto individual stages      ///////
+        // makes it easier to work with as can merge and split stages at will
 
 
-    
+        ///////     Combine stage ArchR objects into a single ArchR object (TransferLabels)      ///////
+        // this object should include all cells from every stage, makes it easier to work with in Rshiny
+
+        /// then in Rshiny genome browser plots should be able to select:
+                        // 1. stage     (HH5, HH6, HH7, ss4, ss8)
+                        // 2. cell type (metacell labels)
+        // and make genome browser plots for all data grouped by metacell labels or clusters
+
+        // can also add feature plots to Rshiny for each stage to plot gene scores or peaks from consensus peak set
+
+
+    }
+
 }
 
 /*

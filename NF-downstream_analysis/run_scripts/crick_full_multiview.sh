@@ -19,10 +19,10 @@ ml Graphviz
 ##nextflow run ./main.nf -dump-hashes \
 nextflow run ./main.nf \
 --outdir ../output/NF-downstream_analysis \
---skip_upstream_processing false \
+--skip_upstream_processing true \
 --skip_peakcall_processing true \
 --skip_metacell_processing true \
 --skip_singlecell_processing true \
---skip_multiview_processing true \
+--skip_multiview_processing false \
 -profile crick_full \
 -resume
