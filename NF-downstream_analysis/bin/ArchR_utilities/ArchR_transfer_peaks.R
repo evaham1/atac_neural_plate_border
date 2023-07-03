@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("transfer peak set onto ArchR object")
+print("transfer peak set from one ArchR object onto another ArchR object")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -78,22 +78,14 @@ if(opt$verbose) print(opt)
 
 ############################## Read in ArchR project #######################################
 
-# If files are not in rds_files subdirectory look in input dir
+# Extract stage name
 label <- unique(sub('_.*', '', list.files(data_path)))
 print(paste0("Label: ", label))
 
-if (length(label) == 0){
-  print("ArchR object not in rds_files folder, checking input folder...")
-  data_path = "./input/"
-  label <- sub('_.*', '', list.files(data_path))
-  print(paste0("Label: ", label))
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-} else {
-  print("ArchR object in rds_files folder")
-  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-}
+# Read in target ArchR object (in rds_files because it came from previous process)
+print("reading in target ArchR object in rds_files folder")
+ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 # see what is in the ArchR object already
 print("ArchR object info: ")
@@ -101,33 +93,36 @@ print(ArchR)
 getPeakSet(ArchR)
 getAvailableMatrices(ArchR)
 
+# Read in donor ArchR object (in input folder)
+print("reading in donor ArchR object in input folder")
+ArchR_donor <- loadArchRProject(path = paste0("./input/", label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+
+# see what is in the ArchR donor object already
+print("ArchR donor object info: ")
+print(ArchR_donor)
+getPeakSet(ArchR_donor)
+getAvailableMatrices(ArchR_donor)
+
 # how cells are grouped for pseudobulk replicates + peak calling
 print(paste0("Cells grouped by: ", opt$group_by))
-
-# use this unchanged ArchR object to try to avoid path corruption
-ArchR_to_save <- ArchR
-
-# ArchR@projectMetadata$outputDirectory <- paste0(home_directory, output_directory)
-getOutputDirectory(ArchR)
-
-##################################################################################
-############################## Read in peak set ##################################
-
-bed <- read.csv(paste0(rds_path, label, "_PeakSet.bed"), header = F, sep = "\t")
-head(bed)
-
-granges <- makeGRangesFromDataFrame(bed, keep.extra.columns = TRUE)
-head(granges)
 
 ##########################################################################################
 ############################## Transfer peak set onto ArchR ###############################
 
-ArchR <- addPeakSet(ArchR, granges)
-ArchR <- addPeakMatrix(ArchR, force = TRUE)
+# extract peakset granges from donor ArchR object
+peakset_granges <- getPeakSet(ArchR_donor)
+
+# add the peak set to the target ArchR object and calculate the matrix
+ArchR_peaks <- addPeakSet(ArchR, peakset_granges)
+ArchR_peaks <- addPeakMatrix(ArchR_peaks, force = TRUE)
+
+#################################################################################
+############################## Save ArchR project ###############################
 
 output_directory <- paste0(rds_path, label, "_Save-ArchR")
 print(paste0("Output directory of object with peak set transferred onto it: ", output_directory))
-saveArchRProject(ArchRProj = ArchR, outputDirectory = output_directory, load = FALSE)
+saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = output_directory, load = FALSE)
 
 ##############################################################################
 ##################### How many peaks per cell group ###########################
