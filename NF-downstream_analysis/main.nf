@@ -349,7 +349,7 @@ workflow A {
 
         ///////     Transfer full data peak set onto individual stages      ///////
         // combine ArchR object with metacell IDs and consensus peak set
-        TRANSFER_METACELL_LABELS.out.metadata
+        TRANSFER_METACELL_LABELS.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( ch_peakcall_processed )
             .groupTuple( by:0 )
