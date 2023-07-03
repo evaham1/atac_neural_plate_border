@@ -172,7 +172,7 @@ print(head(SEACells_metadata))
 
 # check these match
 dim(SEACells_metadata)
-dim(getCellColData(ArchR))
+dim(getCellColData(ArchR)) 
 
 # add ATAC SEACell assignments to ArchR object
 ArchR <- addCellColData(ArchRProj = ArchR, data = paste0(SEACells_metadata$SEACell, "-", label),
