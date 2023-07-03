@@ -311,10 +311,20 @@ workflow A {
 
         METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
+        ch_metadata_csvs.view()
 
         ///////     Transfer SEACells labels onto single cells      ///////
         // and check how they correspond with other single cell labels - script made 'ArchR_seacell_purity'
         // run peak calling and diff peak analysis to see how this compares to cluster-level analysis (just rerun ARCHR_STAGE_DIFF_PEAKS_WF)
+
+        // combine ArchR objects and metacell csvs
+        ch_singlecell_processed
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( ch_metadata_csvs )
+            .groupTuple( by:0 )
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .view()
+            .set {ch_transfer_metacell_IDs}
 
 
         ///////     Transfer full data peak set onto individual stages      ///////
