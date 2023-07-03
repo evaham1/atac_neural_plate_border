@@ -54,6 +54,7 @@ include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
 
 // DOWNSTREAM PROCESSING WORKFLOWS
 include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
+include {R as TRANSFER_CONSENSUS_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks.R", checkIfExists: true) )
 
 
 // 
@@ -335,7 +336,7 @@ workflow A {
             .concat( ch_metadata_csvs )
             .groupTuple( by:0 )
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .view()
+            //.view()
             .set {ch_transfer_metacell_IDs}
         // [[sample_id:HH5], [/HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR, /HH5/Integrated_SEACells_label_transfer/rds_files/HH5_ATAC_singlecell_integration_map.csv]]
         // [[sample_id:HH6], [/HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR, /HH6/Integrated_SEACells_label_transfer/rds_files/HH6_ATAC_singlecell_integration_map.csv]]
@@ -347,7 +348,17 @@ workflow A {
         TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
 
         ///////     Transfer full data peak set onto individual stages      ///////
+        // combine ArchR object with metacell IDs and consensus peak set
+        TRANSFER_METACELL_LABELS.out.metadata
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( ch_peakcall_processed )
+            .groupTuple( by:0 )
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .view()
+            .set {ch_transfer_peaks}
+
         // makes it easier to work with as can merge and split stages at will
+        TRANFER_CONSENSUS_PEAKS( ch_transfer_peaks )
 
 
         ///////     Combine stage ArchR objects into a single ArchR object (TransferLabels)      ///////
