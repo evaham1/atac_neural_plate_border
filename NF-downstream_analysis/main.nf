@@ -311,7 +311,12 @@ workflow A {
 
         METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
-        ch_metadata_csvs.view()
+        // [[sample_id:HH5], [HH5/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH5_cell_metadata.csv]]
+        // [[sample_id:HH6], [HH6/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH6_cell_metadata.csv]]
+        // [[sample_id:HH7], [HH7/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH7_cell_metadata.csv]]
+        // [[sample_id:ss4], [ss4/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/ss4_cell_metadata.csv]]
+        // [[sample_id:ss8], [ss8/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/ss8_cell_metadata.csv]]
+
 
         ///////     Transfer SEACells labels onto single cells      ///////
         // and check how they correspond with other single cell labels - script made 'ArchR_seacell_purity'
@@ -325,7 +330,14 @@ workflow A {
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             .view()
             .set {ch_transfer_metacell_IDs}
+        // [[sample_id:HH5], [HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR, HH5/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH5_cell_metadata.csv]]
+        // [[sample_id:HH6], [HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR, HH6/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH6_cell_metadata.csv]]
+        // [[sample_id:HH7], [HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR, HH7/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH7_cell_metadata.csv]]
+        // [[sample_id:ss4], [ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR, ss4/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/ss4_cell_metadata.csv]]
+        // [[sample_id:ss8], [ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR, ss8/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/ss8_cell_metadata.csv]]
 
+        // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
+        
 
         ///////     Transfer full data peak set onto individual stages      ///////
         // makes it easier to work with as can merge and split stages at will
