@@ -114,7 +114,7 @@ print(paste0("Cells grouped by: ", opt$group_by))
 peakset_granges <- getPeakSet(ArchR_donor)
 
 # add the peak set to the target ArchR object and calculate the matrix
-ArchR_peaks <- addPeakSet(ArchR, peakset_granges)
+ArchR_peaks <- addPeakSet(ArchR, peakset_granges, force = TRUE)
 ArchR_peaks <- addPeakMatrix(ArchR_peaks, force = TRUE)
 
 #################################################################################
