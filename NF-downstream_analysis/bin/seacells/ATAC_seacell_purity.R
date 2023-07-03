@@ -21,7 +21,7 @@ library(readr)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-t", "--categories"), action = "store", type = "character", help = "Which categories to use to check for purity", default = "clusters,scHelper_cell_type,scHelper_cell_type_broad"),
+  make_option(c("-t", "--categories"), action = "store", type = "character", help = "Which categories to use to check for purity", default = "clusters,scHelper_cell_type_old"),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
@@ -219,7 +219,7 @@ p1 <- plotEmbedding(ArchR,
                     baseSize = 0, labelSize = 0, legendSize = 0, 
                     pal = scHelper_cell_type_colours, randomize = TRUE)
 p2 <- plotEmbedding(ArchR, 
-                    name = "scHelper_cell_type",
+                    name = "scHelper_cell_type_old",
                     plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
                     pal = scHelper_cell_type_colours, randomize = TRUE)
