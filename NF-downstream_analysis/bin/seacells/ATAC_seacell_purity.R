@@ -15,6 +15,7 @@ library(grid)
 library(parallel)
 library(data.table)
 library(readr)
+library(scHelper)
 
 ############################## Set up script options #######################################
 # Read in command line opts
