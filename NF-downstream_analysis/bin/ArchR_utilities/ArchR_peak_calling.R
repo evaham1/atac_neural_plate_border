@@ -7,8 +7,8 @@ print("peak_calling_ArchR ")
 # error = Error in loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), :
 # all(file.exists(zfiles)) is not TRUE
 # see https://github.com/GreenleafLab/ArchR/issues/529
-# have tried to fix the issue by overwriting the coverage paths but this does not seem to work when running in pipeline
-# instead have moved to the archr/dev branch to run peak calling, this seems to work and archr object can later be loaded
+# have tried to fix the issue by overwriting the coverage paths + moving to dev branch but this does not seem to work when running in pipeline
+# only thing that has worked is just adding the peak set and peak matrix to the unchanged ArchR object and saving that
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -115,14 +115,6 @@ print(paste0("Cells grouped by: ", opt$group_by))
 # use this unchanged ArchR object to try to avoid path corruption
 ArchR_to_save <- ArchR
 
-# set the output directory now so that the coverage metadata is saved in the correct place
-# home_directory <- path.expand("~")
-# print(paste0("Home directory: ", home_directory))
-
-# output_directory <- paste0(rds_path, label, "_Save-ArchR")
-# print(paste0("Output directory: ", output_directory))
-# print(paste0("Full output directory: ", home_directory, output_directory))
-
 # ArchR@projectMetadata$outputDirectory <- paste0(home_directory, output_directory)
 getOutputDirectory(ArchR)
 
@@ -194,40 +186,18 @@ write.table(df, file = paste0(rds_path, label, "_PeakSet.bed"), sep="\t", row.na
 #################################################################################
 ############################## Save ArchR project ###############################
 
-## save object that has had peak calling run on it
-output_directory <- paste0(rds_path, label, "_Save-ArchR")
-print(paste0("Output directory: ", output_directory))
+## save object that has had peak calling run on it (this doesn't load interactively but good to keep in case)
+output_directory <- paste0(rds_path, label, "_PeakCall_Save-ArchR")
+print(paste0("Output directory of peak called object: ", output_directory))
 saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = output_directory, load = FALSE)
-
-## save unchanged object to check this can be loaded
-output_directory <- paste0(rds_path, label, "_Unchanged_Save-ArchR")
-saveArchRProject(ArchRProj = ArchR_to_save, outputDirectory = output_directory, load = FALSE)
 
 ## save the unchanged object + added peak set and peak matrix
 ArchR_with_peaks <- addPeakSet(ArchR_to_save, peakset_granges)
 ArchR_with_peaks <- addPeakMatrix(ArchR_with_peaks, force = TRUE)
 
-output_directory <- paste0(rds_path, label, "_Test_Save-ArchR")
+output_directory <- paste0(rds_path, label, "_Save-ArchR")
+print(paste0("Output directory of object with peak set transferred onto it: ", output_directory))
 saveArchRProject(ArchRProj = ArchR_with_peaks, outputDirectory = output_directory, load = FALSE)
-
-ArchR@projectMetadata$outputDirectory <- output_directory
-
-# Fix the path to these group coverage files - this doesn't seem to fix the loading problem!
-print("Old coverage metadata:")
-ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata
-ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File
-
-paths <- ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File 
-extracted_paths <- gsub(".*ArchR(.*)", "\\1", paths)
-new_paths <- paste0(output_directory, extracted_paths)
-ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File <- new_paths
-
-print("New coverage metadata:")
-ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata
-ArchR@projectMetadata$GroupCoverages@listData[[opt$group_by]]$coverageMetadata$File
-
-Save ArchR object
-
 
 ##############################################################################
 ##################### How many peaks per cell group ###########################
