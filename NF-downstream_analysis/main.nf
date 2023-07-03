@@ -358,7 +358,7 @@ workflow A {
             .set {ch_transfer_peaks}
 
         // makes it easier to work with as can merge and split stages at will
-        TRANFER_CONSENSUS_PEAKS( ch_transfer_peaks )
+        TRANSFER_CONSENSUS_PEAKS( ch_transfer_peaks )
 
 
         ///////     Combine stage ArchR objects into a single ArchR object (TransferLabels)      ///////
