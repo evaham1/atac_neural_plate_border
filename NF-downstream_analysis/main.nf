@@ -220,6 +220,9 @@ workflow A {
 
         // ARCHR: Integrates RNA and ATAC data at single cell level
         ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+            // IN HERE NEED TO EDIT SO SCHELPER_CELL_TYPE_OLD = SCHELPER_CELL_TYPE
+            // ALSO MAYBE SHOULD ADD SCHELPER_CELL_TYPE_BROAD LABELS
+
 
         // Run differential accessibility tests between stage-specific peaks
         ARCHR_STAGE_DIFF_PEAKS_WF( ARCHR_INTEGRATING_WF.out )
@@ -277,6 +280,7 @@ workflow A {
 
         // will these different outputs channel in stage by stage??
         SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed_classified, SEACELLS_ATAC_WF.out.seacell_outputs_named )
+        // maybe in here add schelper cell type broad labels
 
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING_WF.out.processed_integration_output )
