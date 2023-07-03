@@ -313,6 +313,7 @@ workflow A {
 
         METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
+        ch_metadata_csvs.view()
         // [[sample_id:HH5], [HH5/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH5_cell_metadata.csv]]
         // [[sample_id:HH6], [HH6/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH6_cell_metadata.csv]]
         // [[sample_id:HH7], [HH7/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH7_cell_metadata.csv]]
