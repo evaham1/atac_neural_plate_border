@@ -53,6 +53,8 @@ include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addP
 include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
 
 // DOWNSTREAM PROCESSING WORKFLOWS
+include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
+
 
 // 
 // include { FIND_ENHANCERS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/find_enhancers_WF"
@@ -330,14 +332,14 @@ workflow A {
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             .view()
             .set {ch_transfer_metacell_IDs}
-        // [[sample_id:HH5], [HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR, HH5/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH5_cell_metadata.csv]]
-        // [[sample_id:HH6], [HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR, HH6/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH6_cell_metadata.csv]]
-        // [[sample_id:HH7], [HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR, HH7/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH7_cell_metadata.csv]]
-        // [[sample_id:ss4], [ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR, ss4/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/ss4_cell_metadata.csv]]
-        // [[sample_id:ss8], [ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR, ss8/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/ss8_cell_metadata.csv]]
-
+        // [[sample_id:HH5], [/HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR, /HH5/Integrated_SEACells_label_transfer/rds_files/HH5_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:HH6], [/HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR, /HH6/Integrated_SEACells_label_transfer/rds_files/HH6_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:HH7], [/HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR, /HH7/Integrated_SEACells_label_transfer/rds_files/HH7_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:ss4], [/ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR, /ss4/Integrated_SEACells_label_transfer/rds_files/ss4_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:ss8], [/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR, /ss8/Integrated_SEACells_label_transfer/rds_files/ss8_ATAC_singlecell_integration_map.csv]]
+                
         // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
-        
+        TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
 
         ///////     Transfer full data peak set onto individual stages      ///////
         // makes it easier to work with as can merge and split stages at will
