@@ -219,8 +219,7 @@ workflow A {
 
         // Run differential accessibility tests between stage-specific peaks
         ARCHR_STAGE_DIFF_PEAKS_WF( ARCHR_INTEGRATING_WF.out )
-
-                /// THINGS TO ADD ///
+                /// THINGS TO ADD INTO THIS WORKFLOW ///
                 // recreate how I found the enhancers I tested
 
         // Each stage is a separate object in the channel,
@@ -291,16 +290,7 @@ workflow A {
         // [[sample_id:ss4], [ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR]]
         // [[sample_id:ss8], [ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR]]
 
-        // and make Txdb object for plotting - at some point just save the TxDB object saved in the first preprocessing step instead
-        // Channel
-        //     .value(params.reference)
-        //     .map { row -> [[sample_id:'dummy'], row] }
-        //     .set{ch_dummy}
-        //[[sample_id:dummy], /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf]
-
-        // MAKE_TXDB(ch_dummy)
-
-        // EXTRACT_EXONS(ch_gtf)
+        // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
 
     }
 
