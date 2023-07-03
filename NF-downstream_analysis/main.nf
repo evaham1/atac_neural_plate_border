@@ -52,9 +52,12 @@ include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCES
 include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/gtf_to_txdb.R", checkIfExists: true) )
 include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
 
-// DOWNSTREAM PROCESSING WORKFLOWS
+// DOWNSTREAM PROCESSING WORKFLOWS ~ MULTIVIEW
 include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
 include {R as TRANSFER_CONSENSUS_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks.R", checkIfExists: true) )
+include {R as PEAK_CALL_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as CALCULATE_SE_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/calculate_se.R", checkIfExists: true) )
+include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
 
 
 // 
@@ -346,6 +349,11 @@ workflow A {
                 
         // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
         TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
+
+        // call peaks on the metacell integrated labels and visualise their differential accessibility (to comporate to cluster analysis)
+        PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
+        CALCULATE_SE_METACELLS( PEAK_CALL_METACELLS.out )
+        PLOT_DIFF_PEAKS_METACELLS( CALCULATE_SE_METACELLS.out )
 
         ///////     Transfer full data peak set onto individual stages      ///////
         // combine ArchR object with metacell IDs and consensus peak set
