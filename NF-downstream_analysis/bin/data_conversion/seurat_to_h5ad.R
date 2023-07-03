@@ -81,6 +81,7 @@ if (length(input_files) > 1){
 }
 
 print(seurat_object)
+print("Seurat object read in successfully")
 
 ############################## Convert to H5ad #######################################
 
@@ -128,12 +129,16 @@ seurat_object@meta.data[['cell_colours']][is.na(seurat_object@meta.data[['cell_c
 i <- sapply(seurat_object@meta.data, is.factor)
 seurat_object@meta.data[i] <- lapply(seurat_object@meta.data[i], as.character)
 
+print("Converted to h5ad successfully")
+
 ############################## Save #######################################
 
 # SaveH5Seurat sometimes encounters a recursion error. File is already written by this point so error can be ignored with try().
-try(SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, '.h5Seurat')), silent = TRUE)
-# SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, '.h5seurat'))
+#try(SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, '.h5Seurat')), silent = TRUE)
+SaveH5Seurat(seurat_object, filename = paste0(opt$outfile, '.h5seurat'))
 Convert(paste0(opt$outfile, '.h5seurat'), dest = "h5ad")
+
+print("Saved h5ad successfully")
 
 # Remove intermediate h5Seurat file
 file.remove(paste0(opt$outfile, '.h5seurat'))
