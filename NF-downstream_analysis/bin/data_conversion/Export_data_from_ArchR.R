@@ -78,14 +78,21 @@ if (length(label) == 0){
 
 ############################## Check data #######################################
 
-print("Checking which data matrices are in ArchR object:")
-print(getAvailableMatrices(ArchR))
+# see what is in the ArchR object already
+print("ArchR object info: ")
+print(ArchR)
+getPeakSet(ArchR)
+getAvailableMatrices(ArchR)
 
 ############################## Export data #######################################
 
-# Export
+# Dim reduction
 write.csv(getReducedDims(ArchR), paste0(rds_path, "svd.csv"), quote=FALSE)
+print("Dim reduction exported")
+
+# Cell metadata
 write.csv(getCellColData(ArchR), paste0(rds_path, "cell_metadata.csv"), quote=FALSE)
+print("Cell metadata exported")
 
 # Gene scores
 gene.scores <- getMatrixFromProject(ArchR)
@@ -93,25 +100,26 @@ scores <- assays(gene.scores)[['GeneScoreMatrix']]
 scores <- as.matrix(scores)
 rownames(scores) <- rowData(gene.scores)$name
 write.csv(scores, paste0(rds_path, "gene_scores.csv"), quote=FALSE)
+print("Gene scores exported")
 
 # Peak counts
+dir.create(paste0(rds_path, "peak_counts/"), recursive = T)
 peaks <- getPeakSet(ArchR)
 peak.counts <- getMatrixFromProject(ArchR, 'PeakMatrix')
 
-# Reorder peaks 
-# Chromosome order
+#     Reorder peaks by chromosome
 chr_order <- sort(seqlevels(peaks))
 reordered_features <- list()
 for(chr in chr_order) {
   reordered_features[[chr]] = peaks[seqnames(peaks) == chr] }
 reordered_features <- Reduce("c", reordered_features)    
 
-# Export counts
-dir.create(paste0(rds_path, "peak_counts/"), recursive = T)
-           
+#     Export counts
 counts <- assays(peak.counts)[['PeakMatrix']]
 writeMM(counts, paste0(rds_path, "peak_counts/counts.mtx"))
+print("Peak counts matrix exported")
 write.csv(colnames(peak.counts), paste0(rds_path, "peak_counts/cells.csv"))
-
+print("Cell names exported")
 names(reordered_features) <- paste0("PeakId_", 1:length(reordered_features))
 write.csv(as.data.frame(reordered_features), paste0(rds_path, 'peak_counts/peaks.csv'))
+print("Peak names exported")
