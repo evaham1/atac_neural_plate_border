@@ -193,7 +193,7 @@ print(paste0("Output directory of peak called object: ", output_directory))
 saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = output_directory, load = FALSE)
 
 ## save the unchanged object + added peak set and peak matrix
-ArchR_with_peaks <- addPeakSet(ArchR_to_save, peakset_granges)
+ArchR_with_peaks <- addPeakSet(ArchR_to_save, peakset_granges, force = TRUE)
 ArchR_with_peaks <- addPeakMatrix(ArchR_with_peaks, force = TRUE)
 
 output_directory <- paste0(rds_path, label, "_Save-ArchR")
