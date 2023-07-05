@@ -352,8 +352,8 @@ workflow A {
 
         // call peaks on the metacell integrated labels and visualise their differential accessibility (to comporate to cluster analysis)
         PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
-        CALCULATE_SE_METACELLS( PEAK_CALL_METACELLS.out )
-        PLOT_DIFF_PEAKS_METACELLS( CALCULATE_SE_METACELLS.out )
+        //CALCULATE_SE_METACELLS( PEAK_CALL_METACELLS.out )
+        PLOT_DIFF_PEAKS_METACELLS( PEAK_CALL_METACELLS.out )
 
         ///////     Transfer full data peak set onto individual stages      ///////
         // combine ArchR object with metacell IDs and consensus peak set

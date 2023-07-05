@@ -86,25 +86,62 @@ subset_matrix <- function(mat, ids) {
 }
 
 ###########################################################################################
-############################## Read in data #####################################
+############################## Read in ArchR project #####################################
 
-# Retrieve object label
+# If files are not in rds_files subdirectory look in input dir
 label <- unique(sub('_.*', '', list.files(data_path)))
 print(label)
 
-# load ArchR object using its retrieved name
-ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-print('data read in')
-print(ArchR)
+if (length(label) == 0){
+  data_path = "./input/"
+  label <- unique(sub('_.*', '', list.files(data_path)))
+  print(label)
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+} else {
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+}
 
-# check that gene score matrix and gene integration matrix are available
-getAvailableMatrices(ArchRProj = ArchR)
+getAvailableMatrices(ArchR)
+ArchR@peakSet
 
-# read in se object
-seMarker <- readRDS(paste0(data_path, label, "_SE.RDS"))
+###########################################################################################
+########################## Calculate se across all cell groups ###############################
 
-print("data read in!")
+print("Calculating se across all cell groups...")
+print(paste0("Cells grouped by: ", opt$group_by))
+
+se <- getMarkerFeatures(
+  ArchRProj = ArchR, 
+  useMatrix = "PeakMatrix", 
+  groupBy = opt$group_by)
+se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
+
+#saveRDS(se, file = paste0(rds_path, label, "_SE.RDS"))
+
+print("se RDS saved")
+
+###########################################################################################
+############################## Read in data #####################################
+
+# # Retrieve object label
+# label <- unique(sub('_.*', '', list.files(data_path)))
+# print(label)
+
+# # load ArchR object using its retrieved name
+# ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+# print('data read in')
+# print(ArchR)
+
+# # check that gene score matrix and gene integration matrix are available
+# getAvailableMatrices(ArchRProj = ArchR)
+
+# # read in se object
+# seMarker <- readRDS(paste0(data_path, label, "_SE.RDS"))
+
+# print("data read in!")
 
 ############################################################################################
 ############################## COLOURS #######################################
