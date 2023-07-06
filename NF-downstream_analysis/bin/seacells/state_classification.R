@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+# Script to use BNM to classify clusters of cells/metacells based on median gene scores
+# Have set the clustering resolution manually to be stable but separate metacells as much as possible using clustree
+# Have also simplified the options of cell types because there are less metacells than single cells
+
 # Load packages
 library(getopt)
 library(optparse)
@@ -205,7 +209,7 @@ print(paste0("Stage: ", stage))
 
 if(length(stage) == 1){
   cell_state_markers = cell_state_markers[[stage]]
-  cluster_res = list(HH5 = 3.2, HH6 = 2.8, HH7 = 2.4, ss4 = 3.2, ss8 = 3.6)[[stage]]
+  cluster_res = list(HH5 = 2.4, HH6 = 2.4, HH7 = 2.4, ss4 = 2.8, ss8 = 2.8)[[stage]]
   metadata = c('scHelper_cell_type')
 } else {
   cell_state_markers = flatten(cell_state_markers)
@@ -272,7 +276,7 @@ graphics.off()
 
 # Select top cell type per cluster
 cell_type_df <- cell_type_df %>%
-  summarise(value = mean(value)) %>%
+  summarise(value = median(value)) %>%
   group_by(seurat_clusters) %>%
   filter(value == max(value))
 
