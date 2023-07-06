@@ -197,16 +197,15 @@ workflow A {
         ch_upstream_processed
             .filter{ meta, data -> meta.sample_id != 'FullData'}
             .set{ ch_atac_stages }
+                // ch_atac_stages.view()
+                // [[sample_id:HH5], [Upstream_processing/FILTERING/HH5/rds_files/HH5_Save-ArchR]]
+                // [[sample_id:HH6], [Upstream_processing/FILTERING/HH6/rds_files/HH6_Save-ArchR]]
+                // [[sample_id:HH7], [Upstream_processing/FILTERING/HH7/rds_files/HH7_Save-ArchR]]
+                // [[sample_id:ss4], [Upstream_processing/FILTERING/ss4/rds_files/ss4_Save-ArchR]]
+                // [[sample_id:ss8], [Upstream_processing/FILTERING/ss8/rds_files/ss8_Save-ArchR]]
 
-        // ch_atac_stages.view()
-        // [[sample_id:HH5], [Upstream_processing/FILTERING/HH5/rds_files/HH5_Save-ArchR]]
-        // [[sample_id:HH6], [Upstream_processing/FILTERING/HH6/rds_files/HH6_Save-ArchR]]
-        // [[sample_id:HH7], [Upstream_processing/FILTERING/HH7/rds_files/HH7_Save-ArchR]]
-        // [[sample_id:ss4], [Upstream_processing/FILTERING/ss4/rds_files/ss4_Save-ArchR]]
-        // [[sample_id:ss8], [Upstream_processing/FILTERING/ss8/rds_files/ss8_Save-ArchR]]
-
-        // re-run clustering and peak calling to get plots for individual stages
-        ARCHR_STAGE_PEAKS_WF( ch_atac_stages )
+        // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
+        CLUSTER( ch_atac_stages )
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -235,7 +234,7 @@ workflow A {
 
         // Each stage is a separate object in the channel,
         // NOTE: stage objects are reclustered individually
-        // NOTE: all stage objects have a different peak set which was calculated on each stage individually
+        // NOTE: all stage objects have the same peak set (consensus full data peakset)
         
 
     } else {
