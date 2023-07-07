@@ -73,6 +73,7 @@ calc_top_variable_features <- function(counts, n = 1000){
 
 ## Read in SEACell metadata
 metadata <- fread(paste0(data_path, "Combined_SEACell_integrated_metadata.csv"), header = TRUE)
+metadata <- metadata[,-1]
 print("Preview of SEACell metadata df:")
 print(head(metadata))
 
@@ -83,6 +84,7 @@ write.csv(metadata, paste0(rds_path, "Combined_SEACell_integrated_metadata.csv")
 
 ## Read in peak metadata
 peak_metadata <- fread(paste0(data_path, "Feature_metadata.csv"), header = TRUE)
+peak_metadata <- peak_metadata[,-c(1:2)]
 print("Preview of peakset df:")
 print(head(peak_metadata))
 
@@ -93,6 +95,7 @@ write.csv(peak_metadata, paste0(rds_path, "Feature_metadata.csv"), col.names = T
 
 # Read in summarised peak counts across all seacells
 SEACells_summarised <- fread(paste0(data_path, "Combined_summarised_by_metacells_counts.csv"), header = TRUE)
+SEACells_summarised <- SEACells_summarised[, -1]
 print("Data read in!")
 
 # Check input
@@ -100,13 +103,14 @@ print(dim(SEACells_summarised))
 print("Preview of input df:")
 print(SEACells_summarised[1:4, 1:4])
 
-# Extract SEACell IDs from first column
-SEACells_IDs <- dplyr::pull(SEACells_summarised, 2)
+# Extract SEACell IDs from first column and print out as a text file
+SEACells_IDs <- dplyr::pull(SEACells_summarised, 1)
 print(head(SEACells_IDs))
 length(SEACells_IDs)
+write(SEACells_IDs, paste0(rds_path, "SEACell_IDs.txt"))
 
 # Clean up df
-SEACells_summarised <- SEACells_summarised[,-1:-2]
+SEACells_summarised <- SEACells_summarised[,-1]
 print("Preview of input df after cleanup:")
 print(SEACells_summarised[1:4, 1:4])
 dim(SEACells_summarised)
@@ -114,11 +118,11 @@ dim(SEACells_summarised)
 # Turn into numeric matrix for downstream processing
 SEACells_summarised_numeric <- as.matrix(sapply(SEACells_summarised, as.numeric))  
 
-# Add SEACell IDs as rownames and peak IDs as colnames
-rownames(SEACells_summarised_numeric) <- SEACells_IDs
-
 # Adjust peak IDs name format
 colnames(SEACells_summarised_numeric) <- gsub(':', '-', colnames(SEACells_summarised_numeric))
+
+# Add SEACell IDs as rownames
+rownames(SEACells_summarised_numeric) <- SEACells_IDs
 
 # Check resulting matrix
 print(dim(SEACells_summarised_numeric))
@@ -126,8 +130,7 @@ print("Preview of summarised count df:")
 print(SEACells_summarised_numeric[1:4, 1:4])
 
 # Write out unfiltered raw counts matrix
-write.csv(SEACells_summarised_numeric, paste0(rds_path, "Unfiltered_raw_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
-
+fwrite(SEACells_summarised_numeric, paste0(rds_path, "Unfiltered_raw_summarised_counts.csv"), sep = ",")
 
 ############################## 1) Normalise #######################################
 ## normalise each metacell by the total number of cut sites
@@ -142,6 +145,7 @@ normalised_counts <- SEACells_summarised_numeric / (total_counts / 1e4)
 
 print("Preview of normalised counts df:")
 print(normalised_counts[1:2, 1:2])
+print(normalised_counts[2145:2156, 1:2])
 dim(normalised_counts)
 
 ## calculate new variance and plot 
@@ -164,8 +168,7 @@ graphics.off()
 print("Counts normalised!")
 
 # Write out unfiltered normalised counts matrix
-write.csv(normalised_counts, paste0(rds_path, "Unfiltered_normalised_summarised_counts.csv"), row.names = TRUE, col.names = TRUE)
-
+fwrite(normalised_counts, paste0(rds_path, "Unfiltered_normalised_summarised_counts.csv"), sep = ",")
 
 ################ 2) Filter peaks by annotation #########################
 ## only include intergenic and intronic peaks
