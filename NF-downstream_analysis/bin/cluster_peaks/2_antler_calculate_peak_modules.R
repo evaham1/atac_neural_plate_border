@@ -359,9 +359,12 @@ dir.create(temp_plot_path, recursive = T)
 antler_data <- readRDS(paste0(rds_path, 'FullData/', 'antler.RDS'))
 
 # subset matrix to only include peaks that are in PMs
-peaks <- unlist(antler_data$gene_modules$lists$unbiasedPMs$content)
+peaks <- unique(unlist(antler_data$gene_modules$lists$unbiasedPMs$content))
+print("Number of peaks in Full Data PMs:")
 length(peaks)
-filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
+if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEACells_normalised_summarised)])) ){
+  filtered_normalised_matrix <- SEACells_normalised_summarised[, as.vector(peaks)]
+} else {stop("ERROR: PM peaks are not found in the filtered peak matrix!")}
 
 # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
 order <- scHelper_cell_type_order[scHelper_cell_type_order %in% metadata$scHelper_cell_type]
@@ -374,7 +377,7 @@ plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata,
                                      col_order = c('stage', 'scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = paste0(plot_path, "logs/fulldata/"), scale_data = TRUE)
+                                     log_path = NULL, scale_data = TRUE)
 
 # Plot heatmap
 plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -403,7 +406,7 @@ plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_f
                                    custom_order_column = "scHelper_cell_type", custom_order = order,
                                    hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                    peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                   paste0(temp_plot_path, "logs/fulldata_no_contam/"), scale_data = TRUE)
+                                   log_path = NULL, scale_data = TRUE)
 
 # Plot heatmap
 plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -439,9 +442,12 @@ for (i in seq(1:length(stage_order))){
   antler_data <- readRDS(paste0(rds_path, temp_stage, '/', 'antler.RDS'))
   
   # subset matrix to only include peaks that are in PMs
-  peaks <- unlist(antler_data$gene_modules$lists$unbiasedPMs$content)
+  peaks <- unique(unlist(antler_data$gene_modules$lists$unbiasedPMs$content))
+  print("Number of peaks in PMs:")
   length(peaks)
-  filtered_normalised_matrix <- SEACells_normalised_summarised[, peaks]
+  if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEACells_normalised_summarised)])) ){
+    filtered_normalised_matrix <- SEACells_normalised_summarised[, as.vector(peaks)]
+  } else {stop("ERROR: PM peaks are not found in the filtered peak matrix!")}
   
   # subset matrix to only include SEACells that are in this stage
   filtered_normalised_matrix <- filtered_normalised_matrix[grep(temp_stage, rownames(filtered_normalised_matrix)), ]
@@ -458,7 +464,7 @@ for (i in seq(1:length(stage_order))){
                                      col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = paste0(temp_plot_path, "logs/all_cells_hclust_within_celltypes/"), scale_data = TRUE)
+                                     log_path = NULL, scale_data = TRUE)
   
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
@@ -507,7 +513,7 @@ for (i in seq(1:length(stage_order))){
                                      col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
-                                     log_path = paste0(temp_plot_path, "logs/subset_cells_hclust_within_groups/"), scale_data = TRUE)
+                                     log_path = NULL, scale_data = TRUE)
   
   # Plot heatmap
   plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
