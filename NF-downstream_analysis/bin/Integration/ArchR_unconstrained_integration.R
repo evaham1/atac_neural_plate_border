@@ -204,11 +204,7 @@ ArchR$rna_clusters <- extracted_rna_metadata[, "seurat_clusters"]
 print("RNA metadata added")
 
 # add more general scHelpercelltype labels (ie group together all PPRs, neurals, etc)
-### DEBUGGING:
-
 scHelper_cell_types <- data.frame(getCellColData(ArchR, select = "scHelper_cell_type"))
-print(head(scHelper_cell_types))
-
 broad <- scHelper_cell_types %>% mutate(broad = mapvalues(scHelper_cell_type, 
                            from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
                                   'PPR', 'aPPR', 'pPPR',
@@ -225,10 +221,8 @@ broad <- scHelper_cell_types %>% mutate(broad = mapvalues(scHelper_cell_type,
                             rep("Contam", 5)
                            )
                            ))
-print(head(broad))
-length(rownames(broad)) == nrow(getCellColData(ArchR))
 ArchR$scHelper_cell_type_broad <- broad$broad
-#ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(getCellColData(ArchR)), name = "scHelper_cell_type_broad")
+print("Broad scHelper cell type labels added")
 
 print(head(getCellColData(ArchR)))
 
@@ -264,17 +258,31 @@ plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 
               labelSize = 0, legendSize = 0, pal = atac_scHelper_new_cols)
 graphics.off()
 
-### Old labels
+### Old labels / ones I will use
 plot_path = "./plots/after_integration/old_labels/"
 dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
 graphics.off()
 
 png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+graphics.off()
+
+### Broad labels
+plot_path = "./plots/after_integration/broad_labels/"
+dir.create(plot_path, recursive = T)
+
+png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+graphics.off()
+
+png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
 graphics.off()
 
