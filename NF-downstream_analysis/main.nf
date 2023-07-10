@@ -209,7 +209,7 @@ workflow A {
                                             // etc
    
         // combine ATAC and RNA data
-        CLUSTER.out.output // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        CLUSTER.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
