@@ -192,15 +192,21 @@ print("integration completed")
 extracted_rna_labels <- seurat_data@meta.data[ArchR$predictedCell_Un, c("scHelper_cell_type", "old_labels")]
 ArchR$scHelper_cell_type_new <- extracted_rna_labels[, "scHelper_cell_type"]
 ArchR$scHelper_cell_type <- extracted_rna_labels[, "old_labels"]
+print("scHelper cell type labels added")
 
 # use matched RNA cells to add rna metadata to ATAC cells
 extracted_rna_metadata <- seurat_data@meta.data[ArchR$predictedCell_Un, c("run", "stage", "seurat_clusters")]
 ArchR$rna_stage <- extracted_rna_metadata[, "stage"]
 ArchR$rna_run <- extracted_rna_metadata[, "run"]
 ArchR$rna_clusters <- extracted_rna_metadata[, "seurat_clusters"]
+print("RNA metadata added")
 
 # add more general scHelpercelltype labels (ie group together all PPRs, neurals, etc)
+### DEBUGGING:
+
 scHelper_cell_types <- data.frame(getCellColData(ArchR, select = "scHelper_cell_type"))
+print(scHelper_cell_types)
+
 broad <- scHelper_cell_types %>% mutate(broad = mapvalues(scHelper_cell_type, 
                            from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
                                   'PPR', 'aPPR', 'pPPR',
@@ -217,6 +223,7 @@ broad <- scHelper_cell_types %>% mutate(broad = mapvalues(scHelper_cell_type,
                            rep("Contam", 5)
                            )
                            ))
+print(broad)
 ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(getCellColData(ArchR)), name = "scHelper_cell_type_broad")
 
 # save integrated ArchR project
