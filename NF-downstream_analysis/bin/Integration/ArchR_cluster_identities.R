@@ -106,7 +106,7 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo')
 # set colour palettes for UMAPs
-atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
+atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type)]
 
 
 ############################## Gene scores plots #######################################
@@ -207,7 +207,7 @@ saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1],
 # plot cluster labels on UMAPs
 p1 <- plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, labelAsFactors = FALSE)
-p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
+p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
 
 png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
