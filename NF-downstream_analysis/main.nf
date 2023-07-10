@@ -209,7 +209,7 @@ workflow A {
                                             // etc
    
         // combine ATAC and RNA data
-        ARCHR_STAGE_PEAKS_WF.out.output // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        CLUSTER.out.output // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
@@ -308,8 +308,8 @@ workflow A {
 
     if(!skip_multiview_processing){
 
-        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet ) // single cell data with consensus peaks called
-        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
+        // METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet ) // single cell data with consensus peaks called
+        // ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
 
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with individual peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
@@ -346,34 +346,25 @@ workflow A {
         TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
 
         // call peaks on the metacell integrated labels and visualise their differential accessibility (to comporate to cluster analysis)
-        PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
-        //CALCULATE_SE_METACELLS( PEAK_CALL_METACELLS.out )
+        //PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
         PLOT_DIFF_PEAKS_METACELLS( PEAK_CALL_METACELLS.out )
 
         ///////     Transfer full data peak set onto individual stages      ///////
+        // shouldn't have to do this if always do use the consensus peak set
         // combine ArchR object with metacell IDs and consensus peak set
-        TRANSFER_METACELL_LABELS.out
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .concat( ch_peakcall_processed )
-            .groupTuple( by:0 )
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .view()
-            .set {ch_transfer_peaks}
+        // TRANSFER_METACELL_LABELS.out
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     .concat( ch_peakcall_processed )
+        //     .groupTuple( by:0 )
+        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+        //     .view()
+        //     .set {ch_transfer_peaks}
 
-        // makes it easier to work with as can merge and split stages at will
-        TRANSFER_CONSENSUS_PEAKS( ch_transfer_peaks )
+        // // makes it easier to work with as can merge and split stages at will
+        // TRANSFER_CONSENSUS_PEAKS( ch_transfer_peaks )
 
 
-        ///////     Combine stage ArchR objects into a single ArchR object (TransferLabels)      ///////
-        // this object should include all cells from every stage, makes it easier to work with in Rshiny
-
-        /// then in Rshiny genome browser plots should be able to select:
-                        // 1. stage     (HH5, HH6, HH7, ss4, ss8)
-                        // 2. cell type (metacell labels)
-        // and make genome browser plots for all data grouped by metacell labels or clusters
-
-        // can also add feature plots to Rshiny for each stage to plot gene scores or peaks from consensus peak set
-
+        // Take peaks from PMs and run them through Alex's pipeline??
 
     }
 
