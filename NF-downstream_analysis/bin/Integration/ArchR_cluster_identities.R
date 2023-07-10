@@ -142,16 +142,16 @@ dir.create(plot_path, recursive = T)
 
 # visualise distribution across clusters: table of cell counts
 png(paste0(plot_path, 'label_by_cluster_cell_number_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
+scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
 graphics.off()
 
 # visualise distribution across clusters: confusion matrix
 png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters")
+scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters")
 graphics.off()
 
 # visualise distribution across clusters: table of cell percentages
-cell_counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+cell_counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
 percentage_counts <- as.data.frame(lapply(cell_counts, function(x) (x / sum(x))*100))
 rownames(percentage_counts) <- rownames(cell_counts)
 
@@ -160,7 +160,7 @@ grid.arrange(tableGrob(round(percentage_counts, 2), theme = ttheme_minimal()))
 graphics.off()
 
 # visualise distribution across clusters: piecharts
-counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type_old", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
 png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
 scHelper::CellLabelPieCharts(counts, col = scHelper_cell_type_colours)
 graphics.off()
