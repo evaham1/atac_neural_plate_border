@@ -28,10 +28,13 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Preprocessing"
 include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filtering"
 
-// PROCESSING - FULL DATA AND STAGES
+// PROCESSING - FULL DATA
 include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as CO_ACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_coaccessibility.R", checkIfExists: true) )
 include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
+
+// PROCESSING - STAGES
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
@@ -45,15 +48,13 @@ include { SEACELLS_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING
 //PEAK CLUSTERING
 include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
 
-// MISC
-include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/gtf_to_txdb.R", checkIfExists: true) )
-include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
+// // MISC
+// include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/gtf_to_txdb.R", checkIfExists: true) )
+// include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
 
 // DOWNSTREAM PROCESSING WORKFLOWS ~ MULTIVIEW
 include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
 include {R as TRANSFER_CONSENSUS_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks.R", checkIfExists: true) )
-include {R as PEAK_CALL_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as CALCULATE_SE_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/calculate_se.R", checkIfExists: true) )
 include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
 
 
@@ -147,13 +148,14 @@ workflow A {
             .filter{ meta, data -> meta.sample_id == 'FullData'}
             .set{ ch_full }
 
-        // Cluster and call peaks on full data
+        // Cluster, call peaks and calculate interactions by accessibility on full data
         //ch_full.view() //[[sample_id:FullData], [Upstream_processing/FILTERING/FullData/rds_files/FullData_Save-ArchR]]
         CLUSTER( ch_full )
         PEAK_CALL( CLUSTER.out )
+        CO_ACCESSIBILITY( PEAK_CALL.out )
 
         // Split full data into stages
-        SPLIT_STAGES_PROCESSED( PEAK_CALL.out )
+        SPLIT_STAGES_PROCESSED( CO_ACCESSIBILITY.out )
         SPLIT_STAGES_PROCESSED.out //[[meta], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}

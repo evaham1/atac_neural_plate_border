@@ -38,6 +38,9 @@ if(opt$verbose) print(opt)
     # smaller object
     data_path = "./output/NF-downstream_analysis/Processing/ss8/Peak_call//rds_files/"
     
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/Coaccessibility/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Processing/ss8/Coaccessibility/plots/"
+    
     addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
@@ -58,6 +61,97 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
+
+
+############################## FUNCTIONS #######################################
+
+# extracts the chromosome and TSS coordinate of gene of interest from P2G linkage data attached to ArchR object
+ArchR_ExtractTss <- function(ArchR_obj, gene){
+  gene <- toupper(gene)
+  gene_metadata <- metadata(getPeak2GeneLinks(ArchR_obj, corCutOff = corCutOff, returnLoops = FALSE))$geneSet
+  gene_coord <- as.numeric(start(ranges(gene_metadata[which(gene_metadata$name %in% gene)])))
+  chr <- as.character(seqnames(gene_metadata[which(gene_metadata$name %in% gene)]))
+  return(c(chr, gene_coord))
+}
+
+
+# This function creates a GRanges object that can be used to plot genome browser plots 
+# (i.e. one end of the range is Anchor I and the other end of the range is Anchor J)
+# It creates this object from a target gene and the peaks it interacts with
+# It find the centre coordinate of the TSS and all the peaks, make the ranges and then uses these
+# to filter the original P2G linkage data associated with the ArchR object
+
+ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, interacting_peaks, corCutOff = 0.5){
+  
+  # extract TSS coordinate of gene of interest
+  chr <- ArchR_ExtractTss(ArchR_obj, gene)[1]
+  gene_coord <- ArchR_ExtractTss(ArchR_obj, gene)[2]
+  
+  # extract interacting peak coordinates from unique peak IDs
+  split <- unlist(lapply(interacting_peaks, FUN = function(x) strsplit(x, split = "-")))
+  peak_coord <- as.numeric(split[1 : (length(split) / 3) * 3]) - 250
+  
+  # combine TSS and peak coords into one df
+  df <- data.frame(temp_start=gene_coord, temp_end=peak_coord)
+  df <- mutate_all(df, function(x) as.numeric(as.character(x)))
+  df_ordered <- df %>% 
+    mutate(start = apply(df, 1, function(x) min(x))) %>%
+    mutate(end = apply(df, 1, function(x) max(x))) %>%
+    mutate(chr = chr) %>% 
+    dplyr::select(chr, start, end)
+  
+  # extract p2gl data with user-defined corCutOff - return loops
+  all_interactions <- getPeak2GeneLinks(ArchR_obj, corCutOff = corCutOff, returnLoops = TRUE)[[1]]
+  
+  # filter all interactions from P2GL for these ones
+  filtered_granges <- subset(all_interactions, start %in% loops_of_interest_df$start & end %in% loops_of_interest_df$end)
+  
+  # check have extracted all interactions
+  if (length(filtered_granges) == nrow(loops_of_interest_df)){"Check passed"}else{stop("Not all interactions have been extracted!")}
+  
+  # return interactions
+  return(filtered_granges)
+}
+
+
+# This function takes gene and interactions_granges, as well as ArchR object and makes genome browser plot showing interactions
+# Can select how to group cells for browser using group_by
+# will automatically zoom out so all interactions are seen and centre plot on the gene, can extend further using extend_by
+
+ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, group_by = "clusters", return_plot = TRUE){
+  
+  # extract gene TSS coord
+  gene_coord <- as.numeric(ArchR_ExtractTss(ArchR_obj, gene)[2])
+  
+  # identify the range you need to plot to see all these interactions
+  max_coordinate <- as.numeric(max(end(interactions_granges)))
+  min_coordinate <- as.numeric(min(start(interactions_granges)))
+  
+  # set plotting distance limits
+  distance <- max(abs(gene_coord - max_coordinate), abs(gene_coord - min_coordinate)) + extend_by
+  print(paste0("Distance plotting: ", distance))
+  
+  # make plot of all the interactions pertaining to one gene around that gene
+  p <- plotBrowserTrack(
+    ArchRProj = ArchR_obj,
+    groupBy = group_by,
+    geneSymbol = gene, 
+    upstream = distance,
+    downstream = distance,
+    loops = interactions_granges,
+    title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
+  )
+  
+  # optionally return plot
+  if (return_plot){
+    return(p)
+  } else {
+    grid::grid.newpage()
+    grid::grid.draw(p[[1]])
+  }
+
+}
+
 
 ############################## Read in ArchR project #######################################
 
@@ -113,23 +207,19 @@ head(coacessibility_df)
 table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
 
 # save df
-write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.csv"))
+write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
 
-
-
-#### Browser tracks
-p <- plotBrowserTrack(
-  ArchRProj = ArchR,
-  groupBy = "clusters", 
-  geneSymbol = "SIX1", 
-  upstream = 50000,
-  downstream = 50000,
-  loops = getCoAccessibility(ArchR)
-)
-grid::grid.newpage()
-grid::grid.draw(p[[1]])
-
-
+# #### Browser tracks
+# p <- plotBrowserTrack(
+#   ArchRProj = ArchR,
+#   groupBy = "clusters", 
+#   geneSymbol = "SIX1", 
+#   upstream = 50000,
+#   downstream = 50000,
+#   loops = getCoAccessibility(ArchR)
+# )
+# grid::grid.newpage()
+# grid::grid.draw(p[[1]])
 
 #########################################################################################################
 ############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES #################################
@@ -153,7 +243,10 @@ head(p2g_df)
 table(p2g_df$PeakID %in% getPeakSet(ArchR)$name)
 
 # save df
-write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df.csv"))
+write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df.csv"), row.names = FALSE)
+
+################################################################################
+############################## HEATMAPS OF P2L #################################
 
 ## Heatmap of linkage across clusters
 p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
@@ -170,60 +263,38 @@ graphics.off()
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
 
-# extract resulting interactions
-head(p2g)
+# read in P2G dataframe
+p2g_df <- read.csv(paste0(rds_path, "Peak_to_gene_linkage_df.csv"))
 head(p2g_df)
 
-# extract interactions from gene of interest using df
-gene = "SIX1"
-interactions <- p2g_df %>% filter(gene_name %in% gene)
-print(interactions)
+# set genes of interest
+genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
+           "PAX7", "MSX1", "CSRNP1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5",
+           "LMX1B", "ZEB2", "SOX21", "NKX6-2")
 
-# extract the peak IDs that interact with that gene
-interacting_peaks <- unique(interactions$PeakID)
+genes <- c("ETS1", "SOX9", "SOX8", "SOX10", "SOX5",
+           "LMX1B", "ZEB2", "SOX21", "NKX6-2")
 
-# make own loops GRanges for plotting these filtered interactions
-interactions
-
-# extract gene TSS coordinate from metadata of p2g linkage
-gene_metadata <- metadata(p2g)$geneSet
-gene_coord <- start(ranges(gene_metadata[which(gene_metadata$name %in% gene)]))
-chr <- as.character(seqnames(gene_metadata[which(gene_metadata$name %in% gene)]))
-
-# extract interacting peak coordinates from unique peak IDs
-split <- unlist(lapply(interacting_peaks, FUN = function(x) strsplit(x, split = "-")))
-npeaks <- length(split) / 3
-peak_coord <- as.numeric(split[1:npeaks*3]) - 250
-
-# put this together into a df
-df <- data.frame(start=gene_coord, end=peak_coord)
-df_ordered <- as.data.frame(t(as.data.frame(apply(df, 1, function(x) x[order(as.vector(x))]))))
-colnames(df_ordered) <- c("start", "end")
-loops_of_interest_df <- df_ordered %>% mutate(chr = chr) %>% 
-  dplyr::select(chr, start, end)
-loops_of_interest_df
-
-# filter all interactions from P2GL for these ones
-all_interactions <- getPeak2GeneLinks(ArchR)[[1]]
-filtered_granges <- subset(all_interactions, start %in% loops_of_interest_df$start & end %in% loops_of_interest_df$end)
-length(filtered_granges) == nrow(loops_of_interest_df)
-
-# identify the range you need to plot to see all these interactions
-max_coordinate <- max(end(filtered_granges))
-min_coordinate <- min(start(filtered_granges))
-
-# identify how far away from the TSS these coordinates are
-distance <- max(abs(gene_coord - max_coordinate), abs(gene_coord - min_coordinate)) + 500
-print(distance)
-
-# plot all the interactions pertaining to one gene around that gene
-p <- plotBrowserTrack(
-  ArchRProj = ArchR,
-  groupBy = "clusters", 
-  geneSymbol = gene, 
-  upstream = distance,
-  downstream = distance,
-  loops = filtered_granges
-)
-grid::grid.newpage()
-grid::grid.draw(p[[1]])
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest
+  interactions <- p2g_df %>% filter(gene_name %in% gene)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # extract loops between the gene and these peaks
+  extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, gene = gene, interacting_peaks = interacting_peaks)
+  
+  # make plot of these interactions
+  p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE)
+  grid::grid.newpage()
+  
+  # plot
+  png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+  grid::grid.draw(p[[1]])
+  graphics.off()
+}
