@@ -26,5 +26,5 @@ nextflow run Streit-lab/enhancer_annotation_and_motif_analysis \
     -profile singularity \
     --fasta /nemo/lab/briscoej/home/users/hamrude/raw_data/genomes/galgal6/Gallus_gallus.GRCg6a.dna.toplevel.fa \
     --gtf /nemo/lab/briscoej/home/users/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf \
-    --peaks_bed /nemo/lab/briscoej/home/users/hamrude/raw_data/lit_enhancers/lit_enhancers_ensembl.bed \
+    --peaks_bed /nemo/lab/briscoej/home/users/hamrude/raw_data/lit_enhancers/literature_enhancers.bed \
     --outdir output
