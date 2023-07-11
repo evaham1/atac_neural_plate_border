@@ -139,7 +139,7 @@ ArchR <- addPeak2GeneLinks(ArchR)
 
 # extract resulting interactions
 p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
-
+p2g_df <- as.data.frame(p2g)
 head(p2g)
 
 # need to add correct Peak IDs and gene names to df
@@ -170,12 +170,12 @@ graphics.off()
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
 
-p2g <- getPeak2GeneLinks(ArchR, returnLoops = FALSE)
-
-metadata(p2g)$peakSet
+# extract resulting interactions
+head(p2g)
+head(p2g_df)
 
 # extract interactions from gene of interest using df
-gene = "IRF6"
+gene = "SIX1"
 interactions <- p2g_df %>% filter(gene_name %in% gene)
 print(interactions)
 
@@ -199,42 +199,31 @@ peak_coord <- as.numeric(split[1:npeaks*3]) - 250
 df <- data.frame(start=gene_coord, end=peak_coord)
 df_ordered <- as.data.frame(t(as.data.frame(apply(df, 1, function(x) x[order(as.vector(x))]))))
 colnames(df_ordered) <- c("start", "end")
-class(df_ordered)
-df_ordered <- df_ordered %>% mutate(chr = chr) %>% 
+loops_of_interest_df <- df_ordered %>% mutate(chr = chr) %>% 
   dplyr::select(chr, start, end)
-
-#interactions_to_plot <- makeGRangesFromDataFrame(df_ordered)
+loops_of_interest_df
 
 # filter all interactions from P2GL for these ones
 all_interactions <- getPeak2GeneLinks(ArchR)[[1]]
+filtered_granges <- subset(all_interactions, start %in% loops_of_interest_df$start & end %in% loops_of_interest_df$end)
+length(filtered_granges) == nrow(loops_of_interest_df)
 
+# identify the range you need to plot to see all these interactions
+max_coordinate <- max(end(filtered_granges))
+min_coordinate <- min(start(filtered_granges))
 
-# needs to be in this format:
-getPeak2GeneLinks(ArchR)[[1]]
-# GRanges object with 34743 ranges and 2 metadata columns:
-#   seqnames          ranges strand |     value         FDR
-# <Rle>       <IRanges>  <Rle> | <numeric>   <numeric>
-#   [1]     chr1   222306-387604      * |  0.523234 1.91171e-34
-# [2]     chr1   387604-416252      * |  0.542805 1.72662e-37
-# [3]     chr1   387604-437263      * |  0.673558 3.03026e-64
-# [4]     chr1 1024894-1142788      * |  0.516002 2.27485e-33
-# [5]     chr1 1103223-1288941      * |  0.495792 1.69473e-30
+# identify how far away from the TSS these coordinates are
+distance <- max(abs(gene_coord - max_coordinate), abs(gene_coord - min_coordinate)) + 500
+print(distance)
 
-
-
-interactions_to_plot
-
-filtered_interactions <- filter(all_interactions, chr = "chr26")
-
-gr <- subsetByOverlaps(getPeak2GeneLinks(ArchR)[[1]], interactions_to_plot)
-
+# plot all the interactions pertaining to one gene around that gene
 p <- plotBrowserTrack(
   ArchRProj = ArchR,
   groupBy = "clusters", 
-  geneSymbol = "IRF6", 
-  upstream = 50000,
-  downstream = 50000,
-  loops = gr
+  geneSymbol = gene, 
+  upstream = distance,
+  downstream = distance,
+  loops = filtered_granges
 )
 grid::grid.newpage()
 grid::grid.draw(p[[1]])
