@@ -104,10 +104,10 @@ ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, interacting_peaks, corCutO
   all_interactions <- getPeak2GeneLinks(ArchR_obj, corCutOff = corCutOff, returnLoops = TRUE)[[1]]
   
   # filter all interactions from P2GL for these ones
-  filtered_granges <- subset(all_interactions, start %in% loops_of_interest_df$start & end %in% loops_of_interest_df$end)
+  filtered_granges <- subset(all_interactions, start %in% df_ordered$start & end %in% df_ordered$end)
   
   # check have extracted all interactions
-  if (length(filtered_granges) == nrow(loops_of_interest_df)){"Check passed"}else{stop("Not all interactions have been extracted!")}
+  if (length(filtered_granges) == nrow(df_ordered)){"Check passed"}else{stop("Not all interactions have been extracted!")}
   
   # return interactions
   return(filtered_granges)
@@ -118,7 +118,7 @@ ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, interacting_peaks, corCutO
 # Can select how to group cells for browser using group_by
 # will automatically zoom out so all interactions are seen and centre plot on the gene, can extend further using extend_by
 
-ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, group_by = "clusters", return_plot = TRUE){
+ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, max_dist = Inf, group_by = "clusters", return_plot = TRUE){
   
   # extract gene TSS coord
   gene_coord <- as.numeric(ArchR_ExtractTss(ArchR_obj, gene)[2])
@@ -127,8 +127,11 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend
   max_coordinate <- as.numeric(max(end(interactions_granges)))
   min_coordinate <- as.numeric(min(start(interactions_granges)))
   
-  # set plotting distance limits
-  distance <- max(abs(gene_coord - max_coordinate), abs(gene_coord - min_coordinate)) + extend_by
+  # set plotting distance limits depending on the size of the loops
+  distance <- max(width(interactions_granges)) + extend_by
+  if (distance > max_dist){
+    print("Distance above max, setting distance from gene as max_dist...")
+    distance <- max_dist}
   print(paste0("Distance plotting: ", distance))
   
   # make plot of all the interactions pertaining to one gene around that gene
@@ -272,9 +275,6 @@ genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B",
            "PAX7", "MSX1", "CSRNP1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5",
            "LMX1B", "ZEB2", "SOX21", "NKX6-2")
 
-genes <- c("ETS1", "SOX9", "SOX8", "SOX10", "SOX5",
-           "LMX1B", "ZEB2", "SOX21", "NKX6-2")
-
 for (gene in genes){
   
   print(gene)
@@ -290,7 +290,8 @@ for (gene in genes){
   extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, gene = gene, interacting_peaks = interacting_peaks)
   
   # make plot of these interactions
-  p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE)
+  p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
+                              extend_by = 500, max_dist = Inf)
   grid::grid.newpage()
   
   # plot
