@@ -118,7 +118,7 @@ ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, interacting_peaks, corCutO
 # Can select how to group cells for browser using group_by
 # will automatically zoom out so all interactions are seen and centre plot on the gene, can extend further using extend_by
 
-ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, max_dist = Inf, group_by = "clusters", return_plot = TRUE){
+ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, max_dist = Inf, group_by = "clusters", highlight_granges = NULL, return_plot = TRUE){
   
   # extract gene TSS coord
   gene_coord <- as.numeric(ArchR_ExtractTss(ArchR_obj, gene)[2])
@@ -135,15 +135,31 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend
   print(paste0("Distance plotting: ", distance))
   
   # make plot of all the interactions pertaining to one gene around that gene
-  p <- plotBrowserTrack(
-    ArchRProj = ArchR_obj,
-    groupBy = group_by,
-    geneSymbol = gene, 
-    upstream = distance,
-    downstream = distance,
-    loops = interactions_granges,
-    title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
-  )
+  if(is.null(highlight_granges)){
+    p <- plotBrowserTrack(
+      ArchRProj = ArchR_obj,
+      groupBy = group_by,
+      geneSymbol = gene, 
+      upstream = distance,
+      downstream = distance,
+      loops = interactions_granges,
+      title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
+    )
+  } else {
+    p <- plotBrowserTrack(
+      ArchRProj = ArchR_obj,
+      groupBy = group_by,
+      geneSymbol = gene, 
+      upstream = distance,
+      downstream = distance,
+      loops = interactions_granges,
+      highlight = highlight_granges,
+      title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
+    )
+  }
+  
+  
+
   
   # optionally return plot
   if (return_plot){
@@ -228,7 +244,9 @@ write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.cs
 ############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES #################################
 
 # calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
-ArchR <- addPeak2GeneLinks(ArchR)
+#ArchR <- addPeak2GeneLinks(ArchR)
+ArchR <- addPeak2GeneLinks(ArchR, maxDist = 90000000000)
+# biggest chrom chrom 1 size: 197608386
 
 # extract resulting interactions
 p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
@@ -299,3 +317,46 @@ for (gene in genes){
   grid::grid.draw(p[[1]])
   graphics.off()
 }
+
+### Overlay known enhancers
+SIX1_enhancers_df <- data.frame(
+  chr = c("chr5", "chr5", "chr5", "chr5"),
+  start = c(54587474, 54589267, 54590423, 54596822),
+  end = c(54587537, 54589478, 54590562, 54597223)
+  )
+SIX1_enhancers_granges <- makeGRangesFromDataFrame(SIX1_enhancers_df)
+
+SOX2_enhancers_df <- data.frame(
+  chr = c("chr9", "chr9", "chr9", "chr9", "chr9"),
+  start = c(17013525, 17029120, 17041213, 17003823, 17018130),
+  end = c(17013822, 17029653, 17041793, 17004302, 17018498)
+)
+SOX2_enhancers_granges <- makeGRangesFromDataFrame(SOX2_enhancers_df)
+
+SOX10_enhancers_df <- data.frame(
+  chr = c("chr1", "chr1", "chr1", "chr1", "chr1", "chr1"),
+  start = c(51032535, 51036237, 51046546, 51048966, 51051673, 51065028),
+  end = c(51035291, 51038859, 51049401, 51050564, 51054928, 51068292)
+)
+SOX10_enhancers_granges <- makeGRangesFromDataFrame(SOX10_enhancers_df)
+
+ETS1_enhancers_df <- data.frame(
+  chr = c("chr24", "chr24", "chr24", "chr24", "chr24", "chr24"),
+  start = c(267288, 385057, 397366, 495221, 1213638, 1717736),
+  end = c(269227, 386795, 399331, 497158, 1215537, 1719643)
+)
+ETS1_enhancers_granges <- makeGRangesFromDataFrame(ETS1_enhancers_df)
+
+
+enhancers = ETS1_enhancers_granges
+gene = "ETS1"
+
+ArchR_ExtractTss(ArchR, gene)
+
+# plot
+grid::grid.newpage()
+p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
+                            extend_by = 500, max_dist = Inf, highlight_granges = enhancers)
+png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+grid::grid.draw(p[[1]])
+graphics.off()
