@@ -122,6 +122,8 @@ se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
 
 print("se RDS saved")
 
+seMarker <- se
+
 ###########################################################################################
 ############################## Read in data #####################################
 
