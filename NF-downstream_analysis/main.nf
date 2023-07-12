@@ -226,7 +226,7 @@ workflow A {
         CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out )
 
         // Run differential accessibility tests between consensus peaks - check that this is still ok
-        PLOT_DIFF_PEAKS( ARCHR_INTEGRATING_WF.out )
+        //PLOT_DIFF_PEAKS( ARCHR_INTEGRATING_WF.out )
                 /// THINGS TO ADD INTO THIS WORKFLOW ///
                 // recreate how I found the enhancers I tested (may need to re-call peaks on stages)
 

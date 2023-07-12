@@ -51,7 +51,8 @@ if(opt$verbose) print(opt)
     data_path = "./input/rds_files/"
     ncores = opt$cores
     
-    addArchRThreads(threads = ncores)
+    #addArchRThreads(threads = ncores)
+    addArchRThreads(threads = 1) 
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -196,56 +197,62 @@ getPeakSet(ArchR)
 getAvailableMatrices(ArchR)
 
 
-###############################################################################################
-############################## CO-ACCESSIBILITY BETWEEN PEAKS #################################
+# ###############################################################################################
+# ############################## CO-ACCESSIBILITY BETWEEN PEAKS #################################
 
-# calculate co-accessibility between all peaks
-ArchR <- addCoAccessibility(ArchR)
+# print("Calculating coaccessibility...")
 
-# extract interactions - returns indexes of queryHits and subjectHits
-cA <- getCoAccessibility(ArchR, corCutOff = 0.5, returnLoops = FALSE)
-cA
-  # DataFrame with 120270 rows and 11 columns
-  # queryHits subjectHits seqnames correlation Variability1 Variability2     TStat        Pval         FDR VarQuantile1 VarQuantile2
-  # <integer>   <integer>    <Rle>   <numeric>    <numeric>    <numeric> <numeric>   <numeric>   <numeric>    <numeric>    <numeric>
-  #   1              3           4     chr1    0.548725   0.00437754   0.00683964   14.5441 4.15759e-40 4.52151e-38     0.911185     0.965430
-  # 2              4           3     chr1    0.548725   0.00683964   0.00437754   14.5441 4.15759e-40 4.52151e-38     0.965430     0.911185
-  # 3              4           5     chr1    0.517190   0.00683964   0.00356568   13.3901 4.49249e-35 3.64027e-33     0.965430     0.870967
-  # 4              5           4     chr1    0.517190   0.00356568   0.00683964   13.3901 4.49249e-35 3.64027e-33     0.870967     0.965430
-  # 5             27          40     chr1    0.761607   0.01690577   0.00855042   26.0418 1.47916e-94 2.12498e-91     0.995825     0.978303
-coacessibility_df <- as.data.frame(cA)
+# # calculate co-accessibility between all peaks
+# ArchR <- addCoAccessibility(ArchR)
 
-# Need to use indices from df to extract granges and therefore informative peak IDs
-coacessibility_df <- coacessibility_df %>% 
-  mutate(query_PeakID = paste0(seqnames(metadata(cA)[[1]][queryHits]), "-", start(metadata(cA)[[1]][queryHits]), "-", end(metadata(cA)[[1]][queryHits]))) %>%
-  mutate(subject_PeakID = paste0(seqnames(metadata(cA)[[1]][subjectHits]), "-", start(metadata(cA)[[1]][subjectHits]), "-", end(metadata(cA)[[1]][subjectHits])))
+# # extract interactions - returns indexes of queryHits and subjectHits
+# cA <- getCoAccessibility(ArchR, corCutOff = 0.5, returnLoops = FALSE)
+# cA
+#   # DataFrame with 120270 rows and 11 columns
+#   # queryHits subjectHits seqnames correlation Variability1 Variability2     TStat        Pval         FDR VarQuantile1 VarQuantile2
+#   # <integer>   <integer>    <Rle>   <numeric>    <numeric>    <numeric> <numeric>   <numeric>   <numeric>    <numeric>    <numeric>
+#   #   1              3           4     chr1    0.548725   0.00437754   0.00683964   14.5441 4.15759e-40 4.52151e-38     0.911185     0.965430
+#   # 2              4           3     chr1    0.548725   0.00683964   0.00437754   14.5441 4.15759e-40 4.52151e-38     0.965430     0.911185
+#   # 3              4           5     chr1    0.517190   0.00683964   0.00356568   13.3901 4.49249e-35 3.64027e-33     0.965430     0.870967
+#   # 4              5           4     chr1    0.517190   0.00356568   0.00683964   13.3901 4.49249e-35 3.64027e-33     0.870967     0.965430
+#   # 5             27          40     chr1    0.761607   0.01690577   0.00855042   26.0418 1.47916e-94 2.12498e-91     0.995825     0.978303
+# coacessibility_df <- as.data.frame(cA)
 
-head(coacessibility_df)
+# # Need to use indices from df to extract granges and therefore informative peak IDs
+# coacessibility_df <- coacessibility_df %>% 
+#   mutate(query_PeakID = paste0(seqnames(metadata(cA)[[1]][queryHits]), "-", start(metadata(cA)[[1]][queryHits]), "-", end(metadata(cA)[[1]][queryHits]))) %>%
+#   mutate(subject_PeakID = paste0(seqnames(metadata(cA)[[1]][subjectHits]), "-", start(metadata(cA)[[1]][subjectHits]), "-", end(metadata(cA)[[1]][subjectHits])))
 
-# sanity check that all interaction Peak IDs are in the ArchR peakset
-table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
+# head(coacessibility_df)
 
-# save df
-write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
+# # sanity check that all interaction Peak IDs are in the ArchR peakset
+# table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
 
-# #### Browser tracks
-# p <- plotBrowserTrack(
-#   ArchRProj = ArchR,
-#   groupBy = "clusters", 
-#   geneSymbol = "SIX1", 
-#   upstream = 50000,
-#   downstream = 50000,
-#   loops = getCoAccessibility(ArchR)
-# )
-# grid::grid.newpage()
-# grid::grid.draw(p[[1]])
+# # save df
+# write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
+
+# print("Coaccessibility calculated and saved.")
+
+# # #### Browser tracks
+# # p <- plotBrowserTrack(
+# #   ArchRProj = ArchR,
+# #   groupBy = "clusters", 
+# #   geneSymbol = "SIX1", 
+# #   upstream = 50000,
+# #   downstream = 50000,
+# #   loops = getCoAccessibility(ArchR)
+# # )
+# # grid::grid.newpage()
+# # grid::grid.draw(p[[1]])
 
 #########################################################################################################
 ############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES #################################
 
+print("Calculating coaccessibility between peaks and genes...")
+
 # calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
-#ArchR <- addPeak2GeneLinks(ArchR)
-ArchR <- addPeak2GeneLinks(ArchR, maxDist = 90000000000)
+ArchR <- addPeak2GeneLinks(ArchR)
+#ArchR <- addPeak2GeneLinks(ArchR, maxDist = 90000000000)
 # biggest chrom chrom 1 size: 197608386
 
 # extract resulting interactions
@@ -265,6 +272,8 @@ table(p2g_df$PeakID %in% getPeakSet(ArchR)$name)
 
 # save df
 write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df.csv"), row.names = FALSE)
+
+print("Coaccessibility between peaks and genes calculated and saved.")
 
 ################################################################################
 ############################## HEATMAPS OF P2L #################################
