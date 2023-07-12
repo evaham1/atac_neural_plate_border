@@ -154,7 +154,7 @@ workflow A {
         PEAK_CALL( CLUSTER.out )
 
         // Split full data into stages
-        SPLIT_STAGES_PROCESSED( CO_ACCESSIBILITY.out )
+        SPLIT_STAGES_PROCESSED( PEAK_CALL.out )
         SPLIT_STAGES_PROCESSED.out //[[meta], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
