@@ -192,8 +192,7 @@ workflow A {
 
         // Extract just the stage objects from upstream processing
         METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
-        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
-        // ch_peakcall_processed.view()
+        ch_atac_stages = METADATA_PEAKCALL_PROCESSED.out.metadata 
         // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
         // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
         // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
