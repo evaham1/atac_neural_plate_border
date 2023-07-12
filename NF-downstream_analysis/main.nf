@@ -191,15 +191,14 @@ workflow A {
     if(!skip_singlecell_processing){
 
         // Extract just the stage objects from upstream processing
-        ch_upstream_processed
-            .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .set{ ch_atac_stages }
-                // ch_atac_stages.view()
-                // [[sample_id:HH5], [Upstream_processing/FILTERING/HH5/rds_files/HH5_Save-ArchR]]
-                // [[sample_id:HH6], [Upstream_processing/FILTERING/HH6/rds_files/HH6_Save-ArchR]]
-                // [[sample_id:HH7], [Upstream_processing/FILTERING/HH7/rds_files/HH7_Save-ArchR]]
-                // [[sample_id:ss4], [Upstream_processing/FILTERING/ss4/rds_files/ss4_Save-ArchR]]
-                // [[sample_id:ss8], [Upstream_processing/FILTERING/ss8/rds_files/ss8_Save-ArchR]]
+        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
+        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
+        // ch_peakcall_processed.view()
+        // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
+        // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
+        // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
+        // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
+        // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
 
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
         CLUSTER( ch_atac_stages )
