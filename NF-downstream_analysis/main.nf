@@ -152,7 +152,6 @@ workflow A {
         //ch_full.view() //[[sample_id:FullData], [Upstream_processing/FILTERING/FullData/rds_files/FullData_Save-ArchR]]
         CLUSTER( ch_full )
         PEAK_CALL( CLUSTER.out )
-        CO_ACCESSIBILITY( PEAK_CALL.out )
 
         // Split full data into stages
         SPLIT_STAGES_PROCESSED( CO_ACCESSIBILITY.out )
@@ -224,6 +223,9 @@ workflow A {
             // IN HERE NEED TO EDIT SO SCHELPER_CELL_TYPE_OLD = SCHELPER_CELL_TYPE
             // ALSO MAYBE SHOULD ADD SCHELPER_CELL_TYPE_BROAD LABELS
                     // check these changes have worked!
+
+        // Run co-accessibility on integrated data to predict enhancer-gene interactions
+        CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out )
 
         // Run differential accessibility tests between consensus peaks - check that this is still ok
         PLOT_DIFF_PEAKS( ARCHR_INTEGRATING_WF.out )
