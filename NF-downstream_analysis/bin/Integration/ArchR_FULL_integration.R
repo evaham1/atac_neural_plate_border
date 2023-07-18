@@ -239,189 +239,189 @@ print(head(getCellColData(ArchR)))
 # saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
 # print("Integrated ArchR project saved.")
 
-#############################################################################################
-############################## Post-Integration Plots #######################################
+# #############################################################################################
+# ############################## Post-Integration Plots #######################################
 
-print("Making post-integration plots...")
+# print("Making post-integration plots...")
 
-# set colour palettes for UMAPs
-atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
-atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
+# # set colour palettes for UMAPs
+# atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
+# atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
 
-############################## RNA cell labels on ATAC data #######################################
+# ############################## RNA cell labels on ATAC data #######################################
 
-### New labels
-plot_path = "./plots/after_integration/new_labels/"
-dir.create(plot_path, recursive = T)
+# ### New labels
+# plot_path = "./plots/after_integration/new_labels/"
+# dir.create(plot_path, recursive = T)
 
-png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
-graphics.off()
+# png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
+# plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 8, legendSize = 0, pal = atac_scHelper_new_cols, labelAsFactors = FALSE)
+# graphics.off()
 
-png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_new_cols)
-graphics.off()
+# png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+# plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 0, legendSize = 0, pal = atac_scHelper_new_cols)
+# graphics.off()
 
-### Old labels / ones I will use
-plot_path = "./plots/after_integration/old_labels/"
-dir.create(plot_path, recursive = T)
+# ### Old labels / ones I will use
+# plot_path = "./plots/after_integration/old_labels/"
+# dir.create(plot_path, recursive = T)
 
-png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
-graphics.off()
+# png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
+# plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+# graphics.off()
 
-png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
-graphics.off()
+# png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+# plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+# graphics.off()
 
-### Broad labels
-plot_path = "./plots/after_integration/broad_labels/"
-dir.create(plot_path, recursive = T)
+# ### Broad labels
+# plot_path = "./plots/after_integration/broad_labels/"
+# dir.create(plot_path, recursive = T)
 
-png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
-graphics.off()
+# png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
+# plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+# graphics.off()
 
-png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
-graphics.off()
+# png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
+# plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+# graphics.off()
 
-############################## Integration scores plots #######################################
+# ############################## Integration scores plots #######################################
 
-plot_path = "./plots/after_integration/"
+# plot_path = "./plots/after_integration/"
 
-png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
-              legendSize = 10)
-graphics.off()
+# png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+# plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
+#               legendSize = 10)
+# graphics.off()
 
-png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
-plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-  name = "predictedScore_Un", plotAs = "Violin", alpha = 0.4)
-graphics.off()
+# png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
+# plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+#   name = "predictedScore_Un", plotAs = "Violin", alpha = 0.4)
+# graphics.off()
 
-print("Post-integration plots made.")
+# print("Post-integration plots made.")
 
-#############################################################################################
-#############################   IDENTIFY  CLUSTERS    #######################################
-#############################################################################################
+# #############################################################################################
+# #############################   IDENTIFY  CLUSTERS    #######################################
+# #############################################################################################
 
-print("ArchR cell state plots and assign identities based on label proportions")
+# print("ArchR cell state plots and assign identities based on label proportions")
 
 
-############################## Gene scores plots #######################################
-#### compare gene scores with integrated gene exp values
+# ############################## Gene scores plots #######################################
+# #### compare gene scores with integrated gene exp values
 
-plot_path = "./plots/gene_scores_vs_integrated_gex/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/gene_scores_vs_integrated_gex/"
+# dir.create(plot_path, recursive = T)
 
-ArchR <- addImputeWeights(ArchR)
-print("Impute weights added")
+# ArchR <- addImputeWeights(ArchR)
+# print("Impute weights added")
 
-# look for late marker genes
-late_markers <- c(
-  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
-  "MSX1", "TFAP2A", "TFAP2B", #mix
-  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
-  "SOX2", "SOX21" # neural
-)
+# # look for late marker genes
+# late_markers <- c(
+#   "GATA3", "DLX5", "SIX1", "EYA2", #PPR
+#   "MSX1", "TFAP2A", "TFAP2B", #mix
+#   "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
+#   "SOX2", "SOX21" # neural
+# )
 
-png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", late_markers)
-graphics.off()
+# png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", late_markers)
+# graphics.off()
 
-png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
-graphics.off()
+# png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
+# graphics.off()
 
-##################### Distribution of labels across clusters ##################################
+# ##################### Distribution of labels across clusters ##################################
 
-plot_path = "./plots/label_by_cluster_distribution/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/label_by_cluster_distribution/"
+# dir.create(plot_path, recursive = T)
 
-# visualise distribution across clusters: table of cell counts
-png(paste0(plot_path, 'label_by_cluster_cell_number_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
-graphics.off()
+# # visualise distribution across clusters: table of cell counts
+# png(paste0(plot_path, 'label_by_cluster_cell_number_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+# scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
+# graphics.off()
 
-# visualise distribution across clusters: confusion matrix
-png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters")
-graphics.off()
+# # visualise distribution across clusters: confusion matrix
+# png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+# scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters")
+# graphics.off()
 
-# visualise distribution across clusters: table of cell percentages
-cell_counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
-percentage_counts <- as.data.frame(lapply(cell_counts, function(x) (x / sum(x))*100))
-rownames(percentage_counts) <- rownames(cell_counts)
+# # visualise distribution across clusters: table of cell percentages
+# cell_counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+# percentage_counts <- as.data.frame(lapply(cell_counts, function(x) (x / sum(x))*100))
+# rownames(percentage_counts) <- rownames(cell_counts)
 
-png(paste0(plot_path, 'label_by_cluster_cell_percentage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-grid.arrange(tableGrob(round(percentage_counts, 2), theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(plot_path, 'label_by_cluster_cell_percentage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+# grid.arrange(tableGrob(round(percentage_counts, 2), theme = ttheme_minimal()))
+# graphics.off()
 
-# visualise distribution across clusters: piecharts
-counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
-png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
-scHelper::CellLabelPieCharts(counts, col = scHelper_cell_type_colours)
-graphics.off()
+# # visualise distribution across clusters: piecharts
+# counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+# png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
+# scHelper::CellLabelPieCharts(counts, col = scHelper_cell_type_colours)
+# graphics.off()
 
-##################### Label clusters based on thresholds ##################################
+# ##################### Label clusters based on thresholds ##################################
 
-plot_path = "./plots/label_by_cluster_distribution/assigned_cluster_labels/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/label_by_cluster_distribution/assigned_cluster_labels/"
+# dir.create(plot_path, recursive = T)
 
-identities <- c()
+# identities <- c()
 
-for(i in 1:ncol(percentage_counts)) {       # for-loop over columns (ie clusters)
-  column <- percentage_counts[ , i]
-  names(column) <- rownames(percentage_counts)
+# for(i in 1:ncol(percentage_counts)) {       # for-loop over columns (ie clusters)
+#   column <- percentage_counts[ , i]
+#   names(column) <- rownames(percentage_counts)
   
-  identity <- ifelse(
-    # do any labels pass the minimum threshold? 
-    # if NO labels label more than the minimum threshold, OR MORE THAN max_label labels pass the minimum threshold -> mixed
-    any(sum(column > opt$min_threshold) == 0 | sum(column > opt$min_threshold) > opt$max_label), "MIXED", # condition - mixed
-                     ifelse(
-                       sum(column > opt$min_threshold) == 1, names(column[column > opt$min_threshold]), # condition 2 - monolabel
-                            paste(names( sort(column[column > opt$min_threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
-                     ) 
-  )
-  identities <- c(identities, identity)
+#   identity <- ifelse(
+#     # do any labels pass the minimum threshold? 
+#     # if NO labels label more than the minimum threshold, OR MORE THAN max_label labels pass the minimum threshold -> mixed
+#     any(sum(column > opt$min_threshold) == 0 | sum(column > opt$min_threshold) > opt$max_label), "MIXED", # condition - mixed
+#                      ifelse(
+#                        sum(column > opt$min_threshold) == 1, names(column[column > opt$min_threshold]), # condition 2 - monolabel
+#                             paste(names( sort(column[column > opt$min_threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
+#                      ) 
+#   )
+#   identities <- c(identities, identity)
   
-}
+# }
 
-# assign cluster labels
-cluster_idents <- cbind(colnames(percentage_counts), identities)
+# # assign cluster labels
+# cluster_idents <- cbind(colnames(percentage_counts), identities)
 
-png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
-grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+# grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
-new_labels <- cluster_idents[,2]
-names(new_labels) <- cluster_idents[,1]
-ArchR$cluster_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
+# new_labels <- cluster_idents[,2]
+# names(new_labels) <- cluster_idents[,1]
+# ArchR$cluster_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
 
-# # save ArchR object with cluster labels
-# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-# saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
+# # # save ArchR object with cluster labels
+# # paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+# # saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
 
-# plot cluster labels on UMAPs
-p1 <- plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, labelAsFactors = FALSE)
-p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+# # plot cluster labels on UMAPs
+# p1 <- plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 8, legendSize = 0, labelAsFactors = FALSE)
+# p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+#               labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
 
-png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(p1)
-graphics.off()
+# png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+# print(p1)
+# graphics.off()
 
-png(paste0(plot_path, 'assigned_cluster_idents_UMAP_comparison.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(p1 + p2)
-graphics.off()
+# png(paste0(plot_path, 'assigned_cluster_idents_UMAP_comparison.png'), height = 20, width = 40, units = 'cm', res = 400)
+# print(p1 + p2)
+# graphics.off()
 
 #############################################################################################
 #############################   PEAK TO GENE LINKAGE    #####################################
@@ -539,38 +539,38 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend
 ###############################################################################################
 ############################## CO-ACCESSIBILITY BETWEEN PEAKS #################################
 
-print("Calculating coaccessibility...")
+# print("Calculating coaccessibility...")
 
-# calculate co-accessibility between all peaks
-ArchR <- addCoAccessibility(ArchR)
+# # calculate co-accessibility between all peaks
+# ArchR <- addCoAccessibility(ArchR)
 
-# extract interactions - returns indexes of queryHits and subjectHits
-cA <- getCoAccessibility(ArchR, corCutOff = 0.5, returnLoops = FALSE)
-cA
-  # DataFrame with 120270 rows and 11 columns
-  # queryHits subjectHits seqnames correlation Variability1 Variability2     TStat        Pval         FDR VarQuantile1 VarQuantile2
-  # <integer>   <integer>    <Rle>   <numeric>    <numeric>    <numeric> <numeric>   <numeric>   <numeric>    <numeric>    <numeric>
-  #   1              3           4     chr1    0.548725   0.00437754   0.00683964   14.5441 4.15759e-40 4.52151e-38     0.911185     0.965430
-  # 2              4           3     chr1    0.548725   0.00683964   0.00437754   14.5441 4.15759e-40 4.52151e-38     0.965430     0.911185
-  # 3              4           5     chr1    0.517190   0.00683964   0.00356568   13.3901 4.49249e-35 3.64027e-33     0.965430     0.870967
-  # 4              5           4     chr1    0.517190   0.00356568   0.00683964   13.3901 4.49249e-35 3.64027e-33     0.870967     0.965430
-  # 5             27          40     chr1    0.761607   0.01690577   0.00855042   26.0418 1.47916e-94 2.12498e-91     0.995825     0.978303
-coacessibility_df <- as.data.frame(cA)
+# # extract interactions - returns indexes of queryHits and subjectHits
+# cA <- getCoAccessibility(ArchR, corCutOff = 0.5, returnLoops = FALSE)
+# cA
+#   # DataFrame with 120270 rows and 11 columns
+#   # queryHits subjectHits seqnames correlation Variability1 Variability2     TStat        Pval         FDR VarQuantile1 VarQuantile2
+#   # <integer>   <integer>    <Rle>   <numeric>    <numeric>    <numeric> <numeric>   <numeric>   <numeric>    <numeric>    <numeric>
+#   #   1              3           4     chr1    0.548725   0.00437754   0.00683964   14.5441 4.15759e-40 4.52151e-38     0.911185     0.965430
+#   # 2              4           3     chr1    0.548725   0.00683964   0.00437754   14.5441 4.15759e-40 4.52151e-38     0.965430     0.911185
+#   # 3              4           5     chr1    0.517190   0.00683964   0.00356568   13.3901 4.49249e-35 3.64027e-33     0.965430     0.870967
+#   # 4              5           4     chr1    0.517190   0.00356568   0.00683964   13.3901 4.49249e-35 3.64027e-33     0.870967     0.965430
+#   # 5             27          40     chr1    0.761607   0.01690577   0.00855042   26.0418 1.47916e-94 2.12498e-91     0.995825     0.978303
+# coacessibility_df <- as.data.frame(cA)
 
-# Need to use indices from df to extract granges and therefore informative peak IDs
-coacessibility_df <- coacessibility_df %>% 
-  mutate(query_PeakID = paste0(seqnames(metadata(cA)[[1]][queryHits]), "-", start(metadata(cA)[[1]][queryHits]), "-", end(metadata(cA)[[1]][queryHits]))) %>%
-  mutate(subject_PeakID = paste0(seqnames(metadata(cA)[[1]][subjectHits]), "-", start(metadata(cA)[[1]][subjectHits]), "-", end(metadata(cA)[[1]][subjectHits])))
+# # Need to use indices from df to extract granges and therefore informative peak IDs
+# coacessibility_df <- coacessibility_df %>% 
+#   mutate(query_PeakID = paste0(seqnames(metadata(cA)[[1]][queryHits]), "-", start(metadata(cA)[[1]][queryHits]), "-", end(metadata(cA)[[1]][queryHits]))) %>%
+#   mutate(subject_PeakID = paste0(seqnames(metadata(cA)[[1]][subjectHits]), "-", start(metadata(cA)[[1]][subjectHits]), "-", end(metadata(cA)[[1]][subjectHits])))
 
-head(coacessibility_df)
+# head(coacessibility_df)
 
-# sanity check that all interaction Peak IDs are in the ArchR peakset
-table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
+# # sanity check that all interaction Peak IDs are in the ArchR peakset
+# table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
 
-# save df
-write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
+# # save df
+# write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
 
-print("Coaccessibility calculated and saved.")
+# print("Coaccessibility calculated and saved.")
 
 # #### Browser tracks
 # p <- plotBrowserTrack(
@@ -590,8 +590,8 @@ print("Coaccessibility calculated and saved.")
 print("Calculating coaccessibility between peaks and genes...")
 
 # calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
-#ArchR <- addPeak2GeneLinks(ArchR)
-ArchR <- addPeak2GeneLinks(ArchR, maxDist = 90000000000)
+ArchR <- addPeak2GeneLinks(ArchR)
+#ArchR <- addPeak2GeneLinks(ArchR, maxDist = 90000000000)
 # biggest chrom chrom 1 size: 197608386
 
 # extract resulting interactions
