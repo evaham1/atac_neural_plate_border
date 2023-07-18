@@ -17,6 +17,8 @@ library(parallel)
 library(presto)
 library(Seurat)
 library(plyr)
+library(gtools)
+library(scHelper)
 
 # check that ArchR version is 1.0.3
 sessionInfo()
