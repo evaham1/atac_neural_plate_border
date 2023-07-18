@@ -223,7 +223,7 @@ workflow A {
                     // check these changes have worked!
 
         // Run co-accessibility on integrated data to predict enhancer-gene interactions
-        CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out )
+        //CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out )
 
         // Run differential accessibility tests between consensus peaks - check that this is still ok
         //PLOT_DIFF_PEAKS( ARCHR_INTEGRATING_WF.out )
