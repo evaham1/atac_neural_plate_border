@@ -617,6 +617,9 @@ print("Coaccessibility between peaks and genes calculated and saved.")
 ################################################################################
 ############################## HEATMAPS OF P2L #################################
 
+plot_path = "./plots/peak2gene/"
+dir.create(plot_path, recursive = T)
+
 ## Heatmap of linkage across clusters
 p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
 png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
@@ -718,7 +721,7 @@ names(enhancers_df_list) <- c("SIX1", "SOX2", "SOX10", "ETS1", "FOXI3", "FOXD3",
 # loop through genes and make plots (+ with enhancers highlighted if have that data)
 for (gene in genes){
   
-  print(gene)
+  print(paste0("Making interactions plot for: ", gene))
   
   # extract interactions to gene of interest
   interactions <- p2g_df %>% filter(gene_name %in% gene)
@@ -732,7 +735,7 @@ for (gene in genes){
   
   # make plot of these interactions
   p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-                              extend_by = 500, max_dist = Inf)
+                              extend_by = 500, max_dist = Inf, highlight_granges = NULL)
   grid::grid.newpage()
   
   # plot
@@ -742,11 +745,13 @@ for (gene in genes){
   
   # overlay known enhancers
   if (gene %in% names(enhancers_df_list)){
+    print("Plotting enhancers")
     enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
-    grid::grid.newpage()
+    print(enhancers_granges)
     p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
                                 extend_by = 500, max_dist = Inf, highlight_granges = enhancers_granges)
     png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.newpage()
     grid::grid.draw(p[[1]])
     graphics.off()
   }
