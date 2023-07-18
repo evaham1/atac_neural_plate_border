@@ -230,8 +230,49 @@ for (TF in TFs){
 }
 
 
+p <- plotGroups(ArchR, groupBy = "clusters", 
+                colorBy = "GeneIntegrationMatrix", 
+                name = TF)
+p
 
 
+############################## Extract target peaks of key TFs #######################################
 
+# can see where the motif x peak matrix is stored here
+anno <- getPeakAnnotation(ArchR, name = "Motif")
+anno$Matches
 
+# need to read in this rds file to extract peak annotations with motifs
+motifs_peaks <- readRDS("~/output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR/Annotations/Motif-Matches-In-Peaks.rds")
+dim(motifs_peaks) # 268007 peaks x 746 motifs
 
+# then need to extract the sparse matrix from the ranged experiment object
+motif_matrix <- assays(motifs_peaks)$matches
+rownames(motif_matrix) <- rowData(motifs_peaks)$name
+colnames(motif_matrix) <- colnames(motifs_peaks)
+
+# then can subset the matrix to only include TFs and only peaks with a motif in at least one of these
+subsetted_motif_matrix <- motif_matrix[ , c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
+                  "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2", 
+                  "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX21", "NKX6-2")]
+subsetted_motif_matrix <- subsetted_motif_matrix[rowSums(subsetted_motif_matrix[])>0,]
+
+# now want to extract the list of target peak IDs for each TF
+TF_targets <- list()
+for (TF in colnames(subsetted_motif_matrix)){
+  print(TF)
+  peak_ids <- rownames(subsetted_motif_matrix)[subsetted_motif_matrix[ , TF]]
+  TF_targets[[TF]] <- peak_ids
+}
+
+length(TF_targets)
+
+length(TF_targets[["SIX1"]])
+tail(TF_targets[["SIX1"]])
+
+for (TF in names(TF_targets)) {
+  print(TF)
+  write(paste0(TF, "; ", paste0(TF_targets[[TF]], collapse = ", ")), 
+          file = paste0(rds_path, "/", "TF_targets.txt"), 
+          append = TRUE)
+  }
