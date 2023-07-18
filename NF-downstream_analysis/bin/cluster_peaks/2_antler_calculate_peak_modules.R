@@ -67,6 +67,43 @@ if(opt$verbose) print(opt)
   dir.create(PMs_path, recursive = T)
 }
 
+########## NEED TO UPDATE FUNCTION IN SCHELPER:
+## function to export an antler object either as a list of peak ids or as a bed file
+ExportAntlerModules <- function (antler_object, publish_dir, names_list = "unbiasedPMs") {
+  # extract data based on name of slot in antler object
+  for (gm_list in names_list) {
+    mods = antler_object$gene_modules$lists[[gm_list]]$content
+    
+    # loop through each module
+    df_full = data.frame(matrix(nrow = 0, ncol = 4))
+    for (i in seq(length(mods))) {
+      # for each module in that slot name it by numbering system
+      modname = base::names(mods)[i]
+      if (is.null(modname)) {
+        modname = paste0("PM: ", i)
+      }
+      # write out peaks as a txt file
+      write(paste0(modname, "; ", paste0(mods[[i]], collapse = ", ") ), 
+            file = paste0(publish_dir, "/", gm_list, ".txt"), 
+            append = TRUE)
+      # write out peaks in a df to turn into bed file
+      df = data.frame(matrix(nrow = 0, ncol = 4))
+      for (j in seq(length(mods[[i]])) ) {
+        chr <- strsplit(mods[[i]][j], "-")[[1]][1]
+        start <- strsplit(mods[[i]][j], "-")[[1]][2]
+        end <- strsplit(mods[[i]][j], "-")[[1]][3]
+        df[j, ] <- c(chr, start, end, paste0(modname, "-", j))
+      }
+      df_full <- rbind(df_full, df)
+    }
+    write.table(df_full, paste0(publish_dir, "/", gm_list, "_with_chr.bed"), sep="\t", 
+                row.names=FALSE, col.names = FALSE, quote = FALSE)
+    df_full$X1 <- substring(df_full$X1, 4)
+    write.table(df_full, paste0(publish_dir, "/", gm_list, "_without_chr.bed"), sep="\t", 
+                row.names=FALSE, col.names = FALSE, quote = FALSE)
+  }
+}
+
 ########################       CELL STATE COLOURS    ########################################
 scHelper_cell_type_order <- c('node', 'streak', 'PGC', 'BI', 'meso', 'endo',
                               'EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
@@ -257,10 +294,13 @@ names(antler_data$gene_modules$lists$unbiasedPMs$content) <- paste0("FullData_PM
 # how many peak modules were generated
 print(paste0("Number of peak modules made: ", length(antler_data$gene_modules$lists$unbiasedPMs$content)))
 
-# export peak modules
+# export peak modules as list of peaks
 temp_path = paste0(PMs_path, "FullData/")
 dir.create(temp_path)
 ExportAntlerModules(antler_data, publish_dir = temp_path, names_list = "unbiasedPMs")
+
+# export peak modules as a bed file for motif analysus
+antler_data
 
 # save antler object
 temp_path = paste0(rds_path, "FullData/")
