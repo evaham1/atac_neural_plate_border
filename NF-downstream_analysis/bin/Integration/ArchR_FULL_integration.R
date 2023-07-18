@@ -432,7 +432,7 @@ print("coaccessibility ArchR")
 ############################## FUNCTIONS #######################################
 
 # extracts the chromosome and TSS coordinate of gene of interest from P2G linkage data attached to ArchR object
-ArchR_ExtractTss <- function(ArchR_obj, gene){
+ArchR_ExtractTss <- function(ArchR_obj, gene, corCutOff = 0.5){
   gene <- toupper(gene)
   gene_metadata <- metadata(getPeak2GeneLinks(ArchR_obj, corCutOff = corCutOff, returnLoops = FALSE))$geneSet
   gene_coord <- as.numeric(start(ranges(gene_metadata[which(gene_metadata$name %in% gene)])))
@@ -450,8 +450,8 @@ ArchR_ExtractTss <- function(ArchR_obj, gene){
 ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, interacting_peaks, corCutOff = 0.5){
   
   # extract TSS coordinate of gene of interest
-  chr <- ArchR_ExtractTss(ArchR_obj, gene)[1]
-  gene_coord <- ArchR_ExtractTss(ArchR_obj, gene)[2]
+  chr <- ArchR_ExtractTss(ArchR_obj, gene, corCutOff = corCutOff)[1]
+  gene_coord <- ArchR_ExtractTss(ArchR_obj, gene, corCutOff = corCutOff)[2]
   
   # extract interacting peak coordinates from unique peak IDs
   split <- unlist(lapply(interacting_peaks, FUN = function(x) strsplit(x, split = "-")))
@@ -484,10 +484,10 @@ ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, interacting_peaks, corCutO
 # Can select how to group cells for browser using group_by
 # will automatically zoom out so all interactions are seen and centre plot on the gene, can extend further using extend_by
 
-ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, max_dist = Inf, group_by = "clusters", highlight_granges = NULL, return_plot = TRUE){
+ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, max_dist = Inf, corCutOff = 0.5, group_by = "clusters", highlight_granges = NULL, return_plot = TRUE){
   
   # extract gene TSS coord
-  gene_coord <- as.numeric(ArchR_ExtractTss(ArchR_obj, gene)[2])
+  gene_coord <- as.numeric(ArchR_ExtractTss(ArchR_obj, gene, corCutOff = corCutOff)[2])
   
   # identify the range you need to plot to see all these interactions
   max_coordinate <- as.numeric(max(end(interactions_granges)))
