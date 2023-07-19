@@ -619,19 +619,19 @@ print("Coaccessibility between peaks and genes calculated and saved.")
 ################################################################################
 ############################## HEATMAPS OF P2L #################################
 
-plot_path = "./plots/peak2gene/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/peak2gene/"
+# dir.create(plot_path, recursive = T)
 
-## Heatmap of linkage across clusters
-p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
-png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# ## Heatmap of linkage across clusters
+# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
+# png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
-p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
-png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
+# png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
