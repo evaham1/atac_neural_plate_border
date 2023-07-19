@@ -38,6 +38,8 @@ include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"      
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
+include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis", checkIfExists: true) )
+
 
 // METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -222,7 +224,8 @@ workflow A {
             // ALSO MAYBE SHOULD ADD SCHELPER_CELL_TYPE_BROAD LABELS
                     // check these changes have worked!
 
-        // Run co-accessibility on integrated data to predict enhancer-gene interactions
+        // Run motif analysis and footprinting for key TFs
+        MOTIF_ANALYSIS( ARCHR_INTEGRATING_WF.out )
         //CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out )
 
         // Run differential accessibility tests between consensus peaks - check that this is still ok
