@@ -310,6 +310,38 @@ print(head(getCellColData(ArchR)))
 
 # print("Post-integration plots made.")
 
+# ############################## Gene Integration Count Plots for key TFs #######################################
+
+# # set genes of interest
+# TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
+#          "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2")
+# # CTNRP and LMX1B and ZEB2 not found
+
+# ArchR <- addImputeWeights(ArchR)
+
+# # Plot ridge plot of each TF deviation
+# for (TF in TFs){
+#   print(TF)
+  
+#   p <- plotGroups(ArchR, groupBy = "clusters", 
+#                   colorBy = "GeneIntegrationMatrix", 
+#                   name = TF,
+#                   imputeWeights = getImputeWeights(ArchR))
+  
+#   # Plot distribution of GeneIntegration values for each cluster
+#   png(paste0(plot_path, TF, '_gene_integration_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+  
+#   # Plot GeneIntegration values on UMAP
+#   p <- plotEmbedding(ArchR, colorBy = "GeneIntegrationMatrix", name = TF, embedding = "UMAP", continuousSet = "blueYellow", 
+#                      imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
+#   png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+  
+# }
+
 # #############################################################################################
 # #############################   IDENTIFY  CLUSTERS    #######################################
 # #############################################################################################
@@ -599,13 +631,11 @@ ArchR <- addPeak2GeneLinks(ArchR)
 # extract resulting interactions
 p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
 p2g_df <- as.data.frame(p2g)
-head(p2g)
 
 # need to add correct Peak IDs and gene names to df
 p2g_df <- p2g_df %>% 
   mutate(PeakID = paste0(seqnames(metadata(p2g)$peakSet[idxATAC]), "-", start(metadata(p2g)$peakSet[idxATAC]), "-", end(metadata(p2g)$peakSet[idxATAC]))) %>%
   mutate(gene_name = metadata(p2g)$geneSet[idxRNA]$name)
-
 head(p2g_df)
 
 # sanity check that all interaction Peak IDs are in the ArchR peakset
@@ -635,10 +665,6 @@ print("Coaccessibility between peaks and genes calculated and saved.")
 
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
-
-# read in P2G dataframe
-p2g_df <- read.csv(paste0(rds_path, "Peak_to_gene_linkage_df.csv"))
-head(p2g_df)
 
 # set genes of interest
 genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
