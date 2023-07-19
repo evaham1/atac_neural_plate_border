@@ -22,6 +22,7 @@ library(scHelper)
 
 # check that ArchR version is 1.0.3
 sessionInfo()
+print(plotBrowserTrack)
 
 ############################## Set up script options #######################################
 spec = matrix(c(
@@ -68,7 +69,8 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
-
+## debug
+sessionInfo()
 
 ############################## Read in ArchR project and seurat object #######################################
 
@@ -134,44 +136,44 @@ seurat_data@meta.data$old_labels <- factor(seurat_data@meta.data$old_labels, lev
 scHelper_new_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$scHelper_cell_type))]
 scHelper_old_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$old_labels))]
 
-###### UMAPs
-plot_path = "./plots/before_integration/"
-dir.create(plot_path, recursive = T)
+# ###### UMAPs
+# plot_path = "./plots/before_integration/"
+# dir.create(plot_path, recursive = T)
 
-umap_rna_new <- DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE, 
-                    label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
-                    label.box = TRUE, repel = TRUE,
-                    pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
-                    cols = scHelper_new_cols, shuffle = TRUE) +
-  ggplot2::theme_void() +
-  ggplot2::theme(legend.position = "none", 
-                 plot.title = element_blank())
-umap_rna_old <- DimPlot(seurat_data, group.by = 'old_labels', label = TRUE, 
-                    label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
-                    label.box = TRUE, repel = TRUE,
-                    pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
-                    cols = scHelper_old_cols, shuffle = TRUE) +
-  ggplot2::theme_void() +
-  ggplot2::theme(legend.position = "none", 
-                 plot.title = element_blank())
+# umap_rna_new <- DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE, 
+#                     label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+#                     label.box = TRUE, repel = TRUE,
+#                     pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
+#                     cols = scHelper_new_cols, shuffle = TRUE) +
+#   ggplot2::theme_void() +
+#   ggplot2::theme(legend.position = "none", 
+#                  plot.title = element_blank())
+# umap_rna_old <- DimPlot(seurat_data, group.by = 'old_labels', label = TRUE, 
+#                     label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+#                     label.box = TRUE, repel = TRUE,
+#                     pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
+#                     cols = scHelper_old_cols, shuffle = TRUE) +
+#   ggplot2::theme_void() +
+#   ggplot2::theme(legend.position = "none", 
+#                  plot.title = element_blank())
 
-png(paste0(plot_path, 'RNA_UMAPs_old_vs_new.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(umap_rna_new + umap_rna_old)
-graphics.off()
+# png(paste0(plot_path, 'RNA_UMAPs_old_vs_new.png'), height = 20, width = 40, units = 'cm', res = 400)
+# print(umap_rna_new + umap_rna_old)
+# graphics.off()
 
-############################## UMAPs before integration #######################################
-# UMAPs of RNA and ATAC data, with RNA coloured by cell state and ATAC by clusters
-umap_atac <- plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 0)
+# ############################## UMAPs before integration #######################################
+# # UMAPs of RNA and ATAC data, with RNA coloured by cell state and ATAC by clusters
+# umap_atac <- plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 0)
 
-png(paste0(plot_path, 'UMAPs_before_integration_new_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(umap_rna_new + umap_atac)
-graphics.off()
+# png(paste0(plot_path, 'UMAPs_before_integration_new_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
+# print(umap_rna_new + umap_atac)
+# graphics.off()
 
-png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(umap_rna_old + umap_atac)
-graphics.off()
+# png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
+# print(umap_rna_old + umap_atac)
+# graphics.off()
 
-print("Pre-integration plots made.")
+# print("Pre-integration plots made.")
 
 ################################################################################################
 ############################## Unconstrained integration #######################################
