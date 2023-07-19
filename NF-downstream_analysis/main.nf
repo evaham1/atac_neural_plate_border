@@ -38,7 +38,7 @@ include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"      
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
-include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis", checkIfExists: true) )
+include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
 
 // METACELL PROCESSING
