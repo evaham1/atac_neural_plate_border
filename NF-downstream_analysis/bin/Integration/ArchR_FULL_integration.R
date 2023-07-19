@@ -20,10 +20,6 @@ library(plyr)
 library(gtools)
 library(scHelper)
 
-# check that ArchR version is 1.0.3
-sessionInfo()
-print(plotBrowserTrack)
-
 ############################## Set up script options #######################################
 spec = matrix(c(
   'runtype', 'l', 2, "character",
@@ -624,22 +620,22 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend
 print("Calculating coaccessibility between peaks and genes...")
 
 # calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
-ArchR <- addPeak2GeneLinks(ArchR)
-#ArchR <- addPeak2GeneLinks(ArchR, maxDist = 90000000000)
-# biggest chrom chrom 1 size: 197608386
+ArchR <- addPeak2GeneLinks(ArchR, maxDist = 200000000)
+# biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
 
 # extract resulting interactions
 p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
 p2g_df <- as.data.frame(p2g)
 
-# need to add correct Peak IDs and gene names to df
+# add correct Peak IDs and gene names to df
 p2g_df <- p2g_df %>% 
   mutate(PeakID = paste0(seqnames(metadata(p2g)$peakSet[idxATAC]), "-", start(metadata(p2g)$peakSet[idxATAC]), "-", end(metadata(p2g)$peakSet[idxATAC]))) %>%
   mutate(gene_name = metadata(p2g)$geneSet[idxRNA]$name)
 head(p2g_df)
+print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 
 # sanity check that all interaction Peak IDs are in the ArchR peakset
-table(p2g_df$PeakID %in% getPeakSet(ArchR)$name)
+if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
 # save df
 write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df.csv"), row.names = FALSE)
@@ -753,36 +749,41 @@ for (gene in genes){
   
   # extract interactions to gene of interest
   interactions <- p2g_df %>% filter(gene_name %in% gene)
-  print(paste0(nrow(interactions), " interactions found"))
   
-  # extract the peak IDs that interact with that gene
-  interacting_peaks <- unique(interactions$PeakID)
   
-  # extract loops between the gene and these peaks
-  extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, gene = gene, interacting_peaks = interacting_peaks)
-  
-  # make plot of these interactions
-  p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-                              extend_by = 500, max_dist = Inf, highlight_granges = NULL)
-  grid::grid.newpage()
-  
-  # plot
-  png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
-  grid::grid.draw(p[[1]])
-  graphics.off()
-  
-  # overlay known enhancers
-  if (gene %in% names(enhancers_df_list)){
-    print("Plotting enhancers")
-    enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
-    print(enhancers_granges)
+  if (nrow(interactions) == 0){
+    print("No interactions found for this gene! Moving to next gene...")
+  } else {
+    print(paste0(nrow(interactions), " interactions found"))
+    # extract the peak IDs that interact with that gene
+    interacting_peaks <- unique(interactions$PeakID)
+    
+    # extract loops between the gene and these peaks
+    extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, gene = gene, interacting_peaks = interacting_peaks)
+    
+    # make plot of these interactions
     p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-                                extend_by = 500, max_dist = Inf, highlight_granges = enhancers_granges)
-    png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+                                extend_by = 500, max_dist = Inf, highlight_granges = NULL)
     grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
     grid::grid.draw(p[[1]])
     graphics.off()
+    
+    # overlay known enhancers
+    if (gene %in% names(enhancers_df_list)){
+      print("Plotting enhancers")
+      enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
+      print(enhancers_granges)
+      p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
+                                  extend_by = 500, max_dist = Inf, highlight_granges = enhancers_granges)
+      png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+      grid::grid.newpage()
+      grid::grid.draw(p[[1]])
+      graphics.off()
+    }
+    
   }
-  
   
 }
