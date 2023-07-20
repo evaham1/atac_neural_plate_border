@@ -16,6 +16,9 @@ import seaborn as sns
 import SEACells
 from scipy.io import mmread
 
+import random
+random.seed(30)
+
 # Some plotting aesthetics
 sns.set_style('ticks')
 matplotlib.rcParams['figure.figsize'] = [4, 4]
