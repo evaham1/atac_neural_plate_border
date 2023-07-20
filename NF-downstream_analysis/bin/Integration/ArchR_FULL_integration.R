@@ -250,6 +250,7 @@ print("Making post-integration plots...")
 # set colour palettes for UMAPs
 atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
 atac_scHelper_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type)]
+atac_scHelper_broad <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_broad)]
 
 ############################## RNA cell labels on ATAC data #######################################
 
