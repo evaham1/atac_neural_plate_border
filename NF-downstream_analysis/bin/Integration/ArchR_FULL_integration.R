@@ -382,7 +382,7 @@ graphics.off()
 # look for early marker genes
 early_markers <- c(
   "EPAS1", "BMP4", "YEATS4", "SOX3",
-  "HOXB1", "ACNP", "EOMES", "ADMP"
+  "HOXB1", "EOMES", "ADMP"
 )
 
 png(paste0(plot_path, 'early_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
