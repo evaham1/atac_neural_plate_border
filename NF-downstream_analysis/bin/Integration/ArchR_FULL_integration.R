@@ -844,16 +844,17 @@ print("Coaccessibility between peaks and genes (250000 dist) calculated and save
 plot_path = "./plots/peak2gene_250000_dist/"
 dir.create(plot_path, recursive = T)
 
-## Heatmap of linkage across clusters
-p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
-png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-print(p)
-graphics.off()
+## This sporadically fails so comment out for now, not v useful plot anyway
+# ## Heatmap of linkage across clusters
+# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
+# png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
-p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
-png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
+# png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
