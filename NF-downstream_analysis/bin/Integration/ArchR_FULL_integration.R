@@ -386,11 +386,11 @@ early_markers <- c(
   "HOXB1", "EOMES", "ADMP"
 )
 
-png(paste0(plot_path, 'early_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+png(paste0(plot_path, 'early_markers_GeneScoreMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
 scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", early_markers)
 graphics.off()
 
-png(paste0(plot_path, 'early_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+png(paste0(plot_path, 'early_markers_GeneIntegrationMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
 scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", early_markers)
 graphics.off()
 
