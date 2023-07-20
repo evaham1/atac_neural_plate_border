@@ -9,7 +9,7 @@ include {R as FILTER_PEAKS} from "$baseDir/modules/local/r/main"               a
 include {R as CLUSTER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/cluster_peaks/2_antler_calculate_peak_modules.R", checkIfExists: true) )
 
 // Module to run homer motif enrichment on peaks
-include {HOMER_MOTIF_ENRICHMENT} from "$baseDir/modules/local/homer_motif_enrichment/main"
+//include {HOMER_MOTIF_ENRICHMENT} from "$baseDir/modules/local/homer_motif_enrichment/main"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
