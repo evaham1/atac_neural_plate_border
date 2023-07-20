@@ -19,6 +19,7 @@ workflow CLUSTER_PEAKS_WF {
     take:
     seacell_output //should be SEACELLS_ATAC_WF.out.seacell_outputs_named
     integration_output //SEACELLS_INTEGRATING.out.processed_integration_output
+    ch_fasta // path to reference fasta sequence
 
     main:
 
@@ -73,8 +74,10 @@ workflow CLUSTER_PEAKS_WF {
     // Cluster peaks using Antler package
     CLUSTER_PEAKS( FILTER_PEAKS.out )
 
+    CLUSTER_PEAKS.out.view()
+
     // Run homer motif enrichment on each peak module
-    //HOMER_MOTIF_ENRICHMENT( CLUSTER_PEAKS.out )
+    HOMER_MOTIF_ENRICHMENT( CLUSTER_PEAKS.out, ch_fasta )
 
     emit:
     clustered_peaks = CLUSTER_PEAKS.out

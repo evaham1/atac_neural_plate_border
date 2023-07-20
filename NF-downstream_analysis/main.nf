@@ -92,6 +92,11 @@ Channel
     .value(params.gtf)
     .set{ch_gtf}
 
+// set channel to just fasta file
+Channel
+    .value(params.fasta)
+    .set{ch_fasta}
+
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
@@ -287,7 +292,7 @@ workflow A {
         // maybe in here add schelper cell type broad labels
 
         ///////     Cluster peaks      ///////
-        CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING_WF.out.processed_integration_output )
+        CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING_WF.out.processed_integration_output, ch_fasta )
 
         
 

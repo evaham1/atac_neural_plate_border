@@ -3,17 +3,16 @@ process HOMER_MOTIF_ENRICHMENT {
     container "rocker/conda_homer:0.1"
 
     input:
-    tuple val(meta), path(input_file)
-    //needs to be a bed file of peaks and the genome index file
+    tuple path(input_file), path(fasta_file)
+    //needs to be a bed file of peaks and the genome fasta file
 
     output:
-    tuple val(meta), path(output_file)          , emit: validpairs
-    //needs to be the folder name for outputs
+    path(output_file)          , emit: motif_enrichments
+    //dont know what this is, probably doesnt matter as not going to pipe output to anything else
 
     script:
-    output_file = input_file.toString() - ".allValidPairs" + "_edited.allValidPairs"
     """
-    findMotifsGenome.pl ERpeaks.txt hg18 ER_MotifOutput/ -size given
+    split_bed_run_homer_motif_enrichment.sh $input_file $fasta_file
     """
 }
 
