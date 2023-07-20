@@ -287,12 +287,12 @@ dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE)
 graphics.off()
 
 png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_cols)
 graphics.off()
 
 ############################## Integration scores plots #######################################
@@ -462,7 +462,7 @@ ArchR$cluster_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
 p1 <- plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
               labelSize = 8, legendSize = 0, labelAsFactors = FALSE)
 p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE)
 
 png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
 print(p1)
