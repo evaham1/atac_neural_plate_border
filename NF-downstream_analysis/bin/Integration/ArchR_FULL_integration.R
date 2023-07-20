@@ -21,11 +21,18 @@ library(gtools)
 library(scHelper)
 
 ############################## Set up script options #######################################
-spec = matrix(c(
-  'runtype', 'l', 2, "character",
-  'cores'   , 'c', 2, "integer"
-), byrow=TRUE, ncol=4)
-opt = getopt(spec)
+
+option_list <- list(
+  make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
+  make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
+  make_option(c("-m", "--min_threshold"), action = "store", type = "integer", help = "minimum percentage of cells a label must contain", default = 40),
+  make_option(c("-l", "--max_label"), action = "store", type = "integer", help = "maximum number of labels a cluster can have", default = 3),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
+)
+
+opt_parser = OptionParser(option_list = option_list)
+opt <- parse_args(opt_parser)
+if(opt$verbose) print(opt)
 
 # Set paths and load data
 {
@@ -118,16 +125,20 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo')
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+                              'PGC', 'BI', 'meso', 'endo',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                "#A5718D", "#3F918C", "#ed5e5f", "9792A3")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo')
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo',
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam')
 seurat_data@meta.data$old_labels <- factor(seurat_data@meta.data$old_labels, levels = scHelper_cell_type_order)
 scHelper_new_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$scHelper_cell_type))]
 scHelper_old_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$old_labels))]
@@ -237,7 +248,7 @@ print("Making post-integration plots...")
 
 # set colour palettes for UMAPs
 atac_scHelper_new_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_new)]
-atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
+atac_scHelper_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type)]
 
 ############################## RNA cell labels on ATAC data #######################################
 
@@ -256,17 +267,17 @@ plotEmbedding(ArchR, name = "scHelper_cell_type_new", plotAs = "points", size = 
 graphics.off()
 
 ### Old labels / ones I will use
-plot_path = "./plots/after_integration/old_labels/"
+plot_path = "./plots/after_integration/old_labels_to_use/"
 dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE)
 graphics.off()
 
 png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_cols)
 graphics.off()
 
 ### Broad labels
@@ -285,7 +296,8 @@ graphics.off()
 
 ############################## Integration scores plots #######################################
 
-plot_path = "./plots/after_integration/"
+plot_path = "./plots/after_integration/integration_scores/"
+dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
@@ -300,6 +312,9 @@ graphics.off()
 print("Post-integration plots made.")
 
 ############################## Gene Integration Count Plots for key TFs #######################################
+
+plot_path = "./plots/gene_integration_plots_of_key_TFs/"
+dir.create(plot_path, recursive = T)
 
 # set genes of interest
 TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
@@ -341,7 +356,7 @@ print("ArchR cell state plots and assign identities based on label proportions")
 ############################## Gene scores plots #######################################
 #### compare gene scores with integrated gene exp values
 
-plot_path = "./plots/gene_scores_vs_integrated_gex/"
+plot_path = "./plots/gene_scores_vs_integrated_gex_marker_genes/"
 dir.create(plot_path, recursive = T)
 
 ArchR <- addImputeWeights(ArchR)
@@ -361,6 +376,20 @@ graphics.off()
 
 png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
 scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
+graphics.off()
+
+# look for early marker genes
+early_markers <- c(
+  "EPAS1", "BMP4", "YEATS4", "SOX3",
+  "HOXB1", "ACNP", "EOMES", "ADMP"
+)
+
+png(paste0(plot_path, 'early_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", early_markers)
+graphics.off()
+
+png(paste0(plot_path, 'early_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", early_markers)
 graphics.off()
 
 ##################### Distribution of labels across clusters ##################################
@@ -427,10 +456,6 @@ graphics.off()
 new_labels <- cluster_idents[,2]
 names(new_labels) <- cluster_idents[,1]
 ArchR$cluster_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
-
-# # save ArchR object with cluster labels
-# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-# saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
 
 # plot cluster labels on UMAPs
 p1 <- plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
@@ -595,26 +620,15 @@ write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.cs
 
 print("Coaccessibility calculated and saved.")
 
-#### Browser tracks
-p <- plotBrowserTrack(
-  ArchRProj = ArchR,
-  groupBy = "clusters", 
-  geneSymbol = "SIX1", 
-  upstream = 50000,
-  downstream = 50000,
-  loops = getCoAccessibility(ArchR)
-)
-grid::grid.newpage()
-grid::grid.draw(p[[1]])
+####################################################################################################################
+############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES - MAX DIST #################################
 
-#########################################################################################################
-############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES #################################
-
-print("Calculating coaccessibility between peaks and genes...")
+print("Calculating coaccessibility between peaks and genes at max distance...")
 
 # calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
 ArchR <- addPeak2GeneLinks(ArchR, maxDist = 200000000)
 # biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
+# tried running at max distance but then found very few interactions very far away...
 
 # extract resulting interactions
 p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
@@ -631,24 +645,14 @@ print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
 # save df
-write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df.csv"), row.names = FALSE)
+write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df_max_distance.csv"), row.names = FALSE)
 
-print("Coaccessibility between peaks and genes calculated and saved.")
-
-#########################################################################################################
-############################## SAVE ARCHR OBJECT #################################
-
-# save integrated ArchR project
-print("Saving integrated ArchR project...")
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
-print("Integrated ArchR project saved.")
+print("Coaccessibility between peaks and genes (max dist) calculated and saved.")
 
 ################################################################################
 ############################## HEATMAPS OF P2L #################################
 
-plot_path = "./plots/peak2gene/"
+plot_path = "./plots/peak2gene_max_dist/"
 dir.create(plot_path, recursive = T)
 
 ## Heatmap of linkage across clusters
@@ -664,6 +668,9 @@ graphics.off()
 
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
+
+plot_path = "./plots/peak2gene_max_dist/tracks_around_TFs/"
+dir.create(plot_path, recursive = T)
 
 # set genes of interest
 genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
@@ -800,3 +807,121 @@ for (gene in genes){
   }
   
 }
+
+####################################################################################################################
+############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES - FIXED DIST #################################
+
+print("Calculating coaccessibility between peaks and genes within a 250000 distance...")
+
+# calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
+ArchR <- addPeak2GeneLinks(ArchR, maxDist = 250000)
+# biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
+# tried running at max distance but then found very few interactions very far away...
+
+# extract resulting interactions
+p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
+p2g_df <- as.data.frame(p2g)
+
+# add correct Peak IDs and gene names to df
+p2g_df <- p2g_df %>% 
+  mutate(PeakID = paste0(seqnames(metadata(p2g)$peakSet[idxATAC]), "-", start(metadata(p2g)$peakSet[idxATAC]), "-", end(metadata(p2g)$peakSet[idxATAC]))) %>%
+  mutate(gene_name = metadata(p2g)$geneSet[idxRNA]$name)
+head(p2g_df)
+print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
+
+# sanity check that all interaction Peak IDs are in the ArchR peakset
+if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
+
+# save df
+write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
+
+print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
+
+################################################################################
+############################## HEATMAPS OF P2L #################################
+
+plot_path = "./plots/peak2gene_250000_dist/"
+dir.create(plot_path, recursive = T)
+
+## Heatmap of linkage across clusters
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
+png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
+png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+###########################################################################################
+############################## BROWSER TRACKS P2G LINKAGE #################################
+
+plot_path = "./plots/peak2gene_250000_dist/tracks_around_TFs/"
+dir.create(plot_path, recursive = T)
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(paste0("Making interactions plot for: ", gene))
+  
+  # extract interactions to gene of interest
+  interactions <- p2g_df %>% filter(gene_name %in% gene)
+  
+  
+  if (nrow(interactions) == 0){
+    print("No interactions found for this gene! Moving to next gene...")
+  } else {
+    print(paste0(nrow(interactions), " interactions found"))
+    # extract the peak IDs that interact with that gene
+    interacting_peaks <- unique(interactions$PeakID)
+    
+    # extract loops between the gene and these peaks
+    extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, gene = gene, interacting_peaks = interacting_peaks)
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
+                                extend_by = 500, max_dist = Inf, highlight_granges = NULL)
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+
+    # make plot of these interactions more zoomed in
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
+                                extend_by = 500, max_dist = 200000, highlight_granges = NULL)
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot_zoomed.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+    # overlay known enhancers
+    if (gene %in% names(enhancers_df_list)){
+      print("Plotting enhancers")
+      enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
+      print(enhancers_granges)
+      p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
+                                  extend_by = 500, max_dist = 200000, highlight_granges = enhancers_granges)
+      png(paste0(plot_path, gene, '_interactions_browser_plot_zoomed_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+      grid::grid.newpage()
+      grid::grid.draw(p[[1]])
+      graphics.off()
+    }
+    
+  }
+  
+}
+
+#########################################################################################################
+############################## SAVE ARCHR OBJECT #################################
+
+# save integrated ArchR project
+print("Saving integrated ArchR project...")
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
+print("Integrated ArchR project saved.")
