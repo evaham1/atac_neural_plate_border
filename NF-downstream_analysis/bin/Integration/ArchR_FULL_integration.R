@@ -4,6 +4,7 @@ print("ArchR integration, assigning cluster labels and peak to gene linkage")
 
 ############################## Load libraries #######################################
 library(getopt)
+library(optparse)
 library(ArchR)
 library(tidyverse)
 library(ggplot2)
