@@ -8,6 +8,8 @@ include {R as COMBINE_METACELL_COUNTS} from "$baseDir/modules/local/r/main"     
 include {R as FILTER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/cluster_peaks/1_filter_peaks.R", checkIfExists: true) )
 include {R as CLUSTER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/cluster_peaks/2_antler_calculate_peak_modules.R", checkIfExists: true) )
 
+// Module to run homer motif enrichment on peaks
+include {HOMER_MOTIF_ENRICHMENT} from "$baseDir/modules/local/homer_motif_enrichment/main"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -70,6 +72,9 @@ workflow CLUSTER_PEAKS_WF {
 
     // Cluster peaks using Antler package
     CLUSTER_PEAKS( FILTER_PEAKS.out )
+
+    // Run homer motif enrichment on each peak module
+    HOMER_MOTIF_ENRICHMENT( CLUSTER_PEAKS.out )
 
     emit:
     clustered_peaks = CLUSTER_PEAKS.out
