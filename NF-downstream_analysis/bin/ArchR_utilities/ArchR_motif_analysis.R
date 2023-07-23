@@ -69,9 +69,11 @@ if(opt$verbose) print(opt)
 
 ############################## Read in ArchR project #######################################
 
-# If files are not in rds_files subdirectory look in input dir 
-label <- unique(sub('_.*', '', list.files(data_path)))
-print(label) 
+# Extract stage name by removing anything with the word 'peak' in it
+labels <- unique(sub('_.*', '', list.files(data_path)))
+print(labels)
+label <- labels[labels != "peak"]
+print(label)
 
 if (length(label) == 0){
   data_path = "./input/"
