@@ -72,7 +72,7 @@ if(opt$verbose) print(opt)
 # Extract stage name by removing anything with the word 'peak' in it
 labels <- unique(sub('_.*', '', list.files(data_path)))
 print(labels)
-label <- labels[labels != "peak"]
+label <- labels[labels != "Peak"]
 print(label)
 
 if (length(label) == 0){
