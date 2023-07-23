@@ -124,7 +124,7 @@ se <- getMarkerFeatures(
   ArchRProj = ArchR,
   useMatrix = "PeakMatrix",
   groupBy = "clusters")
-se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
+# se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
 
 motif_marker_peaks <- peakAnnoEnrichment(
   seMarker = se,
