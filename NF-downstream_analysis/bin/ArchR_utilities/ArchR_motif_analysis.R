@@ -163,7 +163,13 @@ print(ggUp)
 graphics.off()
 
 # plot as heatmap
-heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = 7, transpose = TRUE)
+if (label == "ss8"){topn = 10} # 7 was ok so trying higher
+if (label == "ss4"){topn = 10} # 7 was ok so trying higher
+if (label == "HH7"){topn = 10} # 7 was ok so trying higher
+if (label == "HH6"){topn = 10} # 7 was ok so trying higher
+if (label == "HH5"){topn = 5} # 7 was too much so trying lower
+
+heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
 png(paste0(plot_path, 'diff_peaks_motif_enrichment_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
 ComplexHeatmap::draw(heatmapEM, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 graphics.off()
@@ -266,6 +272,7 @@ for (TF in names(TF_targets)) {
           append = TRUE)
 }
 
+print("TF peak targets written to file!")
 
 #######################################################################################
 #############################   TF FOOTPRINTING    #####################################
@@ -282,6 +289,11 @@ motifPositions
 
 # add group coverages using pseudo-bulk replicate approach
 ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "clusters")
+
+# slightly smaller TFs list:
+TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
+        "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2", 
+        "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX21", "NKX6-2")
 
 # loop through each TF to do footprinting
 for (TF in TFs){
