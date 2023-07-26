@@ -167,7 +167,7 @@ if (label == "ss8"){topn = 10} # 7 was ok so trying higher
 if (label == "ss4"){topn = 10} # 7 was ok so trying higher
 if (label == "HH7"){topn = 10} # 7 was ok so trying higher
 if (label == "HH6"){topn = 10} # 7 was ok so trying higher
-if (label == "HH5"){topn = 0} # 1 was too much!
+if (label == "HH5"){topn = 1} # 1 was too much!
 
 if (topn > 1){
   heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
