@@ -167,12 +167,14 @@ if (label == "ss8"){topn = 10} # 7 was ok so trying higher
 if (label == "ss4"){topn = 10} # 7 was ok so trying higher
 if (label == "HH7"){topn = 10} # 7 was ok so trying higher
 if (label == "HH6"){topn = 10} # 7 was ok so trying higher
-if (label == "HH5"){topn = 1} # 7 was too much so trying lower
+if (label == "HH5"){topn = 0} # 1 was too much!
 
-heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
-png(paste0(plot_path, 'diff_peaks_motif_enrichment_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-ComplexHeatmap::draw(heatmapEM, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-graphics.off()
+if (topn > 1){
+  heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
+  png(paste0(plot_path, 'diff_peaks_motif_enrichment_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+  ComplexHeatmap::draw(heatmapEM, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+  graphics.off()
+}
 
 ############################## Run ChromVar #######################################
 
