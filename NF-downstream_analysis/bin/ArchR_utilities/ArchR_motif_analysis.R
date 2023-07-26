@@ -167,7 +167,7 @@ if (label == "ss8"){topn = 10} # 7 was ok so trying higher
 if (label == "ss4"){topn = 10} # 7 was ok so trying higher
 if (label == "HH7"){topn = 10} # 7 was ok so trying higher
 if (label == "HH6"){topn = 10} # 7 was ok so trying higher
-if (label == "HH5"){topn = 5} # 7 was too much so trying lower
+if (label == "HH5"){topn = 3} # 7 was too much so trying lower
 
 heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
 png(paste0(plot_path, 'diff_peaks_motif_enrichment_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
