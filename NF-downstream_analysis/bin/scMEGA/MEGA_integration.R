@@ -192,6 +192,18 @@ png(paste0(plot_path, 'UMAP_coembed_post_integration.png'), height = 10, width =
 p1 + p2 + p3
 graphics.off()
 
+p <- DimPlot(obj.coembed, group.by = "scHelper_cell_type", label = FALSE,
+             reduction = "umap_harmony", shuffle = TRUE, cols = atac_cols)
+png(paste0(plot_path, 'UMAP_coembed_post_integration_cell_type.png'), height = 10, width = 12, units = 'cm', res = 400)
+p
+graphics.off()
+
+p <- DimPlot(obj.coembed, group.by = "stage", label = FALSE,
+             reduction = "umap_harmony", shuffle = TRUE, cols = stage_cols)
+png(paste0(plot_path, 'UMAP_coembed_post_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
+p
+graphics.off()
+
 print("integration run!")
 
 ############################## Clustering #######################################
@@ -226,26 +238,26 @@ png(paste0(plot_path, 'cluster_proportions.png'), height = 10, width = 32, units
 p1 + p2 + p3
 graphics.off()
 
-## find gene markers per cluster and plot as dotplot
-all.markers <- FindAllMarkers(obj.coembed, 
-                              only.pos = TRUE, 
-                              min.pct = 0.5, logfc.threshold = 0.5)
-df <- all.markers %>%
-  group_by(cluster) %>%
-  slice_max(n = 3, order_by = avg_log2FC)
+# ## find gene markers per cluster and plot as dotplot
+# all.markers <- FindAllMarkers(obj.coembed, 
+#                               only.pos = TRUE, 
+#                               min.pct = 0.5, logfc.threshold = 0.5)
+# df <- all.markers %>%
+#   group_by(cluster) %>%
+#   slice_max(n = 3, order_by = avg_log2FC)
 
-p <- DotPlot(obj.coembed, features = unique(df$gene)) + RotatedAxis()
-png(paste0(plot_path, 'cluster_DotPlot.png'), height = 13, width = 32, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# p <- DotPlot(obj.coembed, features = unique(df$gene)) + RotatedAxis()
+# png(paste0(plot_path, 'cluster_DotPlot.png'), height = 13, width = 32, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
-## UMAP split by modality
-p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
-             reduction = "umap_harmony", shuffle = TRUE, split.by = "tech") +
-  xlab("UMAP1") + ylab("UMAP2")
-png(paste0(plot_path, 'UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
-p
-graphics.off()
+# ## UMAP split by modality
+# p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
+#              reduction = "umap_harmony", shuffle = TRUE, split.by = "tech") +
+#   xlab("UMAP1") + ylab("UMAP2")
+# png(paste0(plot_path, 'UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
+# p
+# graphics.off()
 
 print("clustering run!")
 
