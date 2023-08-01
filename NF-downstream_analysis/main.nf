@@ -22,6 +22,7 @@ include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/
 include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_MEGA_INPUT } from "$baseDir/subworkflows/local/metadata"
 
 // UPSTREAM PROCESSING
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
