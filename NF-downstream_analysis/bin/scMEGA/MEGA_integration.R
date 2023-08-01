@@ -50,7 +50,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
-    data_path = "./input/"
+    data_path = "./input/rds_files/"
     rds_path = "./rds_files/"
     ncores = opt$cores
     
