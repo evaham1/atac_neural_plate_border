@@ -40,6 +40,9 @@ include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/ar
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
 include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
+// MEGA PROCESSING
+include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
+include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
 // METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -250,6 +253,26 @@ workflow A {
     //    ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
     }
+
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////    MEGA PROCESSING      //////////////////////
+    /////////////////////////////////////////////////////////////////////////
+
+    if(!skip_mega_processing){
+
+        // Extract the transfer labels object for ATAC and RNA 
+        // NB - have run transfer labels AND convert to seurat object ad hoc for now, will need to integrate this into pipeline
+        METADATA_MEGA_INPUT( params.mega_input_sample_sheet )
+        ch_mega_input = METADATA_MEGA_INPUT.out.metadata 
+
+        // run R script to integrate these objects
+        MEGA_INTEGRATION( ch_mega_input )
+
+        // run R script to infer GRN from the integrated output object
+        //MEGA_GRNI( MEGA_INTEGRATION.out )
+
+    }
+
 
 
     /////////////////////////////////////////////////////////////////////////
