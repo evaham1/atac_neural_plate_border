@@ -206,6 +206,9 @@ graphics.off()
 
 print("integration run!")
 
+## save integrated object
+saveRDS(obj.pair, paste0(coembed, "integrated_object.RDS"), compress = FALSE)
+
 ############################## Clustering #######################################
 
 print("clustering...")
