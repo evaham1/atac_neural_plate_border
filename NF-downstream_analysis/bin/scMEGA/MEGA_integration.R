@@ -207,7 +207,7 @@ graphics.off()
 print("integration run!")
 
 ## save integrated object
-saveRDS(obj.pair, paste0(coembed, "integrated_object.RDS"), compress = FALSE)
+saveRDS(obj.coembed, paste0(rds_path, "integrated_object.RDS"), compress = FALSE)
 
 ############################## Clustering #######################################
 
@@ -267,6 +267,9 @@ print("clustering run!")
 ############################## Create fake multimodal data #######################################
 
 print("pairing cells...")
+
+# try this if the paircells fails again
+options(Seurat.object.assay.version = 'v5')
 
 # pair cells between modalities
 df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
