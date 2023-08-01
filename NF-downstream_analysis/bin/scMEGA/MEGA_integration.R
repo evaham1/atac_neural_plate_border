@@ -116,7 +116,7 @@ graphics.off()
 
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
-names(stage_colours) <- stage_order
+names(stage_cols) <- stage_order
 
 p1 <- DimPlot(obj.rna, pt.size = 1, reduction = "umap", group.by = "stage", cols = stage_cols, shuffle = TRUE) +
   ggtitle("scRNA-seq")
