@@ -39,12 +39,15 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1)
     
-    #rds_path = "./output/NF-downstream_analysis/Processing/ss8/scMEGA/rds_files/"
+    ## ss8 (for faster testing)
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/scMEGA/rds_files/"
+    rds_path = "./output/NF-downstream_analysis/Processing/ss8/scMEGA_integrated/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Processing/ss8/scMEGA_integrated/plots/"
     
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA/rds_files/"
-    
-    rds_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA_integrated/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA_integrated/plots/"
+    ## full data (real thing)
+    # data_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA/rds_files/"
+    # rds_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA_integrated/rds_files/"
+    # plot_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA_integrated/plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -141,11 +144,11 @@ obj.coembed <- CoembedData(
   verbose = FALSE
 )
 
-p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "dr",
+p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
               group.by = "tech", )
-p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "dr",
+p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
               group.by = "scHelper_cell_type", cols = atac_cols)
-p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "dr",
+p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
               group.by = "stage", cols = stage_cols)
 
 png(paste0(plot_path, 'UMAP_coembed_pre_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
@@ -250,18 +253,32 @@ print("clustering run!")
 
 print("pairing cells...")
 
-## pair cells between modalities
+# pair cells between modalities
 df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
 
-## only keep paired cells
+# save the cell pairings
+write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
+
+# only keep paired cells in the seurat object
 sel_cells <- c(df.pair$ATAC, df.pair$RNA)
 coembed.sub2 <- obj.coembed[, sel_cells]
-# from 10203 samples -> 4308 samples
 
+# see how many cells are left after filtering
+cell_counts <- data.frame(dim(obj.coembed)[2], dim(obj.atac)[2], dim(obj.rna)[2], dim(coembed.sub2)[2])
+colnames(cell_counts) <- c("Before pairing total", "Before pairing ATAC", "Before pairing RNA", "After pairing total")
+
+png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# plot UMAP split by tech
 options(repr.plot.height = 5, repr.plot.width = 10)
+png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
 DimPlot(coembed.sub2, reduction = "umap_harmony", 
         split.by = "tech")
+graphics.off()
 
 ## create paired object
 obj.pair <- CreatePairedObject(df.pair = df.pair, 
