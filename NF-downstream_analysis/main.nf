@@ -74,6 +74,7 @@ def skip_peakcall_processing = params.skip_peakcall_processing ? true : false
 def skip_metacell_processing = params.skip_metacell_processing ? true : false
 def skip_singlecell_processing = params.skip_singlecell_processing ? true : false
 def skip_multiview_processing = params.skip_multiview_processing ? true : false
+def skip_mega_processing = params.skip_mega_processing ? true : false
 
 
 //
