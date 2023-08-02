@@ -285,7 +285,7 @@ print(sessionInfo())
 print(obj.coembed)
 
 print("debugging pairing:")
-object <- object
+object <- obj.coembed
 pair.by <- "tech"
 ident1 = "ATAC"
 ident2 = "RNA"
