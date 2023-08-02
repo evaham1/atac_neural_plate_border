@@ -236,7 +236,7 @@ workflow A {
                     // check these changes have worked!
 
         // Run motif analysis and footprinting for key TFs
-        MOTIF_ANALYSIS( ARCHR_INTEGRATING_WF.out )
+        //MOTIF_ANALYSIS( ARCHR_INTEGRATING_WF.out )
         //CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out )
 
         // Run differential accessibility tests between consensus peaks - check that this is still ok
