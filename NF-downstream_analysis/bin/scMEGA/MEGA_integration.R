@@ -18,6 +18,7 @@ library(Seurat)
 library(Signac)
 library(scMEGA)
 library(harmony)
+options(Seurat.object.assay.version = 'v5')
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -279,7 +280,6 @@ print("pairing cells...")
 
 # try this if the paircells fails again
 print(obj.coembed)
-options(Seurat.object.assay.version = 'v5')
 
 # pair cells between modalities
 df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
