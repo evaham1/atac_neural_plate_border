@@ -279,6 +279,8 @@ print("clustering run!")
 
 print("pairing cells...")
 
+print(sessionInfo())
+
 # try this if the paircells fails again
 print(obj.coembed)
 
