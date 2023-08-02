@@ -47,7 +47,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
-    data_path = "./input/"
+    data_path = "./input/rds_files/"
     rds_path = "./rds_files/"
     ncores = opt$cores
     
@@ -66,7 +66,20 @@ set.seed(42)
 
 ############################## Read in ArchR project #######################################
 
-ArchR <- loadArchRProject(data_path)
+# If files are not in rds_files subdirectory look in input dir 
+label <- unique(sub('_.*', '', list.files(data_path)))
+print(label) 
+
+if (length(label) == 0){
+  data_path = "./input/"
+  label <- sub('_.*', '', list.files(data_path))
+  print(label)
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+} else {
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+}
 
 # see what is in the ArchR object already
 print("ArchR object info: ")
