@@ -42,6 +42,7 @@ include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"             
 include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
 // MEGA PROCESSING
+include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
@@ -262,16 +263,40 @@ workflow A {
 
     if(!skip_mega_processing){
 
-        // Extract the transfer labels object for ATAC and RNA 
-        // NB - have run transfer labels AND convert to seurat object ad hoc for now, will need to integrate this into pipeline
-        METADATA_MEGA_INPUT( params.mega_input_sample_sheet )
-        ch_mega_input = METADATA_MEGA_INPUT.out.metadata 
+        // Extract just the stage objects from upstream processing
+        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
+        ch_atac_stages = METADATA_PEAKCALL_PROCESSED.out.metadata 
+        // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
+        // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
+        // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
+        // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
+        // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
 
-        // run R script to integrate these objects
-        MEGA_INTEGRATION( ch_mega_input )
+        // convert ArchR objects into seurat objects
+        ARCHR_TO_SEURAT( ch_atac_stages )
 
-        // run R script to infer GRN from the integrated output object
+        // read in RNA data
+        METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                            // etc
+   
+        // combine ATAC and RNA data
+        ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+            .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            // .view()
+            .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+
+        // integrate the stages into a coembedding seurat object
+        MEGA_INTEGRATION( ch_integrate )
+
+        // then need to run R script to combine the seurat objects into one full data object
+
+        // then run scMEGA GRNi on the full data paired seurat object
         //MEGA_GRNI( MEGA_INTEGRATION.out )
+        
 
     }
 
