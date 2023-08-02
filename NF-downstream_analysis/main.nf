@@ -271,7 +271,7 @@ workflow A {
 
         // convert ArchR objects into seurat objects
         ARCHR_TO_SEURAT( ch_singlecell_processed )
-        ARCHR_TO_SEURAT.view()
+        ARCHR_TO_SEURAT.out.view()
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
