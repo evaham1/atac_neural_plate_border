@@ -269,6 +269,7 @@ print("clustering run!")
 print("pairing cells...")
 
 # try this if the paircells fails again
+print(obj.coembed)
 options(Seurat.object.assay.version = 'v5')
 
 # pair cells between modalities
