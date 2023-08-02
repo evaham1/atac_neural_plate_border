@@ -270,7 +270,7 @@ workflow A {
         //CLUSTER( ch_atac_stages )
 
         // convert ArchR objects into seurat objects
-        ARCHR_TO_SEURAT( ch_atac_stages )
+        ARCHR_TO_SEURAT( ch_singlecell_processed )
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
