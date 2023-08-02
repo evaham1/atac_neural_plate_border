@@ -53,7 +53,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     rds_path = "./rds_files/"
     ncores = opt$cores
     
@@ -74,9 +74,16 @@ set.seed(42)
 
 print("reading in data...")
 
-obj.rna <- readRDS(paste0(data_path, "./seurat_label_transfer.RDS"))
-obj.atac <- readRDS(paste0(data_path, "./ATAC_seurat.RDS"))
-gene.activity <- readRDS(paste0(data_path, "./gene_score_matrix.RDS"))
+# read in rna data - in input folder
+label <- unique(sub('_.*', '', list.files(data_path)))
+print(label) 
+obj.rna <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))
+
+# read in atac data - in input/rds_files folder
+obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
+
+# read in gene activity matrix - in input/rds_files folder
+gene.activity <- readRDS(paste0(data_path, "rds_files/gene_score_matrix.RDS"))
 
 print("data read in!")
 
@@ -207,7 +214,7 @@ graphics.off()
 print("integration run!")
 
 ## save integrated object
-saveRDS(obj.coembed, paste0(rds_path, "integrated_object.RDS"), compress = FALSE)
+saveRDS(obj.coembed, paste0(rds_path, label, "_integrated_object.RDS"), compress = FALSE)
 
 ############################## Clustering #######################################
 
@@ -310,4 +317,4 @@ print("cells paired!")
 ############################## Save data #######################################
 
 ## save paired object
-saveRDS(obj.pair, paste0(rds_path, "paired_object.RDS"), compress = FALSE)
+saveRDS(obj.pair, paste0(rds_path, label, "_paired_object.RDS"), compress = FALSE)
