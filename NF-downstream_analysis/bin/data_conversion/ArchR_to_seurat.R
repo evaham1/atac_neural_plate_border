@@ -102,6 +102,8 @@ head(cell_metadata)
 
 ############################## Make Seurat obj #######################################
 
+print("Making chromatin assay...")
+
 # generate chromatin assay object
 chrom_assay <- CreateChromatinAssay(
   counts = count_data,
@@ -109,6 +111,8 @@ chrom_assay <- CreateChromatinAssay(
   sep = c("_", "_"),
   min.cells = 100
 )
+
+print("Making seurat object...")
 
 # generate ATAC seurat object
 obj.atac <- CreateSeuratObject(
@@ -118,10 +122,16 @@ obj.atac <- CreateSeuratObject(
   names.field = 1, 
   names.delim = "#")
 
+print("Seurat object made!")
+
 obj.atac
+
+print("Adding dimension reduced matrix...")
 
 # add dimension reduced matrix - iterative LSI
 reduced_dims <- ArchR@reducedDims$IterativeLSI$matSVD
+print(head(reduced_dims))
+
 obj.atac[["iLSI"]] <- CreateDimReducObject(embeddings = reduced_dims,
                                               assay = DefaultAssay(obj.atac),
                                               key = "iLSI_")
@@ -129,7 +139,10 @@ obj.atac[["dr"]] <- CreateDimReducObject(embeddings = reduced_dims,
                                            assay = DefaultAssay(obj.atac),
                                            key = "dr_")
 
+
 ############################## Run UMAPs #######################################
+
+print("Running UMAP...")
 
 # run UMAP
 obj.atac <- RunUMAP(obj.atac, 
@@ -163,10 +176,14 @@ graphics.off()
 
 ############################## Save seurat object #######################################
 
+print("Saving seurat object...")
+
 # save seurat object
 saveRDS(obj.atac, paste0(rds_path, "ATAC_seurat.RDS"), compress = FALSE)
 
 ############################## Extract and save gene score matrix #######################################
+
+print("Extracting gene score matrix...")
 
 ### Now need to extract gene score matrix and save as rds
 gene_counts <- getMatrixFromProject(ArchR, useMatrix = "GeneScoreMatrix")
