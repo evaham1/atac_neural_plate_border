@@ -272,8 +272,11 @@ workflow A {
         // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
         // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
 
+        // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
+        CLUSTER( ch_atac_stages )
+
         // convert ArchR objects into seurat objects
-        ARCHR_TO_SEURAT( ch_atac_stages )
+        ARCHR_TO_SEURAT( CLUSTER.out )
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
