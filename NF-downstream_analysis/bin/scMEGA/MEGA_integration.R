@@ -76,7 +76,9 @@ print("reading in data...")
 
 # read in rna data - in input folder
 label <- unique(sub('_.*', '', list.files(data_path)))
-print(label) 
+label <- label[!label %in% "rds"]
+print(label)
+print(paste0(data_path, label, "_clustered_data.RDS"))
 obj.rna <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))
 
 # read in atac data - in input/rds_files folder
