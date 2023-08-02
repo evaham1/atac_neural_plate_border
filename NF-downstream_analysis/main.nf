@@ -263,20 +263,14 @@ workflow A {
 
     if(!skip_mega_processing){
 
-        // Extract just the stage objects from upstream processing
-        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
-        ch_atac_stages = METADATA_PEAKCALL_PROCESSED.out.metadata 
-        // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
-        // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
-        // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
-        // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
-        // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
+        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with individual peaks called
+        ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
-        CLUSTER( ch_atac_stages )
+        //CLUSTER( ch_atac_stages )
 
         // convert ArchR objects into seurat objects
-        ARCHR_TO_SEURAT( CLUSTER.out )
+        ARCHR_TO_SEURAT( ch_atac_stages )
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
