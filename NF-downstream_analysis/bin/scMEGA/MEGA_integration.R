@@ -277,38 +277,40 @@ print("clustering run!")
 
 ############################## Create fake multimodal data #######################################
 
-print("pairing cells...")
-
-print(sessionInfo())
-
-# try this if the paircells fails again
-print(obj.coembed)
-
-print("debugging pairing:")
-object <- obj.coembed
-pair.by <- "tech"
-ident1 = "ATAC"
-ident2 = "RNA"
-reduction = "harmony"
-
-print("line 1:")
-obj.1 <- object[, object@meta.data[[pair.by]] == ident1]
-print("line 2:")
-obj.2 <- object[, object@meta.data[[pair.by]] == ident2]
-print("line 3:")
-embedding.atac <- Seurat::Embeddings(object = obj.1, reduction = reduction)
-print("line 4:")
-embedding.rna <- Seurat::Embeddings(object = obj.2, reduction = reduction)
-print("line 5:")
-embedding <- rbind(embedding.atac, embedding.rna)
-print("line 6:")
-n.cells <- dim(embedding)[1]
-
 saveRDS(obj.coembed, paste0(rds_path, "TEST_OBJECT.RDS"), compress = FALSE)
 
-# pair cells between modalities
-df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
-                     pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
+# print("pairing cells...")
+
+# print(sessionInfo())
+
+# # try this if the paircells fails again
+# print(obj.coembed)
+
+# print("debugging pairing:")
+# object <- obj.coembed
+# pair.by <- "tech"
+# ident1 = "ATAC"
+# ident2 = "RNA"
+# reduction = "harmony"
+
+# print("line 1:")
+# obj.1 <- object[, object@meta.data[[pair.by]] == ident1]
+# print("line 2:")
+# obj.2 <- object[, object@meta.data[[pair.by]] == ident2]
+# print("line 3:")
+# embedding.atac <- Seurat::Embeddings(object = obj.1, reduction = reduction)
+# print("line 4:")
+# embedding.rna <- Seurat::Embeddings(object = obj.2, reduction = reduction)
+# print("line 5:")
+# embedding <- rbind(embedding.atac, embedding.rna)
+# print("line 6:")
+# n.cells <- dim(embedding)[1]
+
+
+
+# # pair cells between modalities
+# df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
+#                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
 
 # # save the cell pairings
 # write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)

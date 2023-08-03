@@ -44,6 +44,9 @@ include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"              
 // MEGA PROCESSING
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
+
+include {R as MEGA_INTEGRATION_2} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration_2.R", checkIfExists: true) )
+
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
 // METACELL PROCESSING
@@ -307,6 +310,9 @@ workflow A {
 
         // integrate the stages into a coembedding seurat object
         MEGA_INTEGRATION( ch_integrate )
+
+        // debugging pairing issue
+        MEGA_INTEGRATION_2( MEGA_INTEGRATION.out )
 
         // then need to run R script to combine the seurat objects into one full data object
 
