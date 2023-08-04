@@ -252,26 +252,26 @@ png(paste0(plot_path, 'cluster_proportions.png'), height = 10, width = 32, units
 p1 + p2 + p3
 graphics.off()
 
-# ## find gene markers per cluster and plot as dotplot
-# all.markers <- FindAllMarkers(obj.coembed, 
-#                               only.pos = TRUE, 
-#                               min.pct = 0.5, logfc.threshold = 0.5)
-# df <- all.markers %>%
-#   group_by(cluster) %>%
-#   slice_max(n = 3, order_by = avg_log2FC)
+## find gene markers per cluster and plot as dotplot
+all.markers <- FindAllMarkers(obj.coembed, 
+                              only.pos = TRUE, 
+                              min.pct = 0.5, logfc.threshold = 0.5)
+df <- all.markers %>%
+  group_by(cluster) %>%
+  slice_max(n = 3, order_by = avg_log2FC)
 
-# p <- DotPlot(obj.coembed, features = unique(df$gene)) + RotatedAxis()
-# png(paste0(plot_path, 'cluster_DotPlot.png'), height = 13, width = 32, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+p <- DotPlot(obj.coembed, features = unique(df$gene)) + RotatedAxis()
+png(paste0(plot_path, 'cluster_DotPlot.png'), height = 13, width = 32, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# ## UMAP split by modality
-# p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
-#              reduction = "umap_harmony", shuffle = TRUE, split.by = "tech") +
-#   xlab("UMAP1") + ylab("UMAP2")
-# png(paste0(plot_path, 'UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
-# p
-# graphics.off()
+## UMAP split by modality
+p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
+             reduction = "umap_harmony", shuffle = TRUE, split.by = "tech") +
+  xlab("UMAP1") + ylab("UMAP2")
+png(paste0(plot_path, 'UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
+p
+graphics.off()
 
 print("clustering run!")
 
@@ -279,71 +279,44 @@ print("clustering run!")
 
 saveRDS(obj.coembed, paste0(rds_path, "TEST_OBJECT.RDS"), compress = FALSE)
 
-# print("pairing cells...")
+print("pairing cells...")
 
-# print(sessionInfo())
+# pair cells between modalities
+df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
+                     pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
 
-# # try this if the paircells fails again
-# print(obj.coembed)
+# save the cell pairings
+write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
 
-# print("debugging pairing:")
-# object <- obj.coembed
-# pair.by <- "tech"
-# ident1 = "ATAC"
-# ident2 = "RNA"
-# reduction = "harmony"
+# only keep paired cells in the seurat object
+sel_cells <- c(df.pair$ATAC, df.pair$RNA)
+coembed.sub2 <- obj.coembed[, sel_cells]
 
-# print("line 1:")
-# obj.1 <- object[, object@meta.data[[pair.by]] == ident1]
-# print("line 2:")
-# obj.2 <- object[, object@meta.data[[pair.by]] == ident2]
-# print("line 3:")
-# embedding.atac <- Seurat::Embeddings(object = obj.1, reduction = reduction)
-# print("line 4:")
-# embedding.rna <- Seurat::Embeddings(object = obj.2, reduction = reduction)
-# print("line 5:")
-# embedding <- rbind(embedding.atac, embedding.rna)
-# print("line 6:")
-# n.cells <- dim(embedding)[1]
+# see how many cells are left after filtering
+cell_counts <- data.frame(dim(obj.coembed)[2], dim(obj.atac)[2], dim(obj.rna)[2], dim(coembed.sub2)[2])
+colnames(cell_counts) <- c("Before pairing total", "Before pairing ATAC", "Before pairing RNA", "After pairing total")
 
+png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
+# plot UMAP split by tech
+options(repr.plot.height = 5, repr.plot.width = 10)
+png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(coembed.sub2, reduction = "umap_harmony", 
+        split.by = "tech")
+graphics.off()
 
-# # pair cells between modalities
-# df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
-#                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
+## create paired object
+obj.pair <- CreatePairedObject(df.pair = df.pair, 
+                               object = coembed.sub2,
+                               use.assay1 = "RNA", 
+                               use.assay2 = "ATAC")
 
-# # save the cell pairings
-# write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
+print("cells paired!")
 
-# # only keep paired cells in the seurat object
-# sel_cells <- c(df.pair$ATAC, df.pair$RNA)
-# coembed.sub2 <- obj.coembed[, sel_cells]
+############################## Save data #######################################
 
-# # see how many cells are left after filtering
-# cell_counts <- data.frame(dim(obj.coembed)[2], dim(obj.atac)[2], dim(obj.rna)[2], dim(coembed.sub2)[2])
-# colnames(cell_counts) <- c("Before pairing total", "Before pairing ATAC", "Before pairing RNA", "After pairing total")
-
-# png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-# # plot UMAP split by tech
-# options(repr.plot.height = 5, repr.plot.width = 10)
-# png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
-# DimPlot(coembed.sub2, reduction = "umap_harmony", 
-#         split.by = "tech")
-# graphics.off()
-
-# ## create paired object
-# obj.pair <- CreatePairedObject(df.pair = df.pair, 
-#                                object = coembed.sub2,
-#                                use.assay1 = "RNA", 
-#                                use.assay2 = "ATAC")
-
-# print("cells paired!")
-
-# ############################## Save data #######################################
-
-# ## save paired object
-# saveRDS(obj.pair, paste0(rds_path, label, "_paired_object.RDS"), compress = FALSE)
+## save paired object
+saveRDS(obj.pair, paste0(rds_path, label, "_paired_object.RDS"), compress = FALSE)

@@ -311,9 +311,6 @@ workflow A {
         // integrate the stages into a coembedding seurat object
         MEGA_INTEGRATION( ch_integrate )
 
-        // debugging pairing issue
-        MEGA_INTEGRATION_2( MEGA_INTEGRATION.out )
-
         // then need to run R script to combine the seurat objects into one full data object
 
         // then run scMEGA GRNi on the full data paired seurat object
