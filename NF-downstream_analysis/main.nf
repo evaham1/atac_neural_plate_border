@@ -263,7 +263,7 @@ workflow A {
 
     if(!skip_mega_processing){
 
-        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with individual peaks called
+        METADATA_SINGLECELL_PROCESSED( params.mega_input_sample_sheet ) // single cell data with individual peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
         ch_singlecell_processed.view()
