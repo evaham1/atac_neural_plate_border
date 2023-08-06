@@ -266,6 +266,8 @@ workflow A {
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with individual peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
+        ch_singlecell_processed.view()
+
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
         //CLUSTER( ch_atac_stages )
 

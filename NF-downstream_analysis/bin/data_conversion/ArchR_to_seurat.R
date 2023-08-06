@@ -183,7 +183,7 @@ saveRDS(obj.atac, paste0(rds_path, "ATAC_seurat.RDS"), compress = FALSE)
 
 ############################## Extract and save gene score matrix #######################################
 
-print("Extracting gene score matrix...")
+print("Extracting gene score matrix...") 
 
 ### Now need to extract gene score matrix and save as rds
 gene_counts <- getMatrixFromProject(ArchR, useMatrix = "GeneScoreMatrix")
