@@ -297,9 +297,14 @@ print("pairing cells...")
 sel_cells <- c(df.pair$ATAC, df.pair$RNA)
 coembed.sub2 <- obj.coembed[, sel_cells]
 
+# how many unique ATAC and RNA cells left in paired object
+length(unique(df.pair$ATAC))
+length(unique(df.pair$RNA))
+dim(df.pair)
+
 # see how many cells are left after filtering
-cell_counts <- data.frame(dim(obj.coembed)[2], dim(obj.atac)[2], dim(obj.rna)[2], dim(coembed.sub2)[2])
-colnames(cell_counts) <- c("Before pairing total", "Before pairing ATAC", "Before pairing RNA", "After pairing total")
+cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
+colnames(cell_counts) <- c("Before pairing ATAC", "Before pairing RNA", "After pairing RNA", "After pairing ATAC")
 
 png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -320,6 +325,22 @@ obj.pair <- CreatePairedObject(df.pair = df.pair,
                                use.assay2 = "ATAC")
 
 print("cells paired!")
+
+# UMAP
+p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = atac_cols)
+
+png(paste0(plot_path, 'UMAP_paired_cell_type.png'), height = 10, width = 14, units = 'cm', res = 400)
+p1
+graphics.off()
+
+# see how many cells are left in the paired object
+cell_counts <- data.frame(dim(coembed.sub2)[2], dim(obj.pair)[2])
+colnames(cell_counts) <- c("Before paired obj", "After paired obj")
+
+png(paste0(plot_path, 'cell_counts_after_creating_paired_object.png'), height = 10, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 ############################## Save data #######################################
 
