@@ -37,7 +37,7 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1)
     
-    #data_path = "./output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR/"
+    #data_path = "./output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/"
     #rds_path = "./output/NF-downstream_analysis/Processing/ss8/scMEGA/rds_files/"
     data_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/rds_files/TransferLabels_Save-ArchR/"
     rds_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA/rds_files/"
@@ -193,3 +193,21 @@ rownames(gene_df) <- gene_names
 gene_df[1:3, 1:3]
 
 saveRDS(gene_df, paste0(rds_path, "gene_score_matrix.RDS"), compress = FALSE)
+
+############################## Extract and save cell pairings #######################################
+
+print("Extracting ArchR cell pairings...")
+
+# extract cell ids of paired ATAC and RNA cells from the ArchR single cell integration
+archr_cell_pairings <- as.data.frame(getCellColData(ArchR, select = c("predictedCell_Un", "predictedScore_Un")))
+archr_cell_pairings <- rownames_to_column(archr_cell_pairings)
+# optionally filter here based on score?
+archr_cell_pairings <- archr_cell_pairings[,-3]
+colnames(archr_cell_pairings) <- c("ATAC", "RNA")
+# add new cell ids
+archr_cell_pairings <- archr_cell_pairings %>%
+  mutate(cell_name = paste0("cell_", row_number()))
+
+head(archr_cell_pairings)
+
+write.csv(archr_cell_pairings, paste0(rds_path, "archr_cell_pairings.csv"), row.names = FALSE, col.names = TRUE)

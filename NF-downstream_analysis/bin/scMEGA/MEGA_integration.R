@@ -89,6 +89,10 @@ obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
 # read in gene activity matrix - in input/rds_files folder
 gene.activity <- readRDS(paste0(data_path, "rds_files/gene_score_matrix.RDS"))
 
+# read in cell pairings from archr integration - in input/rds_files folder
+df.pair <- read.csv(paste0(data_path, "./rds_files/archr_cell_pairings.csv"))
+head(df.pair)
+
 print("data read in!")
 
 ############################## Plot UMAPs #######################################
@@ -281,12 +285,13 @@ saveRDS(obj.coembed, paste0(rds_path, "TEST_OBJECT.RDS"), compress = FALSE)
 
 print("pairing cells...")
 
-# pair cells between modalities
-df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
-                     pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
-
-# save the cell pairings
-write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
+#### THIS IS HOW scMEGA DOES IT: but it seems to run forever, so instead use pre-computed pairings from ArchR integration
+# # pair cells between modalities
+# df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
+#                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
+# 
+# # save the cell pairings
+# write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
 
 # only keep paired cells in the seurat object
 sel_cells <- c(df.pair$ATAC, df.pair$RNA)
