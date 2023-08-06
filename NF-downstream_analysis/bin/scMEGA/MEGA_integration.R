@@ -71,6 +71,7 @@ if(opt$verbose) print(opt)
 }
 
 set.seed(42)
+getArchRThreads()
 
 ############################## Read in seurat objects #######################################
 
