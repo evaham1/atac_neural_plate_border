@@ -89,6 +89,13 @@ print("data read in!")
 
 ############################## Create fake multimodal data #######################################
 
+# plot UMAP split by tech
+options(repr.plot.height = 5, repr.plot.width = 10)
+png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(coembed.sub2, reduction = "umap_harmony", 
+        split.by = "tech")
+graphics.off()
+
 print("pairing cells...")
 
 #### THIS IS HOW scMEGA DOES IT: but it seems to run forever, so instead use pre-computed pairings from ArchR integration
@@ -99,32 +106,11 @@ print("pairing cells...")
 # # save the cell pairings
 # write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
 
-# only keep paired cells in the seurat object
-sel_cells <- c(df.pair$ATAC, df.pair$RNA)
-coembed.sub2 <- obj.coembed[, sel_cells]
-print(coembed.sub2)
-
 # how many unique ATAC and RNA cells left in paired object
 print("cell numbers:")
 length(unique(df.pair$ATAC)) # 86217
 length(unique(df.pair$RNA)) # 1895
 dim(df.pair) # 86217     3
-
-# # see how many cells are left after filtering
-# cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
-# colnames(cell_counts) <- c("Before pairing ATAC", "Before pairing RNA", "After pairing RNA", "After pairing ATAC")
-
-# png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-# plot UMAP split by tech
-options(repr.plot.height = 5, repr.plot.width = 10)
-png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
-DimPlot(coembed.sub2, reduction = "umap_harmony", 
-        split.by = "tech")
-graphics.off()
 
 # the RNA transfer labels object doesn't include contamination, so 191 RNA cells which are in the df.pair are missing
 # so first lets remove these cells from the df.pair object, so there should be no contam cells in the final paired seurat object
@@ -134,11 +120,7 @@ filtered_df_pair <- df.pair %>% filter(!RNA %in% RNA_cells_to_remove)
 head(filtered_df_pair)
 dim(filtered_df_pair)
 
-## debug createpairedobject
-object = coembed.sub2
-use.assay1 = "RNA"
-use.assay2 = "ATAC"
-
+# how many unique ATAC and RNA cells left in paired object
 print("RNA data")
 length(unique(filtered_df_pair$RNA))
 sum(unique(filtered_df_pair$RNA) %in% Cells(object))
@@ -146,31 +128,10 @@ print("ATAC data")
 length(unique(filtered_df_pair$ATAC))
 sum(unique(filtered_df_pair$ATAC) %in% Cells(object))
 
-
-# print("Debugging:")
-# print("line 1")
-# rna.counts <- GetAssayData(object, assay = use.assay1, slot = "counts")[, df.pair$RNA]
-# print("line 2")
-# atac.counts <- GetAssayData(object, assay = use.assay2, slot = "counts")[, df.pair$ATAC]
-# print("line 3")
-# colnames(rna.counts) <- df.pair$cell_name
-# print("line 4")
-# colnames(atac.counts) <- df.pair$cell_name
-# print("line 5")
-# obj.pair <- CreateSeuratObject(counts = rna.counts, assay = use.assay1)
-# print("line 6")
-# obj.pair[[use.assay2]] <- CreateChromatinAssay(counts = atac.counts, sep = sep, min.cells = 10)
-# print("line 7")
-# for (reduction in names(object@reductions)) {
-#         embedding <- Embeddings(object, reduction = reduction)[df.pair$RNA, 
-#             ]
-#         rownames(embedding) <- df.pair$cell_name
-#         obj.pair[[reduction]] <- CreateDimReducObject(embeddings = embedding, 
-#             assay = DefaultAssay(obj.pair))
-#     }
-# meta.data <- object@meta.data[df.filtered_df_pair$RNA, ]
-# rownames(meta.data) <- df.pair$cell_name
-# obj.pair <- AddMetaData(obj.pair, metadata = meta.data)
+# only keep paired cells in the seurat object
+sel_cells <- c(filtered_df_pair$ATAC, filtered_df_pair$RNA)
+coembed.sub2 <- obj.coembed[, sel_cells]
+print(coembed.sub2)
 
 ## create paired object
 obj.pair <- CreatePairedObject(df.pair = filtered_df_pair,
@@ -178,25 +139,37 @@ obj.pair <- CreatePairedObject(df.pair = filtered_df_pair,
                                use.assay1 = "RNA",
                                use.assay2 = "ATAC")
 
-print("cells paired!")
-
-# UMAP
-p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = atac_cols)
-
-png(paste0(plot_path, 'UMAP_paired_cell_type.png'), height = 10, width = 14, units = 'cm', res = 400)
-p1
-graphics.off()
-
 # see how many cells are left in the paired object
-cell_counts <- data.frame(dim(coembed.sub2)[2], dim(obj.pair)[2])
-colnames(cell_counts) <- c("Before paired obj", "After paired obj")
+cell_counts <- data.frame(dim(obj.coembed)[2], dim(coembed.sub2)[2], dim(obj.pair)[2])
+colnames(cell_counts) <- c("Before removed contam", "Before paired obj", "After paired obj")
 
 png(paste0(plot_path, 'cell_counts_after_creating_paired_object.png'), height = 10, width = 20, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+print("cells paired!")
+
+# UMAP
+###### schelper cell type colours
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
+                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                       'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo')
+cols <- scHelper_cell_type_colours[as.character(unique(obj.pair$scHelper_cell_type))]
+
+p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = cols)
+png(paste0(plot_path, 'UMAP_paired_cell_type.png'), height = 10, width = 14, units = 'cm', res = 400)
+p1
+graphics.off()
+
 ############################## Save data #######################################
 
 ## save paired object
+label = "TransferLabel"
 saveRDS(obj.pair, paste0(rds_path, label, "_paired_object.RDS"), compress = FALSE)
