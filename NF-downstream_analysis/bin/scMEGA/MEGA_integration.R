@@ -165,15 +165,37 @@ obj.coembed <- CoembedData(
   verbose = FALSE
 )
 
-p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
-              group.by = "tech", )
-p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
-              group.by = "scHelper_cell_type", cols = atac_cols)
-p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
-              group.by = "stage", cols = stage_cols)
+cols <- scHelper_cell_type_colours[as.character(unique(obj.coembed$scHelper_cell_type))]
+
+p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap", group.by = "tech")
+p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap", group.by = "scHelper_cell_type", cols = cols)
+p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap", group.by = "stage", cols = stage_cols)
 
 png(paste0(plot_path, '1_UMAP_coembed_pre_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
-p1 + p2 + p3
+print(p1 + p2 + p3)
+graphics.off()
+
+p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = FALSE, reduction = "umap", group.by = "tech")
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_tech.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p1)
+graphics.off()
+
+p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = FALSE, reduction = "umap", group.by = "scHelper_cell_type", cols = cols)
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_celltype.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p1)
+graphics.off()
+
+p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = FALSE, reduction = "umap", group.by = "stage", cols = stage_cols)
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p1)
+graphics.off()
+
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_celltype_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.coembed, reduction = "umap", group.by = "scHelper_cell_type", cols = cols, split.by = "tech")
+graphics.off()
+
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_stage_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.coembed, reduction = "umap", group.by = "stage", cols = stage_cols, split.by = "tech")
 graphics.off()
 
 ## save combedded object
@@ -209,27 +231,35 @@ obj.coembed <- RunUMAP(
   min.dist = 0.4
 )
 
-p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-              group.by = "tech", )
-p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-              group.by = "scHelper_cell_type", cols = atac_cols)
-p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-              group.by = "stage", cols = stage_cols)
+p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "tech")
+p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "scHelper_cell_type", cols = cols)
+p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "stage", cols = stage_cols)
 
 png(paste0(plot_path, '2_UMAP_coembed_post_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
-p1 + p2 + p3
+print(p1 + p2 + p3)
 graphics.off()
 
-p <- DimPlot(obj.coembed, group.by = "scHelper_cell_type", label = FALSE,
-             reduction = "umap_harmony", shuffle = TRUE, cols = atac_cols)
-png(paste0(plot_path, '2_UMAP_coembed_post_integration_cell_type.png'), height = 10, width = 12, units = 'cm', res = 400)
-p
+p <- DimPlot(obj.coembed, group.by = "tech", label = FALSE, reduction = "umap_harmony", shuffle = TRUE)
+png(paste0(plot_path, '2_UMAP_coembed_post_integration_tech.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p)
 graphics.off()
 
-p <- DimPlot(obj.coembed, group.by = "stage", label = FALSE,
-             reduction = "umap_harmony", shuffle = TRUE, cols = stage_cols)
+p <- DimPlot(obj.coembed, group.by = "scHelper_cell_type", label = FALSE, reduction = "umap_harmony", shuffle = TRUE, cols = cols)
+png(paste0(plot_path, '2_UMAP_coembed_post_integration_celltype.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+p <- DimPlot(obj.coembed, group.by = "stage", label = FALSE, reduction = "umap_harmony", shuffle = TRUE, cols = stage_cols)
 png(paste0(plot_path, '2_UMAP_coembed_post_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
-p
+print(p)
+graphics.off()
+
+png(paste0(plot_path, '2_UMAP_coembed_post_integration_celltype_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.coembed, reduction = "umap_harmony", group.by = "scHelper_cell_type", cols = cols, split.by = "tech")
+graphics.off()
+
+png(paste0(plot_path, '2_UMAP_coembed_post_integration_stage_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.coembed, reduction = "umap_harmony", group.by = "stage", cols = stage_cols, split.by = "tech")
 graphics.off()
 
 ## save integrated object
@@ -239,36 +269,79 @@ saveRDS(obj.coembed, paste0(rds_path, label, "_integrated_object.RDS"), compress
 print("Harmony integration complete!")
 print(obj.coembed)
 
-############################## Clustering on integrated object #######################################
+############################## Run diffusion map #######################################
 
-print("clustering...")
+obj.diff <- RunDiffusionMap(obj.coembed, reduction = "harmony")
 
-## clustering
-obj.coembed <- FindNeighbors(obj.coembed, reduction = "harmony", dims = 1:30)
-obj.coembed <- FindClusters(obj.coembed, resolution = 0.1, verbose = FALSE)
+# Plot UMAPs
+p1 <- DimPlot(obj.diff, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "tech")
+p2 <- DimPlot(obj.diff, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "scHelper_cell_type", cols = cols)
+p3 <- DimPlot(obj.diff, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "stage", cols = stage_cols)
 
-p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
-             reduction = "umap_harmony", shuffle = TRUE) +
-  xlab("UMAP1") + ylab("UMAP2")
-png(paste0(plot_path, '2_UMAP_coembed_post_integration_clustered.png'), height = 10, width = 12, units = 'cm', res = 400)
-p
+png(paste0(plot_path, '3_UMAP_coembed_post_diffusion.png'), height = 10, width = 32, units = 'cm', res = 400)
+print(p1 + p2 + p3)
 graphics.off()
 
-## proportion of cells in each cluster
-p1 <- CellPropPlot(obj.coembed, 
-                   group.by = "tech", 
-                   prop.in = "RNA_snn_res.0.1")
-p2 <- CellPropPlot(obj.coembed, 
-                   group.by = "scHelper_cell_type", 
-                   prop.in = "RNA_snn_res.0.1",
-                   cols = atac_cols)
-p3 <- CellPropPlot(obj.coembed, 
-                   group.by = "stage", 
-                   prop.in = "RNA_snn_res.0.1",
-                   cols = stage_cols)
-png(paste0(plot_path, '2_cluster_proportions.png'), height = 10, width = 32, units = 'cm', res = 400)
-p1 + p2 + p3
+p <- DimPlot(obj.diff, group.by = "tech", label = FALSE, reduction = "dm", shuffle = TRUE)
+png(paste0(plot_path, '3_UMAP_coembed_post_diffusion_tech.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p)
 graphics.off()
+
+p <- DimPlot(obj.diff, group.by = "scHelper_cell_type", label = FALSE, reduction = "dm", shuffle = TRUE, cols = cols)
+png(paste0(plot_path, '3_UMAP_coembed_post_diffusion_celltype.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+p <- DimPlot(obj.diff, group.by = "stage", label = FALSE, reduction = "dm", shuffle = TRUE, cols = stage_cols)
+png(paste0(plot_path, '3_UMAP_coembed_post_diffusion_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+png(paste0(plot_path, '3_UMAP_coembed_post_diffusion_celltype_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.diff, reduction = "dm", group.by = "scHelper_cell_type", cols = cols, split.by = "tech")
+graphics.off()
+
+png(paste0(plot_path, '3_UMAP_coembed_post_diffusion_stage_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.diff, reduction = "dm", group.by = "stage", cols = stage_cols, split.by = "tech")
+graphics.off()
+
+## save diffusion object
+label <- "TransferLabel"
+saveRDS(obj.diff, paste0(rds_path, label, "_diffusion_object.RDS"), compress = FALSE)
+
+print("Diffusion complete!")
+print(obj.diff)
+
+# ############################## Clustering on integrated object #######################################
+
+# print("clustering...")
+
+# ## clustering
+# obj.coembed <- FindNeighbors(obj.coembed, reduction = "harmony", dims = 1:30)
+# obj.coembed <- FindClusters(obj.coembed, resolution = 0.1, verbose = FALSE)
+
+# p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
+#              reduction = "umap_harmony", shuffle = TRUE) +
+#   xlab("UMAP1") + ylab("UMAP2")
+# png(paste0(plot_path, '2_UMAP_coembed_post_integration_clustered.png'), height = 10, width = 12, units = 'cm', res = 400)
+# p
+# graphics.off()
+
+# ## proportion of cells in each cluster
+# p1 <- CellPropPlot(obj.coembed, 
+#                    group.by = "tech", 
+#                    prop.in = "RNA_snn_res.0.1")
+# p2 <- CellPropPlot(obj.coembed, 
+#                    group.by = "scHelper_cell_type", 
+#                    prop.in = "RNA_snn_res.0.1",
+#                    cols = atac_cols)
+# p3 <- CellPropPlot(obj.coembed, 
+#                    group.by = "stage", 
+#                    prop.in = "RNA_snn_res.0.1",
+#                    cols = stage_cols)
+# png(paste0(plot_path, '2_cluster_proportions.png'), height = 10, width = 32, units = 'cm', res = 400)
+# p1 + p2 + p3
+# graphics.off()
 
 ## find gene markers per cluster and plot as dotplot
 # all.markers <- FindAllMarkers(obj.coembed, 
@@ -283,83 +356,17 @@ graphics.off()
 # print(p)
 # graphics.off()
 
-## UMAP split by modality
-p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
-             reduction = "umap_harmony", shuffle = TRUE, split.by = "tech") +
-  xlab("UMAP1") + ylab("UMAP2")
-png(paste0(plot_path, '2_UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
-p
-graphics.off()
+# ## UMAP split by modality
+# p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
+#              reduction = "umap_harmony", shuffle = TRUE, split.by = "tech") +
+#   xlab("UMAP1") + ylab("UMAP2")
+# png(paste0(plot_path, '2_UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
+# p
+# graphics.off()
 
-print("clustering run!")
-print(obj.coembed)
+# print("clustering run!")
+# print(obj.coembed)
 
-############################## Create fake multimodal data #######################################
-
-saveRDS(obj.coembed, paste0(rds_path, "TEST_OBJECT.RDS"), compress = FALSE)
+############################## Write through the cell pairings #######################################
 
 write.csv(df.pair, paste0(rds_path, "archr_cell_pairings.csv"), row.names = FALSE, col.names = TRUE)
-
-# print("pairing cells...")
-
-# #### THIS IS HOW scMEGA DOES IT: but it seems to run forever, so instead use pre-computed pairings from ArchR integration
-# # # pair cells between modalities
-# # df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
-# #                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
-# # 
-# # # save the cell pairings
-# # write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
-
-# # only keep paired cells in the seurat object
-# sel_cells <- c(df.pair$ATAC, df.pair$RNA)
-# coembed.sub2 <- obj.coembed[, sel_cells]
-
-# # how many unique ATAC and RNA cells left in paired object
-# length(unique(df.pair$ATAC))
-# length(unique(df.pair$RNA))
-# dim(df.pair)
-
-# # see how many cells are left after filtering
-# cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
-# colnames(cell_counts) <- c("Before pairing ATAC", "Before pairing RNA", "After pairing RNA", "After pairing ATAC")
-
-# png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-# # plot UMAP split by tech
-# options(repr.plot.height = 5, repr.plot.width = 10)
-# png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
-# DimPlot(coembed.sub2, reduction = "umap_harmony", 
-#         split.by = "tech")
-# graphics.off()
-
-# ## create paired object
-# obj.pair <- CreatePairedObject(df.pair = df.pair, 
-#                                object = coembed.sub2,
-#                                use.assay1 = "RNA", 
-#                                use.assay2 = "ATAC")
-
-# print("cells paired!")
-
-# # UMAP
-# p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = atac_cols)
-
-# png(paste0(plot_path, 'UMAP_paired_cell_type.png'), height = 10, width = 14, units = 'cm', res = 400)
-# p1
-# graphics.off()
-
-# # see how many cells are left in the paired object
-# cell_counts <- data.frame(dim(coembed.sub2)[2], dim(obj.pair)[2])
-# colnames(cell_counts) <- c("Before paired obj", "After paired obj")
-
-# png(paste0(plot_path, 'cell_counts_after_creating_paired_object.png'), height = 10, width = 20, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-# ############################## Save data #######################################
-
-# ## save paired object
-# saveRDS(obj.pair, paste0(rds_path, label, "_paired_object.RDS"), compress = FALSE)
