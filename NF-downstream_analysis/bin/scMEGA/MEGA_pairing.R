@@ -110,14 +110,14 @@ length(unique(df.pair$ATAC))
 length(unique(df.pair$RNA))
 dim(df.pair)
 
-# see how many cells are left after filtering
-cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
-colnames(cell_counts) <- c("Before pairing ATAC", "Before pairing RNA", "After pairing RNA", "After pairing ATAC")
+# # see how many cells are left after filtering
+# cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
+# colnames(cell_counts) <- c("Before pairing ATAC", "Before pairing RNA", "After pairing RNA", "After pairing ATAC")
 
-png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
 # plot UMAP split by tech
 options(repr.plot.height = 5, repr.plot.width = 10)
