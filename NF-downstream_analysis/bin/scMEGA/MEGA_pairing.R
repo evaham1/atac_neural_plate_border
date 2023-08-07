@@ -128,7 +128,7 @@ graphics.off()
 
 # the RNA transfer labels object doesn't include contamination, so 191 RNA cells which are in the df.pair are missing
 # so first lets remove these cells from the df.pair object, so there should be no contam cells in the final paired seurat object
-RNA_cells_to_remove <- setdiff(unique(df.pair$RNA), Cells(object))
+RNA_cells_to_remove <- setdiff(unique(df.pair$RNA), Cells(coembed.sub2))
 length(RNA_cells_to_remove) # 191
 filtered_df_pair <- df.pair %>% filter(!RNA %in% RNA_cells_to_remove)
 head(filtered_df_pair)
