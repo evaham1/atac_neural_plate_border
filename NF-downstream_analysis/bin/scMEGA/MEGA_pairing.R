@@ -132,11 +132,13 @@ use.assay1 = "RNA"
 use.assay2 = "ATAC"
 
 print("RNA data")
-print(df.pair$RNA)
+print(head(df.pair$RNA))
 head(GetAssayData(object, assay = use.assay1, slot = "counts"))
 print("ATAC data")
-print(df.pair$ATAC)
+print(head(df.pair$ATAC))
 head(GetAssayData(object, assay = use.assay2, slot = "counts"))
+print("cell names")
+print(Cells(x = object))
 
 print("Debugging:")
 print("line 1")
