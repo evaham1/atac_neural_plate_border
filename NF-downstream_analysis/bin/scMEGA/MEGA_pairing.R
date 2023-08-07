@@ -126,26 +126,26 @@ DimPlot(coembed.sub2, reduction = "umap_harmony",
         split.by = "tech")
 graphics.off()
 
+# the RNA transfer labels object doesn't include contamination, so 191 RNA cells which are in the df.pair are missing
+# so first lets remove these cells from the df.pair object, so there should be no contam cells in the final paired seurat object
+RNA_cells_to_remove <- setdiff(unique(df.pair$RNA), Cells(object))
+length(RNA_cells_to_remove) # 191
+filtered_df_pair <- df.pair %>% filter(!RNA %in% RNA_cells_to_remove)
+head(filtered_df_pair)
+dim(filtered_df_pair)
+
 ## debug createpairedobject
 object = coembed.sub2
 use.assay1 = "RNA"
 use.assay2 = "ATAC"
 
 print("RNA data")
-print(head(df.pair$RNA))
-length(unique(df.pair$RNA)) # 1895
-head(GetAssayData(object, assay = use.assay1, slot = "counts"))
-sum(unique(df.pair$RNA) %in% colnames(GetAssayData(object, assay = use.assay1, slot = "counts"))) # 1704
-sum(unique(df.pair$RNA) %in% Cells(object)) # 1704
-
-print(setdiff(unique(df.pair$RNA), Cells(object)))
-
+length(unique(filtered_df_pair$RNA))
+sum(unique(filtered_df_pair$RNA) %in% Cells(object))
 print("ATAC data")
-print(head(df.pair$ATAC))
-length(df.pair$RNA) # 86217
-head(GetAssayData(object, assay = use.assay2, slot = "counts"))
-sum(df.pair$ATAC %in% colnames(GetAssayData(object, assay = use.assay2, slot = "counts"))) # 86217
-sum(df.pair$ATAC %in% Cells(object)) # 86217
+length(unique(filtered_df_pair$ATAC))
+sum(unique(filtered_df_pair$ATAC) %in% Cells(object))
+
 
 print("Debugging:")
 print("line 1")
@@ -168,9 +168,9 @@ for (reduction in names(object@reductions)) {
         obj.pair[[reduction]] <- CreateDimReducObject(embeddings = embedding, 
             assay = DefaultAssay(obj.pair))
     }
-    meta.data <- object@meta.data[df.pair$RNA, ]
-    rownames(meta.data) <- df.pair$cell_name
-    obj.pair <- AddMetaData(obj.pair, metadata = meta.data)
+meta.data <- object@meta.data[df.pair$RNA, ]
+rownames(meta.data) <- df.pair$cell_name
+obj.pair <- AddMetaData(obj.pair, metadata = meta.data)
 
 # ## create paired object
 # obj.pair <- CreatePairedObject(df.pair = df.pair,
