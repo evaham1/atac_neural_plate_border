@@ -48,6 +48,7 @@ if(opt$verbose) print(opt)
     
     # full data
     #data_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/scMEGA_integrated/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi/plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -106,7 +107,7 @@ graphics.off()
 
 ## create trajectory - need to specify order of cell groupings
 obj.pair <- AddTrajectory(object = obj.pair, 
-                          trajectory = c("HH5", "HH6", "HH7", "ss4", "ss8"),
+                          trajectory = c("HH7", "ss4", "ss8"),
                           group.by = "stage", 
                           reduction = "umap_harmony",
                           dims = 1:2, 
@@ -126,10 +127,10 @@ graphics.off()
 
 # visualise trajectory
 p1 <- DimPlot(obj.trajectory, reduction = "umap_harmony", 
-              group.by = "scHelper_cell_type",
+              group.by = "scHelper_cell_type", pt.size = 2.5,
               cols = cols)
 p2 <- DimPlot(obj.trajectory, reduction = "umap_harmony", 
-              group.by = "stage",
+              group.by = "stage", pt.size = 2.5,
               cols = stage_cols)
 p3 <- TrajectoryPlot(object = obj.trajectory, 
                      reduction = "umap_harmony",
