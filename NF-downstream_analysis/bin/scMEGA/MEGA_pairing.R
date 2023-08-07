@@ -131,6 +131,14 @@ object = coembed.sub2
 use.assay1 = "RNA"
 use.assay2 = "ATAC"
 
+print("RNA data")
+print(df.pair$RNA)
+head(GetAssayData(object, assay = use.assay1, slot = "counts"))
+print("ATAC data")
+print(df.pair$ATAC)
+head(GetAssayData(object, assay = use.assay2, slot = "counts"))
+
+print("Debugging:")
 print("line 1")
 rna.counts <- GetAssayData(object, assay = use.assay1, slot = "counts")[, df.pair$RNA]
 print("line 2")
