@@ -44,6 +44,7 @@ include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"              
 // MEGA PROCESSING
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
+include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
 // METACELL PROCESSING
@@ -310,8 +311,9 @@ workflow A {
         // integrate the stages into a coembedding seurat object
         MEGA_INTEGRATION( ch_integrate )
 
-        // then need to run R script to combine the seurat objects into one full data object
-
+        // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
+        MEGA_PAIRING( MEGA_INTEGRATION.out )
+        
         // then run scMEGA GRNi on the full data paired seurat object
         //MEGA_GRNI( MEGA_INTEGRATION.out )
         
