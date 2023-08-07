@@ -264,17 +264,17 @@ p1 + p2 + p3
 graphics.off()
 
 ## find gene markers per cluster and plot as dotplot
-all.markers <- FindAllMarkers(obj.coembed, 
-                              only.pos = TRUE, 
-                              min.pct = 0.5, logfc.threshold = 0.5)
-df <- all.markers %>%
-  group_by(cluster) %>%
-  slice_max(n = 3, order_by = avg_log2FC)
+# all.markers <- FindAllMarkers(obj.coembed, 
+#                               only.pos = TRUE, 
+#                               min.pct = 0.5, logfc.threshold = 0.5)
+# df <- all.markers %>%
+#   group_by(cluster) %>%
+#   slice_max(n = 3, order_by = avg_log2FC)
 
-p <- DotPlot(obj.coembed, features = unique(df$gene)) + RotatedAxis()
-png(paste0(plot_path, 'cluster_DotPlot.png'), height = 13, width = 32, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# p <- DotPlot(obj.coembed, features = unique(df$gene)) + RotatedAxis()
+# png(paste0(plot_path, 'cluster_DotPlot.png'), height = 13, width = 32, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
 ## UMAP split by modality
 p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
