@@ -228,6 +228,7 @@ graphics.off()
 print("integration run!")
 
 ## save integrated object
+label <- "TransferLabel"
 saveRDS(obj.coembed, paste0(rds_path, label, "_integrated_object.RDS"), compress = FALSE)
 
 ############################## Clustering #######################################
