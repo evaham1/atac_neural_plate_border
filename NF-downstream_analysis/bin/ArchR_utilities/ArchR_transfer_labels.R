@@ -126,6 +126,7 @@ ArchR_full <- addCellColData(ArchRProj = ArchR_full,
 print(table(ArchR_full$stage_clusters))
 
 # filter out cells that have NA in the stage_clusters (ie have been removed from stages because they are contam)
+### update shouldn't filter out any cells but run anyway
 print(paste0("number of NA cell ids: ", sum(is.na(ArchR_full$stage_clusters))))
 
 idxSample <- BiocGenerics::which(!is.na(ArchR_full$stage_clusters))
@@ -228,6 +229,132 @@ ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered,
                                  force = TRUE)
 print(table(ArchR_filtered$cluster_labels))
 
+################## Transfer cluster identity info from stages onto full data #######################################
+######## stages: 'scHelper_cell_type_broad' -> TransferLabels: 'stage_scHelper_cell_type_broad'
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_cluster_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  stage <- unique(ArchR$stage)
+  cluster_ids <- paste0(stage, "_", ArchR$scHelper_cell_type_broad)
+  print(length(cluster_ids))
+  all_cluster_ids <- c(all_cluster_ids, cluster_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage cluster labels: ", length(all_cluster_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
+                                 data = all_cluster_ids,
+                                 cells = all_cell_ids, 
+                                 name = "stage_scHelper_cell_type_broad",
+                                 force = TRUE)
+print(table(ArchR_filtered$stage_scHelper_cell_type_broad))
+
+# remove the stage prefix for another slot
+ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
+                                 data = substring(all_cluster_ids, 5),
+                                 cells = all_cell_ids, 
+                                 name = "scHelper_cell_type_broad",
+                                 force = TRUE)
+print(table(ArchR_filtered$scHelper_cell_type_broad))
+
+################## Transfer rna cell label info from stages onto full data #######################################
+######## stages: 'predictedCell_Un' -> TransferLabels: 'predictedCell_Un'
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_transfer_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  transfer_ids <- paste0(ArchR$predictedCell_Un)
+  print(length(transfer_ids))
+  all_transfer_ids <- c(all_transfer_ids, transfer_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage transfer ids: ", length(all_transfer_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
+                                 data = all_transfer_ids,
+                                 cells = all_cell_ids, 
+                                 name = "predictedCell_Un",
+                                 force = TRUE)
+print(table(ArchR_filtered$predictedCell_Un))
+
+################## Transfer rna cell label info from stages onto full data #######################################
+######## stages: 'predictedScore_Un' -> TransferLabels: 'predictedScore_Un'
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_transfer_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  transfer_ids <- paste0(ArchR$predictedScore_Un)
+  print(length(transfer_ids))
+  all_transfer_ids <- c(all_transfer_ids, transfer_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage transfer ids: ", length(all_transfer_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
+                                 data = all_transfer_ids,
+                                 cells = all_cell_ids, 
+                                 name = "predictedScore_Un",
+                                 force = TRUE)
+print(table(ArchR_filtered$predictedScore_Un))
+
 #####################################################################################
 ############################## Save data #######################################
 
@@ -270,15 +397,18 @@ ggAlignPlots(p1, p2, type = "h")
 graphics.off()
 
 ###### schelper cell type colours
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                "#A5718D", "#3F918C", "#ed5e5f", "9792A3")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo')
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo',
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam')
 cols <- scHelper_cell_type_colours[as.character(unique(ArchR_filtered$scHelper_cell_type))]
 
 ### Plot scHelper_cell_type and cluster_labels
@@ -311,4 +441,26 @@ p2 <- plotEmbedding(ArchR_filtered,
 
 png(paste0(plot_path, "stage_scHelper_cell_type_cell_type_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
+graphics.off()
+
+### Plot broad scHelper_cell_type and stage
+p1 <- plotEmbedding(ArchR_filtered,
+                    name = "scHelper_cell_type_broad",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0,
+                    randomize = TRUE)
+p2 <- plotEmbedding(ArchR_filtered,
+                    name = "stage",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0,
+                    pal = stage_colours, randomize = TRUE)
+
+png(paste0(plot_path, "scHelper_cell_type_broad_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+ggAlignPlots(p1, p2, type = "h")
+graphics.off()
+
+### Plot integration scores
+png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_filtered, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
+              legendSize = 10)
 graphics.off()
