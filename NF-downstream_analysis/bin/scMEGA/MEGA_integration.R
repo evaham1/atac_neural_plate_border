@@ -131,7 +131,7 @@ p1 <- DimPlot(obj.rna, pt.size = 1, reduction = "umap", group.by = "scHelper_cel
   ggtitle("scRNA-seq")
 p2 <- DimPlot(obj.atac, pt.size = 1, reduction = "umap_iLSI", group.by = "scHelper_cell_type", cols = atac_cols, shuffle = TRUE) +
   ggtitle("snATAC-seq")
-png(paste0(plot_path, 'UMAPs_scHelper_cell_type.png'), height = 10, width = 30, units = 'cm', res = 400)
+png(paste0(plot_path, '0_UMAPs_scHelper_cell_type.png'), height = 10, width = 30, units = 'cm', res = 400)
 p1 + p2
 graphics.off()
 
@@ -143,7 +143,7 @@ p1 <- DimPlot(obj.rna, pt.size = 1, reduction = "umap", group.by = "stage", cols
   ggtitle("scRNA-seq")
 p2 <- DimPlot(obj.atac, pt.size = 1, reduction = "umap_iLSI", group.by = "stage", cols = stage_cols, shuffle = TRUE) +
   ggtitle("snATAC-seq")
-png(paste0(plot_path, 'UMAPs_stage.png'), height = 10, width = 24, units = 'cm', res = 400)
+png(paste0(plot_path, '0_UMAPs_stage.png'), height = 10, width = 24, units = 'cm', res = 400)
 p1 + p2
 graphics.off()
 
@@ -172,66 +172,74 @@ p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
 p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap",
               group.by = "stage", cols = stage_cols)
 
-png(paste0(plot_path, 'UMAP_coembed_pre_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
 p1 + p2 + p3
 graphics.off()
 
-# ############################## Run harmony and re-plot #######################################
+## save combedded object
+label <- "TransferLabel"
+saveRDS(obj.coembed, paste0(rds_path, label, "_coembedded_object.RDS"), compress = FALSE)
 
-# print("running harmony...")
+print("Coembedding complete!")
+print(obj.coembed)
 
-# ## run batch correction to integrate atac and rna
-# obj.coembed <- RunHarmony(
-#   obj.coembed,
-#   group.by.vars = c("tech"),
-#   reduction = "pca",
-#   max.iter.harmony = 30,
-#   dims.use = 1:30,
-#   project.dim = FALSE,
-#   plot_convergence = FALSE
-# )
+############################## Run harmony and re-plot #######################################
 
-# ## coembedding after batch correction
-# obj.coembed <- RunUMAP(
-#   obj.coembed,
-#   dims = 1:30,
-#   reduction = 'harmony',
-#   reduction.name = "umap_harmony",
-#   reduction.ke = 'umapharmony_',
-#   verbose = FALSE,
-#   min.dist = 0.4
-# )
+print("running harmony...")
 
-# p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-#               group.by = "tech", )
-# p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-#               group.by = "scHelper_cell_type", cols = atac_cols)
-# p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-#               group.by = "stage", cols = stage_cols)
+## run batch correction to integrate atac and rna
+obj.coembed <- RunHarmony(
+  obj.coembed,
+  group.by.vars = c("tech"),
+  reduction = "pca",
+  max.iter.harmony = 30,
+  dims.use = 1:30,
+  project.dim = FALSE,
+  plot_convergence = FALSE
+)
 
-# png(paste0(plot_path, 'UMAP_coembed_post_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
-# p1 + p2 + p3
-# graphics.off()
+## coembedding after batch correction
+obj.coembed <- RunUMAP(
+  obj.coembed,
+  dims = 1:30,
+  reduction = 'harmony',
+  reduction.name = "umap_harmony",
+  reduction.ke = 'umapharmony_',
+  verbose = FALSE,
+  min.dist = 0.4
+)
 
-# p <- DimPlot(obj.coembed, group.by = "scHelper_cell_type", label = FALSE,
-#              reduction = "umap_harmony", shuffle = TRUE, cols = atac_cols)
-# png(paste0(plot_path, 'UMAP_coembed_post_integration_cell_type.png'), height = 10, width = 12, units = 'cm', res = 400)
-# p
-# graphics.off()
+p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
+              group.by = "tech", )
+p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
+              group.by = "scHelper_cell_type", cols = atac_cols)
+p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
+              group.by = "stage", cols = stage_cols)
 
-# p <- DimPlot(obj.coembed, group.by = "stage", label = FALSE,
-#              reduction = "umap_harmony", shuffle = TRUE, cols = stage_cols)
-# png(paste0(plot_path, 'UMAP_coembed_post_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
-# p
-# graphics.off()
+png(paste0(plot_path, '2_UMAP_coembed_post_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
+p1 + p2 + p3
+graphics.off()
 
-# print("integration run!")
+p <- DimPlot(obj.coembed, group.by = "scHelper_cell_type", label = FALSE,
+             reduction = "umap_harmony", shuffle = TRUE, cols = atac_cols)
+png(paste0(plot_path, '2_UMAP_coembed_post_integration_cell_type.png'), height = 10, width = 12, units = 'cm', res = 400)
+p
+graphics.off()
 
-# ## save integrated object
-# label <- "TransferLabel"
-# saveRDS(obj.coembed, paste0(rds_path, label, "_integrated_object.RDS"), compress = FALSE)
+p <- DimPlot(obj.coembed, group.by = "stage", label = FALSE,
+             reduction = "umap_harmony", shuffle = TRUE, cols = stage_cols)
+png(paste0(plot_path, '2_UMAP_coembed_post_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
+p
+graphics.off()
 
-############################## Clustering #######################################
+## save integrated object
+label <- "TransferLabel"
+saveRDS(obj.coembed, paste0(rds_path, label, "_integrated_object.RDS"), compress = FALSE)
+
+print("Harmony integration complete!")
+print(obj.coembed)
+
+############################## Clustering on integrated object #######################################
 
 print("clustering...")
 
@@ -242,10 +250,9 @@ obj.coembed <- FindClusters(obj.coembed, resolution = 0.1, verbose = FALSE)
 p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
              reduction = "umap_harmony", shuffle = TRUE) +
   xlab("UMAP1") + ylab("UMAP2")
-png(paste0(plot_path, 'UMAP_coembed_post_integration_clustered.png'), height = 10, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, '2_UMAP_coembed_post_integration_clustered.png'), height = 10, width = 12, units = 'cm', res = 400)
 p
 graphics.off()
-
 
 ## proportion of cells in each cluster
 p1 <- CellPropPlot(obj.coembed, 
@@ -259,7 +266,7 @@ p3 <- CellPropPlot(obj.coembed,
                    group.by = "stage", 
                    prop.in = "RNA_snn_res.0.1",
                    cols = stage_cols)
-png(paste0(plot_path, 'cluster_proportions.png'), height = 10, width = 32, units = 'cm', res = 400)
+png(paste0(plot_path, '2_cluster_proportions.png'), height = 10, width = 32, units = 'cm', res = 400)
 p1 + p2 + p3
 graphics.off()
 
@@ -280,11 +287,12 @@ graphics.off()
 p <- DimPlot(obj.coembed, group.by = "RNA_snn_res.0.1", label = TRUE,
              reduction = "umap_harmony", shuffle = TRUE, split.by = "tech") +
   xlab("UMAP1") + ylab("UMAP2")
-png(paste0(plot_path, 'UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
+png(paste0(plot_path, '2_UMAPs_post_integration_clustered.png'), height = 13, width = 22, units = 'cm', res = 400)
 p
 graphics.off()
 
 print("clustering run!")
+print(obj.coembed)
 
 ############################## Create fake multimodal data #######################################
 
