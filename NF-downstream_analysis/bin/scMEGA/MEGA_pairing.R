@@ -116,10 +116,10 @@ dim(filtered_df_pair)
 # how many unique ATAC and RNA cells left in paired object
 print("RNA data")
 length(unique(filtered_df_pair$RNA))
-sum(unique(filtered_df_pair$RNA) %in% Cells(object))
+sum(unique(filtered_df_pair$RNA) %in% Cells(obj.coembed))
 print("ATAC data")
 length(unique(filtered_df_pair$ATAC))
-sum(unique(filtered_df_pair$ATAC) %in% Cells(object))
+sum(unique(filtered_df_pair$ATAC) %in% Cells(obj.coembed))
 
 # only keep paired cells in the seurat object
 sel_cells <- c(filtered_df_pair$ATAC, filtered_df_pair$RNA)
@@ -146,7 +146,7 @@ print("cells paired!")
 # plot UMAP split by tech
 options(repr.plot.height = 5, repr.plot.width = 10)
 png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
-DimPlot(coembed.sub2, reduction = "umap_harmony", 
+DimPlot(coembed.sub2, reduction = "umap_harmony",
         split.by = "tech")
 graphics.off()
 
