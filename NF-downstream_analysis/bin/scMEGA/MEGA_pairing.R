@@ -78,7 +78,8 @@ getArchRThreads()
 print("reading in data...")
 
 # if reading in integrated object
-obj.rna <- readRDS(paste0(data_path, "./rds_files/TEST_OBJECT.RDS"))
+obj.coembed <- readRDS(paste0(data_path, "./rds_files/TEST_OBJECT.RDS"))
+print(obj.coembed)
 
 # read in cell pairings from archr integration - in input/rds_files folder
 df.pair <- read.csv(paste0(data_path, "./rds_files/archr_cell_pairings.csv"))
