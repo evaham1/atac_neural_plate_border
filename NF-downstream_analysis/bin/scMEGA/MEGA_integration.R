@@ -77,12 +77,17 @@ getArchRThreads()
 
 print("reading in data...")
 
-# read in rna data - in input folder
-label <- unique(sub('_.*', '', list.files(data_path)))
-label <- label[!label %in% "rds"]
-print(label)
-print(paste0(data_path, label, "_clustered_data.RDS"))
-obj.rna <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))
+# # read in rna data - in input folder
+# label <- unique(sub('_.*', '', list.files(data_path)))
+# label <- label[!label %in% "rds"]
+# print(label)
+
+# # if reading in stages
+# print(paste0(data_path, label, "_clustered_data.RDS"))
+# obj.rna <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))
+
+# if reading in transfer labels object
+obj.rna <- readRDS(paste0(data_path, "seurat_label_transfer.RDS"))
 
 # read in atac data - in input/rds_files folder
 obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
