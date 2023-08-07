@@ -133,10 +133,12 @@ use.assay2 = "ATAC"
 
 print("RNA data")
 print(head(df.pair$RNA))
-length(unique(df.pair$RNA)) # 86217
+length(unique(df.pair$RNA)) # 1895
 head(GetAssayData(object, assay = use.assay1, slot = "counts"))
-sum(unique(df.pair$RNA) %in% colnames(GetAssayData(object, assay = use.assay1, slot = "counts"))) # 81390
-sum(unique(df.pair$RNA) %in% Cells(object)) # 81390
+sum(unique(df.pair$RNA) %in% colnames(GetAssayData(object, assay = use.assay1, slot = "counts"))) # 1704
+sum(unique(df.pair$RNA) %in% Cells(object)) # 1704
+
+print(setdiff(unique(df.pair$RNA), Cells(object)))
 
 print("ATAC data")
 print(head(df.pair$ATAC))
