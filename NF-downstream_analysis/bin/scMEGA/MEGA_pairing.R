@@ -106,9 +106,9 @@ print(coembed.sub2)
 
 # how many unique ATAC and RNA cells left in paired object
 print("cell numbers:")
-length(unique(df.pair$ATAC))
-length(unique(df.pair$RNA))
-dim(df.pair)
+length(unique(df.pair$ATAC)) # 86217
+length(unique(df.pair$RNA)) # 1895
+dim(df.pair) # 86217     3
 
 # # see how many cells are left after filtering
 # cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
@@ -133,19 +133,17 @@ use.assay2 = "ATAC"
 
 print("RNA data")
 print(head(df.pair$RNA))
-length(df.pair$RNA)
+length(unique(df.pair$RNA)) # 86217
 head(GetAssayData(object, assay = use.assay1, slot = "counts"))
-colnames(GetAssayData(object, assay = use.assay1, slot = "counts"))
-sum(df.pair$RNA %in% colnames(GetAssayData(object, assay = use.assay1, slot = "counts")))
-sum(df.pair$RNA %in% Cells(object))
+sum(unique(df.pair$RNA) %in% colnames(GetAssayData(object, assay = use.assay1, slot = "counts"))) # 81390
+sum(unique(df.pair$RNA) %in% Cells(object)) # 81390
 
 print("ATAC data")
 print(head(df.pair$ATAC))
-length(df.pair$RNA)
+length(df.pair$RNA) # 86217
 head(GetAssayData(object, assay = use.assay2, slot = "counts"))
-colnames(GetAssayData(object, assay = use.assay2, slot = "counts"))
-sum(df.pair$ATAC %in% colnames(GetAssayData(object, assay = use.assay2, slot = "counts")))
-sum(df.pair$ATAC %in% Cells(object))
+sum(df.pair$ATAC %in% colnames(GetAssayData(object, assay = use.assay2, slot = "counts"))) # 86217
+sum(df.pair$ATAC %in% Cells(object)) # 86217
 
 print("Debugging:")
 print("line 1")
