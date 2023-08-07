@@ -176,60 +176,60 @@ png(paste0(plot_path, 'UMAP_coembed_pre_integration.png'), height = 10, width = 
 p1 + p2 + p3
 graphics.off()
 
-############################## Run harmony and re-plot #######################################
+# ############################## Run harmony and re-plot #######################################
 
-print("running harmony...")
+# print("running harmony...")
 
-## run batch correction to integrate atac and rna
-obj.coembed <- RunHarmony(
-  obj.coembed,
-  group.by.vars = c("tech"),
-  reduction = "pca",
-  max.iter.harmony = 30,
-  dims.use = 1:30,
-  project.dim = FALSE,
-  plot_convergence = FALSE
-)
+# ## run batch correction to integrate atac and rna
+# obj.coembed <- RunHarmony(
+#   obj.coembed,
+#   group.by.vars = c("tech"),
+#   reduction = "pca",
+#   max.iter.harmony = 30,
+#   dims.use = 1:30,
+#   project.dim = FALSE,
+#   plot_convergence = FALSE
+# )
 
-## coembedding after batch correction
-obj.coembed <- RunUMAP(
-  obj.coembed,
-  dims = 1:30,
-  reduction = 'harmony',
-  reduction.name = "umap_harmony",
-  reduction.ke = 'umapharmony_',
-  verbose = FALSE,
-  min.dist = 0.4
-)
+# ## coembedding after batch correction
+# obj.coembed <- RunUMAP(
+#   obj.coembed,
+#   dims = 1:30,
+#   reduction = 'harmony',
+#   reduction.name = "umap_harmony",
+#   reduction.ke = 'umapharmony_',
+#   verbose = FALSE,
+#   min.dist = 0.4
+# )
 
-p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-              group.by = "tech", )
-p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-              group.by = "scHelper_cell_type", cols = atac_cols)
-p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
-              group.by = "stage", cols = stage_cols)
+# p1 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
+#               group.by = "tech", )
+# p2 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
+#               group.by = "scHelper_cell_type", cols = atac_cols)
+# p3 <- DimPlot(obj.coembed, shuffle = TRUE, label = TRUE, reduction = "umap_harmony",
+#               group.by = "stage", cols = stage_cols)
 
-png(paste0(plot_path, 'UMAP_coembed_post_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
-p1 + p2 + p3
-graphics.off()
+# png(paste0(plot_path, 'UMAP_coembed_post_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
+# p1 + p2 + p3
+# graphics.off()
 
-p <- DimPlot(obj.coembed, group.by = "scHelper_cell_type", label = FALSE,
-             reduction = "umap_harmony", shuffle = TRUE, cols = atac_cols)
-png(paste0(plot_path, 'UMAP_coembed_post_integration_cell_type.png'), height = 10, width = 12, units = 'cm', res = 400)
-p
-graphics.off()
+# p <- DimPlot(obj.coembed, group.by = "scHelper_cell_type", label = FALSE,
+#              reduction = "umap_harmony", shuffle = TRUE, cols = atac_cols)
+# png(paste0(plot_path, 'UMAP_coembed_post_integration_cell_type.png'), height = 10, width = 12, units = 'cm', res = 400)
+# p
+# graphics.off()
 
-p <- DimPlot(obj.coembed, group.by = "stage", label = FALSE,
-             reduction = "umap_harmony", shuffle = TRUE, cols = stage_cols)
-png(paste0(plot_path, 'UMAP_coembed_post_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
-p
-graphics.off()
+# p <- DimPlot(obj.coembed, group.by = "stage", label = FALSE,
+#              reduction = "umap_harmony", shuffle = TRUE, cols = stage_cols)
+# png(paste0(plot_path, 'UMAP_coembed_post_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
+# p
+# graphics.off()
 
-print("integration run!")
+# print("integration run!")
 
-## save integrated object
-label <- "TransferLabel"
-saveRDS(obj.coembed, paste0(rds_path, label, "_integrated_object.RDS"), compress = FALSE)
+# ## save integrated object
+# label <- "TransferLabel"
+# saveRDS(obj.coembed, paste0(rds_path, label, "_integrated_object.RDS"), compress = FALSE)
 
 ############################## Clustering #######################################
 
