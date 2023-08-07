@@ -89,13 +89,6 @@ print("data read in!")
 
 ############################## Create fake multimodal data #######################################
 
-# plot UMAP split by tech
-options(repr.plot.height = 5, repr.plot.width = 10)
-png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
-DimPlot(coembed.sub2, reduction = "umap_harmony", 
-        split.by = "tech")
-graphics.off()
-
 print("pairing cells...")
 
 #### THIS IS HOW scMEGA DOES IT: but it seems to run forever, so instead use pre-computed pairings from ArchR integration
@@ -149,6 +142,13 @@ grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface 
 graphics.off()
 
 print("cells paired!")
+
+# plot UMAP split by tech
+options(repr.plot.height = 5, repr.plot.width = 10)
+png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(coembed.sub2, reduction = "umap_harmony", 
+        split.by = "tech")
+graphics.off()
 
 # UMAP
 ###### schelper cell type colours
