@@ -126,11 +126,40 @@ DimPlot(coembed.sub2, reduction = "umap_harmony",
         split.by = "tech")
 graphics.off()
 
-## create paired object
-obj.pair <- CreatePairedObject(df.pair = df.pair,
-                               object = coembed.sub2,
-                               use.assay1 = "RNA",
-                               use.assay2 = "ATAC")
+## debug createpairedobject
+object = coembed.sub2
+use.assay1 = "RNA"
+use.assay2 = "ATAC"
+
+print("line 1")
+rna.counts <- GetAssayData(object, assay = use.assay1, slot = "counts")[, df.pair$RNA]
+print("line 2")
+atac.counts <- GetAssayData(object, assay = use.assay2, slot = "counts")[, df.pair$ATAC]
+print("line 3")
+colnames(rna.counts) <- df.pair$cell_name
+print("line 4")
+colnames(atac.counts) <- df.pair$cell_name
+print("line 5")
+obj.pair <- CreateSeuratObject(counts = rna.counts, assay = use.assay1)
+print("line 6")
+obj.pair[[use.assay2]] <- CreateChromatinAssay(counts = atac.counts, sep = sep, min.cells = 10)
+print("line 7")
+for (reduction in names(object@reductions)) {
+        embedding <- Embeddings(object, reduction = reduction)[df.pair$RNA, 
+            ]
+        rownames(embedding) <- df.pair$cell_name
+        obj.pair[[reduction]] <- CreateDimReducObject(embeddings = embedding, 
+            assay = DefaultAssay(obj.pair))
+    }
+    meta.data <- object@meta.data[df.pair$RNA, ]
+    rownames(meta.data) <- df.pair$cell_name
+    obj.pair <- AddMetaData(obj.pair, metadata = meta.data)
+
+# ## create paired object
+# obj.pair <- CreatePairedObject(df.pair = df.pair,
+#                                object = coembed.sub2,
+#                                use.assay1 = "RNA",
+#                                use.assay2 = "ATAC")
 
 print("cells paired!")
 
