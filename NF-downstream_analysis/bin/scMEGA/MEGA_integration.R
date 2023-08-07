@@ -290,66 +290,68 @@ print("clustering run!")
 
 saveRDS(obj.coembed, paste0(rds_path, "TEST_OBJECT.RDS"), compress = FALSE)
 
-print("pairing cells...")
+write.csv(df.pair, paste0(rds_path, "archr_cell_pairings.csv"), row.names = FALSE, col.names = TRUE)
 
-#### THIS IS HOW scMEGA DOES IT: but it seems to run forever, so instead use pre-computed pairings from ArchR integration
-# # pair cells between modalities
-# df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
-#                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
-# 
-# # save the cell pairings
-# write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
+# print("pairing cells...")
 
-# only keep paired cells in the seurat object
-sel_cells <- c(df.pair$ATAC, df.pair$RNA)
-coembed.sub2 <- obj.coembed[, sel_cells]
+# #### THIS IS HOW scMEGA DOES IT: but it seems to run forever, so instead use pre-computed pairings from ArchR integration
+# # # pair cells between modalities
+# # df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
+# #                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
+# # 
+# # # save the cell pairings
+# # write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
 
-# how many unique ATAC and RNA cells left in paired object
-length(unique(df.pair$ATAC))
-length(unique(df.pair$RNA))
-dim(df.pair)
+# # only keep paired cells in the seurat object
+# sel_cells <- c(df.pair$ATAC, df.pair$RNA)
+# coembed.sub2 <- obj.coembed[, sel_cells]
 
-# see how many cells are left after filtering
-cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
-colnames(cell_counts) <- c("Before pairing ATAC", "Before pairing RNA", "After pairing RNA", "After pairing ATAC")
+# # how many unique ATAC and RNA cells left in paired object
+# length(unique(df.pair$ATAC))
+# length(unique(df.pair$RNA))
+# dim(df.pair)
 
-png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# # see how many cells are left after filtering
+# cell_counts <- data.frame(dim(obj.atac)[2], dim(obj.rna)[2], length(unique(df.pair$RNA)), length(unique(df.pair$ATAC)))
+# colnames(cell_counts) <- c("Before pairing ATAC", "Before pairing RNA", "After pairing RNA", "After pairing ATAC")
 
-# plot UMAP split by tech
-options(repr.plot.height = 5, repr.plot.width = 10)
-png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
-DimPlot(coembed.sub2, reduction = "umap_harmony", 
-        split.by = "tech")
-graphics.off()
+# png(paste0(plot_path, 'cell_counts_after_pairing.png'), height = 10, width = 20, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
-## create paired object
-obj.pair <- CreatePairedObject(df.pair = df.pair, 
-                               object = coembed.sub2,
-                               use.assay1 = "RNA", 
-                               use.assay2 = "ATAC")
+# # plot UMAP split by tech
+# options(repr.plot.height = 5, repr.plot.width = 10)
+# png(paste0(plot_path, 'UMAPs_post_integration_clustered_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+# DimPlot(coembed.sub2, reduction = "umap_harmony", 
+#         split.by = "tech")
+# graphics.off()
 
-print("cells paired!")
+# ## create paired object
+# obj.pair <- CreatePairedObject(df.pair = df.pair, 
+#                                object = coembed.sub2,
+#                                use.assay1 = "RNA", 
+#                                use.assay2 = "ATAC")
 
-# UMAP
-p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = atac_cols)
+# print("cells paired!")
 
-png(paste0(plot_path, 'UMAP_paired_cell_type.png'), height = 10, width = 14, units = 'cm', res = 400)
-p1
-graphics.off()
+# # UMAP
+# p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = atac_cols)
 
-# see how many cells are left in the paired object
-cell_counts <- data.frame(dim(coembed.sub2)[2], dim(obj.pair)[2])
-colnames(cell_counts) <- c("Before paired obj", "After paired obj")
+# png(paste0(plot_path, 'UMAP_paired_cell_type.png'), height = 10, width = 14, units = 'cm', res = 400)
+# p1
+# graphics.off()
 
-png(paste0(plot_path, 'cell_counts_after_creating_paired_object.png'), height = 10, width = 20, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# # see how many cells are left in the paired object
+# cell_counts <- data.frame(dim(coembed.sub2)[2], dim(obj.pair)[2])
+# colnames(cell_counts) <- c("Before paired obj", "After paired obj")
 
-############################## Save data #######################################
+# png(paste0(plot_path, 'cell_counts_after_creating_paired_object.png'), height = 10, width = 20, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
-## save paired object
-saveRDS(obj.pair, paste0(rds_path, label, "_paired_object.RDS"), compress = FALSE)
+# ############################## Save data #######################################
+
+# ## save paired object
+# saveRDS(obj.pair, paste0(rds_path, label, "_paired_object.RDS"), compress = FALSE)
