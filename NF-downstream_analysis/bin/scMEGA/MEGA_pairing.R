@@ -78,7 +78,7 @@ getArchRThreads()
 print("reading in data...")
 
 # if reading in integrated object
-obj.coembed <- readRDS(paste0(data_path, "./rds_filesTransferLabel_integrated_object.RDS"))
+obj.coembed <- readRDS(paste0(data_path, "./rds_files/TransferLabel_integrated_object.RDS"))
 print(obj.coembed)
 
 # read in diffusion object
