@@ -108,6 +108,34 @@ print("data read in!")
 
 write.csv(df.pair, paste0(rds_path, "archr_cell_pairings.csv"), row.names = FALSE, col.names = TRUE)
 
+############################## Remove HH4 from RNA data #######################################
+
+print("Removing HH4 from RNA data..")
+
+obj.rna <- subset(x = obj.rna, subset = stage == "HH4", invert = TRUE)
+obj.rna
+
+# Set RNA to default assay
+DefaultAssay(obj.rna) <- "RNA"
+
+# Re-run findvariablefeatures and scaling
+obj.rna <- FindVariableFeatures(obj.rna, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
+
+obj.rna <- ScaleData(obj.rna, features = rownames(obj.rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+
+# Set Integrated to default assay
+DefaultAssay(obj.rna) <- "integrated"
+
+# Rescale data on integrated assay
+obj.rna <- ScaleData(seurat_data, features = rownames(obj.rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+
+# PCA
+obj.rna <- RunPCA(object = obj.rna, verbose = FALSE)
+pc_cutoff <- ElbowCutoff(obj.rna)
+
+obj.rna <- FindNeighbors(obj.rna, dims = 1:pc_cutoff, verbose = FALSE)
+obj.rna <- RunUMAP(obj.rna, dims = 1:pc_cutoff, verbose = FALSE)
+
 ############################## Plot UMAPs #######################################
 
 print("plotting UMAPs..")
