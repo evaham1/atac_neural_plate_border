@@ -91,6 +91,53 @@ head(df.pair)
 
 print("data read in!")
 
+############################## Try to get UMAPs to work here! #######################################
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
+                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                       'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo')
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_cols) <- stage_order
+cols <- scHelper_cell_type_colours[as.character(unique(obj.coembed$scHelper_cell_type))]
+
+p1 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = TRUE, reduction = "umap", group.by = "tech")
+p2 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = TRUE, reduction = "umap", group.by = "scHelper_cell_type", cols = cols)
+p3 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = TRUE, reduction = "umap", group.by = "stage", cols = stage_cols)
+
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration.png'), height = 10, width = 32, units = 'cm', res = 400)
+print(p1 + p2 + p3)
+graphics.off()
+
+p1 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = FALSE, reduction = "umap", group.by = "tech")
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_tech.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p1)
+graphics.off()
+
+p1 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = FALSE, reduction = "umap", group.by = "scHelper_cell_type", cols = cols)
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_celltype.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p1)
+graphics.off()
+
+p1 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = FALSE, reduction = "umap", group.by = "stage", cols = stage_cols)
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_stage.png'), height = 10, width = 12, units = 'cm', res = 400)
+print(p1)
+graphics.off()
+
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_celltype_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.coembed, pt.size = 1, reduction = "umap", group.by = "scHelper_cell_type", cols = cols, split.by = "tech")
+graphics.off()
+
+png(paste0(plot_path, '1_UMAP_coembed_pre_integration_stage_split_by_tech.png'), height = 13, width = 22, units = 'cm', res = 400)
+DimPlot(obj.coembed, pt.size = 1, reduction = "umap", group.by = "stage", cols = stage_cols, split.by = "tech")
+graphics.off()
+
+
 ############################## Clean up cell pairings #######################################
 
 print("pairing cells...")
