@@ -121,7 +121,7 @@ DefaultAssay(obj.rna) <- "RNA"
 # Re-run findvariablefeatures and scaling
 obj.rna <- FindVariableFeatures(obj.rna, selection.method = "vst", nfeatures = 2000, assay = 'RNA')
 
-obj.rna <- ScaleData(obj.rna, features = rownames(obj.rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+# obj.rna <- ScaleData(obj.rna, features = rownames(obj.rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 
 # Set Integrated to default assay
 DefaultAssay(obj.rna) <- "integrated"
