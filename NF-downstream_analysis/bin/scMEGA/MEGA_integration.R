@@ -127,7 +127,7 @@ obj.rna <- ScaleData(obj.rna, features = rownames(obj.rna), vars.to.regress = c(
 DefaultAssay(obj.rna) <- "integrated"
 
 # Rescale data on integrated assay
-obj.rna <- ScaleData(seurat_data, features = rownames(obj.rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
+obj.rna <- ScaleData(obj.rna, features = rownames(obj.rna), vars.to.regress = c("percent.mt", "sex", "S.Score", "G2M.Score"))
 
 # PCA
 obj.rna <- RunPCA(object = obj.rna, verbose = FALSE)
