@@ -295,19 +295,23 @@ workflow A {
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
             //.view() //seurat_label_transfer_minus_HH4.RDS
-            .map { row -> [[sample_id:FullData], row] }
-            .view()
             .set { ch_rna }
    
-        // combine ATAC and RNA data
-        ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        // // combine ATAC and RNA data (would need this code if doing this stage by stage, but just full data dont need to match by sample_id)
+        // ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     .view()
+        //     .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
+        //     .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
+        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+        //     .view()
+        //     .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
+
+        // combine ATAC and RNA full data - sample id irrelevant 
+        ARCHR_TO_SEURAT.out
+            .concat(ch_rna)
             .view()
-            .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
-            .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .view()
-            .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
+            .set {ch_integrate}
 
 
         // [[sample_id:HH6], [rds_files, HH6_clustered_data.RDS]]
