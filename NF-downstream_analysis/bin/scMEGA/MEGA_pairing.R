@@ -186,25 +186,24 @@ p1 + p2
 graphics.off()
 
 ###### add broad cell types and plot
-metadata <- obj.pair@metadata
-scHelper_cell_types <- metadata %>% select(scHelper_cell_type)
+scHelper_cell_types <- as.data.frame(obj.pair$scHelper_cell_type)
 
-broad <- scHelper_cell_types %>% mutate(broad = mapvalues(scHelper_cell_type, 
-                           from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
-                                  'PPR', 'aPPR', 'pPPR',
-                                  'eNPB', 'NPB', 'aNPB', 'pNPB',
-                                  'NC', 'dNC',
-                                  'NNE', 'pEpi',
-                                  'EE', 'meso', 'endo', 'BI', 'PGC'),
-                           to=c(
-                            rep("Neural", 11),
-                            rep("Placodal", 3),
-                            rep("NPB", 4),
-                            rep("NC", 2),
-                            rep("Non-neural", 2),
-                            rep("Contam", 5)
-                           )
-                           ))
+broad <- scHelper_cell_types %>% mutate(broad = mapvalues(obj.pair$scHelper_cell_type, 
+                                                          from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
+                                                                 'PPR', 'aPPR', 'pPPR',
+                                                                 'eNPB', 'NPB', 'aNPB', 'pNPB',
+                                                                 'NC', 'dNC',
+                                                                 'NNE', 'pEpi',
+                                                                 'EE', 'meso', 'endo', 'BI', 'PGC'),
+                                                          to=c(
+                                                            rep("Neural", 11),
+                                                            rep("Placodal", 3),
+                                                            rep("NPB", 4),
+                                                            rep("NC", 2),
+                                                            rep("Non-neural", 2),
+                                                            rep("Contam", 5)
+                                                          )
+))
 obj.pair$scHelper_cell_type_broad <- broad$broad
 print("Broad scHelper cell type labels added")
 
