@@ -298,30 +298,16 @@ workflow A {
             .map { row -> [[sample_id:'FullData'], row] }
             .set { ch_rna }
    
-        // // combine ATAC and RNA data (would need this code if doing this stage by stage, but just full data dont need to match by sample_id)
-        // ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     .view()
-        //     .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
-        //     .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
-        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-        //     .view()
-        //     .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
+        // combine ATAC and RNA data
+        ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .view()
+            .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
+            .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .view()
+            .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
 
-        // combine ATAC and RNA full data - sample id irrelevant 
-        ARCHR_TO_SEURAT.out
-            .concat(ch_rna) 
-            .view() 
-        //[[sample_id:FullData], [ArchRLogs, plots, rds_files]]
-        //seurat_label_transfer_minus_HH4.RDS
-            .set {ch_integrate}
-
-
-        // [[sample_id:HH6], [rds_files, HH6_clustered_data.RDS]]
-        // [[sample_id:HH5], [rds_files, HH5_clustered_data.RDS]]
-        // [[sample_id:HH7], [rds_files, HH7_clustered_data.RDS]]
-        // [[sample_id:ss4], [rds_files, ss4_clustered_data.RDS]]
-        // [[sample_id:ss8], [rds_files, ss8_clustered_data.RDS]]
 
         // integrate the stages into a coembedding seurat object
         MEGA_INTEGRATION( ch_integrate )
