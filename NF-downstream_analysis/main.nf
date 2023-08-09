@@ -301,13 +301,13 @@ workflow A {
         // combine ATAC and RNA data
         ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .view()
+            .view() //[[sample_id:FullData], [rds_files]]
             .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .view()
+            .map{ [ it[0], [ it[1][0], it[1][1] ] ] }
             .view()
             .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
-
 
         // integrate the stages into a coembedding seurat object
         MEGA_INTEGRATION( ch_integrate )
