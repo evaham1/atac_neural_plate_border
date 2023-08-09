@@ -46,6 +46,7 @@ include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"             
 include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
 include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
+include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
 
 // METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -285,18 +286,19 @@ workflow A {
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
-        // METADATA_RNA_SC.out.metadata.view()
-        // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-        // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-        // [[sample_id:HH7], [HH7_clustered_data.RDS]]
-        // [[sample_id:ss4], [ss4_clustered_data.RDS]]
-        // [[sample_id:ss8], [ss8_clustered_data.RDS]]
+        // remove HH4 from RNA data
+        REMOVE_HH4( METADATA_RNA_SC.out.metadata )
+        REMOVE_HH4.out.view()
+        REMOVE_HH4.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .view()
+            .set { ch_rna }
    
         // combine ATAC and RNA data
         ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             //.view()
-            .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+            .concat( ch_rna ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             //.view()
