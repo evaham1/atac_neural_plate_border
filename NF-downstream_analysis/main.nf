@@ -295,6 +295,7 @@ workflow A {
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
             //.view() //seurat_label_transfer_minus_HH4.RDS
+            .map { row -> [[sample_id:dummy], row] }
             .set { ch_rna }
    
         // // combine ATAC and RNA data (would need this code if doing this stage by stage, but just full data dont need to match by sample_id)
@@ -309,8 +310,10 @@ workflow A {
 
         // combine ATAC and RNA full data - sample id irrelevant 
         ARCHR_TO_SEURAT.out
-            .concat(ch_rna)
-            .view()
+            .concat(ch_rna) 
+            .view() 
+        //[[sample_id:FullData], [ArchRLogs, plots, rds_files]]
+        //seurat_label_transfer_minus_HH4.RDS
             .set {ch_integrate}
 
 
