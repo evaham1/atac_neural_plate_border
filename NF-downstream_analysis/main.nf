@@ -289,9 +289,11 @@ workflow A {
         // remove HH4 from RNA data
         REMOVE_HH4( METADATA_RNA_SC.out.metadata )
         REMOVE_HH4.out.view()
+        //[[sample_id:FullData], [plots, rds_files]]
         REMOVE_HH4.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .view()
+            .flatMap {it[1][0].listFiles()}
+            .view() //[[sample_id:FullData], [rds_files]]
             .set { ch_rna }
    
         // combine ATAC and RNA data
