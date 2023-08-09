@@ -294,13 +294,15 @@ workflow A {
         REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
-            .view()
+            //.view() //seurat_label_transfer_minus_HH4.RDS
+            .map { row -> [[sample_id:FullData], row] }
             .set { ch_rna }
+            .view()
    
         // combine ATAC and RNA data
         ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            //.view()
+            .view()
             .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
