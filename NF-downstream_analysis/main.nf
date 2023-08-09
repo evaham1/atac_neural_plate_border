@@ -296,8 +296,8 @@ workflow A {
             .flatMap {it[1][0].listFiles()}
             //.view() //seurat_label_transfer_minus_HH4.RDS
             .map { row -> [[sample_id:FullData], row] }
-            .set { ch_rna }
             .view()
+            .set { ch_rna }
    
         // combine ATAC and RNA data
         ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
