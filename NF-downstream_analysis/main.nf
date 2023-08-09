@@ -288,23 +288,24 @@ workflow A {
                                             // etc
         // remove HH4 from RNA data
         REMOVE_HH4( METADATA_RNA_SC.out.metadata )
-        REMOVE_HH4.out.view()
+        //REMOVE_HH4.out.view()
         //[[sample_id:FullData], [plots, rds_files]]
         REMOVE_HH4.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
-            .view() //[[sample_id:FullData], [rds_files]]
+            //.view() //[[sample_id:FullData], [rds_files]]
             .set { ch_rna }
    
         // combine ATAC and RNA data
         ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             //.view()
-            .concat( ch_rna ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+            .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             //.view()
-            .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+            .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
+
 
         // [[sample_id:HH6], [rds_files, HH6_clustered_data.RDS]]
         // [[sample_id:HH5], [rds_files, HH5_clustered_data.RDS]]
