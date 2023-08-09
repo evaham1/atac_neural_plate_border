@@ -131,7 +131,12 @@ obj.rna <- ScaleData(obj.rna, features = rownames(obj.rna), vars.to.regress = c(
 
 # PCA
 obj.rna <- RunPCA(object = obj.rna, verbose = FALSE)
-pc_cutoff <- ElbowCutoff(obj.rna)
+# pc_cutoff <- ElbowCutoff(obj.rna) # havent installed scHelper in this container
+pc_cutoff <- 30
+
+png(paste0(plot_path, 'Rescale_RNA_data_PCs_elbowplot.png'), height = 10, width = 20, units = 'cm', res = 400)
+ElbowPlot(obj.rna)
+graphics.off()
 
 obj.rna <- FindNeighbors(obj.rna, dims = 1:pc_cutoff, verbose = FALSE)
 obj.rna <- RunUMAP(obj.rna, dims = 1:pc_cutoff, verbose = FALSE)
