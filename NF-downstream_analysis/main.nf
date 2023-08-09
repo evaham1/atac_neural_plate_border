@@ -306,7 +306,7 @@ workflow A {
             .groupTuple( by:0 )
             //.view() //[ [sample_id:FullData], [[rds_files], seurat_label_transfer_minus_HH4.RDS] ]
             .map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
-            .view()
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
             .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
 
         // integrate the stages into a coembedding seurat object
