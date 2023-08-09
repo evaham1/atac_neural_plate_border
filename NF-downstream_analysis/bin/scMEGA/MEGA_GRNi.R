@@ -96,7 +96,10 @@ stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_cols) <- stage_order
 
 # UMAP
-p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = cols)
+p1 <- DimPlot(obj.pair, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols, pt.size = 2)
+
+p1
+
 p2 <- DimPlot(obj.pair, group.by = "stage", shuffle = TRUE, label = TRUE, reduction = "umap_harmony", cols = stage_cols)
 
 png(paste0(plot_path, 'UMAPs_stage_cell_type.png'), height = 10, width = 24, units = 'cm', res = 400)
@@ -105,10 +108,67 @@ graphics.off()
 
 ############################## Create trajectory #######################################
 
-## create trajectory - need to specify order of cell groupings
+###### add trajectory groupings
+## HH5 and HH6, then split HH7, ss4 and ss8 by neural vs non-neural
+stages <- as.data.frame(obj.pair$stage)
+cell_types <- as.data.frame(obj.pair$scHelper_cell_type_broad)
+metadata <- stages %>% mutate(cell_types = cell_types$`obj.pair$scHelper_cell_type_broad`)
+colnames(metadata) <- c("stage", "cell_type")
+head(metadata)
+
+## first merge NC and neural // placodal and non-neural
+unique(metadata$cell_type)
+metadata <- metadata %>% mutate(broad = cell_type)
+metadata <- metadata %>% mutate(
+  broad = case_when(
+    broad == "Neural" ~ cell_type,
+    broad == "Non-neural" ~ cell_type,
+    broad == "NC" ~ "Neural",
+    broad == "Placodal" ~ "Non-neural",
+  )
+)
+head(metadata)
+unique(metadata$broad)
+
+## add new metadata called 'Order'
+# all HH5 -> HH5
+# all HH6 -> HH6
+# HH7 split: non-neural and placodal cells = HH7_NN, neural and NC cells = HH7_Neural
+# ss4 split: non-neural and placodal cells = ss4_NN, neural and NC cells = ss4_Neural
+# ss8 split: non-neural and placodal cells = ss8_NN, neural and NC cells = ss8_Neural
+
+metadata <- metadata %>% mutate(
+  order = case_when(
+    stage == "HH5" ~ stage,
+    stage == "HH6" ~ stage,
+    stage == "HH7" ~ paste0(stage, "_", broad),
+    stage == "ss4" ~ paste0(stage, "_", broad),
+    stage == "ss8" ~ paste0(stage, "_", broad),
+  )
+)
+
+obj.pair$order <- metadata$order
+obj.pair$broad <- metadata$broad
+
+
+p1 <- DimPlot(obj.pair, group.by = "order", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", pt.size = 2)
+p1
+
+p1 <- DimPlot(obj.pair, group.by = "broad", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", pt.size = 2)
+p1
+
+p1 <- DimPlot(obj.pair, group.by = "order", shuffle = TRUE, label = FALSE, reduction = "dm", pt.size = 2)
+p1
+
+p1 <- DimPlot(obj.pair, group.by = "broad", shuffle = TRUE, label = FALSE, reduction = "dm", pt.size = 2)
+p1
+
+
+
+## create non-neural trajectory
 obj.pair <- AddTrajectory(object = obj.pair, 
-                          trajectory = c("HH7", "ss4", "ss8"),
-                          group.by = "stage", 
+                          trajectory = c("HH5", "HH6", "HH7_Non-neural", "ss4_Non-neural", "ss8_Non-neural"),
+                          group.by = "order", 
                           reduction = "umap_harmony",
                           dims = 1:2, 
                           use.all = TRUE)
@@ -127,7 +187,7 @@ graphics.off()
 
 # visualise trajectory
 p1 <- DimPlot(obj.trajectory, reduction = "umap_harmony", 
-              group.by = "scHelper_cell_type", pt.size = 2.5,
+              group.by = "scHelper_cell_type_broad", pt.size = 2.5,
               cols = cols)
 p2 <- DimPlot(obj.trajectory, reduction = "umap_harmony", 
               group.by = "stage", pt.size = 2.5,
@@ -135,7 +195,43 @@ p2 <- DimPlot(obj.trajectory, reduction = "umap_harmony",
 p3 <- TrajectoryPlot(object = obj.trajectory, 
                      reduction = "umap_harmony",
                      continuousSet = "blueYellow",
-                     size = 1,
+                     size = 2,
+                     addArrow = FALSE)
+png(paste0(plot_path, 'trajectory_UMAPs.png'), height = 10, width = 32, units = 'cm', res = 400)
+p1 + p2 + p3
+graphics.off()
+
+## create neural trajectory
+obj.pair <- AddTrajectory(object = obj.pair, 
+                          trajectory = c("HH5", "HH6", "HH7_Neural", "ss4_Neural", "ss8_Neural"),
+                          group.by = "order", 
+                          reduction = "umap_harmony",
+                          dims = 1:2, 
+                          use.all = TRUE)
+
+# we only incluce the cells that are in this trajectory
+obj.trajectory <- obj.pair[, !is.na(obj.pair$Trajectory)]
+
+# see how many cells left after filtering
+cell_counts <- data.frame(dim(obj.pair)[2], dim(obj.trajectory)[2])
+colnames(cell_counts) <- c("Before trajectory", "After trajectory total")
+
+png(paste0(plot_path, 'cell_counts_after_trajectory.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# visualise trajectory
+p1 <- DimPlot(obj.trajectory, reduction = "umap_harmony", 
+              group.by = "scHelper_cell_type_broad", pt.size = 2.5,
+              cols = cols)
+p2 <- DimPlot(obj.trajectory, reduction = "umap_harmony", 
+              group.by = "stage", pt.size = 2.5,
+              cols = stage_cols)
+p3 <- TrajectoryPlot(object = obj.trajectory, 
+                     reduction = "umap_harmony",
+                     continuousSet = "blueYellow",
+                     size = 2,
                      addArrow = FALSE)
 png(paste0(plot_path, 'trajectory_UMAPs.png'), height = 10, width = 32, units = 'cm', res = 400)
 p1 + p2 + p3
