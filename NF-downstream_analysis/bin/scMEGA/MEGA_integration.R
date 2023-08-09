@@ -90,7 +90,7 @@ print("reading in data...")
 # obj.rna <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))
 
 # if reading in transfer labels object
-obj.rna <- readRDS(paste0(data_path, "rds_files/seurat_label_transfer_minus_HH4.RDS"))
+obj.rna <- readRDS(paste0(data_path, "seurat_label_transfer_minus_HH4.RDS"))
 
 # read in atac data - in input/rds_files folder
 obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
