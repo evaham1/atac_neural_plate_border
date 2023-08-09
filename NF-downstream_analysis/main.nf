@@ -268,7 +268,8 @@ workflow A {
         METADATA_SINGLECELL_PROCESSED( params.mega_input_sample_sheet ) // single cell data with individual peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
-        ch_singlecell_processed.view()
+        // ch_singlecell_processed.view()
+        //[[sample_id:FullData], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/FullData/TransferLabels/rds_files/TransferLabels_Save-ArchR]]
 
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
         //CLUSTER( ch_atac_stages )
@@ -288,12 +289,12 @@ workflow A {
                                             // etc
         // remove HH4 from RNA data
         REMOVE_HH4( METADATA_RNA_SC.out.metadata )
-        //REMOVE_HH4.out.view()
-        //[[sample_id:FullData], [plots, rds_files]]
-        REMOVE_HH4.out
+        
+        // extract RNA seurat object
+        REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
-            //.view() //[[sample_id:FullData], [rds_files]]
+            .view()
             .set { ch_rna }
    
         // combine ATAC and RNA data
@@ -303,7 +304,7 @@ workflow A {
             .concat( ch_rna ) // [ [[sample_id:FullData], [HH5_Save-ArchR]]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            //.view()
+            .view()
             .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
 
 
