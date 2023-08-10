@@ -42,11 +42,12 @@ include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"             
 include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
 // MEGA PROCESSING
+include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
 include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
+include {R as MEGA_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_chromvar.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
-include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
 
 // METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -314,6 +315,9 @@ workflow A {
 
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
         MEGA_PAIRING( MEGA_INTEGRATION.out )
+
+        // add motif data and run chromvar on the paired data
+        MEGA_CHROMVAR( MEGA_PAIRING.out )
         
         // then run scMEGA GRNi on the full data paired seurat object
         //MEGA_GRNI( MEGA_INTEGRATION.out )
