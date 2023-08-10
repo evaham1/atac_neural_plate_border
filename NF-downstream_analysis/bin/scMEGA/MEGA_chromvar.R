@@ -20,6 +20,7 @@ library(BSgenome.Ggallus.UCSC.galGal6)
 library(SummarizedExperiment)
 library(igraph)
 library(ggraph)
+library(BiocParallel)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -83,6 +84,8 @@ obj.motifs <- AddMotifs(
 ############################## Run chromvar #######################################
 
 ## NB if I try to rename motifList by TF names like I do when running chromvar in ArchR this fails
+
+BiocParallel::register(SerialParam())
 
 # run chromvar
 obj_chromvar <- RunChromVAR(
