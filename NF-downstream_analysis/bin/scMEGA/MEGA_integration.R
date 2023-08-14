@@ -2,10 +2,6 @@
 
 print("Integrate RNA and ATAC seurat objects using harmony and diffusion mapping")
 
-##### EDIT THIS SCRIPT TO ONLY RUN ON ONE RDS OBJECT AND JUST SAVE ONE WITH ALL THE DIFFERENT DIM REDS AT END
-##### ALSO NEED TO FIX THE UMAPS WHICH ARENT PLOTTING
-
-
 ############################## Load libraries #######################################
 library(getopt)
 library(optparse)
