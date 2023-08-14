@@ -176,7 +176,7 @@ print("running harmony...")
 
 ## how many PCA dimensions
 png(paste0(plot_path, '2_PCA_elbow_plot.png'), height = 13, width = 22, units = 'cm', res = 400)
-ElbowPlot(obj, ndims = 30, reduction = "pca")
+ElbowPlot(obj.coembed, ndims = 30, reduction = "pca")
 graphics.off()
 
 ## run batch correction to integrate atac and rna
@@ -185,20 +185,20 @@ obj.coembed <- RunHarmony(
   group.by.vars = c("tech"),
   reduction = "pca",
   max.iter.harmony = 30,
-  dims.use = 1:30, # choose dimensions based on PCA elbow plot
+  dims.use = 1:15, # choose dimensions based on PCA elbow plot
   project.dim = FALSE,
   plot_convergence = FALSE
 )
 
 ## check how many harmony dimensions are needed
 png(paste0(plot_path, '2_Harmony_elbow_plot.png'), height = 13, width = 22, units = 'cm', res = 400)
-ElbowPlot(obj, ndims = 30, reduction = "harmony")
+ElbowPlot(obj.coembed, ndims = 30, reduction = "harmony")
 graphics.off()
 
 ## coembedding after batch correction
 obj.coembed <- RunUMAP(
   obj.coembed,
-  dims = 1:30,
+  dims = 1:15,
   reduction = 'harmony',
   reduction.name = "umap_harmony",
   reduction.ke = 'umapharmony_',
@@ -271,7 +271,7 @@ png(paste0(plot_path, '1_UMAP_coembed_pre_integration_stage_split_by_tech.png'),
 DimPlot(obj.coembed, pt.size = 1, reduction = "umap", group.by = "stage", cols = stage_cols, split.by = "tech")
 graphics.off()
 
-## after harmony integration
+## after harmony integration
 p1 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "tech")
 p2 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "scHelper_cell_type", cols = cols)
 p3 <- DimPlot(obj.coembed, pt.size = 1, shuffle = TRUE, label = TRUE, reduction = "umap_harmony", group.by = "stage", cols = stage_cols)
