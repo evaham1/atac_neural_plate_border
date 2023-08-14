@@ -189,6 +189,11 @@ obj.coembed <- RunHarmony(
   plot_convergence = FALSE
 )
 
+## check how many dimensions we actually need
+png(paste0(plot_path, '2_Harmony_elbow_plot.png'), height = 13, width = 22, units = 'cm', res = 400)
+ElbowPlot(obj, ndims = 30, reduction = "harmony")
+graphics.off()
+
 ## coembedding after batch correction
 obj.coembed <- RunUMAP(
   obj.coembed,

@@ -199,10 +199,10 @@ workflow A {
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    /////////////////////    SINGLE CELL PROCESSING      //////////////////////
+    /////////////////////    STAGE PROCESSING      //////////////////////
     ///////////////////////////////////////////////////////////////////////////
-    // reclusters and calls peaks on stages using ArchR 
-    // integrates stages at single cell level using ArchR
+    // reclusters stages + integrates at single cell level + runs motif and analysis on clusters at each stage
+    // perhaps add here peak calling and plotting volcano plots at each stage to show increased heterogenity 
 
     if(!skip_singlecell_processing){
 
@@ -234,9 +234,6 @@ workflow A {
 
         // ARCHR: Integrates RNA and ATAC data at single cell level
         ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
-            // IN HERE NEED TO EDIT SO SCHELPER_CELL_TYPE_OLD = SCHELPER_CELL_TYPE
-            // ALSO MAYBE SHOULD ADD SCHELPER_CELL_TYPE_BROAD LABELS
-                    // check these changes have worked!
 
         // Run motif analysis and footprinting for key TFs
         //MOTIF_ANALYSIS( ARCHR_INTEGRATING_WF.out )
