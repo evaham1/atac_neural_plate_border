@@ -49,6 +49,11 @@ include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               a
 include {R as MEGA_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_chromvar.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
+// MEGA SCRATCH
+include {R as REMOVE_CONTAM} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
+include {R as RECLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+
+
 // METACELL PROCESSING
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
@@ -272,52 +277,56 @@ workflow A {
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
         //CLUSTER( ch_atac_stages )
 
-        // convert ArchR objects into seurat objects
-        ARCHR_TO_SEURAT( ch_singlecell_processed )
-        // ARCHR_TO_SEURAT.out.view()
-        // [[sample_id:HH6], [ArchRLogs, plots, rds_files]]
-        // [[sample_id:HH5], [ArchRLogs, plots, rds_files]]
-        // [[sample_id:HH7], [ArchRLogs, plots, rds_files]]
-        // [[sample_id:ss4], [ArchRLogs, plots, rds_files]]
-        // [[sample_id:ss8], [ArchRLogs, plots, rds_files]]
+        // remove contamination from ATAC full data to see how UMAP looks now
+        REMOVE_CONTAM( ch_singlecell_processed )
+        RECLUSTER( REMOVE_CONTAM.out )
 
-        // read in RNA data
-        METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-                                            // etc
-        // remove HH4 from RNA data
-        REMOVE_HH4( METADATA_RNA_SC.out.metadata )
+        // // convert ArchR objects into seurat objects
+        // ARCHR_TO_SEURAT( ch_singlecell_processed )
+        // // ARCHR_TO_SEURAT.out.view()
+        // // [[sample_id:HH6], [ArchRLogs, plots, rds_files]]
+        // // [[sample_id:HH5], [ArchRLogs, plots, rds_files]]
+        // // [[sample_id:HH7], [ArchRLogs, plots, rds_files]]
+        // // [[sample_id:ss4], [ArchRLogs, plots, rds_files]]
+        // // [[sample_id:ss8], [ArchRLogs, plots, rds_files]]
+
+        // // read in RNA data
+        // METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        //                                     // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+        //                                     // etc
+        // // remove HH4 from RNA data
+        // REMOVE_HH4( METADATA_RNA_SC.out.metadata )
         
-        // extract RNA seurat object
-        REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .flatMap {it[1][0].listFiles()}
-            //.view() //seurat_label_transfer_minus_HH4.RDS
-            .map { row -> [[sample_id:'FullData'], row] }
-            .set { ch_rna }
+        // // extract RNA seurat object
+        // REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     .flatMap {it[1][0].listFiles()}
+        //     //.view() //seurat_label_transfer_minus_HH4.RDS
+        //     .map { row -> [[sample_id:'FullData'], row] }
+        //     .set { ch_rna }
    
-        // combine ATAC and RNA data
-        ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            //.view() //[[sample_id:FullData], [rds_files]]
-            .concat( ch_rna )
-            .groupTuple( by:0 )
-            //.view() //[ [sample_id:FullData], [[rds_files], seurat_label_transfer_minus_HH4.RDS] ]
-            .map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
-            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
-            .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
+        // // combine ATAC and RNA data
+        // ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     //.view() //[[sample_id:FullData], [rds_files]]
+        //     .concat( ch_rna )
+        //     .groupTuple( by:0 )
+        //     //.view() //[ [sample_id:FullData], [[rds_files], seurat_label_transfer_minus_HH4.RDS] ]
+        //     .map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
+        //     //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
+        //     .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
 
-        // integrate the stages into a coembedding seurat object
-        MEGA_INTEGRATION( ch_integrate )
+        // // integrate the stages into a coembedding seurat object
+        // MEGA_INTEGRATION( ch_integrate )
 
-        // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
-        MEGA_PAIRING( MEGA_INTEGRATION.out )
+        // // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
+        // MEGA_PAIRING( MEGA_INTEGRATION.out )
 
-        // add motif data and run chromvar on the paired data
-        MEGA_CHROMVAR( MEGA_PAIRING.out )
+        // // add motif data and run chromvar on the paired data
+        // MEGA_CHROMVAR( MEGA_PAIRING.out )
         
-        // then run scMEGA GRNi on the full data paired seurat object
-        //MEGA_GRNI( MEGA_INTEGRATION.out )
+        // // then run scMEGA GRNi on the full data paired seurat object
+        // //MEGA_GRNI( MEGA_INTEGRATION.out )
         
 
     }
