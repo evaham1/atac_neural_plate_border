@@ -108,16 +108,32 @@ ArchR_Subset <- function(ArchR_object, meta_col1, meta_col2, groups1, groups2, i
 }
 
 ############################## Read in ArchR project #######################################
-# Retrieve object label
-label <- sub('_.*', '', list.files(data_path))
-print(label)
 
-# load ArchR object using its retrieved name
-ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+# If files are not in rds_files subdirectory look in input dir 
+label <- unique(sub('_.*', '', list.files(data_path)))
+print(label) 
 
-# see all available metadata cols which could be used to subset
-print(colnames(ArchR@cellColData))
+if (length(label) == 0){
+  data_path = "./input/"
+  label <- sub('_.*', '', list.files(data_path))
+  print(label)
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+} else {
+  ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+  paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+}
+
+# see what is in the ArchR object already
+print("ArchR object info: ")
+print(ArchR)
+getPeakSet(ArchR)
+getAvailableMatrices(ArchR)
+
+###### stage colours
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
 
 #####################################################################################
 ############################## Subset ArchR object #######################################
