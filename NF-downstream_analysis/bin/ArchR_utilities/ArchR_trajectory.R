@@ -1,6 +1,6 @@
 library(ArchR)
 
-data_path = "./output/NF-downstream_analysis/Processing/FullData/TransferLabels/rds_files/TransferLabels_Save-ArchR"
+data_path = "./output/NF-downstream_analysis/Processing/FullData/remove_contam/rds_files/TransferLabels_Save-ArchR"
 
 ArchR <- loadArchRProject(path = paste0(data_path), force = FALSE, showLogo = TRUE)
 
@@ -48,5 +48,101 @@ ArchR <- addTrajectory(
 p <- plotTrajectory(ArchR, trajectory = "Trajectory", colorBy = "cellColData", name = "Trajectory")
 p[[1]]
 
+############################## Create cell groupings for trajectory #######################################
 
+###### add trajectory groupings
+## HH5 and HH6, then split HH7, ss4 and ss8 by neural vs non-neural
+stages <- as.data.frame(ArchR$stage)
+cell_types <- as.data.frame(ArchR$scHelper_cell_type_broad)
+metadata <- stages %>% mutate(cell_types = cell_types$`ArchR$scHelper_cell_type_broad`)
+colnames(metadata) <- c("stage", "cell_type")
+head(metadata)
+
+## first merge placodal and non-neural
+unique(metadata$cell_type)
+metadata <- metadata %>% mutate(broad = cell_type)
+metadata <- metadata %>% mutate(
+  broad = case_when(
+    broad == "Neural" ~ cell_type,
+    broad == "Non-neural" ~ cell_type,
+    broad == "NC" ~ cell_type,
+    broad == "Placodal" ~ "Non-neural",
+  )
+)
+head(metadata)
+unique(metadata$broad)
+
+## add new metadata called 'Order'
+# all HH5 -> HH5
+# all HH6 -> HH6
+# HH7 split: non-neural and placodal cells = HH7_NN, neural and NC cells = HH7_Neural
+# ss4 split: non-neural and placodal cells = ss4_NN, neural and NC cells = ss4_Neural
+# ss8 split: non-neural and placodal cells = ss8_NN, neural and NC cells = ss8_Neural
+metadata <- metadata %>% mutate(
+  order = case_when(
+    stage == "HH5" ~ stage,
+    stage == "HH6" ~ stage,
+    stage == "HH7" ~ paste0(stage, "_", broad),
+    stage == "ss4" ~ paste0(stage, "_", broad),
+    stage == "ss8" ~ paste0(stage, "_", broad),
+  )
+)
+
+## add new cell groupings to seurat object
+ArchR$order <- metadata$order
+ArchR$broad <- metadata$broad
+
+# plot order groupings
+plotEmbedding(ArchR, name = "order", plotAs = "points", size = 2, baseSize = 0, 
+                    labelSize = 0, legendSize = 0, labelAsFactors = FALSE)
+
+plotEmbedding(ArchR, name = "broad", plotAs = "points", size = 2, baseSize = 0, 
+                    labelSize = 0, legendSize = 0, labelAsFactors = FALSE)
+
+
+unique(ArchR$order)
+
+
+## add trajectories
+# non-neural/placodal
+ArchR <- addTrajectory(
+  ArchRProj = ArchR, 
+  name = "Trajectory", 
+  groupBy = "order",
+  trajectory = c("HH5", "HH6", "HH7_Non-neural", "ss4_Non-neural", "ss8_Non-neural"), 
+  embedding = "UMAP", 
+  force = TRUE
+)
+
+p <- plotTrajectory(ArchR)
+p[[1]]
+
+# neural
+ArchR <- addTrajectory(
+  ArchRProj = ArchR, 
+  name = "Trajectory", 
+  groupBy = "order",
+  trajectory = c("HH5", "HH6", "HH7_Neural", "ss4_Neural", "ss8_Neural"), 
+  embedding = "UMAP", 
+  force = TRUE
+)
+
+
+p <- plotTrajectory(ArchR)
+p[[1]]
+
+# NC
+ArchR <- addTrajectory(
+  ArchRProj = ArchR, 
+  name = "Trajectory", 
+  groupBy = "order",
+  trajectory = c("HH5", "HH6", "HH7_NC", "ss4_NC", "ss8_NC"), 
+  embedding = "UMAP", 
+  force = TRUE
+)
+
+p <- plotTrajectory(ArchR)
+p[[1]]
+
+ArchR$
 

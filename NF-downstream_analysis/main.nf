@@ -23,6 +23,8 @@ include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/
 include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
 include { METADATA as METADATA_MEGA_INPUT } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
+
 
 // UPSTREAM PROCESSING
 include { METADATA } from "$baseDir/subworkflows/local/metadata"
@@ -280,6 +282,22 @@ workflow A {
         // remove contamination from ATAC full data to see how UMAP looks now
         REMOVE_CONTAM( ch_singlecell_processed )
         RECLUSTER( REMOVE_CONTAM.out )
+
+        // transfer latent time from RNA full data to ATAC full data
+        METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet ) // single cell data with individual peaks called
+        ch_rna_latent_time = METADATA_RNA_LATENT_TIME.out.metadata     
+        
+        RECLUSTER.out // [ [sample_id:FullData], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            //.view() //[[sample_id:FullData], [rds_files]]
+            .concat( ch_rna_latent_time )
+            .groupTuple( by:0 )
+            //.view() //[ [sample_id:FullData], [[rds_files], seurat_label_transfer_minus_HH4.RDS] ]
+            .map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
+            .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
+
+        TRANSFER_LATENT_TIME( ch_transfer_latent_time )
 
         // // convert ArchR objects into seurat objects
         // ARCHR_TO_SEURAT( ch_singlecell_processed )
