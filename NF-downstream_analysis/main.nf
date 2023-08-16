@@ -288,15 +288,15 @@ workflow A {
         // transfer latent time from RNA full data to ATAC full data
         METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet ) // single cell data with individual peaks called
         ch_rna_latent_time = METADATA_RNA_LATENT_TIME.out.metadata
-        //ch_rna_latent_time.view() //[[sample_id:FullData], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/rna_objects/seurat_label_transfer_latent_time.RDS]]
+        //ch_rna_latent_time.view() //[[sample_id:FullData], [seurat_label_transfer_latent_time.RDS]]
       
-        RECLUSTER.out // [ [sample_id:FullData], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        RECLUSTER.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( ch_rna_latent_time )
             .groupTuple( by:0 )
-            .view() 
+            //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .view() //[[sample_id:FullData], [rds_files, [seurat_label_transfer_latent_time.RDS]]]
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
             .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
 
         TRANSFER_LATENT_TIME( ch_transfer_latent_time )
