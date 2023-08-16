@@ -218,104 +218,104 @@ if ( !(is.null(ArchR$stage_clusters)) ) {
 
 }
 
-#################################################################################
-############################### QC PLOTS ########################################
-plot_path_temp = "./plots/QC_plots/"
-dir.create(plot_path_temp, recursive = T)
+# #################################################################################
+# ############################### QC PLOTS ########################################
+# plot_path_temp = "./plots/QC_plots/"
+# dir.create(plot_path_temp, recursive = T)
 
-quantiles = c(0.2, 0.8)
+# quantiles = c(0.2, 0.8)
 
-##### nFrags
-p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", alpha = 0.4,
-  name = "nFrags", plotAs = "Violin", baseSize = 12)
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "nFrags")[,1], probs = quantiles[1]), linetype = "dashed",
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "nFrags")[,1], probs = quantiles[2]), linetype = "dashed",
-                   color = "red")
-png(paste0(plot_path_temp, "VlnPlot_thresholds_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
+# ##### nFrags
+# p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", alpha = 0.4,
+#   name = "nFrags", plotAs = "Violin", baseSize = 12)
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "nFrags")[,1], probs = quantiles[1]), linetype = "dashed",
+#                    color = "red")
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "nFrags")[,1], probs = quantiles[2]), linetype = "dashed",
+#                    color = "red")
+# png(paste0(plot_path_temp, "VlnPlot_thresholds_nFrags.png"), width=50, height=20, units = 'cm', res = 200)
+# print(p)
+# graphics.off()
 
-#### TSS Enrichment
-p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", alpha = 0.4,
-                name = "TSSEnrichment", plotAs = "Violin", baseSize = 12)
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "TSSEnrichment")[,1], probs = quantiles[1]), linetype = "dashed",
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "TSSEnrichment")[,1], probs = quantiles[2]), linetype = "dashed",
-                   color = "red")
-png(paste0(plot_path_temp, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
+# #### TSS Enrichment
+# p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", alpha = 0.4,
+#                 name = "TSSEnrichment", plotAs = "Violin", baseSize = 12)
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "TSSEnrichment")[,1], probs = quantiles[1]), linetype = "dashed",
+#                    color = "red")
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "TSSEnrichment")[,1], probs = quantiles[2]), linetype = "dashed",
+#                    color = "red")
+# png(paste0(plot_path_temp, "VlnPlot_thresholds_TSSEnrichment.png"), width=50, height=20, units = 'cm', res = 200)
+# print(p)
+# graphics.off()
 
-#### Nucleosome signal
-p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", alpha = 0.4,
-                name = "NucleosomeRatio", plotAs = "Violin", baseSize = 12)
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "NucleosomeRatio")[,1], probs = quantiles[1]), linetype = "dashed",
-                   color = "red")
-p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "NucleosomeRatio")[,1], probs = quantiles[2]), linetype = "dashed",
-                   color = "red")
-png(paste0(plot_path_temp, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
-print(p)
-graphics.off()
+# #### Nucleosome signal
+# p <- plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", alpha = 0.4,
+#                 name = "NucleosomeRatio", plotAs = "Violin", baseSize = 12)
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "NucleosomeRatio")[,1], probs = quantiles[1]), linetype = "dashed",
+#                    color = "red")
+# p = p + geom_hline(yintercept = quantile(getCellColData(ArchR, select = "NucleosomeRatio")[,1], probs = quantiles[2]), linetype = "dashed",
+#                    color = "red")
+# png(paste0(plot_path_temp, "VlnPlot_thresholds_NucleosomeRatio.png"), width=50, height=20, units = 'cm', res = 200)
+# print(p)
+# graphics.off()
 
-print("QC plots done")
+# print("QC plots done")
 
-#################################################################################
-############################ GENE SCORE PLOTS ###################################
+# #################################################################################
+# ############################ GENE SCORE PLOTS ###################################
 
-plot_path_temp = "./plots/Gene_score_plots/"
-dir.create(plot_path_temp, recursive = T)
+# plot_path_temp = "./plots/Gene_score_plots/"
+# dir.create(plot_path_temp, recursive = T)
 
-##########    Feature plots
+# ##########    Feature plots
 
-ArchR <- addImputeWeights(ArchR, seed = 1)
+# ArchR <- addImputeWeights(ArchR, seed = 1)
 
-# Contaminating markers
-contaminating_markers <- c(
-  'DAZL', #PGC
-  'CDH5', 'TAL1', 'HBZ', # Blood island
-  'CDX2', 'GATA6', 'ALX1', 'PITX2', 'TWIST1', 'TBXT', 'MESP1', #mesoderm
-  'SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6' #endoderm
-)
-# Late marker genes
-late_markers <- c(
-  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
-  "MSX1", "TFAP2A", "TFAP2B", #mix
-  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
-  "SOX2", "SOX21" # neural
-)
-# look for ap marker genes
-ap_markers <- c(
-  "PAX2", "WNT4", "SIX3", "SHH" # no GBX2 in matrix
-)
-# look for early markers
-early_markers <- c(
-  "EPAS1", "BMP4", "YEATS4", "SOX3", "HOXB1", "ADMP", "EOMES"
-)
-feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
-                        "SOX21", "SOX2", "BMP4", "HOXB1")
+# # Contaminating markers
+# contaminating_markers <- c(
+#   'DAZL', #PGC
+#   'CDH5', 'TAL1', 'HBZ', # Blood island
+#   'CDX2', 'GATA6', 'ALX1', 'PITX2', 'TWIST1', 'TBXT', 'MESP1', #mesoderm
+#   'SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6' #endoderm
+# )
+# # Late marker genes
+# late_markers <- c(
+#   "GATA3", "DLX5", "SIX1", "EYA2", #PPR
+#   "MSX1", "TFAP2A", "TFAP2B", #mix
+#   "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
+#   "SOX2", "SOX21" # neural
+# )
+# # look for ap marker genes
+# ap_markers <- c(
+#   "PAX2", "WNT4", "SIX3", "SHH" # no GBX2 in matrix
+# )
+# # look for early markers
+# early_markers <- c(
+#   "EPAS1", "BMP4", "YEATS4", "SOX3", "HOXB1", "ADMP", "EOMES"
+# )
+# feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
+#                         "SOX21", "SOX2", "BMP4", "HOXB1")
 
-png(paste0(plot_path_temp, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = contaminating_markers)
-graphics.off()
+# png(paste0(plot_path_temp, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+# ArchR_FeaturePlotGrid(ArchR, feature_list = contaminating_markers)
+# graphics.off()
 
-png(paste0(plot_path_temp, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = late_markers)
-graphics.off()
+# png(paste0(plot_path_temp, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+# ArchR_FeaturePlotGrid(ArchR, feature_list = late_markers)
+# graphics.off()
 
-png(paste0(plot_path_temp, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = ap_markers)
-graphics.off()
+# png(paste0(plot_path_temp, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+# ArchR_FeaturePlotGrid(ArchR, feature_list = ap_markers)
+# graphics.off()
 
-png(paste0(plot_path_temp, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = early_markers)
-graphics.off()
+# png(paste0(plot_path_temp, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+# ArchR_FeaturePlotGrid(ArchR, feature_list = early_markers)
+# graphics.off()
 
-png(paste0(plot_path_temp, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = feature_plot_genes)
-graphics.off()
+# png(paste0(plot_path_temp, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
+# ArchR_FeaturePlotGrid(ArchR, feature_list = feature_plot_genes)
+# graphics.off()
 
-print("Feature plots done")
+# print("Feature plots done")
 
 ##########    Heatmaps (optional)
 
@@ -378,40 +378,40 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo')
 
-if ( !(is.null(ArchR$scHelper_cell_type_old)) ) {
+if ( !(is.null(ArchR$scHelper_cell_type)) ) {
 
-  atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
+  atac_scHelper_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type)]
 
   plot_path_temp <- "./plots/RNA_label_plots/"
   dir.create(plot_path_temp, recursive = T)
   
   png(paste0(plot_path_temp, 'UMAP_scHelper_cell_type.png'), height = 20, width = 20, units = 'cm', res = 400)
-  print(plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+  print(plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE))
   graphics.off()
 
   png(paste0(plot_path_temp, 'UMAP_scHelper_cell_type_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-  print(plotEmbedding(ArchR, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+  print(plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_cols))
   graphics.off()
 
 }
 
-if ( !(is.null(ArchR$stage_scHelper_cell_type_old)) ) {
+if ( !(is.null(ArchR$stage_scHelper_cell_type)) ) {
 
-  atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$stage_scHelper_cell_type_old)]
+  atac_scHelper_cols <- scHelper_cell_type_colours[unique(ArchR$stage_scHelper_cell_type)]
 
   plot_path_temp <- "./plots/RNA_label_plots/"
   dir.create(plot_path_temp, recursive = T)
   
   png(paste0(plot_path_temp, 'UMAP_stage_scHelper_cell_type.png'), height = 20, width = 20, units = 'cm', res = 400)
-  print(plotEmbedding(ArchR, name = "stage_scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+  print(plotEmbedding(ArchR, name = "stage_scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE))
   graphics.off()
 
   png(paste0(plot_path_temp, 'UMAP_stage_scHelper_cell_type_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-  print(plotEmbedding(ArchR, name = "stage_scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+  print(plotEmbedding(ArchR, name = "stage_scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_cols))
   graphics.off()
 
 }
@@ -423,12 +423,12 @@ if ( !(is.null(ArchR$cluster_labels)) ) {
   
   png(paste0(plot_path_temp, 'UMAP_cluster_labels.png'), height = 20, width = 20, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE))
   graphics.off()
 
   png(paste0(plot_path_temp, 'UMAP_cluster_labels_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_cols))
   graphics.off()
 
 }
@@ -440,12 +440,12 @@ if ( !(is.null(ArchR$stage_cluster_labels)) ) {
   
   png(paste0(plot_path_temp, 'UMAP_stage_cluster_labels.png'), height = 20, width = 20, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = "stage_cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE))
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE))
   graphics.off()
 
   png(paste0(plot_path_temp, 'UMAP_stage_cluster_labels_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = "stage_cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols))
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_cols))
   graphics.off()
 
 }
