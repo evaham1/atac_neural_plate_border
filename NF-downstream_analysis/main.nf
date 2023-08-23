@@ -48,8 +48,9 @@ include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               add
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
-include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
-include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
+include {R as INIT_MULTIOME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/init_multiome.R", checkIfExists: true) )
+// include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
+// include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
 include {R as MEGA_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_chromvar.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
@@ -301,40 +302,38 @@ workflow A {
 
         TRANSFER_LATENT_TIME( ch_transfer_latent_time )
 
-        // // convert ArchR objects into seurat objects
-        // ARCHR_TO_SEURAT( ch_singlecell_processed )
-        // // ARCHR_TO_SEURAT.out.view()
-        // // [[sample_id:HH6], [ArchRLogs, plots, rds_files]]
-        // // [[sample_id:HH5], [ArchRLogs, plots, rds_files]]
-        // // [[sample_id:HH7], [ArchRLogs, plots, rds_files]]
-        // // [[sample_id:ss4], [ArchRLogs, plots, rds_files]]
-        // // [[sample_id:ss8], [ArchRLogs, plots, rds_files]]
+        // convert ArchR objects into seurat objects
+        ARCHR_TO_SEURAT( ch_singlecell_processed )
 
-        // // read in RNA data
-        // METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-        //                                     // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-        //                                     // etc
-        // // remove HH4 from RNA data
-        // REMOVE_HH4( METADATA_RNA_SC.out.metadata )
+        // read in RNA data
+        METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+                                            // etc
+        // remove HH4 from RNA data
+        REMOVE_HH4( METADATA_RNA_SC.out.metadata )
         
-        // // extract RNA seurat object
-        // REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     .flatMap {it[1][0].listFiles()}
-        //     //.view() //seurat_label_transfer_minus_HH4.RDS
-        //     .map { row -> [[sample_id:'FullData'], row] }
-        //     .set { ch_rna }
+        // extract RNA seurat object
+        REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .flatMap {it[1][0].listFiles()}
+            //.view() //seurat_label_transfer_minus_HH4.RDS
+            .map { row -> [[sample_id:'FullData'], row] }
+            .set { ch_rna }
    
-        // // combine ATAC and RNA data
-        // ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     //.view() //[[sample_id:FullData], [rds_files]]
-        //     .concat( ch_rna )
-        //     .groupTuple( by:0 )
-        //     //.view() //[ [sample_id:FullData], [[rds_files], seurat_label_transfer_minus_HH4.RDS] ]
-        //     .map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
-        //     //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
-        //     .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
+        // combine ATAC and RNA channels
+        ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            //.view() //[[sample_id:FullData], [rds_files]]
+            .concat( ch_rna )
+            .groupTuple( by:0 )
+            //.view() //[ [sample_id:FullData], [[rds_files], seurat_label_transfer_minus_HH4.RDS] ]
+            .map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
+            .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
+
+        // create fake multiome data from the RNA and ATAC
+        INIT_MULTIOME( ch_integrate )
+
 
         // // integrate the stages into a coembedding seurat object
         // MEGA_INTEGRATION( ch_integrate )
