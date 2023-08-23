@@ -33,9 +33,7 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1)
     
-    # for ATAC ss8 test
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/INTEGRATING/Single_cell_integration/rds_files/ss8_Save-ArchR"
-
+    rds_path = "./output/NF-downstream_analysis/Processing/FullData/Transfer_latent_time/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -123,15 +121,8 @@ saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Transfer
 
 ############################## Trajectory exploration plots #######################################
 
-# more plots - try running and saving first bit as impute weights isnt working atm
-# addImputeWeights(ArchR)
-# ArchR logging to : ArchRLogs/ArchR-addImputeWeights-18458615d811a-Date-2023-08-16_Time-11-46-37.log
-# If there is an issue, please report to github with logFile!
-#   2023-08-16 11:46:46 : Computing Impute Weights Using Magic (Cell 2018), 0 mins elapsed.
-# Error in H5Dwrite(h5dataset, obj, h5spaceMem = h5spaceMem, h5spaceFile = h5spaceFile) : 
-#   HDF5. Dataset. Write failed.
-# Error in H5Fclose(file$H5Identifier) : 
-#   HDF5. Object cache. Internal error detected.
+# ArchR <- addImputeWeights(ArchR)
+# 
 # 
 # trajMM  <- getTrajectory(ArchR, name = "rna_lineage_placodal_probability", useMatrix = "GeneScoreMatrix", log2Norm = FALSE)
 # p2 <- trajectoryHeatmap(trajMM,  pal = paletteContinuous(set = "horizonExtra"))
@@ -146,8 +137,7 @@ saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Transfer
 # p2[[1]]
 # 
 # 
-# plotEmbedding(ArchR, colorBy = "GeneScoreMatrix", name = "SIX1", plotAs = "points", size = 2, baseSize = 0, 
+# plotEmbedding(ArchR, colorBy = "GeneScoreMatrix", name = "SIX1", plotAs = "points", size = 2, baseSize = 0,
 #               labelSize = 0, legendSize = 0, labelAsFactors = FALSE)
 # 
 # ArchR <- addImputeWeights(ArchR, seed = 1)
-#
