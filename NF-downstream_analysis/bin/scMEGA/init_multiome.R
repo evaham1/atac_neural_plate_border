@@ -86,6 +86,9 @@ obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
 df.pair <- read.csv(paste0(data_path, "./rds_files/archr_cell_pairings.csv"))
 head(df.pair)
 
+# read in gene activity matrix - in input/rds_files folder
+gene.activity <- readRDS(paste0(data_path, "rds_files/gene_score_matrix.RDS"))
+
 print("data read in!")
 
 ############################## Plot UMAPs #######################################
