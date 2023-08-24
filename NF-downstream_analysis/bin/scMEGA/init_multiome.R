@@ -157,11 +157,55 @@ obj.coembed <- CoembedData(
 print("Coembedding complete!")
 print(obj.coembed)
 
+## save paired object
+saveRDS(obj.coembed, paste0(rds_path, "TransferLabel_comembed_object.RDS"), compress = FALSE)
+
+############################## Clean up cell pairings #######################################
+
+print("pairing cells...")
+
+#### THIS IS HOW scMEGA DOES IT: but it seems to run forever, so instead use pre-computed pairings from ArchR integration
+# # pair cells between modalities
+# df.pair <- PairCells(object = obj.coembed, reduction = "harmony",
+#                      pair.by = "tech", ident1 = "ATAC", ident2 = "RNA")
+# 
+# # save the cell pairings
+# write.csv(df.pair, file = paste0(rds_path, "Cell_pairings.csv"), row.names = FALSE)
+
+# how many unique ATAC and RNA cells left in paired object
+print("cell numbers:")
+length(unique(df.pair$ATAC)) # 86217
+length(unique(df.pair$RNA)) # 1895
+dim(df.pair) # 86217     3
+
+# the RNA transfer labels object doesn't include contamination, so 191 RNA cells which are in the df.pair are missing
+# so first lets remove these cells from the df.pair object, so there should be no contam cells in the final paired seurat object
+RNA_cells_to_remove <- setdiff(unique(df.pair$RNA), Cells(obj.coembed))
+length(RNA_cells_to_remove) # 191
+filtered_df_pair <- df.pair %>% filter(!RNA %in% RNA_cells_to_remove)
+head(filtered_df_pair)
+dim(filtered_df_pair)
+
+############################## Pair object #######################################
+
+# how many unique ATAC and RNA cells left in paired object
+print("RNA data")
+length(unique(filtered_df_pair$RNA))
+sum(unique(filtered_df_pair$RNA) %in% Cells(obj.coembed))
+print("ATAC data")
+length(unique(filtered_df_pair$ATAC))
+sum(unique(filtered_df_pair$ATAC) %in% Cells(obj.coembed))
+
+# only keep paired cells in the seurat object
+sel_cells <- c(filtered_df_pair$ATAC, filtered_df_pair$RNA)
+coembed.sub2 <- obj.coembed[, sel_cells]
+print(coembed.sub2)
+
 ############################## Create multiome object #######################################
 
 ## create paired object
 obj.pair <- CreatePairedObject(df.pair = df.pair,
-                               object = obj.coembed,
+                               object = filtered_df_pair,
                                use.assay1 = "RNA",
                                use.assay2 = "ATAC")
 
