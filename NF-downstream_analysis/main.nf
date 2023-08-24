@@ -49,8 +49,8 @@ include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"             
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
 include {R as INIT_MULTIOME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/init_multiome.R", checkIfExists: true) )
-// include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
-// include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
+include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
+include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
 include {R as MEGA_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_chromvar.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
