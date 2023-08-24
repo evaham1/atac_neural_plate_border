@@ -332,14 +332,13 @@ workflow A {
             .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
 
         // create fake multiome data from the RNA and ATAC
-        INIT_MULTIOME( ch_integrate )
+        //INIT_MULTIOME( ch_integrate )
 
+        // integrate the stages into a coembedding seurat object
+        MEGA_INTEGRATION( ch_integrate )
 
-        // // integrate the stages into a coembedding seurat object
-        // MEGA_INTEGRATION( ch_integrate )
-
-        // // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
-        // MEGA_PAIRING( MEGA_INTEGRATION.out )
+        // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
+        MEGA_PAIRING( MEGA_INTEGRATION.out )
 
         // // add motif data and run chromvar on the paired data
         // MEGA_CHROMVAR( MEGA_PAIRING.out )

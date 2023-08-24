@@ -85,6 +85,10 @@ print(obj.coembed)
 df.pair <- read.csv(paste0(data_path, "./rds_files/archr_cell_pairings.csv"))
 head(df.pair)
 
+# read in original atac object so can copy over the dimensionality reduction
+obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
+print(obj.atac)
+
 print("data read in!")
 
 ############################## Clean up cell pairings #######################################
@@ -145,6 +149,25 @@ graphics.off()
 
 print("cells paired!")
 
+############################## Transfer over original iLSI dim reduction #######################################
+
+# change cell names to ATAC cell ids
+obj.pair <- RenameCells(obj.pair, new.names = df.pair$ATAC, old.names = df.pair$cell_name)
+
+# lift over dim reduction from atac object onto paired object
+obj.pair[["iLSI"]] <- obj.atac[["iLSI"]]
+
+# run UMAP on iLSI
+obj.pair <- RunUMAP(obj.pair, 
+                    dims = 1:30, 
+                    reduction = 'iLSI',
+                    reduction.name = "umap_iLSI",
+                    reduction.ke = 'umapiLSI_',
+                    verbose = FALSE,
+                    min.dist = 0.4)
+
+print("UMAP recalculated on iLSI!")
+
 ############################## UMAPs #######################################
 
 ######  colours
@@ -182,6 +205,12 @@ graphics.off()
 p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
 p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
 png(paste0(plot_path, 'Diffusion_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+p1 + p2
+graphics.off()
+
+p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
+p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
+png(paste0(plot_path, 'LSI_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
 p1 + p2
 graphics.off()
 
@@ -224,6 +253,12 @@ graphics.off()
 p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
 p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
 png(paste0(plot_path, 'Diffusion_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+p1 + p2
+graphics.off()
+
+p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
+p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
+png(paste0(plot_path, 'LSI_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
 p1 + p2
 graphics.off()
 

@@ -104,6 +104,10 @@ print("data read in!")
 
 write.csv(df.pair, paste0(rds_path, "archr_cell_pairings.csv"), row.names = FALSE, col.names = TRUE)
 
+############################## Save through the obj.atac #######################################
+
+saveRDS(obj.coembed, paste0(rds_path, "ATAC_seurat.RDS"), compress = FALSE)
+
 ############################## Plot UMAPs #######################################
 
 print("plotting UMAPs..")
