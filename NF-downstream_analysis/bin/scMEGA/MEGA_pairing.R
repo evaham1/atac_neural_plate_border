@@ -152,7 +152,7 @@ print("cells paired!")
 ############################## Transfer over original iLSI dim reduction #######################################
 
 # change cell names to ATAC cell ids
-obj.pair <- RenameCells(obj.pair, new.names = df.pair$ATAC, old.names = df.pair$cell_name)
+obj.pair <- RenameCells(obj.pair, new.names = filtered_df_pair$ATAC, old.names = filtered_df_pair$cell_name)
 
 # lift over dim reduction from atac object onto paired object
 obj.pair[["iLSI"]] <- obj.atac[["iLSI"]]
