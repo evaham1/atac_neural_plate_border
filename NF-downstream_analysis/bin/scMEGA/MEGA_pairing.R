@@ -79,7 +79,7 @@ print("reading in data...")
 
 # if reading in integrated object
 obj.coembed <- readRDS(paste0(data_path, "./rds_files/TransferLabel_coembed_object.RDS"))
-print(obj.coembed)
+print(obj.coembed) # 101,763 cells
 
 # read in cell pairings from archr integration - in input/rds_files folder
 df.pair <- read.csv(paste0(data_path, "./rds_files/archr_cell_pairings.csv"))
@@ -87,7 +87,7 @@ head(df.pair)
 
 # read in original atac object so can copy over the dimensionality reduction
 obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
-print(obj.atac)
+print(obj.atac) # 86,217 cells
 
 print("data read in!")
 
@@ -105,8 +105,8 @@ print("pairing cells...")
 
 # how many unique ATAC and RNA cells left in paired object
 print("cell numbers:")
-length(unique(df.pair$ATAC)) # 86217
-length(unique(df.pair$RNA)) # 1895
+length(unique(df.pair$ATAC)) # 86,217
+length(unique(df.pair$RNA)) # 1,895
 dim(df.pair) # 86217     3
 
 # the RNA transfer labels object doesn't include contamination, so 191 RNA cells which are in the df.pair are missing
@@ -115,22 +115,22 @@ RNA_cells_to_remove <- setdiff(unique(df.pair$RNA), Cells(obj.coembed))
 length(RNA_cells_to_remove) # 191
 filtered_df_pair <- df.pair %>% filter(!RNA %in% RNA_cells_to_remove)
 head(filtered_df_pair)
-dim(filtered_df_pair)
+dim(filtered_df_pair) # 81,390   3
 
 ############################## Pair object #######################################
 
 # how many unique ATAC and RNA cells left in paired object
 print("RNA data")
-length(unique(filtered_df_pair$RNA))
-sum(unique(filtered_df_pair$RNA) %in% Cells(obj.coembed))
+length(unique(filtered_df_pair$RNA)) # 1,704
+sum(unique(filtered_df_pair$RNA) %in% Cells(obj.coembed)) # 1,704
 print("ATAC data")
-length(unique(filtered_df_pair$ATAC))
-sum(unique(filtered_df_pair$ATAC) %in% Cells(obj.coembed))
+length(unique(filtered_df_pair$ATAC)) # 81,390
+sum(unique(filtered_df_pair$ATAC) %in% Cells(obj.coembed)) # 81,390
 
 # only keep paired cells in the seurat object
 sel_cells <- c(filtered_df_pair$ATAC, filtered_df_pair$RNA)
 coembed.sub2 <- obj.coembed[, sel_cells]
-print(coembed.sub2)
+print(coembed.sub2) # 83,094
 
 ## create paired object
 obj.pair <- CreatePairedObject(df.pair = filtered_df_pair,
@@ -151,118 +151,121 @@ print("cells paired!")
 
 ############################## Transfer over original iLSI dim reduction #######################################
 
-# change cell names to ATAC cell ids
-obj.pair <- RenameCells(obj.pair, new.names = filtered_df_pair$ATAC, old.names = filtered_df_pair$cell_name)
+# DEBUG
+saveRDS(obj.pair, paste0(rds_path, "TEST_paired_object.RDS"), compress = FALSE)
 
-# lift over dim reduction from atac object onto paired object
-obj.pair[["iLSI"]] <- obj.atac[["iLSI"]]
+# # change cell names to ATAC cell ids
+# obj.pair <- RenameCells(obj.pair, new.names = filtered_df_pair$ATAC, old.names = filtered_df_pair$cell_name)
 
-# run UMAP on iLSI
-obj.pair <- RunUMAP(obj.pair, 
-                    dims = 1:30, 
-                    reduction = 'iLSI',
-                    reduction.name = "umap_iLSI",
-                    reduction.ke = 'umapiLSI_',
-                    verbose = FALSE,
-                    min.dist = 0.4)
+# # lift over dim reduction from atac object onto paired object
+# obj.pair[["iLSI"]] <- obj.atac[["iLSI"]]
 
-print("UMAP recalculated on iLSI!")
+# # run UMAP on iLSI
+# obj.pair <- RunUMAP(obj.pair, 
+#                     dims = 1:30, 
+#                     reduction = 'iLSI',
+#                     reduction.name = "umap_iLSI",
+#                     reduction.ke = 'umapiLSI_',
+#                     verbose = FALSE,
+#                     min.dist = 0.4)
 
-############################## UMAPs #######################################
+# print("UMAP recalculated on iLSI!")
 
-######  colours
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
-                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
-                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
-                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
-                                "#A5718D", "#3F918C", "#ed5e5f", "9792A3")
-names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
-                                       'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
-                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo',
-                                       'Neural', 'Placodal', 'Non-neural', 'Contam')
-cols <- scHelper_cell_type_colours[as.character(unique(obj.pair$scHelper_cell_type))]
+# ############################## UMAPs #######################################
 
-stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
-stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
-names(stage_cols) <- stage_order
+# ######  colours
+# scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+#                                 "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+#                                 "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+#                                 "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+#                                 "#786D73", "#581845", "#9792A3", "#BBB3CB",
+#                                 "#A5718D", "#3F918C", "#ed5e5f", "9792A3")
+# names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+#                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+#                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+#                                        'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+#                                        'PGC', 'BI', 'meso', 'endo',
+#                                        'Neural', 'Placodal', 'Non-neural', 'Contam')
+# cols <- scHelper_cell_type_colours[as.character(unique(obj.pair$scHelper_cell_type))]
 
-###### plot scHelepr cell type and stage
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
-png(paste0(plot_path, 'Coembed_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+# stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+# names(stage_cols) <- stage_order
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
-png(paste0(plot_path, 'Harmony_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# ###### plot scHelepr cell type and stage
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
+# png(paste0(plot_path, 'Coembed_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
-png(paste0(plot_path, 'Diffusion_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
+# png(paste0(plot_path, 'Harmony_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
-png(paste0(plot_path, 'LSI_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
+# png(paste0(plot_path, 'Diffusion_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-###### add broad cell types and plot
-scHelper_cell_types <- as.data.frame(obj.pair$scHelper_cell_type)
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
+# png(paste0(plot_path, 'LSI_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-broad <- scHelper_cell_types %>% mutate(broad = mapvalues(obj.pair$scHelper_cell_type, 
-                                                          from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
-                                                                 'PPR', 'aPPR', 'pPPR',
-                                                                 'eNPB', 'NPB', 'aNPB', 'pNPB',
-                                                                 'NC', 'dNC',
-                                                                 'NNE', 'pEpi',
-                                                                 'EE', 'meso', 'endo', 'BI', 'PGC'),
-                                                          to=c(
-                                                            rep("Neural", 11),
-                                                            rep("Placodal", 3),
-                                                            rep("NPB", 4),
-                                                            rep("NC", 2),
-                                                            rep("Non-neural", 2),
-                                                            rep("Contam", 5)
-                                                          )
-))
-obj.pair$scHelper_cell_type_broad <- broad$broad
-print("Broad scHelper cell type labels added")
+# ###### add broad cell types and plot
+# scHelper_cell_types <- as.data.frame(obj.pair$scHelper_cell_type)
 
-cols <- scHelper_cell_type_colours[as.character(unique(obj.pair$scHelper_cell_type_broad))]
+# broad <- scHelper_cell_types %>% mutate(broad = mapvalues(obj.pair$scHelper_cell_type, 
+#                                                           from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
+#                                                                  'PPR', 'aPPR', 'pPPR',
+#                                                                  'eNPB', 'NPB', 'aNPB', 'pNPB',
+#                                                                  'NC', 'dNC',
+#                                                                  'NNE', 'pEpi',
+#                                                                  'EE', 'meso', 'endo', 'BI', 'PGC'),
+#                                                           to=c(
+#                                                             rep("Neural", 11),
+#                                                             rep("Placodal", 3),
+#                                                             rep("NPB", 4),
+#                                                             rep("NC", 2),
+#                                                             rep("Non-neural", 2),
+#                                                             rep("Contam", 5)
+#                                                           )
+# ))
+# obj.pair$scHelper_cell_type_broad <- broad$broad
+# print("Broad scHelper cell type labels added")
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
-png(paste0(plot_path, 'Coembed_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# cols <- scHelper_cell_type_colours[as.character(unique(obj.pair$scHelper_cell_type_broad))]
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
-png(paste0(plot_path, 'Harmony_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
+# png(paste0(plot_path, 'Coembed_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
-png(paste0(plot_path, 'Diffusion_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
+# png(paste0(plot_path, 'Harmony_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
-png(paste0(plot_path, 'LSI_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
+# png(paste0(plot_path, 'Diffusion_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-############################## Save #######################################
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
+# png(paste0(plot_path, 'LSI_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-## save paired object
-saveRDS(obj.pair, paste0(rds_path, "TransferLabel_paired_object.RDS"), compress = FALSE)
+# ############################## Save #######################################
+
+# ## save paired object
+# saveRDS(obj.pair, paste0(rds_path, "TransferLabel_paired_object.RDS"), compress = FALSE)
