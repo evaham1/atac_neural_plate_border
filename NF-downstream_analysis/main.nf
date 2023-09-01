@@ -39,7 +39,7 @@ include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"      
 
 // PROCESSING - STAGES
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
-include { ARCHR_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/archr_integration_WF"
+include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_FULL_integration.R", checkIfExists: true) )
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
 include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
@@ -219,11 +219,11 @@ workflow A {
         // Extract just the stage objects from upstream processing
         METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
         ch_atac_stages = METADATA_PEAKCALL_PROCESSED.out.metadata 
-        // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
-        // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
-        // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
-        // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
-        // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
+            // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
+            // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
+            // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
+            // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
+            // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
 
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
         CLUSTER( ch_atac_stages )
@@ -242,15 +242,16 @@ workflow A {
             // .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        // ARCHR: Integrates RNA and ATAC data at single cell level
-        ARCHR_INTEGRATING_WF( ch_integrate )  // [ [[meta: HH5], [RNA, ATAC]] , [[meta: HH6], [RNA, ATAC]], etc]
+        // Integrate RNA and ATAC data at single cell level
+        INTEGRATE( ch_integrate )
+
+        // Run differential accessibility tests between clusters using consensus peaks - check that this is still ok
+        PLOT_DIFF_PEAKS( INTEGRATE.out )
 
         // Run motif analysis and footprinting for key TFs
         //MOTIF_ANALYSIS( ARCHR_INTEGRATING_WF.out )
-        //CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out )
+        //CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out 
 
-        // Run differential accessibility tests between consensus peaks - check that this is still ok
-        //PLOT_DIFF_PEAKS( ARCHR_INTEGRATING_WF.out )
                 /// THINGS TO ADD INTO THIS WORKFLOW ///
                 // recreate how I found the enhancers I tested (may need to re-call peaks on stages)
 
