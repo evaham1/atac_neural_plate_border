@@ -181,6 +181,7 @@ atac_filtered <- subset(obj.atac, cells = Cells(obj.pair_rename))
 
 # lift over dim reduction from atac object onto paired object
 obj.pair_rename[["iLSI"]] <- atac_filtered[["iLSI"]]
+obj.pair <- obj.pair_rename
 
 # run UMAP on iLSI
 obj.pair <- RunUMAP(obj.pair,
@@ -214,24 +215,24 @@ stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_cols) <- stage_order
 
-###### plot scHelper cell type and stage
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
-png(paste0(plot_path, 'Coembed_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# ###### plot scHelper cell type and stage
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
+# png(paste0(plot_path, 'Coembed_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
-png(paste0(plot_path, 'Harmony_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
+# png(paste0(plot_path, 'Harmony_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
-png(paste0(plot_path, 'Diffusion_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
+# png(paste0(plot_path, 'Diffusion_paired_UMAPs.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
 p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
 p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
@@ -263,23 +264,23 @@ print("Broad scHelper cell type labels added")
 
 cols <- scHelper_cell_type_colours[as.character(unique(obj.pair$scHelper_cell_type_broad))]
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
-png(paste0(plot_path, 'Coembed_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap", cols = stage_cols)
+# png(paste0(plot_path, 'Coembed_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
-png(paste0(plot_path, 'Harmony_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_harmony", cols = stage_cols)
+# png(paste0(plot_path, 'Harmony_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
-p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
-p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
-png(paste0(plot_path, 'Diffusion_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
-p1 + p2
-graphics.off()
+# p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "dm", cols = cols)
+# p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "dm", cols = stage_cols)
+# png(paste0(plot_path, 'Diffusion_paired_UMAPs_broad.png'), height = 10, width = 24, units = 'cm', res = 400)
+# p1 + p2
+# graphics.off()
 
 p1 <- DimPlot(obj.pair, pt.size = 2, group.by = "scHelper_cell_type_broad", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = cols)
 p2 <- DimPlot(obj.pair, pt.size = 2, group.by = "stage", shuffle = TRUE, label = FALSE, reduction = "umap_iLSI", cols = stage_cols)
