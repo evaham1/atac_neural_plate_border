@@ -343,8 +343,8 @@ workflow A {
         // add motif data and run chromvar on the paired data
         MEGA_CHROMVAR( MEGA_PAIRING.out )
         
-        // // then run scMEGA GRNi on the full data paired seurat object
-        // //MEGA_GRNI( MEGA_INTEGRATION.out )
+        // then run scMEGA GRNi on the full data paired seurat object
+        MEGA_GRNI( MEGA_INTEGRATION.out )
         
 
     }
