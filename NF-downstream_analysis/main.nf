@@ -340,8 +340,8 @@ workflow A {
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
         MEGA_PAIRING( MEGA_INTEGRATION.out )
 
-        // // add motif data and run chromvar on the paired data
-        // MEGA_CHROMVAR( MEGA_PAIRING.out )
+        // add motif data and run chromvar on the paired data
+        MEGA_CHROMVAR( MEGA_PAIRING.out )
         
         // // then run scMEGA GRNi on the full data paired seurat object
         // //MEGA_GRNI( MEGA_INTEGRATION.out )
