@@ -76,7 +76,6 @@ set.seed(42)
 ## read in paired seurat object
 obj.pair <- readRDS(paste0(data_path, "paired_object_chromvar.RDS"))
 obj.pair
-getAvailableMatrices(ArchRProj = obj.pair)
 
 ############################## Plotting colours #######################################
 
