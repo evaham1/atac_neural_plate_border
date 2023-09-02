@@ -54,6 +54,10 @@ include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               a
 include {R as MEGA_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_chromvar.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
+include {R as SEURAT_EXPORT_DATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_export_data.R", checkIfExists: true) )
+
+
+
 // MEGA SCRATCH
 include {R as REMOVE_CONTAM} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
 include {R as RECLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
@@ -343,9 +347,12 @@ workflow A {
 
         // add motif data and run chromvar on the paired data
         MEGA_CHROMVAR( MEGA_PAIRING.out )
+
+        // looks like I need to convert the seurat V5 object to a v4 or something
+        SEURAT_EXPORT_DATA( MEGA_CHROMVAR.out )
         
         // then run scMEGA GRNi on the full data paired seurat object
-        MEGA_GRNI( MEGA_CHROMVAR.out )
+        //MEGA_GRNI( MEGA_CHROMVAR.out )
         
 
     }
