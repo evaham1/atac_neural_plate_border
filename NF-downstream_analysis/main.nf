@@ -223,7 +223,10 @@ workflow A {
 
         // Transfer labels from stages back to Full Data!!!!
         INTEGRATE.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .collect()
             .concat(PEAK_CALL.out)
+            .view()
             .set{ch_transfer_labels}
         TRANSER_LABELS(ch_transfer_labels)
 
