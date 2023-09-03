@@ -233,7 +233,7 @@ workflow A {
         RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
 
         // Calculate co-accessibility
-        CALCULATE_COACCESSIBILITY( RECLUSTER_FULL )
+        CALCULATE_COACCESSIBILITY( RECLUSTER_FULL.out )
 
         // Read in RNA object with latent time
         METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
