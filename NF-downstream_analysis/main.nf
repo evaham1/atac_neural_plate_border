@@ -40,7 +40,7 @@ include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"      
 include {R as CLUSTER_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_FULL_integration.R", checkIfExists: true) )
-include {R as TRANSER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
+include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
 include {R as REMOVE_CONTAM_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
 include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as CALCULATE_COACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_calculate_coaccessibility.R", checkIfExists: true) )
@@ -223,15 +223,17 @@ workflow A {
 
         // Transfer labels from stages back to Full Data!!!!
         INTEGRATE.out
+            .view()
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat(PEAK_CALL.out)
+            .view()
             .map{ [ 'sample_id:dummy', [ it[0][1], it[1][1] ] ] }
             .view()
             .set{ch_transfer_labels}
-        TRANSER_LABELS(ch_transfer_labels)
+        TRANSFER_LABELS(ch_transfer_labels)
 
         // Remove contam from Full data and re-cluster
-        REMOVE_CONTAM_FULL( TRANSER_LABELS.out )
+        REMOVE_CONTAM_FULL( TRANSFER_LABELS.out )
         RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
 
         // Calculate co-accessibility
