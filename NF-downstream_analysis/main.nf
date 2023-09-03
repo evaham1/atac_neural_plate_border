@@ -91,9 +91,8 @@ include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"   
 
 // PARAMS FOR PIPELINE SWITCHING
 def skip_upstream_processing = params.skip_upstream_processing ? true : false
-def skip_peakcall_processing = params.skip_peakcall_processing ? true : false
+def skip_sc_processing = params.skip_sc_processing ? true : false
 def skip_metacell_processing = params.skip_metacell_processing ? true : false
-def skip_singlecell_processing = params.skip_singlecell_processing ? true : false
 def skip_multiview_processing = params.skip_multiview_processing ? true : false
 def skip_mega_processing = params.skip_mega_processing ? true : false
 
