@@ -198,7 +198,7 @@ workflow A {
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
             .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-            .view()
+            //.view()
             .set { ch_split_stages }
 
         // Cluster individual stages
@@ -215,7 +215,7 @@ workflow A {
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .view()
+            //.view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         // Integrate RNA and ATAC data stages
@@ -224,8 +224,8 @@ workflow A {
         // Transfer labels from stages back to Full Data!!!!
         INTEGRATE.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .collect()
             .concat(PEAK_CALL.out)
+            .map{ [ sample_id:'dummy', [ it[0][1], it[1][1] ] ] }
             .view()
             .set{ch_transfer_labels}
         TRANSER_LABELS(ch_transfer_labels)
