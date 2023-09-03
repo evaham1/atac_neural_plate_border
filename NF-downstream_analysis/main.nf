@@ -231,10 +231,9 @@ workflow A {
 
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
         CLUSTER( ch_atac_stages )
-        CLUSTER.out.view()
 
         // read in RNA data
-        METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        METADATA_RNA_SC( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
         METADATA_RNA_SC.out.metadata.view()
