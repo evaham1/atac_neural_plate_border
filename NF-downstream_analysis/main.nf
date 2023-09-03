@@ -187,7 +187,7 @@ workflow A {
         CLUSTER_FULL( ch_full )
 
         // Call peaks on full data
-        PEAK_CALL( CLUSTER.out )
+        PEAK_CALL( CLUSTER_FULL.out )
 
         // Split the full data into stages
         SPLIT_STAGES_PROCESSED( PEAK_CALL.out )
@@ -226,8 +226,8 @@ workflow A {
         TRANSER_LABELS(ch_transfer_labels)
 
         // Remove contam from Full data and re-cluster
-        REMOVE_CONTAM_FULL( ch_singlecell_processed )
-        RECLUSTER_FULL( REMOVE_CONTAM.out )
+        REMOVE_CONTAM_FULL( TRANSER_LABELS.out )
+        RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
 
         // Read in RNA object with latent time
         METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
