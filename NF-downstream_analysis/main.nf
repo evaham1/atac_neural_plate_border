@@ -197,10 +197,9 @@ workflow A {
         SPLIT_STAGES_PROCESSED.out //[[meta], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
-            .map { row -> [[sample_id:"dummy"], row] }
+            .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
+            .view()
             .set { ch_split_stages }
-
-        ch_split_stages.view()
 
         // Cluster individual stages
         CLUSTER_STAGES( ch_split_stages )
