@@ -43,8 +43,11 @@ include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addP
 include {R as TRANSER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
 include {R as REMOVE_CONTAM_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
 include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+include {R as CALCULATE_COACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_calculate_coaccessibility.R", checkIfExists: true) )
 include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
+
+
 
 // include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
 // include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
@@ -228,6 +231,9 @@ workflow A {
         // Remove contam from Full data and re-cluster
         REMOVE_CONTAM_FULL( TRANSER_LABELS.out )
         RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
+
+        // Calculate co-accessibility
+        CALCULATE_COACCESSIBILITY( RECLUSTER_FULL )
 
         // Read in RNA object with latent time
         METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
