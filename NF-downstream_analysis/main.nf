@@ -18,12 +18,12 @@ nextflow.enable.dsl = 2
 */
 
 // METADATA WORKFLOWS FOR CHANNEL SWITCHES
-include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/local/metadata"
-include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
-include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
-include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
-include { METADATA as METADATA_MEGA_INPUT } from "$baseDir/subworkflows/local/metadata"
-include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
+
+// include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+// include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+// include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
+// include { METADATA as METADATA_MEGA_INPUT } from "$baseDir/subworkflows/local/metadata"
+
 
 
 // UPSTREAM PROCESSING
@@ -31,22 +31,28 @@ include { METADATA } from "$baseDir/subworkflows/local/metadata"
 include { PREPROCESSING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Preprocessing"
 include { FILTERING } from "$baseDir/subworkflows/local/UPSTREAM_PROCESSING/Filtering"
 
-// PROCESSING - FULL DATA
-include {R as CLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
-include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as CO_ACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_coaccessibility.R", checkIfExists: true) )
-include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
+// SINGLE CELL PROCESSING
+include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 
-// PROCESSING - STAGES
+include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
+include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
+include {R as CLUSTER_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_FULL_integration.R", checkIfExists: true) )
-include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
-include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
+include {R as TRANSER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
+include {R as REMOVE_CONTAM_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
+include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
+include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
+
+// include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
+// include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
+// include {R as CO_ACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_coaccessibility.R", checkIfExists: true) )
 
 // MEGA PROCESSING
 include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
-include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
 include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
 include {R as MEGA_PAIRING_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing_and_chromvar.R", checkIfExists: true) )
@@ -57,8 +63,6 @@ include {R as SEURAT_EXPORT_DATA} from "$baseDir/modules/local/r/main"          
 
 
 // MEGA SCRATCH
-include {R as REMOVE_CONTAM} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
-include {R as RECLUSTER} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 
 
 // METACELL PROCESSING
@@ -165,79 +169,47 @@ workflow A {
 
 
     //////////////////////////////////////////////////////////////////////////////////
-    /////////////////////      GENERATE CONSENSUS PEAK SET      //////////////////////
+    /////////////////////      SINGLE CELL PROCESSING      ///////////////////////////
     //////////////////////////////////////////////////////////////////////////////////
-    // calls peaks on full data object to obtain consensus peak set, then splits full data into stages
+    // aim of this section is to end up with a FullData object and stage objects that have:
+            // clusters at appropriate resolution
+            // a consensus peak set (calculated on the full data)
+            // consensus cell state labels transferred from the RNA data (calculated on the stages)
+            // for full data also have minus contam and plus latent time values
 
-    if(!skip_peakcall_processing){
+    if(!skip_sc_processing){
 
         // Extract just the full data object
         ch_upstream_processed
             .filter{ meta, data -> meta.sample_id == 'FullData'}
             .set{ ch_full }
 
-        // Cluster, call peaks and calculate interactions by accessibility on full data
-        //ch_full.view() //[[sample_id:FullData], [Upstream_processing/FILTERING/FullData/rds_files/FullData_Save-ArchR]]
-        CLUSTER( ch_full )
+        // Cluster full data
+        CLUSTER_FULL( ch_full )
+
+        // Call peaks on full data
         PEAK_CALL( CLUSTER.out )
 
-        // Split full data into stages
+        // Split the full data into stages
         SPLIT_STAGES_PROCESSED( PEAK_CALL.out )
         SPLIT_STAGES_PROCESSED.out //[[meta], [plots, rds_files]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .flatMap {it[1][0].listFiles()}
             .map { row -> [[sample_id:dummy], row] }
-            .set { ch_peakcall_processed }
+            .set { ch_split_stages }
 
-        SPLIT_STAGES_PROCESSED.out.view()
-                // ch_peakcall_processed.view()
-                // [[sample_id:HH6], rds_files/HH6_Save-ArchR]
-                // [[sample_id:HH7], rds_files/HH7_Save-ArchR]
-                // [[sample_id:ss4], rds_files/ss4_Save-ArchR]
-                // [[sample_id:ss8], rds_files/ss8_Save-ArchR]
-                // [[sample_id:HH5], rds_files/HH5_Save-ArchR]
+        ch_split_stages.view()
 
-        // Each stage is now a separate object in the channel,
-        // NOTE: stage objects are not reclustered so UMAPs will look weird
-        // NOTE: all stage objects should have the same peak set which was calculated on the full data
+        // Cluster individual stages
+        CLUSTER_STAGES( ch_split_stages )
 
-
-    } else {
-       
-       // NEED TO UPDATE
-       METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
-       ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
-
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /////////////////////    STAGE PROCESSING      //////////////////////
-    ///////////////////////////////////////////////////////////////////////////
-    // reclusters stages + integrates at single cell level + runs motif and analysis on clusters at each stage
-    // perhaps add here peak calling and plotting volcano plots at each stage to show increased heterogenity 
-
-    if(!skip_singlecell_processing){
-
-        // Extract just the stage objects from upstream processing
-        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
-        ch_atac_stages = METADATA_PEAKCALL_PROCESSED.out.metadata 
-            // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
-            // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
-            // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
-            // [[sample_id:ss4], [FullData/Split_stages/rds_files/ss4_Save-ArchR]]
-            // [[sample_id:ss8], [FullData/Split_stages/rds_files/ss8_Save-ArchR]]
-
-        // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
-        CLUSTER( ch_atac_stages )
-
-        // read in RNA data
+        // Read in RNA data
         METADATA_RNA_SC( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
-        METADATA_RNA_SC.out.metadata.view()
    
-        // combine ATAC and RNA data
-        CLUSTER.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        // Combine ATAC and RNA data
+        CLUSTER_STAGES.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
@@ -245,29 +217,42 @@ workflow A {
             .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
-        // Integrate RNA and ATAC data at single cell level
+        // Integrate RNA and ATAC data stages
         INTEGRATE( ch_integrate )
 
-        // Run differential accessibility tests between clusters using consensus peaks - check that this is still ok
-        PLOT_DIFF_PEAKS( INTEGRATE.out )
+        // Transfer labels from stages back to Full Data!!!!
+        INTEGRATE.out
+            .concat(PEAK_CALL.out)
+            .set(ch_transfer_labels)
+        TRANSER_LABELS(ch_transfer_labels)
 
-        // Run motif analysis and footprinting for key TFs
-        //MOTIF_ANALYSIS( ARCHR_INTEGRATING_WF.out )
-        //CO_ACCESSIBILITY( ARCHR_INTEGRATING_WF.out 
+        // Remove contam from Full data and re-cluster
+        REMOVE_CONTAM_FULL( ch_singlecell_processed )
+        RECLUSTER_FULL( REMOVE_CONTAM.out )
 
-                /// THINGS TO ADD INTO THIS WORKFLOW ///
-                // recreate how I found the enhancers I tested (may need to re-call peaks on stages)
+        // Read in RNA object with latent time
+        METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
 
-        // Each stage is a separate object in the channel,
-        // NOTE: stage objects are reclustered individually
-        // NOTE: all stage objects have the same peak set (consensus full data peakset)
+        // Transfer latent time from RNA full data to ATAC full data
+        RECLUSTER_FULL.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( METADATA_RNA_LATENT_TIME.out.metadata )
+            .groupTuple( by:0 )
+            //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
+            .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
+
+        TRANSFER_LATENT_TIME( ch_transfer_latent_time )
         
+
+
 
     } else {
        
-         // NEED TO UPDATE
-    //    METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet )
-    //    ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
+       // NEED TO UPDATE
+    //    METADATA_SC_PROCESSED( params.peakcall_processed_sample_sheet )
+    //    ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
 
     }
 
@@ -287,24 +272,10 @@ workflow A {
         //CLUSTER( ch_atac_stages )
 
         // remove contamination from ATAC full data to see how UMAP looks now
-        REMOVE_CONTAM( ch_singlecell_processed )
-        RECLUSTER( REMOVE_CONTAM.out )
 
-        // transfer latent time from RNA full data to ATAC full data
-        METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet ) // single cell data with individual peaks called
-        ch_rna_latent_time = METADATA_RNA_LATENT_TIME.out.metadata
         //ch_rna_latent_time.view() //[[sample_id:FullData], [seurat_label_transfer_latent_time.RDS]]
       
-        RECLUSTER.out
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .concat( ch_rna_latent_time )
-            .groupTuple( by:0 )
-            //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
-            .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
 
-        TRANSFER_LATENT_TIME( ch_transfer_latent_time )
 
         // convert ArchR objects into seurat objects
         ARCHR_TO_SEURAT( ch_singlecell_processed )
