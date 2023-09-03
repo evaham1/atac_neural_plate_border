@@ -48,10 +48,8 @@ include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               add
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
-include {R as INIT_MULTIOME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/init_multiome.R", checkIfExists: true) )
 include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
-include {R as MEGA_PAIRING} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing.R", checkIfExists: true) )
-include {R as MEGA_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_chromvar.R", checkIfExists: true) )
+include {R as MEGA_PAIRING_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing_and_chromvar.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
 include {R as SEURAT_EXPORT_DATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_export_data.R", checkIfExists: true) )
@@ -337,17 +335,11 @@ workflow A {
             //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
             .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
 
-        // create fake multiome data from the RNA and ATAC
-        //INIT_MULTIOME( ch_integrate )
-
         // integrate the stages into a coembedding seurat object
         MEGA_INTEGRATION( ch_integrate )
 
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
-        MEGA_PAIRING( MEGA_INTEGRATION.out )
-
-        // add motif data and run chromvar on the paired data
-        MEGA_CHROMVAR( MEGA_PAIRING.out )
+        MEGA_PAIRING_CHROMVAR( MEGA_INTEGRATION.out )
 
         // looks like I need to convert the seurat V5 object to a v4 or something
         SEURAT_EXPORT_DATA( MEGA_CHROMVAR.out )

@@ -15,6 +15,13 @@ library(Seurat)
 library(Signac)
 library(scMEGA)
 options(Seurat.object.assay.version = 'v5')
+library(TFBSTools)
+library(JASPAR2020)
+library(BSgenome.Ggallus.UCSC.galGal6)
+library(SummarizedExperiment)
+library(igraph)
+library(ggraph)
+library(BiocParallel)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -288,7 +295,32 @@ png(paste0(plot_path, 'LSI_paired_UMAPs_broad.png'), height = 10, width = 24, un
 p1 + p2
 graphics.off()
 
+############################## Add motif information #######################################
+
+# download motif database
+motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
+
+# add motif information to ATAC data
+obj.motifs <- AddMotifs(
+  object = obj.pair,
+  genome = BSgenome.Ggallus.UCSC.galGal6,
+  pfm = motifList,
+  assay = "ATAC"
+)
+
+############################## Run chromvar #######################################
+
+## NB if I try to rename motifList by TF names like I do when running chromvar in ArchR this fails
+
+BiocParallel::register(SerialParam())
+
+# run chromvar
+obj_chromvar <- RunChromVAR(
+  object = obj.motifs,
+  genome = BSgenome.Ggallus.UCSC.galGal6,
+  assay = 'ATAC'
+)
+
 ############################## Save #######################################
 
-## save paired object
-saveRDS(obj.pair, paste0(rds_path, "TransferLabel_paired_object.RDS"), compress = FALSE)
+saveRDS(obj_chromvar, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
