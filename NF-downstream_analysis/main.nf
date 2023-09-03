@@ -231,11 +231,13 @@ workflow A {
 
         // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
         CLUSTER( ch_atac_stages )
+        CLUSTER.out.view()
 
         // read in RNA data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
+        METADATA_RNA_SC.out.metadata.view()
    
         // combine ATAC and RNA data
         CLUSTER.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
@@ -243,7 +245,7 @@ workflow A {
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            // .view()
+            .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         // Integrate RNA and ATAC data at single cell level
