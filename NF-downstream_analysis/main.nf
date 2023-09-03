@@ -222,7 +222,7 @@ workflow A {
         // Transfer labels from stages back to Full Data!!!!
         INTEGRATE.out
             .concat(PEAK_CALL.out)
-            .set(ch_transfer_labels)
+            .set{ch_transfer_labels}
         TRANSER_LABELS(ch_transfer_labels)
 
         // Remove contam from Full data and re-cluster
