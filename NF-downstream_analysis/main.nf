@@ -342,7 +342,7 @@ workflow A {
         MEGA_PAIRING_CHROMVAR( MEGA_INTEGRATION.out )
 
         // looks like I need to convert the seurat V5 object to a v4 or something
-        SEURAT_EXPORT_DATA( MEGA_CHROMVAR.out )
+        SEURAT_EXPORT_DATA( MEGA_PAIRING_CHROMVAR.out )
         
         // then run scMEGA GRNi on the full data paired seurat object
         //MEGA_GRNI( MEGA_CHROMVAR.out )
