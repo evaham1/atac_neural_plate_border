@@ -225,7 +225,7 @@ workflow A {
         INTEGRATE.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat(PEAK_CALL.out)
-            .map{ [ sample_id:'dummy', [ it[0][1], it[1][1] ] ] }
+            .map{ [ 'sample_id:dummy', [ it[0][1], it[1][1] ] ] }
             .view()
             .set{ch_transfer_labels}
         TRANSER_LABELS(ch_transfer_labels)
