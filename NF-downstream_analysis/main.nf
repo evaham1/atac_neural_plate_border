@@ -243,6 +243,11 @@ workflow A {
             .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
 
         TRANSFER_LATENT_TIME( ch_transfer_latent_time )
+
+        //////// Now can run scripts that just make plots
+        // diff_plots_between_clusters
+        // co-accessibility -> also makes rds output?
+        // motif analysis -> also makes rds output?
         
 
 
@@ -261,29 +266,18 @@ workflow A {
 
     if(!skip_mega_processing){
 
+        // read in ATAC full transfer label object with latent time
         METADATA_SINGLECELL_PROCESSED( params.mega_input_sample_sheet ) // single cell data with individual peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
-
-        // ch_singlecell_processed.view()
-        //[[sample_id:FullData], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/FullData/TransferLabels/rds_files/TransferLabels_Save-ArchR]]
-
-        // re-run clustering - keep peaks from full data (double check this works ok when running differential peaks)
-        //CLUSTER( ch_atac_stages )
-
-        // remove contamination from ATAC full data to see how UMAP looks now
-
-        //ch_rna_latent_time.view() //[[sample_id:FullData], [seurat_label_transfer_latent_time.RDS]]
-      
-
 
         // convert ArchR objects into seurat objects
         ARCHR_TO_SEURAT( ch_singlecell_processed )
 
-        // read in RNA data
+        // read in RNA full data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
-        // remove HH4 from RNA data
+        // remove HH4 from RNA full data
         REMOVE_HH4( METADATA_RNA_SC.out.metadata )
         
         // extract RNA seurat object
@@ -311,7 +305,8 @@ workflow A {
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
         MEGA_PAIRING_CHROMVAR( MEGA_INTEGRATION.out )
 
-        // looks like I need to convert the seurat V5 object to a v4 or something
+            /// NEED TO DEBUG FROM HERE ON: ///
+        // looks like I need to convert the seurat V5 object to a v4 or something??
         SEURAT_EXPORT_DATA( MEGA_PAIRING_CHROMVAR.out )
         
         // then run scMEGA GRNi on the full data paired seurat object
@@ -333,6 +328,7 @@ workflow A {
 
     if(!skip_metacell_processing){
 
+        // read in split stages objects with consensus peak set
         METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
         ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
         // ch_peakcall_processed.view()
