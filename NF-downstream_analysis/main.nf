@@ -237,12 +237,15 @@ workflow A {
 
         PEAK_CALL.out
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .view()
             .set{ ch_full }
-        INTEGRATE.out // METADATA.out: [[meta], [cellranger_output]]
-            .combine(ch_full)
+        INTEGRATE.out
+            .map{it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .view()
-            .map{[it[0], it[1] + it[2]]}
-            .view()
+            .set{ ch_stages }
+        // ch_full
+        //     .combine(ch_stages)
+        //     .view()
 
         //    Transfer peak set from Full Data onto stages data  ////
         // PEAK_CALL.out
