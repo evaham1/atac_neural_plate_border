@@ -249,8 +249,10 @@ workflow A {
             //     [[sample_id:ss8], [rds_files]]
             //     [[sample_id:ss4], [rds_files]]
             .set{ stages_data }
-        ch_full
-            .combine(ch_stages)
+        ch_stages
+            .combine(ch_full)
+            .view()
+            .map { row -> [row[0], [row[1][0], row[2]]]}
             .view()
             .set{ch_transfer_peaks}
         TRANSFER_PEAKS(ch_transfer_peaks)
