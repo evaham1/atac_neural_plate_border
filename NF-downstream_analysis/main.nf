@@ -242,21 +242,18 @@ workflow A {
         INTEGRATE.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             // .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .view()
+            // .view()
+            //     [[sample_id:HH6], [rds_files]]
+            //     [[sample_id:HH5], [rds_files]]
+            //     [[sample_id:HH7], [rds_files]]
+            //     [[sample_id:ss8], [rds_files]]
+            //     [[sample_id:ss4], [rds_files]]
             .set{ stages_data }
-        // ch_full
-        //     .combine(ch_stages)
-        //     .view()
-
-        //    Transfer peak set from Full Data onto stages data  ////
-        // PEAK_CALL.out
-        //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-        //     .combine(INTEGRATE.out)
-        //     .view() //[FullData_Save-ArchR, [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files, tmp]]
-        //     .map{ [ it[0], [ it[1], it[3] ] ] }
-        //     .view()
-        //     .set{ch_transfer_peaks}
-        // TRANSFER_PEAKS(ch_transfer_peaks)
+        ch_full
+            .combine(ch_stages)
+            .view()
+            .set{ch_transfer_peaks}
+        TRANSFER_PEAKS(ch_transfer_peaks)
 
         ////    Extra processing with full data  ////
         // Remove contam from Full data and re-cluster
