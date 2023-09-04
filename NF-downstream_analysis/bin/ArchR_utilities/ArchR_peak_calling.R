@@ -70,6 +70,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
+    csv_path = "./csv_files/"
     data_path = "./input/rds_files/"
     ncores = opt$cores
     
@@ -83,6 +84,7 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
+  dir.create(csv_path, recursive = T)
 }
 
 ############################## Read in ArchR project #######################################
@@ -173,7 +175,7 @@ ArchR_peaks <- addPeakMatrix(ArchR, force = TRUE)
 ## write out peakset
 peakset_granges <- getPeakSet(ArchR_peaks)
 head(peakset_granges)
-write.csv(peakset_granges, file = paste0(rds_path, label, "_GRanges_PeakSet.csv"), quote = F)
+write.csv(peakset_granges, file = paste0(csv_path, label, "_GRanges_PeakSet.csv"), quote = F)
 
 df <- data.frame(chrom = seqnames(peakset_granges),
                  chromStart = start(peakset_granges)-1,
@@ -182,15 +184,15 @@ df <- data.frame(chrom = seqnames(peakset_granges),
                  score = c(score(peakset_granges)),
                  strand = strand(peakset_granges))
 head(df)
-write.table(df, file = paste0(rds_path, label, "_PeakSet.bed"), sep="\t", row.names=F, col.names=F, quote = F)
+write.table(df, file = paste0(csv_path, label, "_PeakSet.bed"), sep="\t", row.names=F, col.names=F, quote = F)
 
 #################################################################################
 ############################## Save ArchR project ###############################
 
-## save object that has had peak calling run on it (this doesn't load interactively but good to keep in case)
-output_directory <- paste0(rds_path, label, "_PeakCall_Save-ArchR")
-print(paste0("Output directory of peak called object: ", output_directory))
-saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = output_directory, load = FALSE)
+# ## save object that has had peak calling run on it (this doesn't load interactively but good to keep in case)
+# output_directory <- paste0(rds_path, label, "_PeakCall_Save-ArchR")
+# print(paste0("Output directory of peak called object: ", output_directory))
+# saveArchRProject(ArchRProj = ArchR_peaks, outputDirectory = output_directory, load = FALSE)
 
 ## save the unchanged object + added peak set and peak matrix
 ArchR_with_peaks <- addPeakSet(ArchR_to_save, peakset_granges, force = TRUE)
