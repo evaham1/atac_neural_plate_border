@@ -236,8 +236,9 @@ workflow A {
         ////    Transfer peak set from Full Data onto stages data  ////
         PEAK_CALL.out
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .concat(PEAK_CALL.out)
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .combine(PEAK_CALL.out)
+            .view()
+            .map{ [ it[0], [ it[1], it[3] ] ] }
             .view()
             .set{ch_transfer_peaks}
         TRANSFER_PEAKS(ch_transfer_peaks)
