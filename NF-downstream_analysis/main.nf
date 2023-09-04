@@ -226,11 +226,13 @@ workflow A {
         INTEGRATE( ch_integrate )
 
         ////    Transfer integrated labels from stages data onto Full Data   ////
-        ch_transfer_labels = INTEGRATE.out
+        INTEGRATE.out
             .concat(PEAK_CALL.out)
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            //.view()
+            .set{ch_transfer_labels}
         TRANSFER_LABELS(ch_transfer_labels)
 
         ////    Transfer peak set from Full Data onto stages data  ////
