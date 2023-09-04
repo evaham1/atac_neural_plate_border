@@ -237,12 +237,13 @@ workflow A {
 
         PEAK_CALL.out
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .view()
+            //.view() FullData_Save-ArchR
             .set{ ch_full }
         INTEGRATE.out
-            .map{it[0], it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            // .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .view()
-            .set{ ch_stages }
+            .set{ stages_data }
         // ch_full
         //     .combine(ch_stages)
         //     .view()
