@@ -231,7 +231,7 @@ workflow A {
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            //.view()
+            .view()
             .set{ch_transfer_labels}
         TRANSFER_LABELS(ch_transfer_labels)
 
