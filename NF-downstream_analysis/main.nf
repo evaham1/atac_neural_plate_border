@@ -222,14 +222,11 @@ workflow A {
         INTEGRATE( ch_integrate )
 
         // Transfer labels from stages back to Full Data!!!!
-        INTEGRATE.out
-            .view()
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        ch_transfer_labels = INTEGRATE.out
             .concat(PEAK_CALL.out)
-            .view()
-            .map{ [ 'sample_id:dummy', [ it[0][1], it[1][1] ] ] }
-            .view()
-            .set{ch_transfer_labels}
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'ch_transfer_labels'], it] } // [[meta], [rds1, rds2, rds3, ...]]
         TRANSFER_LABELS(ch_transfer_labels)
 
         // Remove contam from Full data and re-cluster
