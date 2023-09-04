@@ -223,8 +223,7 @@ workflow A {
 
         // Transfer labels from stages back to Full Data!!!!
         ch_transfer_labels = INTEGRATE.out
-            //.map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'ch_transfer_labels'], it] } // [[meta], [rds1, rds2, rds3, ...]]
             .view()
