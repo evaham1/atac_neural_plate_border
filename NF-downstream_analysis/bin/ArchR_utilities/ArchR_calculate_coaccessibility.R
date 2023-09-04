@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("calculate coaccessibility ArchR")
+print("calculate coaccessibility ArchR - cell grouping agnostic")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -152,3 +152,8 @@ table(p2g_df$PeakID %in% getPeakSet(ArchR)$name)
 write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df.csv"), row.names = FALSE)
 
 print("Coaccessibility between peaks and genes calculated and saved.")
+
+############################## Save object #######################################
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+print("ArchR object saved")

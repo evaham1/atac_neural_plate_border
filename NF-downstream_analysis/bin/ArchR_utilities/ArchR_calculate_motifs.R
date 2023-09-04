@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("motif analysis and TF footprinting")
+print("calculate motifs info and save archr object with this - cell grouping agnostic")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -47,6 +47,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
+    csv_path = "./csv_files/"
     data_path = "./input/rds_files/"
     ncores = opt$cores
     
@@ -60,11 +61,8 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
+  dir.create(csv_path, recursive = T)
 }
-
-
-############################## FUNCTIONS #######################################
-
 
 
 ############################## Read in ArchR project #######################################
@@ -92,9 +90,7 @@ print(ArchR)
 getPeakSet(ArchR)
 getAvailableMatrices(ArchR)
 
-#######################################################################################
 #############################   MOTIF ANALYSIS    #####################################
-#######################################################################################
 
 ############################## Add motif annotations to ArchR #######################################
 # creates a binary matrix where the prescence of a motif in each peak is indicated numerically
@@ -114,68 +110,6 @@ names(motifList) <- name_vector
 ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, force = T)
 print("Motifs matrix added to ArchR object!")
 
-############################## Motifs in differentially accessible peaks #######################################
-
-plot_path = "./plots/diff_accessible_peaks_motifs/"
-dir.create(plot_path, recursive = T)
-
-# calculate differentially accessible peaks between clusters
-se <- getMarkerFeatures(
-  ArchRProj = ArchR,
-  useMatrix = "PeakMatrix",
-  groupBy = "clusters")
-# se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
-
-motif_marker_peaks <- peakAnnoEnrichment(
-  seMarker = se,
-  ArchRProj = ArchR,
-  peakAnnotation = "Motif",
-  cutOff = "FDR <= 0.1 & Log2FC >= 0.5"
-)
-motif_marker_peaks
-
-# make dataframe of results
-df <- data.frame(TF = rownames(motif_marker_peaks), mlog10Padj = assay(motif_marker_peaks)[,1])
-df <- df[order(df$mlog10Padj, decreasing = TRUE),]
-df$rank <- seq_len(nrow(df))
-
-head(df)
-
- # plot results
-ggUp <- ggplot(df, aes(rank, mlog10Padj, color = mlog10Padj)) + 
-  geom_point(size = 1) +
-  ggrepel::geom_label_repel(
-    data = df[rev(seq_len(30)), ], aes(x = rank, y = mlog10Padj, label = TF), 
-    size = 1.5,
-    nudge_x = 2,
-    color = "black"
-  ) + theme_ArchR() + 
-  ylab("-log10(P-adj) Motif Enrichment") + 
-  xlab("Rank Sorted TFs Enriched") +
-  scale_color_gradientn(colors = paletteContinuous(set = "comet"))
-
-png(paste0(plot_path, 'diff_peaks_motif_enrichment_plot.png'), height = 10, width = 10, units = 'cm', res = 400)
-print(ggUp)
-graphics.off()
-
-png(paste0(plot_path, 'diff_peaks_motif_enrichment_plot_bigger.png'), height = 30, width = 30, units = 'cm', res = 400)
-print(ggUp)
-graphics.off()
-
-# plot as heatmap
-if (label == "ss8"){topn = 10} # 7 was ok so trying higher
-if (label == "ss4"){topn = 10} # 7 was ok so trying higher
-if (label == "HH7"){topn = 10} # 7 was ok so trying higher
-if (label == "HH6"){topn = 10} # 7 was ok so trying higher
-if (label == "HH5"){topn = 1} # 1 was too much!
-
-if (topn > 1){
-  heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
-  png(paste0(plot_path, 'diff_peaks_motif_enrichment_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-  ComplexHeatmap::draw(heatmapEM, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-  graphics.off()
-}
-
 ############################## Run ChromVar #######################################
 
 plot_path = "./plots/ChromVar/"
@@ -189,7 +123,7 @@ ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
 
 # save results as df
 df <- getVarDeviations(ArchR, name = "MotifMatrix", plot = FALSE)
-write.csv(df, file = paste0(rds_path, "Chromvar_df.csv"), row.names = FALSE)
+write.csv(df, file = paste0(csv_path, "Chromvar_df.csv"), row.names = FALSE)
 
 # plot results
 plotVarDev <- getVarDeviations(ArchR, name = "MotifMatrix", plot = TRUE)
@@ -199,41 +133,10 @@ graphics.off()
 
 print("Chromvar scores calculated!")
 
-############################## Extract TFs of interest #######################################
-
-# set genes of interest
-TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
-           "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2")
-# CTNRP and LMX1B and ZEB2 not found
-
-ArchR <- addImputeWeights(ArchR)
-
-# Plot ridge plot of each TF deviation
-for (TF in TFs){
-  print(TF)
-  markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
-  if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
-  
-  p <- plotGroups(ArchR, groupBy = "clusters", 
-                  colorBy = "MotifMatrix", 
-                  name = markerMotif,
-                  imputeWeights = getImputeWeights(ArchR))
-
-  # plot distribution of chromvar deviation score for each cluster
-  png(paste0(plot_path, TF, '_chromvar_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
-  
-  # Plot chromvar scores on UMAP
-  p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
-                     imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
-  png(paste0(plot_path, TF, '_chromvar_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
-  
-}
-
-print("Chromvar plots made!")
+############################## Save object #######################################
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+print("ArchR object saved")
 
 ############################## Extract target peaks of key TFs #######################################
 
@@ -270,47 +173,8 @@ length(TF_targets)
 for (TF in names(TF_targets)) {
   print(TF)
   write(paste0(TF, "; ", paste0(TF_targets[[TF]], collapse = ", ")), 
-          file = paste0(rds_path, "/", "TF_targets.txt"), 
+          file = paste0(csv_path, "/", "TF_targets.txt"), 
           append = TRUE)
 }
 
 print("TF peak targets written to file!")
-
-#######################################################################################
-#############################   TF FOOTPRINTING    #####################################
-#######################################################################################
-
-plot_path = "./plots/Footprinting/"
-dir.create(plot_path, recursive = T)
-
-####### Compute TF footprints
-
-# maybe could use this as a way to extract peaks with motifs instead of above approach...
-motifPositions <- getPositions(ArchR)
-motifPositions
-
-# add group coverages using pseudo-bulk replicate approach
-ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "clusters")
-
-# slightly smaller TFs list:
-TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
-        "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2", 
-        "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX21", "NKX6-2")
-
-# loop through each TF to do footprinting
-for (TF in TFs){
-  print(paste0("Calculating and plotting footprint for: ", TF))
-  
-  # compute footprints for TFs of interest
-  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "clusters")
-  seFoot
-  
-  ####### Plot TF footprints
-  p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
-                      smoothWindow = 10, baseSize = 16, plot = FALSE)
-  
-  png(paste0(plot_path, TF, '_TF_footprint.png'), height = 20, width = 20, units = 'cm', res = 400)
-  grid::grid.newpage()
-  grid::grid.draw(p[[1]])
-  graphics.off()
-}
