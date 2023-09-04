@@ -230,15 +230,16 @@ workflow A {
             .concat(PEAK_CALL.out)
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
-            .map { [[sample_id:'ch_transfer_labels'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
         TRANSFER_LABELS(ch_transfer_labels)
 
         ////    Transfer peak set from Full Data onto stages data  ////
-        ch_transfer_peaks = INTEGRATE.out
-            .concat(PEAK_CALL.out)
+        PEAK_CALL.out
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'ch_transfer_peaks'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            .concat(PEAK_CALL.out)
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .view()
+            .set{ch_transfer_peaks}
         TRANSFER_PEAKS(ch_transfer_peaks)
 
         ////    Extra processing with full data  ////
