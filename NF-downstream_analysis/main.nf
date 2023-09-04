@@ -36,16 +36,22 @@ include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/
 
 include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
-include {R as SPLIT_STAGES_PROCESSED} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_split_stages.R", checkIfExists: true) )
+
 include {R as CLUSTER_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_FULL_integration.R", checkIfExists: true) )
+
 include {R as TRANSFER_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
+include {R as TRANSFER_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks.R", checkIfExists: true) )
+
 include {R as REMOVE_CONTAM_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
 include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
+
 include {R as CALCULATE_COACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_calculate_coaccessibility.R", checkIfExists: true) )
+
 include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
+
 
 
 
@@ -181,6 +187,7 @@ workflow A {
 
     if(!skip_sc_processing){
 
+        ////    Run peak calling on full data   ////
         // Extract just the full data object
         ch_upstream_processed
             .filter{ meta, data -> meta.sample_id == 'FullData'}
@@ -192,17 +199,14 @@ workflow A {
         // Call peaks on full data
         PEAK_CALL( CLUSTER_FULL.out )
 
-        // Split the full data into stages
-        SPLIT_STAGES_PROCESSED( PEAK_CALL.out )
-        SPLIT_STAGES_PROCESSED.out //[[meta], [plots, rds_files]]
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .flatMap {it[1][0].listFiles()}
-            .map { row -> [[sample_id:row.name.replaceFirst(~/_[^_]+$/, '')], row] }
-            //.view()
-            .set { ch_split_stages }
+        ////    Run integration on stage data   ////
+        // Extract just the stage data objects
+        ch_upstream_processed
+            .filter{ meta, data -> meta.sample_id != 'FullData'}
+            .set{ ch_stages }
 
         // Cluster individual stages
-        CLUSTER_STAGES( ch_split_stages )
+        CLUSTER_STAGES( ch_stages )
 
         // Read in RNA data
         METADATA_RNA_SC( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -221,14 +225,23 @@ workflow A {
         // Integrate RNA and ATAC data stages
         INTEGRATE( ch_integrate )
 
-        // Transfer labels from stages back to Full Data!!!!
+        ////    Transfer integrated labels from stages data onto Full Data   ////
         ch_transfer_labels = INTEGRATE.out
+            .concat(PEAK_CALL.out)
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             .collect()
             .map { [[sample_id:'ch_transfer_labels'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            .view()
         TRANSFER_LABELS(ch_transfer_labels)
 
+        ////    Transfer peak set from Full Data onto stages data  ////
+        ch_transfer_peaks = INTEGRATE.out
+            .concat(PEAK_CALL.out)
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'ch_transfer_peaks'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        TRANSFER_PEAKS(ch_transfer_peaks)
+
+        ////    Extra processing with full data  ////
         // Remove contam from Full data and re-cluster
         REMOVE_CONTAM_FULL( TRANSFER_LABELS.out )
         RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
