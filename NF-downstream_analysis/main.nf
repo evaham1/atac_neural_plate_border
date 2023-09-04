@@ -235,6 +235,15 @@ workflow A {
             .set{ch_transfer_labels}
         TRANSFER_LABELS(ch_transfer_labels)
 
+        PEAK_CALL.out
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .set{ ch_full }
+        INTEGRATE.out // METADATA.out: [[meta], [cellranger_output]]
+            .combine(ch_full)
+            .view()
+            .map{[it[0], it[1] + it[2]]}
+            .view()
+
         //    Transfer peak set from Full Data onto stages data  ////
         // PEAK_CALL.out
         //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
