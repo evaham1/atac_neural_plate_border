@@ -316,165 +316,109 @@ graphics.off()
 
 print("Post-integration plots made.")
 
-# ############################## Gene Integration Count Plots for key TFs #######################################
+############################## Gene Integration Count Plots for key TFs #######################################
 
-# plot_path = "./plots/gene_integration_plots_of_key_TFs/"
-# dir.create(plot_path, recursive = T)
+plot_path = "./plots/gene_integration_plots_of_key_TFs/"
+dir.create(plot_path, recursive = T)
 
-# # set genes of interest
-# TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
-#          "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2")
-# # CTNRP and LMX1B and ZEB2 not found
+# set genes of interest
+TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
+         "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2")
+# CTNRP and LMX1B and ZEB2 not found
 
-# ArchR <- addImputeWeights(ArchR)
+ArchR <- addImputeWeights(ArchR)
 
-# # Plot ridge plot of each TF deviation
-# for (TF in TFs){
-#   print(TF)
+# Plot ridge plot of each TF deviation
+for (TF in TFs){
+  print(TF)
   
-#   p <- plotGroups(ArchR, groupBy = "clusters", 
-#                   colorBy = "GeneIntegrationMatrix", 
-#                   name = TF,
-#                   imputeWeights = getImputeWeights(ArchR))
+  p <- plotGroups(ArchR, groupBy = "clusters", 
+                  colorBy = "GeneIntegrationMatrix", 
+                  name = TF,
+                  imputeWeights = getImputeWeights(ArchR))
   
-#   # Plot distribution of GeneIntegration values for each cluster
-#   png(paste0(plot_path, TF, '_gene_integration_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
+  # Plot distribution of GeneIntegration values for each cluster
+  png(paste0(plot_path, TF, '_gene_integration_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
+  print(p)
+  graphics.off()
   
-#   # Plot GeneIntegration values on UMAP
-#   p <- plotEmbedding(ArchR, colorBy = "GeneIntegrationMatrix", name = TF, embedding = "UMAP", continuousSet = "blueYellow", 
-#                      imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
-#   png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
+  # Plot GeneIntegration values on UMAP
+  p <- plotEmbedding(ArchR, colorBy = "GeneIntegrationMatrix", name = TF, embedding = "UMAP", continuousSet = "blueYellow", 
+                     imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
+  png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
+  print(p)
+  graphics.off()
   
-# }
+}
 
-# #############################################################################################
-# #############################   IDENTIFY  CLUSTERS    #######################################
-# #############################################################################################
+############################## Gene scores plots #######################################
+#### compare gene scores with integrated gene exp values
 
-# print("ArchR cell state plots and assign identities based on label proportions")
+plot_path = "./plots/gene_scores_vs_integrated_gex_marker_genes/"
+dir.create(plot_path, recursive = T)
 
+ArchR <- addImputeWeights(ArchR)
+print("Impute weights added")
 
-# ############################## Gene scores plots #######################################
-# #### compare gene scores with integrated gene exp values
+# look for late marker genes
+late_markers <- c(
+  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
+  "MSX1", "TFAP2A", "TFAP2B", #mix
+  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
+  "SOX2", "SOX21" # neural
+)
 
-# plot_path = "./plots/gene_scores_vs_integrated_gex_marker_genes/"
-# dir.create(plot_path, recursive = T)
+png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", late_markers)
+graphics.off()
 
-# ArchR <- addImputeWeights(ArchR)
-# print("Impute weights added")
+png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
+scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
+graphics.off()
 
-# # look for late marker genes
-# late_markers <- c(
-#   "GATA3", "DLX5", "SIX1", "EYA2", #PPR
-#   "MSX1", "TFAP2A", "TFAP2B", #mix
-#   "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
-#   "SOX2", "SOX21" # neural
-# )
+# look for early marker genes
+early_markers <- c(
+  "EPAS1", "BMP4", "YEATS4", "SOX3",
+  "HOXB1", "EOMES", "ADMP"
+)
 
-# png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", late_markers)
-# graphics.off()
+png(paste0(plot_path, 'early_markers_GeneScoreMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
+scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", early_markers)
+graphics.off()
 
-# png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
-# graphics.off()
+png(paste0(plot_path, 'early_markers_GeneIntegrationMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
+scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", early_markers)
+graphics.off()
 
-# # look for early marker genes
-# early_markers <- c(
-#   "EPAS1", "BMP4", "YEATS4", "SOX3",
-#   "HOXB1", "EOMES", "ADMP"
-# )
+##################### Distribution of labels across clusters ##################################
 
-# png(paste0(plot_path, 'early_markers_GeneScoreMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
-# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", early_markers)
-# graphics.off()
+plot_path = "./plots/label_by_cluster_distribution/"
+dir.create(plot_path, recursive = T)
 
-# png(paste0(plot_path, 'early_markers_GeneIntegrationMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
-# scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", early_markers)
-# graphics.off()
+# visualise distribution across clusters: table of cell counts
+png(paste0(plot_path, 'label_by_cluster_cell_number_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
+graphics.off()
 
-# ##################### Distribution of labels across clusters ##################################
+# visualise distribution across clusters: confusion matrix
+png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
+scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters")
+graphics.off()
 
-# plot_path = "./plots/label_by_cluster_distribution/"
-# dir.create(plot_path, recursive = T)
+# visualise distribution across clusters: table of cell percentages
+cell_counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+percentage_counts <- as.data.frame(lapply(cell_counts, function(x) (x / sum(x))*100))
+rownames(percentage_counts) <- rownames(cell_counts)
 
-# # visualise distribution across clusters: table of cell counts
-# png(paste0(plot_path, 'label_by_cluster_cell_number_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-# scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = TRUE, scHelper_cell_type_order = scHelper_cell_type_order)
-# graphics.off()
+png(paste0(plot_path, 'label_by_cluster_cell_percentage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
+grid.arrange(tableGrob(round(percentage_counts, 2), theme = ttheme_minimal()))
+graphics.off()
 
-# # visualise distribution across clusters: confusion matrix
-# png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-# scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters")
-# graphics.off()
-
-# # visualise distribution across clusters: table of cell percentages
-# cell_counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
-# percentage_counts <- as.data.frame(lapply(cell_counts, function(x) (x / sum(x))*100))
-# rownames(percentage_counts) <- rownames(cell_counts)
-
-# png(paste0(plot_path, 'label_by_cluster_cell_percentage_table.png'), height = 25, width = 40, units = 'cm', res = 400)
-# grid.arrange(tableGrob(round(percentage_counts, 2), theme = ttheme_minimal()))
-# graphics.off()
-
-# # visualise distribution across clusters: piecharts
-# counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
-# png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
-# scHelper::CellLabelPieCharts(counts, col = scHelper_cell_type_colours)
-# graphics.off()
-
-# ##################### Label clusters based on thresholds ##################################
-
-# plot_path = "./plots/label_by_cluster_distribution/assigned_cluster_labels/"
-# dir.create(plot_path, recursive = T)
-
-# identities <- c()
-
-# for(i in 1:ncol(percentage_counts)) {       # for-loop over columns (ie clusters)
-#   column <- percentage_counts[ , i]
-#   names(column) <- rownames(percentage_counts)
-  
-#   identity <- ifelse(
-#     # do any labels pass the minimum threshold? 
-#     # if NO labels label more than the minimum threshold, OR MORE THAN max_label labels pass the minimum threshold -> mixed
-#     any(sum(column > opt$min_threshold) == 0 | sum(column > opt$min_threshold) > opt$max_label), "MIXED", # condition - mixed
-#                      ifelse(
-#                        sum(column > opt$min_threshold) == 1, names(column[column > opt$min_threshold]), # condition 2 - monolabel
-#                             paste(names( sort(column[column > opt$min_threshold], decreasing = TRUE) ), collapse='/') # condition 3 - multilabel
-#                      ) 
-#   )
-#   identities <- c(identities, identity)
-  
-# }
-
-# # assign cluster labels
-# cluster_idents <- cbind(colnames(percentage_counts), identities)
-
-# png(paste0(plot_path, 'assigned_cluster_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
-# grid.arrange(tableGrob(cluster_idents, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
-
-# new_labels <- cluster_idents[,2]
-# names(new_labels) <- cluster_idents[,1]
-# ArchR$cluster_labels <- mapLabels(ArchR$clusters, newLabels = new_labels)
-
-# # plot cluster labels on UMAPs
-# p1 <- plotEmbedding(ArchR, name = "cluster_labels", plotAs = "points", size = 1.8, baseSize = 0, 
-#               labelSize = 8, legendSize = 0, labelAsFactors = FALSE)
-# p2 <- plotEmbedding(ArchR, name = "scHelper_cell_type", plotAs = "points", size = 1.8, baseSize = 0, 
-#               labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE)
-
-# png(paste0(plot_path, 'assigned_cluster_idents_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-# print(p1)
-# graphics.off()
-
-# png(paste0(plot_path, 'assigned_cluster_idents_UMAP_comparison.png'), height = 20, width = 40, units = 'cm', res = 400)
-# print(p1 + p2)
-# graphics.off()
+# visualise distribution across clusters: piecharts
+counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
+scHelper::CellLabelPieCharts(counts, col = scHelper_cell_type_colours)
+graphics.off()
 
 # #############################################################################################
 # #############################   PEAK TO GENE LINKAGE    #####################################

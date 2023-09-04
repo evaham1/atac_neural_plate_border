@@ -88,6 +88,8 @@ getAvailableMatrices(ArchR_full)
 ################## Transfer cluster info from stages onto full data #######################################
 ######## stages: 'clusters' -> TransferLabels: 'stage_clusters'
 
+print("Transferring cluster IDs...")
+
 # extract cell IDs from each of the stages datasets
 all_cell_ids <- c()
 all_cluster_ids <- c()
@@ -136,6 +138,8 @@ ArchR_filtered <- ArchR_full[cellsSample, ]
 ################## Transfer cluster identity info from stages onto full data #######################################
 ######## stages: 'scHelper_cell_type' -> TransferLabels: 'stage_scHelper_cell_type'
 
+print("Transferring scHelper cell type...")
+
 # extract cell IDs from each of the stages datasets
 all_cell_ids <- c()
 all_cluster_ids <- c()
@@ -182,55 +186,9 @@ ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered,
 print(table(ArchR_filtered$scHelper_cell_type))
 
 ################## Transfer cluster identity info from stages onto full data #######################################
-######## stages: 'cluster_labels' -> TransferLabels: 'stage_cluster_labels'
-
-# extract cell IDs from each of the stages datasets
-all_cell_ids <- c()
-all_cluster_ids <- c()
-for (i in 1:5) {
-  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
-  print(paste0("Iteration: ", i, ", Stage: ", stage))
-  
-  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
-  
-  cell_ids <- ArchR$cellNames
-  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
-  all_cell_ids <- c(all_cell_ids, cell_ids)
-  
-  stage <- unique(ArchR$stage)
-  cluster_ids <- paste0(stage, "_", ArchR$cluster_labels)
-  print(length(cluster_ids))
-  all_cluster_ids <- c(all_cluster_ids, cluster_ids)
-  
-}
-print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
-print(paste0("Length of all stage cluster labels: ", length(all_cluster_ids)))
-
-# check that the stage cell ids are all found in the fulldata object
-intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
-print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
-if (intersect_cell_id_length != length(all_cell_ids)){
-  stop("Error! Not all stage cell ids match with cell ids in Full data")
-}
-
-# add the stage_clusters to the full dataset
-ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
-                        data = all_cluster_ids,
-                        cells = all_cell_ids, 
-                        name = "stage_cluster_labels",
-                        force = TRUE)
-print(table(ArchR_filtered$stage_cluster_labels))
-
-# remove the stage prefix for another slot
-ArchR_filtered <- addCellColData(ArchRProj = ArchR_filtered, 
-                                 data = substring(all_cluster_ids, 5),
-                                 cells = all_cell_ids, 
-                                 name = "cluster_labels",
-                                 force = TRUE)
-print(table(ArchR_filtered$cluster_labels))
-
-################## Transfer cluster identity info from stages onto full data #######################################
 ######## stages: 'scHelper_cell_type_broad' -> TransferLabels: 'stage_scHelper_cell_type_broad'
+
+print("Transferring scHelper cell type broad...")
 
 # extract cell IDs from each of the stages datasets
 all_cell_ids <- c()
@@ -280,6 +238,8 @@ print(table(ArchR_filtered$scHelper_cell_type_broad))
 ################## Transfer rna cell label info from stages onto full data #######################################
 ######## stages: 'predictedCell_Un' -> TransferLabels: 'predictedCell_Un'
 
+print("Transferring predictedCell_Un...")
+
 # extract cell IDs from each of the stages datasets
 all_cell_ids <- c()
 all_transfer_ids <- c()
@@ -318,6 +278,8 @@ print(table(ArchR_filtered$predictedCell_Un))
 
 ################## Transfer rna cell label info from stages onto full data #######################################
 ######## stages: 'predictedScore_Un' -> TransferLabels: 'predictedScore_Un'
+
+print("Transferring predictedScore_Un...")
 
 # extract cell IDs from each of the stages datasets
 all_cell_ids <- c()
@@ -411,35 +373,19 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'Neural', 'Placodal', 'Non-neural', 'Contam')
 cols <- scHelper_cell_type_colours[as.character(unique(ArchR_filtered$scHelper_cell_type))]
 
-### Plot scHelper_cell_type and cluster_labels
+### Plot scHelper_cell_type and stage
 p1 <- plotEmbedding(ArchR_filtered,
                     name = "scHelper_cell_type",
                     plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
                     pal = cols, randomize = TRUE)
 p2 <- plotEmbedding(ArchR_filtered,
-                    name = "cluster_labels",
+                    name = "stage",
                     plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
-                    randomize = TRUE)
+                    randomize = TRUE, pal = stage_colours)
 
 png(paste0(plot_path, "scHelper_cell_type_cell_type_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
-ggAlignPlots(p1, p2, type = "h")
-graphics.off()
-
-### Plot stage_scHelper_cell_type and stage_cluster_labels
-p1 <- plotEmbedding(ArchR_filtered,
-                    name = "stage_scHelper_cell_type",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    randomize = TRUE)
-p2 <- plotEmbedding(ArchR_filtered,
-                    name = "stage_cluster_labels",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    randomize = TRUE)
-
-png(paste0(plot_path, "stage_scHelper_cell_type_cell_type_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
 graphics.off()
 
@@ -448,7 +394,7 @@ p1 <- plotEmbedding(ArchR_filtered,
                     name = "scHelper_cell_type_broad",
                     plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
-                    randomize = TRUE)
+                    randomize = TRUE, pal = cols)
 p2 <- plotEmbedding(ArchR_filtered,
                     name = "stage",
                     plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
