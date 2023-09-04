@@ -251,9 +251,9 @@ workflow A {
             .set{ stages_data }
         stages_data
             .combine(ch_full)
-            .view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
+            //.view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
             .map { row -> [row[0], [row[1][0], row[2]]]}
-            .view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
+            //.view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
             .set{ch_transfer_peaks}
         TRANSFER_PEAKS(ch_transfer_peaks)
 
