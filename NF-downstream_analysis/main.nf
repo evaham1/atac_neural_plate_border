@@ -238,7 +238,7 @@ workflow A {
         //    Transfer peak set from Full Data onto stages data  ////
         PEAK_CALL.out
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .combine(PEAK_CALL.out)
+            .combine(INTEGRATE.out)
             .view()
             .map{ [ it[0], [ it[1], it[3] ] ] }
             .view()
