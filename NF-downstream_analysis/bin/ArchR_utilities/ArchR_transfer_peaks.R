@@ -95,7 +95,7 @@ getAvailableMatrices(ArchR)
 
 # Read in donor ArchR object (in input folder)
 print("reading in donor ArchR object in input folder")
-ArchR_donor <- loadArchRProject(path = paste0("./input/", label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR_donor <- loadArchRProject(path = paste0("./input/FullData_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 # see what is in the ArchR donor object already
