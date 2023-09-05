@@ -52,10 +52,7 @@ include {R as CALCULATE_COACCESSIBILITY} from "$baseDir/modules/local/r/main"   
 include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
-
-
-
-// include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
+include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
 // include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 // include {R as CO_ACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_coaccessibility.R", checkIfExists: true) )
 
@@ -235,6 +232,7 @@ workflow A {
             .set{ch_transfer_labels}
         TRANSFER_LABELS(ch_transfer_labels)
 
+        ////    Transfer peak data from full data onto stages Data   ////
         PEAK_CALL.out
             .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
             //.view() FullData_Save-ArchR
@@ -257,13 +255,18 @@ workflow A {
             .set{ch_transfer_peaks}
         TRANSFER_PEAKS(ch_transfer_peaks)
 
+        ////    Co-accessibility  ////
+        // Calculate co-accessibility on stages data
+        CALCULATE_COACCESSIBILITY( TRANSFER_PEAKS.out )
+
+        ///     Stage plotting      ///
+        // Plot diff peaks between clusters in stages
+        PLOT_DIFF_PEAKS( TRANSFER_PEAKS.out )
+
         ////    Extra processing with full data  ////
         // Remove contam from Full data and re-cluster
         REMOVE_CONTAM_FULL( TRANSFER_LABELS.out )
         RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
-
-        // Calculate co-accessibility
-        CALCULATE_COACCESSIBILITY( RECLUSTER_FULL.out )
 
         // Read in RNA object with latent time
         METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
@@ -302,12 +305,16 @@ workflow A {
 
     if(!skip_mega_processing){
 
+        ////    Prep ATAC data    ////
+
         // read in ATAC full transfer label object with latent time
         METADATA_SINGLECELL_PROCESSED( params.mega_input_sample_sheet ) // single cell data with individual peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
 
-        // convert ArchR objects into seurat objects
+        // convert ArchR full data object into seurat object
         ARCHR_TO_SEURAT( ch_singlecell_processed )
+
+        ////    Prep RNA data    ////
 
         // read in RNA full data
         METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -324,6 +331,8 @@ workflow A {
             .map { row -> [[sample_id:'FullData'], row] }
             .set { ch_rna }
    
+        ////    Integrate RNA and ATAC data    ////
+
         // combine ATAC and RNA channels
         ARCHR_TO_SEURAT.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
@@ -340,6 +349,8 @@ workflow A {
 
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
         MEGA_PAIRING_CHROMVAR( MEGA_INTEGRATION.out )
+
+        ////    GRN inference    ////
 
             /// NEED TO DEBUG FROM HERE ON: ///
         // looks like I need to convert the seurat V5 object to a v4 or something??
