@@ -205,13 +205,36 @@ workflow A {
         // Cluster individual stages
         CLUSTER_STAGES( ch_stages )
 
+        ////    Transfer peak data from full data onto stages Data   ////
+        PEAK_CALL.out
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            //.view() FullData_Save-ArchR
+            .set{ ch_full }
+        CLUSTER_STAGES.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            // .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            // .view()
+            //     [[sample_id:HH6], [rds_files]]
+            //     [[sample_id:HH5], [rds_files]]
+            //     [[sample_id:HH7], [rds_files]]
+            //     [[sample_id:ss8], [rds_files]]
+            //     [[sample_id:ss4], [rds_files]]
+            .set{ stages_data }
+        stages_data
+            .combine(ch_full)
+            //.view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
+            .map { row -> [row[0], [row[1][0], row[2]]]}
+            //.view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
+            .set{ch_transfer_peaks}
+        TRANSFER_PEAKS(ch_transfer_peaks)
+
         // Read in RNA data
         METADATA_RNA_SC( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
    
         // Combine ATAC and RNA data
-        CLUSTER_STAGES.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        TRANSFER_PEAKS.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
@@ -232,28 +255,7 @@ workflow A {
             .set{ch_transfer_labels}
         TRANSFER_LABELS(ch_transfer_labels)
 
-        ////    Transfer peak data from full data onto stages Data   ////
-        PEAK_CALL.out
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            //.view() FullData_Save-ArchR
-            .set{ ch_full }
-        INTEGRATE.out
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            // .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            // .view()
-            //     [[sample_id:HH6], [rds_files]]
-            //     [[sample_id:HH5], [rds_files]]
-            //     [[sample_id:HH7], [rds_files]]
-            //     [[sample_id:ss8], [rds_files]]
-            //     [[sample_id:ss4], [rds_files]]
-            .set{ stages_data }
-        stages_data
-            .combine(ch_full)
-            //.view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
-            .map { row -> [row[0], [row[1][0], row[2]]]}
-            //.view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
-            .set{ch_transfer_peaks}
-        TRANSFER_PEAKS(ch_transfer_peaks)
+
 
         ////    Co-accessibility  ////
         // Calculate co-accessibility on stages data
