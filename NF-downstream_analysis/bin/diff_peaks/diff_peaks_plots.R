@@ -311,7 +311,7 @@ ggplot(final_df, aes(x = -LogFDR, y = LogFC, color = Passed, shape = Passed)) +
   scale_shape_manual(values=c(16, 17)) +
   xlim(0, 50) +
   ylim(-15, 15) +
-  theme_minimal()
+  theme_minimal(text = element_text(size = 20))
 graphics.off()
 
 png(paste0(plot_path, 'FDR_Log2FC_scatterplot_cell_group_col.png'), height = 23, width = 20, units = 'cm', res = 400)
@@ -321,7 +321,7 @@ ggplot(final_df, aes(x = -LogFDR, y = LogFC, color = Cell_group, shape = Passed)
   scale_shape_manual(values=c(16, 17)) +
   xlim(0, 50) +
   ylim(-15, 15) +
-  theme_minimal()
+  theme_minimal(text = element_text(size = 20))
 graphics.off()
 
 for (group in groups){
@@ -339,7 +339,7 @@ for (group in groups){
     scale_shape_manual(values=c(16, 17)) +
     xlim(0, 50) +
     ylim(-15, 15) +
-    theme_minimal()
+    theme_minimal(text = element_text(size = 20))
   )
   graphics.off()
 }
@@ -347,16 +347,6 @@ for (group in groups){
 ###################### Barcharts of nPeaks per cluster and how many are significant #############################
 
 freq_table <- table(final_df$Cell_group, final_df$Passed)
-
-png(paste0(plot_path, 'Freq_peaks_passed_by_cell_group_grey.png'), height = 23, width = 20, units = 'cm', res = 400)
-plot(freq_table)
-graphics.off()
-
-df <- data.frame(
-  failed = c(83945, 77804),
-  passed = c(12177, 6690),
-  row.names = c("C1", "C2")
-)
 
 # Convert the data frame to a tidy format
 freq_table <- as.data.frame(freq_table)
@@ -370,7 +360,3 @@ ggplot(freq_table, aes(fill=Status, y=Freq, x=Group_name)) +
   ylim(0, 100000) +
   theme_minimal()
 graphics.off()
-
-
-       
-       
