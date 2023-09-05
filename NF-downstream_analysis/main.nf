@@ -257,7 +257,7 @@ workflow A {
 
         ////    Co-accessibility  ////
         // Calculate co-accessibility on stages data
-        CALCULATE_COACCESSIBILITY( TRANSFER_PEAKS.out )
+        // CALCULATE_COACCESSIBILITY( TRANSFER_PEAKS.out )
 
         ///     Stage plotting      ///
         // Plot diff peaks between clusters in stages
