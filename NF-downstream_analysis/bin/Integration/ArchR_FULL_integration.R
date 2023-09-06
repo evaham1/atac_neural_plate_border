@@ -59,6 +59,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
+    csv_path = "./csv_files/"
     data_path = "./input/"
     ncores = opt$cores
     
@@ -71,6 +72,7 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n"))
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
+  dir.create(csv_path, recursive = T)
 }
 
 ############################## Read in ArchR project and seurat object #######################################
@@ -565,7 +567,7 @@ head(coacessibility_df)
 table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
 
 # save df
-write.csv(coacessibility_df, file = paste0(rds_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
+write.csv(coacessibility_df, file = paste0(csv_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
 
 print("Coaccessibility calculated and saved.")
 
@@ -594,7 +596,7 @@ print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
 # save df
-write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df_max_distance.csv"), row.names = FALSE)
+write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_max_distance.csv"), row.names = FALSE)
 
 print("Coaccessibility between peaks and genes (max dist) calculated and saved.")
 
@@ -604,16 +606,16 @@ print("Coaccessibility between peaks and genes (max dist) calculated and saved."
 plot_path = "./plots/peak2gene_max_dist/"
 dir.create(plot_path, recursive = T)
 
-## Heatmap of linkage across clusters
-# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
-# png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+# Heatmap of linkage across clusters
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
+png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
-# png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
+png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
@@ -782,7 +784,7 @@ print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
 # save df
-write.csv(p2g_df, file = paste0(rds_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
+write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
 
 print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
 
@@ -792,17 +794,17 @@ print("Coaccessibility between peaks and genes (250000 dist) calculated and save
 plot_path = "./plots/peak2gene_250000_dist/"
 dir.create(plot_path, recursive = T)
 
-## This sporadically fails so comment out for now, not v useful plot anyway
-# ## Heatmap of linkage across clusters
-# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
-# png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+# This sporadically fails so comment out for now, not v useful plot anyway
+## Heatmap of linkage across clusters
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
+png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
-# png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
+png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
