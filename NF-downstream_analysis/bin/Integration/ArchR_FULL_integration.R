@@ -600,6 +600,21 @@ write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distan
 
 print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
 
+##################################################################################
+############################## SAVE ARCHR OBJECT #################################
+
+# see what is in the ArchR object already
+print("ArchR object info: ")
+print(ArchR)
+getAvailableMatrices(ArchR)
+
+# save integrated ArchR project
+print("Saving integrated ArchR project...")
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
+print("Integrated ArchR project saved.")
+
 ################################################################################
 ############################## HEATMAPS OF P2L #################################
 
@@ -755,18 +770,3 @@ for (gene in genes){
   }
   
 }
-
-##################################################################################
-############################## SAVE ARCHR OBJECT #################################
-
-# see what is in the ArchR object already
-print("ArchR object info: ")
-print(ArchR)
-getAvailableMatrices(ArchR)
-
-# save integrated ArchR project
-print("Saving integrated ArchR project...")
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
-print("Integrated ArchR project saved.")
