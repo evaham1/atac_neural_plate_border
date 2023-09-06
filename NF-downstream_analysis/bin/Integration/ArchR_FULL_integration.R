@@ -572,12 +572,12 @@ write.csv(coacessibility_df, file = paste0(csv_path, "Peak_coaccessibility_df.cs
 print("Coaccessibility calculated and saved.")
 
 ####################################################################################################################
-############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES - MAX DIST #################################
+############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES - FIXED DIST #################################
 
-print("Calculating coaccessibility between peaks and genes at max distance...")
+print("Calculating coaccessibility between peaks and genes within a 250000 distance...")
 
 # calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
-ArchR <- addPeak2GeneLinks(ArchR, maxDist = 200000000)
+ArchR <- addPeak2GeneLinks(ArchR, maxDist = 250000)
 # biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
 # tried running at max distance but then found very few interactions very far away...
 
@@ -596,17 +596,18 @@ print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
 # save df
-write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_max_distance.csv"), row.names = FALSE)
+write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
 
-print("Coaccessibility between peaks and genes (max dist) calculated and saved.")
+print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
 
 ################################################################################
 ############################## HEATMAPS OF P2L #################################
 
-plot_path = "./plots/peak2gene_max_dist/"
+plot_path = "./plots/peak2gene_250000_dist/"
 dir.create(plot_path, recursive = T)
 
-# Heatmap of linkage across clusters
+# This sporadically fails so comment out for now, not v useful plot anyway
+## Heatmap of linkage across clusters
 p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
 png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
 print(p)
@@ -619,9 +620,6 @@ graphics.off()
 
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
-
-plot_path = "./plots/peak2gene_max_dist/tracks_around_TFs/"
-dir.create(plot_path, recursive = T)
 
 # set genes of interest
 genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
@@ -710,116 +708,6 @@ for (gene in genes){
   
   # extract interactions to gene of interest
   interactions <- p2g_df %>% filter(gene_name %in% gene)
-  
-  
-  if (nrow(interactions) == 0){
-    print("No interactions found for this gene! Moving to next gene...")
-  } else {
-    print(paste0(nrow(interactions), " interactions found"))
-    # extract the peak IDs that interact with that gene
-    interacting_peaks <- unique(interactions$PeakID)
-    
-    # extract loops between the gene and these peaks
-    extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, gene = gene, interacting_peaks = interacting_peaks)
-    
-    # make plot of these interactions
-    p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-                                extend_by = 500, max_dist = Inf, highlight_granges = NULL)
-    grid::grid.newpage()
-    
-    # plot
-    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
-    grid::grid.draw(p[[1]])
-    graphics.off()
-
-    # make plot of these interactions more zoomed in
-    p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-                                extend_by = 500, max_dist = 200000, highlight_granges = NULL)
-    grid::grid.newpage()
-    
-    # plot
-    png(paste0(plot_path, gene, '_interactions_browser_plot_zoomed.png'), height = 15, width = 18, units = 'cm', res = 400)
-    grid::grid.draw(p[[1]])
-    graphics.off()
-    
-    # overlay known enhancers
-    if (gene %in% names(enhancers_df_list)){
-      print("Plotting enhancers")
-      enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
-      print(enhancers_granges)
-      p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-                                  extend_by = 500, max_dist = 200000, highlight_granges = enhancers_granges)
-      png(paste0(plot_path, gene, '_interactions_browser_plot_zoomed_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
-      grid::grid.newpage()
-      grid::grid.draw(p[[1]])
-      graphics.off()
-    }
-    
-  }
-  
-}
-
-####################################################################################################################
-############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES - FIXED DIST #################################
-
-print("Calculating coaccessibility between peaks and genes within a 250000 distance...")
-
-# calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
-ArchR <- addPeak2GeneLinks(ArchR, maxDist = 250000)
-# biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
-# tried running at max distance but then found very few interactions very far away...
-
-# extract resulting interactions
-p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
-p2g_df <- as.data.frame(p2g)
-
-# add correct Peak IDs and gene names to df
-p2g_df <- p2g_df %>% 
-  mutate(PeakID = paste0(seqnames(metadata(p2g)$peakSet[idxATAC]), "-", start(metadata(p2g)$peakSet[idxATAC]), "-", end(metadata(p2g)$peakSet[idxATAC]))) %>%
-  mutate(gene_name = metadata(p2g)$geneSet[idxRNA]$name)
-head(p2g_df)
-print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
-
-# sanity check that all interaction Peak IDs are in the ArchR peakset
-if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
-
-# save df
-write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
-
-print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
-
-################################################################################
-############################## HEATMAPS OF P2L #################################
-
-plot_path = "./plots/peak2gene_250000_dist/"
-dir.create(plot_path, recursive = T)
-
-# This sporadically fails so comment out for now, not v useful plot anyway
-## Heatmap of linkage across clusters
-p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
-png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-print(p)
-graphics.off()
-
-p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
-png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-print(p)
-graphics.off()
-
-###########################################################################################
-############################## BROWSER TRACKS P2G LINKAGE #################################
-
-plot_path = "./plots/peak2gene_250000_dist/tracks_around_TFs/"
-dir.create(plot_path, recursive = T)
-
-# loop through genes and make plots (+ with enhancers highlighted if have that data)
-for (gene in genes){
-  
-  print(paste0("Making interactions plot for: ", gene))
-  
-  # extract interactions to gene of interest
-  interactions <- p2g_df %>% filter(gene_name %in% gene)
-  
   
   if (nrow(interactions) == 0){
     print("No interactions found for this gene! Moving to next gene...")
