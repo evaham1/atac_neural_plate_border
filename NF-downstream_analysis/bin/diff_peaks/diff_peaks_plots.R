@@ -49,6 +49,8 @@ if(opt$verbose) print(opt)
     data_path = "./output/NF-downstream_analysis/Processing/ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/"
     data_path = "./output/NF-downstream_analysis/Processing/ss8/Peak_call/rds_files/"
     
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Transfer_labels/rds_files/"
+    
     # works but no peaks have to recalculate interactively
     data_path = "./output/NF-downstream_analysis/Processing/ss8/Clustering/rds_files/"
     
@@ -255,6 +257,32 @@ if (length(ids) < 2){
   graphics.off()
 }
 
+###################### How many values are outputted #############################
+
+## Number of peaks in this object
+peaks_granges <- getPeakSet(ArchR)
+ids <- names(peaks_granges@ranges)
+names(peaks_granges@ranges) <- c(1:length(peaks_granges))
+
+peaks_df <- as.data.frame(peaks_granges)
+peaks_df <- peaks_df %>% mutate(ID = ids)
+
+nPeaks <- nrow(peaks_df)
+
+## Number of data points in se object
+nPoints <- dim(assays(seMarker)$Log2FC)[1] * dim(assays(seMarker)$Log2FC)[2]
+
+## Number of clusters
+nClusters <- dim(assays(seMarker)$Log2FC)[2]
+
+## Plot these numbers
+df <- data.frame(c("Number of peaks", "Number of data points", "Number of clusters"),
+                 c(nPeaks, nPoints, nClusters))
+colnames(df) <- c("", "")
+
+png(paste0(plot_path, 'number_of_peaks_and_data_points.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 ###################### Boxplots showing distribution of FDR and Logf2c values #############################
 
@@ -267,96 +295,132 @@ boxplot(assays(seMarker)$FDR)
 graphics.off()
 
 
-###################### Extract Log2FC and p-vals of significant peaks from each cell group #############################
+###################### Extract Log2FC and p-vals #############################
 
-group_df <- getCellColData(ArchR, select = opt$group_by)
-groups <- unique(group_df[,1])
+## Make dataframe of logFC and FDR values
+logfc <- as.data.frame(assays(seMarker)$Log2FC)
+logfc <- melt(setDT(logfc), variable.name = "Group")
+colnames(logfc) <- c("Group", "LogFC")
+nrow(logfc)
+fdr <- as.data.frame(assays(seMarker)$FDR)
+fdr <- melt(setDT(fdr), variable.name = "Group")
+colnames(fdr) <- c("Group", "FDR")
+nrow(fdr)
 
-print("Looping over cell groups:")
-print(groups)
+identical(logfc$Group, fdr$Group)
+df <- cbind(logfc, fdr$FDR)
+head(df)
+colnames(df)[3] <- "FDR"
 
-final_df <- data.frame()
+## Add column with log10 of FDR
+df <- df %>% mutate(Minus_LogFDR = -log10(FDR))
 
-for (group in groups){
-  
-  print(group)
-  
-  # extract peaks from this group using pseudoreplicate names
-  length(grep(group, rowData(seMarker)$GroupReplicate))
-  length(rowData(seMarker)$GroupReplicate)
-  
-  subset_se <- seMarker[grep(group, rowData(seMarker)$GroupReplicate), ]
-  
-  # extract logFC and p-vals for these peaks and put in df
-  df <- data.frame(LogFC = c(t(assays(subset_se)$Log2FC)), FDR = c(t(assays(subset_se)$FDR)),
-                   LogFDR = log10(c(t(assays(subset_se)$FDR))), stringsAsFactors=FALSE)
-  df <- df %>% mutate(Passed = as.factor(ifelse(FDR < 0.01 & LogFC > 1 | FDR < 0.01 & LogFC < -1,"passed", "failed")))
-  # add group name to this df
-  df <- df %>% mutate(Cell_group = group)
-  
-  # combine to final df
-  final_df <- rbind(final_df, df)
-}
+## Add column with pass/fail
+#df <- df %>% mutate(Passed = as.factor(ifelse(FDR < 0.05 & LogFC > 1 | FDR < 0.05 & LogFC < -1,"passed", "failed")))
+df <- df %>% mutate(Passed = as.factor(ifelse(FDR < 0.05,"passed", "failed")))
+
+
+## Print how many points passed and how many failed
+options(scipen=999) # avoids scientific notation of numbers
+summary_table <- t(as.data.frame(table(df$Passed)))
+summary_table <- summary_table[-1,]
+summary_table <- as.numeric(summary_table)
+summary_table <- c(summary_table, summary_table[1] + summary_table[2])
+summary_table <- c(summary_table, summary_table[2] / summary_table[3])
+summary_table <- as.data.table(summary_table)
+summary_table <- cbind(summary_table, c("failed", "passed", "total", "passed proportion"))
+
+png(paste0(plot_path, 'number_of_points_passed_sig.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(summary_table, theme = ttheme_minimal()))
+graphics.off()
 
 ###################### Volcano plots #############################
 
-set.seed(42)
-rows <- sample(nrow(final_df))
-final_df <- final_df[rows, ]
+# change colnames
+colnames(df)[4] <- "-LogFDR"
 
+# subsample df to mix up the order of points
+set.seed(42)
+rows <- sample(nrow(df))
+df <- df[rows, ]
+
+# plot all points coloured by significance
 png(paste0(plot_path, 'FDR_Log2FC_scatterplot_sig_colour.png'), height = 23, width = 20, units = 'cm', res = 400)
-ggplot(final_df, aes(x = -LogFDR, y = LogFC, color = Passed, shape = Passed)) +
-  geom_point() +
+ggplot(df, aes(x = `-LogFDR`, y = LogFC, color = Passed, shape = Passed)) +
+  geom_point(size = 2) +
   scale_color_manual(values=c("black", "4f7942")) +
   scale_shape_manual(values=c(16, 17)) +
   xlim(0, 50) +
   ylim(-15, 15) +
-  theme_minimal(text = element_text(size = 20))
+  theme_minimal() + 
+  theme(text = element_text(size = 20))
 graphics.off()
 
+# Plot all points coloured by cell group and shape by significance
 png(paste0(plot_path, 'FDR_Log2FC_scatterplot_cell_group_col.png'), height = 23, width = 20, units = 'cm', res = 400)
-ggplot(final_df, aes(x = -LogFDR, y = LogFC, color = Cell_group, shape = Passed)) +
+ggplot(df, aes(x = `-LogFDR`, y = LogFC, color = Group, shape = Passed)) +
   geom_point() +
   # scale_color_manual(values=c("black", "4f7942")) +
   scale_shape_manual(values=c(16, 17)) +
   xlim(0, 50) +
   ylim(-15, 15) +
-  theme_minimal(text = element_text(size = 20))
+  theme_minimal() + 
+  theme(text = element_text(size = 20))
 graphics.off()
+
+# print the peaks from just one cluster at a time showing significant ones by colour
+groups <- unique(df$Group)
 
 for (group in groups){
   print(group)
   
   # add temp column to df to only highlight these peaks
-  group_df <- final_df %>% mutate(Highlight = as.factor(ifelse(Cell_group == group,"passed", "failed")))
+  group_df <- df %>% mutate(Highlight = as.factor(ifelse(Group == group,"passed", "failed")))
   
   # plot with highlight on this cell group
   png(paste0(plot_path, 'FDR_Log2FC_scatterplot_cell_group_col_', group, '.png'), height = 23, width = 20, units = 'cm', res = 400)
   print(
-    ggplot(group_df, aes(x = -LogFDR, y = LogFC, color = Highlight, shape = Passed)) +
+    ggplot(group_df, aes(x = `-LogFDR`, y = LogFC, color = Highlight, shape = Passed)) +
     geom_point() +
     scale_color_manual(values=c("grey", "red")) +
     scale_shape_manual(values=c(16, 17)) +
     xlim(0, 50) +
     ylim(-15, 15) +
-    theme_minimal(text = element_text(size = 20))
+    theme_minimal() +
+    theme(text = element_text(size = 20))
   )
   graphics.off()
 }
 
 ###################### Barcharts of nPeaks per cluster and how many are significant #############################
 
-freq_table <- table(final_df$Cell_group, final_df$Passed)
+freq_table <- table(df$Group, df$Passed)
+
+# Print out breakdown of passed and failed
+png(paste0(plot_path, 'number_of_points_passed_sig_per_group.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(freq_table, theme = ttheme_minimal()))
+graphics.off()
 
 # Convert the data frame to a tidy format
 freq_table <- as.data.frame(freq_table)
 colnames(freq_table) <- c("Group_name", "Status", "Freq")
+freq_table_passed <- freq_table %>% filter(Status == "passed")
 
-# Stacked
-png(paste0(plot_path, 'Freq_peaks_passed_by_cell_group_stacked_boxplot.png'), height = 23, width = 20, units = 'cm', res = 400)
-ggplot(freq_table, aes(fill=Status, y=Freq, x=Group_name)) + 
+# Barchart of just significant hits per cluster with red line showing max number of sig hits
+png(paste0(plot_path, 'Freq_peaks_passed_by_cell_group_boxplot_total_peaks_line.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(freq_table_passed, aes(y=Freq, x=Group_name)) + 
   geom_bar(position="stack", stat="identity") +
-  scale_fill_manual(values=c("black", "4f7942")) +
-  ylim(0, 100000) +
-  theme_minimal()
+  ylim(0, nPeaks + 5) +
+  theme_minimal() +
+  theme(text = element_text(size = 20)) +
+  geom_hline(yintercept=nPeaks, linetype="dashed", color = "red")
+graphics.off()
+
+# Barchart of just significant hits per cluster without line
+png(paste0(plot_path, 'Freq_peaks_passed_by_cell_group_boxplot.png'), height = 23, width = 20, units = 'cm', res = 400)
+ggplot(freq_table_passed, aes(y=Freq, x=Group_name)) + 
+  geom_bar(position="stack", stat="identity") +
+  # ylim(0, nPeaks + 5) +
+  theme_minimal() +
+  theme(text = element_text(size = 20))
 graphics.off()
