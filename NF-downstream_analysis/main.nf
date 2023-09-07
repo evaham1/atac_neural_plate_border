@@ -246,14 +246,14 @@ workflow A {
         INTEGRATE( ch_integrate )
 
         ////    Transfer integrated labels from stages data onto Full Data   ////
-        INTEGRATE.out
-            .concat(PEAK_CALL.out)
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss8_Save-ArchR, ss4_Save-ArchR, FullData_Save-ArchR]]
-            .set{ch_transfer_labels}
-        TRANSFER_LABELS(ch_transfer_labels)
+        // INTEGRATE.out
+        //     .concat(PEAK_CALL.out)
+        //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        //     .collect()
+        //     .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        //     //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss8_Save-ArchR, ss4_Save-ArchR, FullData_Save-ArchR]]
+        //     .set{ch_transfer_labels}
+        // TRANSFER_LABELS(ch_transfer_labels)
 
 
 
