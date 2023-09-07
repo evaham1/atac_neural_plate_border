@@ -262,8 +262,8 @@ workflow A {
         // CALCULATE_COACCESSIBILITY( TRANSFER_PEAKS.out )
 
         // ///     Stage plotting      ///
-        // // Plot diff peaks between clusters in stages
-        // PLOT_DIFF_PEAKS( TRANSFER_PEAKS.out )
+        // Plot diff peaks between clusters in stages
+        PLOT_DIFF_PEAKS( TRANSFER_PEAKS.out )
 
         // ////    Extra processing with full data  ////
         // // Remove contam from Full data and re-cluster
