@@ -77,19 +77,8 @@ if(opt$verbose) print(opt)
 
 ############################## Read in ArchR project and seurat object #######################################
 
-# Pull out label, input folder should look like: rds_files/HH5-SaveArchR, HH5_clustered_data.RDS
-
-files <- list.files(data_path)
-print("Files: ")
-print(files)
-
-files <- files[!files %in% "rds_files"]
-label <- unique(sub('_.*', '', files))
-print("label: ")
-print(label)
-
 # Load atac data in rds_files
-ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/", label, "_Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/", "FullData_Save-ArchR"), force = FALSE, showLogo = TRUE)
 
 # see what is in the ArchR object already
 print("ArchR object info: ")
@@ -98,13 +87,11 @@ getPeakSet(ArchR)
 getAvailableMatrices(ArchR)
 
 # set output directory to make sure new files are saved in the right place
-output_directory <- paste0(rds_path, label[1], "_Save-ArchR")
+output_directory <- paste0(rds_path, "FullData_Save-ArchR")
 getOutputDirectory(ArchR)
 
-# load seurat object by reading in any rds object
-rna_path <- list.files(path = data_path, pattern = "*.RDS", full.names = TRUE)
-seurat_data <- readRDS(rna_path)
-
+# load seurat object
+seurat_data <- readRDS(paste0(data_path, "seurat_label_transfer.RDS"))
 
 ############################################################################################
 ############################## Pre-Integration Plots #######################################
