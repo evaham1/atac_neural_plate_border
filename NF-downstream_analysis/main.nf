@@ -228,6 +228,9 @@ workflow A {
             .set{ch_transfer_peaks}
         TRANSFER_PEAKS(ch_transfer_peaks)
 
+        // Plot diff peaks between clusters in stages
+        PLOT_DIFF_PEAKS( TRANSFER_PEAKS.out )
+
         // Read in RNA data
         METADATA_RNA_SC( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
@@ -245,52 +248,39 @@ workflow A {
         // Integrate RNA and ATAC data stages
         INTEGRATE( ch_integrate )
 
-        ////    Transfer integrated labels from stages data onto Full Data   ////
-        // INTEGRATE.out
-        //     .concat(PEAK_CALL.out)
-        //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-        //     .collect()
-        //     .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-        //     //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss8_Save-ArchR, ss4_Save-ArchR, FullData_Save-ArchR]]
-        //     .set{ch_transfer_labels}
-        // TRANSFER_LABELS(ch_transfer_labels)
-
-
-
-        ////    Co-accessibility  ////
-        // Calculate co-accessibility on stages data
-        // CALCULATE_COACCESSIBILITY( TRANSFER_PEAKS.out )
-
-        // ///     Stage plotting      ///
-        // Plot diff peaks between clusters in stages
-        PLOT_DIFF_PEAKS( TRANSFER_PEAKS.out )
-
-        // ////    Extra processing with full data  ////
-        // // Remove contam from Full data and re-cluster
-        // REMOVE_CONTAM_FULL( TRANSFER_LABELS.out )
-        // RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
-
-        // // Read in RNA object with latent time
-        // METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
-
-        // // Transfer latent time from RNA full data to ATAC full data
-        // RECLUSTER_FULL.out
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     .concat( METADATA_RNA_LATENT_TIME.out.metadata )
-        //     .groupTuple( by:0 )
-        //     //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
-        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-        //     //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
-        //     .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
-
-        // TRANSFER_LATENT_TIME( ch_transfer_latent_time )
-
-        //////// Now can run scripts that just make plots
-        // diff_plots_between_clusters
-        // co-accessibility -> also makes rds output?
-        // motif analysis -> also makes rds output?
+        ///     Stage plotting      ///
+        // Coaccessibility + Motif analysis plots
         
 
+        ////    Transfer integrated labels from stages data onto Full Data   ////
+        INTEGRATE.out
+            .concat(PEAK_CALL.out)
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+            .collect()
+            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+            //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss8_Save-ArchR, ss4_Save-ArchR, FullData_Save-ArchR]]
+            .set{ch_transfer_labels}
+        TRANSFER_LABELS(ch_transfer_labels)
+
+        ////    Extra processing with full data  ////
+        // Remove contam from Full data and re-cluster
+        REMOVE_CONTAM_FULL( TRANSFER_LABELS.out )
+        RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
+
+        // Read in RNA object with latent time
+        METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
+
+        // Transfer latent time from RNA full data to ATAC full data
+        RECLUSTER_FULL.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( METADATA_RNA_LATENT_TIME.out.metadata )
+            .groupTuple( by:0 )
+            //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
+            .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
+
+        TRANSFER_LATENT_TIME( ch_transfer_latent_time )
 
 
     } else {
