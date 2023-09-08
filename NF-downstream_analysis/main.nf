@@ -196,53 +196,70 @@ workflow A {
         // Call peaks on full data
         PEAK_CALL( CLUSTER_FULL.out )
 
-        ////    Run integration on stage data   ////
-        // Extract just the stage data objects
-        ch_upstream_processed
-            .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .set{ ch_stages }
+        // // Extract just the stage data objects
+        // ch_upstream_processed
+        //     .filter{ meta, data -> meta.sample_id != 'FullData'}
+        //     .set{ ch_stages }
 
-        // Cluster individual stages
-        CLUSTER_STAGES( ch_stages )
+        // // Cluster individual stages
+        // CLUSTER_STAGES( ch_stages )
 
-        ////    Transfer peak data from full data onto stages Data   ////
-        PEAK_CALL.out
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            //.view() FullData_Save-ArchR
-            .set{ ch_full }
-        CLUSTER_STAGES.out
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            // .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            // .view()
-            //     [[sample_id:HH6], [rds_files]]
-            //     [[sample_id:HH5], [rds_files]]
-            //     [[sample_id:HH7], [rds_files]]
-            //     [[sample_id:ss8], [rds_files]]
-            //     [[sample_id:ss4], [rds_files]]
-            .set{ stages_data }
-        stages_data
-            .combine(ch_full)
-            //.view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
-            .map { row -> [row[0], [row[1][0], row[2]]]}
-            //.view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
-            .set{ch_transfer_peaks}
-        TRANSFER_PEAKS(ch_transfer_peaks)
+        // ////    Transfer peak data from full data onto stages Data   ////
+        // PEAK_CALL.out
+        //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        //     //.view() FullData_Save-ArchR
+        //     .set{ ch_full }
+        // CLUSTER_STAGES.out
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     // .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        //     // .view()
+        //     //     [[sample_id:HH6], [rds_files]]
+        //     //     [[sample_id:HH5], [rds_files]]
+        //     //     [[sample_id:HH7], [rds_files]]
+        //     //     [[sample_id:ss8], [rds_files]]
+        //     //     [[sample_id:ss4], [rds_files]]
+        //     .set{ stages_data }
+        // stages_data
+        //     .combine(ch_full)
+        //     //.view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
+        //     .map { row -> [row[0], [row[1][0], row[2]]]}
+        //     //.view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
+        //     .set{ch_transfer_peaks}
+        // TRANSFER_PEAKS(ch_transfer_peaks)
 
-        // Plot diff peaks between clusters in stages
-        PLOT_DIFF_PEAKS( TRANSFER_PEAKS.out )
+        // // Plot diff peaks between clusters in stages
+        // PLOT_DIFF_PEAKS( TRANSFER_PEAKS.out )
+
+        // // Read in RNA data
+        // METADATA_RNA_SC( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        //                                     // [[sample_id:HH6], [HH6_clustered_data.RDS]]
+        //                                     // etc
+   
+        // // Combine ATAC and RNA data
+        // TRANSFER_PEAKS.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
+        //     .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
+        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+        //     //.view()
+        //     .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
+
+        // // Integrate RNA and ATAC data stages
+        // INTEGRATE( ch_integrate )
 
         // Read in RNA data
-        METADATA_RNA_SC( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-                                            // etc
+        METADATA_RNA_SC( params.rna_fulldata_sample_sheet )
+
+        METADATA_RNA_SC.out.metadata.view()
+        PEAK_CALL.out.view()
    
         // Combine ATAC and RNA data
-        TRANSFER_PEAKS.out // [ [sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        PEAK_CALL.out // [ [sample_id:FullData], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            //.view()
+            .view()
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         // Integrate RNA and ATAC data stages
@@ -252,35 +269,35 @@ workflow A {
         // Coaccessibility + Motif analysis plots
         
 
-        ////    Transfer integrated labels from stages data onto Full Data   ////
-        INTEGRATE.out
-            .concat(PEAK_CALL.out)
-            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
-            .collect()
-            .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
-            //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss8_Save-ArchR, ss4_Save-ArchR, FullData_Save-ArchR]]
-            .set{ch_transfer_labels}
-        TRANSFER_LABELS(ch_transfer_labels)
+        // ////    Transfer integrated labels from stages data onto Full Data   ////
+        // INTEGRATE.out
+        //     .concat(PEAK_CALL.out)
+        //     .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
+        //     .collect()
+        //     .map { [[sample_id:'FullData'], it] } // [[meta], [rds1, rds2, rds3, ...]]
+        //     //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss8_Save-ArchR, ss4_Save-ArchR, FullData_Save-ArchR]]
+        //     .set{ch_transfer_labels}
+        // TRANSFER_LABELS(ch_transfer_labels)
 
-        ////    Extra processing with full data  ////
-        // Remove contam from Full data and re-cluster
-        REMOVE_CONTAM_FULL( TRANSFER_LABELS.out )
-        RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
+        // ////    Extra processing with full data  ////
+        // // Remove contam from Full data and re-cluster
+        // REMOVE_CONTAM_FULL( TRANSFER_LABELS.out )
+        // RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
 
-        // Read in RNA object with latent time
-        METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
+        // // Read in RNA object with latent time
+        // METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
 
-        // Transfer latent time from RNA full data to ATAC full data
-        RECLUSTER_FULL.out
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .concat( METADATA_RNA_LATENT_TIME.out.metadata )
-            .groupTuple( by:0 )
-            //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
-            .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
+        // // Transfer latent time from RNA full data to ATAC full data
+        // RECLUSTER_FULL.out
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     .concat( METADATA_RNA_LATENT_TIME.out.metadata )
+        //     .groupTuple( by:0 )
+        //     //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
+        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+        //     //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
+        //     .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
 
-        TRANSFER_LATENT_TIME( ch_transfer_latent_time )
+        // TRANSFER_LATENT_TIME( ch_transfer_latent_time )
 
 
     } else {
