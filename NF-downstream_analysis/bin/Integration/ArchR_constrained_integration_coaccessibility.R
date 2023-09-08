@@ -214,7 +214,7 @@ groupList <- SimpleList(
   Groupss8 = SimpleList(
     ATAC = ArchR$cellNames[ArchR$stage %in% "ss8"],
     RNA = SeuratObject::WhichCells(seurat_data, idents = "ss8")
-  ),
+  )
 )
 
 print(groupList)
