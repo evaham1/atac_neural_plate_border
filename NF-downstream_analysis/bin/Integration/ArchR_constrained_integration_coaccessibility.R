@@ -221,10 +221,8 @@ groupList <- SimpleList(
     RNA = SeuratObject::WhichCells(seurat_data, idents = "ss8")
   )
 )
-
-print(groupList)[1][1]
-print(groupList)[1]
-saveRDS(paste0(rds_path, "groupList.RDS"))
+print(groupList)
+saveRDS(groupList, file = paste0(rds_path, "groupList.RDS"))
 
 print("Starting constrained integration...")
 
