@@ -293,12 +293,12 @@ dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'UMAP_integrated.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_cols, labelAsFactors = FALSE)
+              labelSize = 8, legendSize = 0, pal = atac_scHelper_broad, labelAsFactors = FALSE)
 graphics.off()
 
 png(paste0(plot_path, 'UMAP_integrated_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "scHelper_cell_type_broad", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_cols)
+              labelSize = 0, legendSize = 0, pal = atac_scHelper_broad)
 graphics.off()
 
 ############################## Integration scores plots #######################################
@@ -422,351 +422,101 @@ png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, un
 scHelper::CellLabelPieCharts(counts, col = scHelper_cell_type_colours)
 graphics.off()
 
-#############################################################################################
-#############################   PEAK TO GENE LINKAGE    #####################################
-#############################################################################################
 
-print("coaccessibility ArchR")
+###############################################################################################
+############################## CO-ACCESSIBILITY BETWEEN PEAKS #################################
 
-############################## FUNCTIONS #######################################
+print("Calculating coaccessibility...")
 
-# extracts the chromosome and TSS coordinate of gene of interest from P2G linkage data attached to ArchR object
-ArchR_ExtractTss <- function(ArchR_obj, gene, corCutOff = 0.5){
-  gene <- toupper(gene)
-  gene_metadata <- metadata(getPeak2GeneLinks(ArchR_obj, corCutOff = corCutOff, returnLoops = FALSE))$geneSet
-  gene_coord <- as.numeric(start(ranges(gene_metadata[which(gene_metadata$name %in% gene)])))
-  chr <- as.character(seqnames(gene_metadata[which(gene_metadata$name %in% gene)]))
-  return(c(chr, gene_coord))
-}
+# calculate co-accessibility between all peaks
+ArchR <- addCoAccessibility(ArchR)
 
+# extract interactions - returns indexes of queryHits and subjectHits
+cA <- getCoAccessibility(ArchR, corCutOff = 0.5, returnLoops = FALSE)
+cA
+  # DataFrame with 120270 rows and 11 columns
+  # queryHits subjectHits seqnames correlation Variability1 Variability2     TStat        Pval         FDR VarQuantile1 VarQuantile2
+  # <integer>   <integer>    <Rle>   <numeric>    <numeric>    <numeric> <numeric>   <numeric>   <numeric>    <numeric>    <numeric>
+  #   1              3           4     chr1    0.548725   0.00437754   0.00683964   14.5441 4.15759e-40 4.52151e-38     0.911185     0.965430
+  # 2              4           3     chr1    0.548725   0.00683964   0.00437754   14.5441 4.15759e-40 4.52151e-38     0.965430     0.911185
+  # 3              4           5     chr1    0.517190   0.00683964   0.00356568   13.3901 4.49249e-35 3.64027e-33     0.965430     0.870967
+  # 4              5           4     chr1    0.517190   0.00356568   0.00683964   13.3901 4.49249e-35 3.64027e-33     0.870967     0.965430
+  # 5             27          40     chr1    0.761607   0.01690577   0.00855042   26.0418 1.47916e-94 2.12498e-91     0.995825     0.978303
+coacessibility_df <- as.data.frame(cA)
 
-# This function creates a GRanges object that can be used to plot genome browser plots 
-# (i.e. one end of the range is Anchor I and the other end of the range is Anchor J)
-# It creates this object from a target gene and the peaks it interacts with
-# It find the centre coordinate of the TSS and all the peaks, make the ranges and then uses these
-# to filter the original P2G linkage data associated with the ArchR object
+# Need to use indices from df to extract granges and therefore informative peak IDs
+coacessibility_df <- coacessibility_df %>% 
+  mutate(query_PeakID = paste0(seqnames(metadata(cA)[[1]][queryHits]), "-", start(metadata(cA)[[1]][queryHits]), "-", end(metadata(cA)[[1]][queryHits]))) %>%
+  mutate(subject_PeakID = paste0(seqnames(metadata(cA)[[1]][subjectHits]), "-", start(metadata(cA)[[1]][subjectHits]), "-", end(metadata(cA)[[1]][subjectHits])))
 
-ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, interacting_peaks, corCutOff = 0.5){
-  
-  # extract TSS coordinate of gene of interest
-  chr <- ArchR_ExtractTss(ArchR_obj, gene, corCutOff = corCutOff)[1]
-  gene_coord <- ArchR_ExtractTss(ArchR_obj, gene, corCutOff = corCutOff)[2]
-  
-  # extract interacting peak coordinates from unique peak IDs
-  split <- unlist(lapply(interacting_peaks, FUN = function(x) strsplit(x, split = "-")))
-  peak_coord <- as.numeric(split[1 : (length(split) / 3) * 3]) - 250
-  
-  # combine TSS and peak coords into one df
-  df <- data.frame(temp_start=gene_coord, temp_end=peak_coord)
-  df <- mutate_all(df, function(x) as.numeric(as.character(x)))
-  df_ordered <- df %>% 
-    mutate(start = apply(df, 1, function(x) min(x))) %>%
-    mutate(end = apply(df, 1, function(x) max(x))) %>%
-    mutate(chr = chr) %>% 
-    dplyr::select(chr, start, end)
-  
-  # extract p2gl data with user-defined corCutOff - return loops
-  all_interactions <- getPeak2GeneLinks(ArchR_obj, corCutOff = corCutOff, returnLoops = TRUE)[[1]]
-  
-  # filter all interactions from P2GL for these ones
-  filtered_granges <- subset(all_interactions, start %in% df_ordered$start & end %in% df_ordered$end)
-  
-  # check have extracted all interactions
-  if (length(filtered_granges) == nrow(df_ordered)){"Check passed"}else{stop("Not all interactions have been extracted!")}
-  
-  # return interactions
-  return(filtered_granges)
-}
+head(coacessibility_df)
 
+# sanity check that all interaction Peak IDs are in the ArchR peakset
+table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
 
-# This function takes gene and interactions_granges, as well as ArchR object and makes genome browser plot showing interactions
-# Can select how to group cells for browser using group_by
-# will automatically zoom out so all interactions are seen and centre plot on the gene, can extend further using extend_by
+# save df
+write.csv(coacessibility_df, file = paste0(csv_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
 
-ArchR_PlotInteractions <- function(ArchR_obj, gene, interactions_granges, extend_by = 500, max_dist = Inf, corCutOff = 0.5, group_by = "clusters", highlight_granges = NULL, return_plot = TRUE){
-  
-  # extract gene TSS coord
-  gene_coord <- as.numeric(ArchR_ExtractTss(ArchR_obj, gene, corCutOff = corCutOff)[2])
-  
-  # identify the range you need to plot to see all these interactions
-  max_coordinate <- as.numeric(max(end(interactions_granges)))
-  min_coordinate <- as.numeric(min(start(interactions_granges)))
-  
-  # set plotting distance limits depending on the size of the loops
-  distance <- max(width(interactions_granges)) + extend_by
-  if (distance > max_dist){
-    print("Distance above max, setting distance from gene as max_dist...")
-    distance <- max_dist}
-  print(paste0("Distance plotting: ", distance))
-  
-  # make plot of all the interactions pertaining to one gene around that gene
-  if(is.null(highlight_granges)){
-    p <- plotBrowserTrack(
-      ArchRProj = ArchR_obj,
-      groupBy = group_by,
-      geneSymbol = gene, 
-      upstream = distance,
-      downstream = distance,
-      loops = interactions_granges,
-      title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
-    )
-  } else {
-    p <- plotBrowserTrack(
-      ArchRProj = ArchR_obj,
-      groupBy = group_by,
-      geneSymbol = gene, 
-      upstream = distance,
-      downstream = distance,
-      loops = interactions_granges,
-      highlight = highlight_granges,
-      title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
-    )
-  }
-  
-  # optionally return plot
-  if (return_plot){
-    return(p)
-  } else {
-    grid::grid.newpage()
-    grid::grid.draw(p[[1]])
-  }
+print("Coaccessibility calculated and saved.")
 
-}
-#################################################################################################################
+####################################################################################################################
+############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES - FIXED DIST #################################
 
+print("Calculating coaccessibility between peaks and genes within a 250000 distance...")
 
-# ###############################################################################################
-# ############################## CO-ACCESSIBILITY BETWEEN PEAKS #################################
+# calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
+ArchR <- addPeak2GeneLinks(ArchR, maxDist = 250000)
+# biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
+# tried running at max distance but then found very few interactions very far away...
 
-# print("Calculating coaccessibility...")
+# extract resulting interactions
+p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
+p2g_df <- as.data.frame(p2g)
 
-# # calculate co-accessibility between all peaks
-# ArchR <- addCoAccessibility(ArchR)
+# add correct Peak IDs and gene names to df
+p2g_df <- p2g_df %>% 
+  mutate(PeakID = paste0(seqnames(metadata(p2g)$peakSet[idxATAC]), "-", start(metadata(p2g)$peakSet[idxATAC]), "-", end(metadata(p2g)$peakSet[idxATAC]))) %>%
+  mutate(gene_name = metadata(p2g)$geneSet[idxRNA]$name)
+head(p2g_df)
+print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 
-# # extract interactions - returns indexes of queryHits and subjectHits
-# cA <- getCoAccessibility(ArchR, corCutOff = 0.5, returnLoops = FALSE)
-# cA
-#   # DataFrame with 120270 rows and 11 columns
-#   # queryHits subjectHits seqnames correlation Variability1 Variability2     TStat        Pval         FDR VarQuantile1 VarQuantile2
-#   # <integer>   <integer>    <Rle>   <numeric>    <numeric>    <numeric> <numeric>   <numeric>   <numeric>    <numeric>    <numeric>
-#   #   1              3           4     chr1    0.548725   0.00437754   0.00683964   14.5441 4.15759e-40 4.52151e-38     0.911185     0.965430
-#   # 2              4           3     chr1    0.548725   0.00683964   0.00437754   14.5441 4.15759e-40 4.52151e-38     0.965430     0.911185
-#   # 3              4           5     chr1    0.517190   0.00683964   0.00356568   13.3901 4.49249e-35 3.64027e-33     0.965430     0.870967
-#   # 4              5           4     chr1    0.517190   0.00356568   0.00683964   13.3901 4.49249e-35 3.64027e-33     0.870967     0.965430
-#   # 5             27          40     chr1    0.761607   0.01690577   0.00855042   26.0418 1.47916e-94 2.12498e-91     0.995825     0.978303
-# coacessibility_df <- as.data.frame(cA)
+# sanity check that all interaction Peak IDs are in the ArchR peakset
+if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
-# # Need to use indices from df to extract granges and therefore informative peak IDs
-# coacessibility_df <- coacessibility_df %>% 
-#   mutate(query_PeakID = paste0(seqnames(metadata(cA)[[1]][queryHits]), "-", start(metadata(cA)[[1]][queryHits]), "-", end(metadata(cA)[[1]][queryHits]))) %>%
-#   mutate(subject_PeakID = paste0(seqnames(metadata(cA)[[1]][subjectHits]), "-", start(metadata(cA)[[1]][subjectHits]), "-", end(metadata(cA)[[1]][subjectHits])))
+# save df
+write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
 
-# head(coacessibility_df)
+print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
 
-# # sanity check that all interaction Peak IDs are in the ArchR peakset
-# table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
+##################################################################################
+############################## SAVE ARCHR OBJECT #################################
 
-# # save df
-# write.csv(coacessibility_df, file = paste0(csv_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
+# see what is in the ArchR object already
+print("ArchR object info: ")
+print(ArchR)
+getAvailableMatrices(ArchR)
 
-# print("Coaccessibility calculated and saved.")
+# save integrated ArchR project
+print("Saving integrated ArchR project...")
+paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
+print("Integrated ArchR project saved.")
 
-# ####################################################################################################################
-# ############################## CO-ACCESSIBILITY BETWEEN PEAKS AND GENES - FIXED DIST #################################
+################################################################################
+############################## HEATMAPS OF P2L #################################
 
-# print("Calculating coaccessibility between peaks and genes within a 250000 distance...")
+plot_path = "./plots/peak2gene_250000_dist/"
+dir.create(plot_path, recursive = T)
 
-# # calculate gene-to-peak co-accessibility using GeneIntegrationMatrix
-# ArchR <- addPeak2GeneLinks(ArchR, maxDist = 250000)
-# # biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
-# # tried running at max distance but then found very few interactions very far away...
+# This sporadically fails so comment out for now, not v useful plot anyway
+## Heatmap of linkage across clusters
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
+png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# # extract resulting interactions
-# p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
-# p2g_df <- as.data.frame(p2g)
-
-# # add correct Peak IDs and gene names to df
-# p2g_df <- p2g_df %>% 
-#   mutate(PeakID = paste0(seqnames(metadata(p2g)$peakSet[idxATAC]), "-", start(metadata(p2g)$peakSet[idxATAC]), "-", end(metadata(p2g)$peakSet[idxATAC]))) %>%
-#   mutate(gene_name = metadata(p2g)$geneSet[idxRNA]$name)
-# head(p2g_df)
-# print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
-
-# # sanity check that all interaction Peak IDs are in the ArchR peakset
-# if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
-
-# # save df
-# write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
-
-# print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
-
-# ##################################################################################
-# ############################## SAVE ARCHR OBJECT #################################
-
-# # see what is in the ArchR object already
-# print("ArchR object info: ")
-# print(ArchR)
-# getAvailableMatrices(ArchR)
-
-# # save integrated ArchR project
-# print("Saving integrated ArchR project...")
-# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-# print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
-# saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
-# print("Integrated ArchR project saved.")
-
-# ################################################################################
-# ############################## HEATMAPS OF P2L #################################
-
-# plot_path = "./plots/peak2gene_250000_dist/"
-# dir.create(plot_path, recursive = T)
-
-# # This sporadically fails so comment out for now, not v useful plot anyway
-# ## Heatmap of linkage across clusters
-# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "clusters")
-# png(paste0(plot_path, 'Peak_to_gene_linkage_clusters_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
-
-# p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
-# png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
-
-# ###########################################################################################
-# ############################## BROWSER TRACKS P2G LINKAGE #################################
-
-# # set genes of interest
-# genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
-#            "PAX7", "MSX1", "CSRNP1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5",
-#            "LMX1B", "ZEB2", "SOX21", "NKX6-2")
-
-
-# # make list of known enhancers organised by genes
-# SIX1_enhancers_df <- data.frame(
-#   chr = c("chr5", "chr5", "chr5", "chr5"),
-#   start = c(54587474, 54589267, 54590423, 54596822),
-#   end = c(54587537, 54589478, 54590562, 54597223)
-# )
-# SOX2_enhancers_df <- data.frame(
-#   chr = c("chr9", "chr9", "chr9", "chr9", "chr9", "chr9"),
-#   start = c(17013525, 17029120, 17041213, 17003823, 17018130, 16883843),
-#   end = c(17013822, 17029653, 17041793, 17004302, 17018498, 16885306)
-# )
-# SOX10_enhancers_df <- data.frame(
-#   chr = c("chr1", "chr1", "chr1", "chr1", "chr1", "chr1"),
-#   start = c(51032535, 51036237, 51046546, 51048966, 51051673, 51065028),
-#   end = c(51035291, 51038859, 51049401, 51050564, 51054928, 51068292)
-# )
-# ETS1_enhancers_df <- data.frame(
-#   chr = c("chr24", "chr24", "chr24", "chr24", "chr24", "chr24"),
-#   start = c(267288, 385057, 397366, 495221, 1213638, 1717736),
-#   end = c(269227, 386795, 399331, 497158, 1215537, 1719643)
-# )
-# FOXI3_enhancers_df <- data.frame(
-#   chr = c("chr4", "chr4", "chr4", "chr4", "chr4"),
-#   start = c(85595131, 85594801, 85595131, 85593696, 86017750),
-#   end = c(85596131, 85596939, 85595778, 85597534, 86019361)
-# )
-# FOXD3_enhancers_df <- data.frame(
-#   chr = c("chr8", "chr8", "chr8", "chr8", "chr8", "chr8", "chr8", "chr8"),
-#   start = c(27926327, 27934827, 27979648, 28017350, 28087080, 28106380, 28139635, 28399561),
-#   end = c(27928266, 27936786, 27981550, 28019278, 28088418, 28108358, 28141548, 28401557)
-# )
-# LMX1A_enhancers_df <- data.frame(
-#   chr = c("chr8", "chr8"),
-#   start = c(5172341, 5570901),
-#   end = c(5173737, 5572297)
-# )
-# LMX1B_enhancers_df <- data.frame(
-#   chr = c("chr17"),
-#   start = c(10470326),
-#   end = c(10472156)
-# )
-# MSX1_enhancers_df <- data.frame(
-#   chr = c("chr4", "chr4", "chr4", "chr4", "chr4", "chr4"),
-#   start = c(78295854, 78663629, 78711612, 78728706, 78895539, 79799413),
-#   end = c(78297772, 78665953, 78713525, 78730951, 78897524, 79801348)
-# )
-# PAX2_enhancers_df <- data.frame(
-#   chr = c("chr6", "chr6", "chr6", "chr6"),
-#   start = c(17836767, 17850104, 18094913, 18079378),
-#   end = c(17837601, 17850840, 18095104, 18079989)
-# )
-# PAX7_enhancers_df <- data.frame(
-#   chr = c("chr21", "chr21", "chr21", "chr21"),
-#   start = c(3826990, 4238685, 4523315, 4767796),
-#   end = c(3828981, 4240684, 4525246, 4769743)
-# )
-# TFAP2A_enhancers_df <- data.frame(
-#   chr = c("chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2"),
-#   start = c(63311515, 63057851, 63310862, 63365989, 63389615, 63453876, 63522766, 63714903, 63772784, 63870453, 63878567, 64233006, 64421924),
-#   end = c(63312508, 63059773, 63312573, 63367907, 63391605, 63455810, 63524480, 63716810, 63774778, 63871022, 63880501, 64234932, 64423822)
-# )
-# TFAP2B_enhancers_df <- data.frame(
-#   chr = c("chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3"),
-#   start = c(107523019, 107735860, 107849673, 107872557, 107894338, 107927002, 108021169, 108046754, 108072186, 108223899),
-#   end = c(107524948, 107737597, 107851588, 107874552, 107896273, 107928971, 108021490, 108048735, 108074077, 108225829)
-# )
-
-# enhancers_df_list <- list(
-#   SIX1_enhancers_df, SOX2_enhancers_df, SOX10_enhancers_df, ETS1_enhancers_df, FOXI3_enhancers_df, FOXD3_enhancers_df,
-#   LMX1A_enhancers_df, LMX1B_enhancers_df, MSX1_enhancers_df, PAX2_enhancers_df, PAX7_enhancers_df, TFAP2A_enhancers_df, TFAP2B_enhancers_df
-# )
-# names(enhancers_df_list) <- c("SIX1", "SOX2", "SOX10", "ETS1", "FOXI3", "FOXD3", "LMX1A", "LMX1B", "MSX1", "PAX2", "PAX7", "TFAP2A", "TFAP2B")
-
-
-# # loop through genes and make plots (+ with enhancers highlighted if have that data)
-# for (gene in genes){
-  
-#   print(paste0("Making interactions plot for: ", gene))
-  
-#   # extract interactions to gene of interest
-#   interactions <- p2g_df %>% filter(gene_name %in% gene)
-  
-#   if (nrow(interactions) == 0){
-#     print("No interactions found for this gene! Moving to next gene...")
-#   } else {
-#     print(paste0(nrow(interactions), " interactions found"))
-#     # extract the peak IDs that interact with that gene
-#     interacting_peaks <- unique(interactions$PeakID)
-    
-#     # extract loops between the gene and these peaks
-#     extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, gene = gene, interacting_peaks = interacting_peaks)
-    
-#     # make plot of these interactions
-#     p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-#                                 extend_by = 500, max_dist = Inf, highlight_granges = NULL)
-#     grid::grid.newpage()
-    
-#     # plot
-#     png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
-#     grid::grid.draw(p[[1]])
-#     graphics.off()
-
-#     # make plot of these interactions more zoomed in
-#     p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-#                                 extend_by = 500, max_dist = 200000, highlight_granges = NULL)
-#     grid::grid.newpage()
-    
-#     # plot
-#     png(paste0(plot_path, gene, '_interactions_browser_plot_zoomed.png'), height = 15, width = 18, units = 'cm', res = 400)
-#     grid::grid.draw(p[[1]])
-#     graphics.off()
-    
-#     # overlay known enhancers
-#     if (gene %in% names(enhancers_df_list)){
-#       print("Plotting enhancers")
-#       enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
-#       print(enhancers_granges)
-#       p <- ArchR_PlotInteractions(ArchR, gene = gene, interactions_granges = extracted_loops, return_plot = TRUE,
-#                                   extend_by = 500, max_dist = 200000, highlight_granges = enhancers_granges)
-#       png(paste0(plot_path, gene, '_interactions_browser_plot_zoomed_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
-#       grid::grid.newpage()
-#       grid::grid.draw(p[[1]])
-#       graphics.off()
-#     }
-    
-#   }
-  
-# }
+p <- plotPeak2GeneHeatmap(ArchRProj = ArchR, groupBy = "stage")
+png(paste0(plot_path, 'Peak_to_gene_linkage_stage_heatmap.png'), height = 80, width = 60, units = 'cm', res = 400)
+print(p)
+graphics.off()
