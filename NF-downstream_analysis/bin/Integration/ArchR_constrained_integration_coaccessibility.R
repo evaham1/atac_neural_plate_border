@@ -529,7 +529,7 @@ getAvailableMatrices(ArchR)
 print("Saving integrated ArchR project...")
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 print(paste0("Output filename = ", rds_path, "FullData_Save-ArchR"))
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "FullData_Save-ArchR"), load = FALSE)
 print("Integrated ArchR project saved.")
 
 ################################################################################
