@@ -27,8 +27,6 @@ option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
   make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How to group cells to call peaks", default = "clusters",),
-  make_option(c("", "--heatmaps_stage"), action = "store", type = "logical", help = "Whether to plot heatmap of diff peaks for stage data", default = FALSE,),
-  make_option(c("", "--heatmaps_full"), action = "store", type = "logical", help = "Whether to plot heatmap of diff peaks for full data", default = FALSE,),
   make_option(c("-v", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
@@ -152,56 +150,3 @@ grid.arrange(top=textGrob("Cut sites per peak", gp=gpar(fontsize=12, fontface = 
 graphics.off()
 
 print("cut sites per peak calculated")
-
-##############################################################################
-############################# Peak Heatmaps ###############################
-
-run_heatmaps <- ifelse(length(unique(ArchR_peaks$stage)) == 1 & isTRUE(opt$heatmaps_stage) | length(unique(ArchR_peaks$stage)) > 1 & isTRUE(opt$heatmaps_full),
-                       TRUE, FALSE)
-
-if (isTRUE(run_heatmaps)) {
-
-  print("Running peak heatmaps...")
-
-  plot_path_temp <- paste0(plot_path, "diff_peaks_heatmaps/")
-  dir.create(plot_path_temp, recursive = T)
-  
-  seMarker <- getMarkerFeatures(
-    ArchRProj = ArchR_peaks, 
-    useMatrix = "PeakMatrix", 
-    groupBy = opt$group_by)
-  seMarker <- ArchRAddUniqueIdsToSe(seMarker, ArchR, matrix_type = "PeakMatrix")
-  print("seMarker object made")
-  
-  # prepare for plotting
-  normalised_matrix <- ArchR_ExtractMeansFromSe(seMarker, Log2norm = TRUE, scaleTo = 10^4) # extract means df from se object and log2norm all features in each cell group
-  print("matrix for plotting made")
-  
-  # heatmap palette 
-  pal <- paletteContinuous(set = "solarExtra", n = 100)
-  
-  # Heatmap of positive markers which pass cutoff thresholds
-  ids <- ArchR_ExtractIds(seMarker, cutOff = "FDR <= 0.01 & Log2FC >= 1", top_n = FALSE) # extract ids
-  if (length(ids) < 2){
-    print(paste0(length(ids), " features passed cutoff - not enough to make heatmap"))
-  } else {
-    print(paste0(length(ids), " features passed cutoff - now plotting heatmap"))
-    subsetted_matrix <- normalised_matrix[ids, ]
-    
-    png(paste0(plot_path_temp, 'diff_cutoff_heatmap.png'), height = 40, width = 20, units = 'cm', res = 400)
-    print(ArchR_PlotMarkerHeatmap(subsetted_matrix, pal = pal))
-    graphics.off()
-  }
-  
-  # Heatmap of positive markers top 10 per cell group
-  ids <- ArchR_ExtractIds(seMarker, cutOff = "FDR <= 0.05 & Log2FC >= 0", top_n = TRUE, n = 10) # extract ids
-  print(paste0(length(ids), " features passed cutoff for top 10 heatmap"))
-  subsetted_matrix <- normalised_matrix[ids, ]
-  
-  png(paste0(plot_path_temp, 'diff_top10_heatmap.png'), height = 70, width = 20, units = 'cm', res = 400)
-  print(ArchR_PlotMarkerHeatmap(subsetted_matrix, labelRows = TRUE, pal = pal, cluster_columns = FALSE, cluster_rows = FALSE))
-  graphics.off()
-  
-}
-
-print("heatmaps made")
