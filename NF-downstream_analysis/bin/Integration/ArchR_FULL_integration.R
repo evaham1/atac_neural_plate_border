@@ -138,7 +138,7 @@ scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F
                                 "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
                                 "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
                                 "#786D73", "#581845", "#9792A3", "#BBB3CB",
-                                "#A5718D", "#3F918C", "#ed5e5f", "9792A3")
+                                "#A5718D", "#3F918C", "#ed5e5f", "#9792A3")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
