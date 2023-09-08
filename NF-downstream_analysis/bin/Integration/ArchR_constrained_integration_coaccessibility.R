@@ -233,7 +233,7 @@ ArchR <- addGeneIntegrationMatrix(
   groupList = groupList,
   groupRNA = "scHelper_cell_type", nameCell = "predictedCell_Un",
   nameGroup = "predictedGroup_Un", nameScore = "predictedScore_Un",
-  force = TRUE, addToArrow = TRUE, threads = 1
+  force = TRUE, addToArrow = TRUE, threads = 1,
   sampleCellsATAC = 85000, sampleCellsRNA = 15000
 )
 print("integration completed")
