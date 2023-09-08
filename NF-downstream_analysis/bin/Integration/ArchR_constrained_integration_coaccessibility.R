@@ -484,7 +484,7 @@ head(coacessibility_df)
 table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
 
 # save df
-write.csv(coacessibility_df, file = paste0(csv_path, label[1], "_peak_coaccessibility_df.csv"), row.names = FALSE)
+write.csv(coacessibility_df, file = paste0(csv_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
 
 print("Coaccessibility calculated and saved.")
 
@@ -513,7 +513,7 @@ print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
 # save df
-write.csv(p2g_df, file = paste0(csv_path, label[1], "_peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
+write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
 
 print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
 
@@ -528,7 +528,7 @@ getAvailableMatrices(ArchR)
 # save integrated ArchR project
 print("Saving integrated ArchR project...")
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-print(paste0("Output filename = ", rds_path, label[1], "_Save-ArchR"))
+print(paste0("Output filename = ", rds_path, "FullData_Save-ArchR"))
 saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label[1], "_Save-ArchR"), load = FALSE)
 print("Integrated ArchR project saved.")
 
