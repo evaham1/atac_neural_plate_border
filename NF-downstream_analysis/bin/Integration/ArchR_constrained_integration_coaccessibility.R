@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("ArchR integration, assigning cluster labels and peak to gene linkage")
+print("ArchR constrained integration, assigning cluster labels and peak to gene linkage")
 
 ############################## Load libraries #######################################
 library(getopt)
