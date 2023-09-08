@@ -194,10 +194,15 @@ print("Pre-integration plots made.")
 
 Idents(object = seurat_data) <- "stage"
 
+ATAC_HH5_cells <- ArchR$cellNames[ArchR$stage %in% "HH5"]
+head(ATAC_HH5_cells)
+RNA_HH5_cells <- SeuratObject::WhichCells(seurat_data, idents = "HH5")
+head(RNA_HH5_cells)
+
 groupList <- SimpleList(
   GroupHH5 = SimpleList(
-    ATAC = ArchR$cellNames[ArchR$stage %in% "HH5"],
-    RNA = SeuratObject::WhichCells(seurat_data, idents = "HH5")
+    ATAC = ATAC_HH5_cells,
+    RNA = RNA_HH5_cells
   ),
   GroupHH6 = SimpleList(
     ATAC = ArchR$cellNames[ArchR$stage %in% "HH6"],
@@ -217,7 +222,8 @@ groupList <- SimpleList(
   )
 )
 
-print(groupList)
+print(groupList)[1][1]
+print(groupList)[1]
 saveRDS(paste0(rds_path, "groupList.RDS"))
 
 print("Starting constrained integration...")
