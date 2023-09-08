@@ -248,18 +248,15 @@ workflow A {
         // INTEGRATE( ch_integrate )
 
         // Read in RNA data
-        METADATA_RNA_SC( params.rna_fulldata_sample_sheet )
-
-        METADATA_RNA_SC.out.metadata.view()
-        PEAK_CALL.out.view()
+        METADATA_RNA_SC( params.rna_fulldata_sample_sheet ) //[[sample_id:FullData], [seurat_label_transfer.RDS]]
    
         // Combine ATAC and RNA data
-        PEAK_CALL.out // [ [sample_id:FullData], [ArchRLogs, Rplots.pdf, plots, rds_files] ]
+        PEAK_CALL.out // [[sample_id:FullData], [/ArchRLogs, /Rplots.pdf, /csv_files, /plots, /rds_files, /tmp]]
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( METADATA_RNA_SC.out.metadata ) // [ [sample_id:HH5], [HH5_clustered_data.RDS] ]
             .groupTuple( by:0 ) // [[sample_id:HH5], [[HH5_Save-ArchR], [HH5_splitstage_data/rds_files/HH5_clustered_data.RDS]]]
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .view()
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer.RDS]]
             .set {ch_integrate} //[ [sample_id:HH5], [HH5_Save-ArchR, HH5_clustered_data.RDS] ]
 
         // Integrate RNA and ATAC data stages
