@@ -195,14 +195,14 @@ plotEmbedding(ArchR,
 graphics.off()
 
 ### Plot integration scores
-png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 2.5, baseSize = 0, 
+png(paste0(plot_path, 'transferred_Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "transferred_predictedScore_Un", plotAs = "points", size = 2.5, baseSize = 0, 
               legendSize = 10)
 graphics.off()
 
-png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "transferred_Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-  name = "predictedScore_Un", plotAs = "Violin", alpha = 0.4)
+  name = "transferred_predictedScore_Un", plotAs = "Violin", alpha = 0.4)
 graphics.off()
 
 ##################### Distribution of labels across clusters ##################################
