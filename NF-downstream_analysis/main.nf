@@ -37,11 +37,11 @@ include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/
 include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_constrained_integration_coaccessibility.R", checkIfExists: true) )
-include {R as MOTIF_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_calculate_motifs.R", checkIfExists: true) )
+include {R as MOTIF_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 include {R as CLUSTER_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include {R as TRANSFER_LABELS_AND_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks_and_labels.R", checkIfExists: true) )
-include {R as MOTIF_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_calculate_motifs.R", checkIfExists: true) )
+include {R as MOTIF_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
 include {R as REMOVE_CONTAM_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
 include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
@@ -289,7 +289,7 @@ workflow A {
         
         // Motif analysis plots grouped by clusters
         // just needs the archr objects
-        PLOT_MOTIF_CLUSTERS( MOTIF_STAGES.out )
+        // PLOT_MOTIF_CLUSTERS( MOTIF_STAGES.out )
         
 
 
