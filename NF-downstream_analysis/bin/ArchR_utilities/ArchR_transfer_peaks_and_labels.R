@@ -146,6 +146,12 @@ for (label in labels){
 print("Label plots...")
 
 ###### schelper cell type colours
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
                                 "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
                                 "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
@@ -219,9 +225,9 @@ grid.arrange(tableGrob(round(percentage_counts, 2), theme = ttheme_minimal()))
 graphics.off()
 
 # visualise distribution across clusters: piecharts
-counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
+counts <- scHelper::ArchRCellCounting(ArchR = ArchR, group1 = "transferred_scHelper_cell_type", group2 = "clusters", print_table = FALSE, scHelper_cell_type_order = scHelper_cell_type_order)
 png(paste0(plot_path, "label_by_cluster_piecharts.png"), width=50, height=40, units = 'cm', res = 200)
-scHelper::CellLabelPieCharts(counts, col = scHelper_cell_type_colours)
+scHelper::CellLabelPieCharts(counts, col = cols)
 graphics.off()
 
 
