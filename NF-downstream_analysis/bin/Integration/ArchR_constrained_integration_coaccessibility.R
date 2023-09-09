@@ -515,15 +515,26 @@ print(paste0(nrow(p2g_df), " interactions identified by coaccessibility!"))
 # sanity check that all interaction Peak IDs are in the ArchR peakset
 if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue with peak IDs in interactions!")}
 
+# check size of df
+print("Extracting P2G df:")
+print(dim(p2g_df))
+head(p2g_df)
+
 # save df
 write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
 
 # extract resulting interactions as granges object
-granges <- getPeak2GeneLinks(ArchR, corCutOff = 0, returnLoops = TRUE)[[1]]
+granges <- getPeak2GeneLinks(ArchR, corCutOff = 0, FDRCutOff = 1, returnLoops = TRUE)[[1]]
+print("Extracting P2G granges:")
+head(granges)
+dim(granges)
 saveRDS(granges, paste0(csv_path, "Peak_to_gene_linkage_250000_distance.RDS"))
 
 # extract gene locations
-gene_metadata <- metadata(getPeak2GeneLinks(ArchR, corCutOff = 0, returnLoops = FALSE))$geneSet
+gene_metadata <- metadata(getPeak2GeneLinks(ArchR, corCutOff = 0, FDRCutOff = 1, returnLoops = FALSE))$geneSet
+print("Extracting gene metadata:")
+head(gene_metadata)
+dim(gene_metadata)
 saveRDS(gene_metadata, paste0(csv_path, "Gene_locations.RDS"))
 
 print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")

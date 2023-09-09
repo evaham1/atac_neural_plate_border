@@ -192,6 +192,8 @@ getAvailableMatrices(ArchR)
 
 ############################## Read in interactions data #######################################
 
+print("reading in interactions data...")
+
 # read in P2G dataframe
 p2g_df <- read.csv(paste0(data_path, "csv_files/", "Peak_to_gene_linkage_df_250000_distance.csv"))
 head(p2g_df)
