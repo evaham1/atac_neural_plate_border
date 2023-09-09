@@ -37,9 +37,11 @@ include { METADATA as METADATA_UPSTREAM_PROCESSED } from "$baseDir/subworkflows/
 include {R as CLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include {R as PEAK_CALL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_peak_calling.R", checkIfExists: true) )
 include {R as INTEGRATE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Integration/ArchR_constrained_integration_coaccessibility.R", checkIfExists: true) )
+include {R as MOTIF_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_calculate_motifs.R", checkIfExists: true) )
 include {R as CLUSTER_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include { METADATA as METADATA_RNA_SC } from "$baseDir/subworkflows/local/metadata"
 include {R as TRANSFER_LABELS_AND_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks_and_labels.R", checkIfExists: true) )
+include {R as MOTIF_STAGES} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_calculate_motifs.R", checkIfExists: true) )
 
 include {R as REMOVE_CONTAM_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_subsetting.R", checkIfExists: true) )
 include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
@@ -47,8 +49,8 @@ include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/loc
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
-// include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
-// include {R as CO_ACCESSIBILITY} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_coaccessibility.R", checkIfExists: true) )
+include {R as PLOT_MOTIF_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_motifs.R", checkIfExists: true) )
+include {R as PLOT_COACCESSIBILITY_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_coaccessibility.R", checkIfExists: true) )
 
 // MEGA PROCESSING
 include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
@@ -178,7 +180,7 @@ workflow A {
 
     if(!skip_sc_processing){
 
-        ////    Run peak calling on full data   ////
+        ////    Process full data   ////
         // Extract just the full data object
         ch_upstream_processed
             .filter{ meta, data -> meta.sample_id == 'FullData'}
@@ -205,6 +207,10 @@ workflow A {
         // Integrate RNA and ATAC data full data
         INTEGRATE( ch_integrate )
 
+        // Run motif analysis on full data
+        MOTIF_FULL( INTEGRATE.out )
+
+        ////    Process stage data   ////
         // Extract just the stage data objects
         ch_upstream_processed
             .filter{ meta, data -> meta.sample_id != 'FullData'}
@@ -236,11 +242,22 @@ workflow A {
             .set{ch_transfer}
         TRANSFER_LABELS_AND_PEAKS(ch_transfer)
 
+        // Run motif analysis on stages data
+        MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
+
+
+        ////// PLOTTING ///////
+
         // Plot diff peaks between clusters in stages
         PLOT_DIFF_PEAKS( TRANSFER_LABELS_AND_PEAKS.out )
 
-        ///     Stage plotting      ///
-        // Coaccessibility + Motif analysis plots
+        // Coaccessibility plots grouped by clusters
+        // need to have the stages objects + the coaccessibility csv from full data
+        //PLOT_MOTIF_CLUSTERS()
+        
+        // Motif analysis plots grouped by clusters
+        // just needs the archr objects
+        //PLOT_COACCESSIBILITY_CLUSTERS()
         
 
         // ////    Extra processing with full data  ////
