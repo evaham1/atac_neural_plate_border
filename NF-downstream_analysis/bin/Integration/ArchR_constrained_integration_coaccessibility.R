@@ -222,7 +222,6 @@ groupList <- SimpleList(
   )
 )
 print(groupList)
-saveRDS(groupList, file = paste0(rds_path, "groupList.RDS"))
 
 print("Starting constrained integration...")
 
