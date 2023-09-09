@@ -13,8 +13,6 @@ library(dplyr)
 library(GenomicFeatures)
 library(parallel)
 # library(scHelper)
-library(TFBSTools)
-library(JASPAR2020)
 library(BSgenome.Ggallus.UCSC.galGal6)
 
 ############################## Set up script options #######################################
@@ -62,11 +60,6 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
 }
-
-
-############################## FUNCTIONS #######################################
-
-
 
 ############################## Read in ArchR project #######################################
 
