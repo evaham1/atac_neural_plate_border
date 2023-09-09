@@ -258,7 +258,7 @@ saveArchRProject(ArchRProj = ArchR, outputDirectory = output_directory, load = F
 plot_path_temp = "./plots/cut_sites_per_peak/"
 dir.create(plot_path, recursive = T)
 
-peak_data <- getMatrixFromProject(ArchR_peaks, useMatrix = "PeakMatrix")
+peak_data <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix")
 peak_matrix <- t(assays(peak_data)[[1]])
 colnames(peak_matrix) <- rowData(peak_data)$name
 
