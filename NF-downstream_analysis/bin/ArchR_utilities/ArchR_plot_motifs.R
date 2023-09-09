@@ -22,7 +22,7 @@ library(BSgenome.Ggallus.UCSC.galGal6)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How to group cells to call peaks", default = "clusters",),
+  make_option(c("-g", "--group_by"), action = "store", type = "character", help = "How to group cells", default = "clusters",),
   make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
 )
 
@@ -212,7 +212,7 @@ for (TF in TFs){
   print(paste0("Calculating and plotting footprint for: ", TF))
   
   # compute footprints for TFs of interest
-  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "clusters")
+  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = opt$group_by)
   seFoot
   
   ####### Plot TF footprints
