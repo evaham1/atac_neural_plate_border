@@ -309,6 +309,7 @@ for (gene in genes){
   # make plot of these interactions
   p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
                               interactions_granges = extracted_loops, return_plot = TRUE,
+                              group_by = opt$group_by,
                               extend_by = 500, max_dist = Inf)
   
   
@@ -327,7 +328,8 @@ for (gene in genes){
                                 interactions_granges = extracted_loops, 
                                 return_plot = TRUE,
                                 extend_by = 500, max_dist = Inf, 
-                                highlight_granges = enhancers_granges)
+                                highlight_granges = enhancers_granges,
+                                group_by = opt$group_by)
     png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
     grid::grid.draw(p[[1]])
     graphics.off()
