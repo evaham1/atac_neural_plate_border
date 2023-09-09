@@ -248,6 +248,9 @@ ArchR <- addPeakMatrix(ArchR, force = TRUE)
 
 print("Saving data...")
 
+label <- unique(sub('_.*', '', list.files(data_path)))
+print(paste0("Label: ", label))
+
 output_directory <- paste0(rds_path, label, "_Save-ArchR")
 print(paste0("Output directory of object with labels and peak set transferred onto it: ", output_directory))
 saveArchRProject(ArchRProj = ArchR, outputDirectory = output_directory, load = FALSE)
