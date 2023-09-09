@@ -460,7 +460,7 @@ print("Calculating coaccessibility...")
 ArchR <- addCoAccessibility(ArchR)
 
 # extract interactions - returns indexes of queryHits and subjectHits
-cA <- getCoAccessibility(ArchR, corCutOff = 0.5, returnLoops = FALSE)
+cA <- getCoAccessibility(ArchR, corCutOff = 0, returnLoops = FALSE)
 cA
   # DataFrame with 120270 rows and 11 columns
   # queryHits subjectHits seqnames correlation Variability1 Variability2     TStat        Pval         FDR VarQuantile1 VarQuantile2
@@ -485,6 +485,10 @@ table(coacessibility_df$subject_PeakID %in% getPeakSet(ArchR)$name)
 # save df
 write.csv(coacessibility_df, file = paste0(csv_path, "Peak_coaccessibility_df.csv"), row.names = FALSE)
 
+# extract resulting interactions as granges object
+granges <- getCoAccessibility(ArchR, corCutOff = 0, returnLoops = TRUE)[[1]]
+saveRDS(granges, paste0(csv_path, "Peak_coaccessibility.RDS"))
+
 print("Coaccessibility calculated and saved.")
 
 ####################################################################################################################
@@ -497,8 +501,8 @@ ArchR <- addPeak2GeneLinks(ArchR, maxDist = 250000)
 # biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
 # tried running at max distance but then found very few interactions very far away...
 
-# extract resulting interactions
-p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0.5, returnLoops = FALSE)
+# extract resulting interactions as df
+p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0, returnLoops = FALSE)
 p2g_df <- as.data.frame(p2g)
 
 # add correct Peak IDs and gene names to df
@@ -513,6 +517,10 @@ if(sum(p2g_df$PeakID %in% getPeakSet(ArchR)$name) != nrow(p2g_df)){stop("Issue w
 
 # save df
 write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
+
+# extract resulting interactions as granges object
+granges <- getPeak2GeneLinks(ArchR, corCutOff = 0, returnLoops = TRUE)[[1]]
+saveRDS(granges, paste0(csv_path, "Peak_to_gene_linkage_250000_distance.RDS"))
 
 print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
 
