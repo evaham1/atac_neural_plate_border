@@ -281,9 +281,9 @@ workflow A {
             .set{ stages_labelled_data }
         stages_labelled_data
             .combine(ch_full_coaccessibility)
-            .view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
+            //.view() //[[sample_id:ss8], [rds_files], csv_files]
             .map { row -> [row[0], [row[1][0], row[2]]]}
-            .view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
+            //.view() //[[sample_id:HH7], [rds_files, csv_files]]
             .set{ch_stages_coaccessibility}
         PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
         
