@@ -51,7 +51,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
     #addArchRThreads(threads = ncores)
@@ -193,15 +193,15 @@ getAvailableMatrices(ArchR)
 ############################## Read in interactions data #######################################
 
 # read in P2G dataframe
-p2g_df <- read.csv(paste0(data_path, "Peak_to_gene_linkage_df_250000_distance.csv"))
+p2g_df <- read.csv(paste0(data_path, "csv_files/", "Peak_to_gene_linkage_df_250000_distance.csv"))
 head(p2g_df)
 
 # read in P2G granges
-p2g_granges <- readRDS(paste0(data_path, "Peak_to_gene_linkage_df_250000_distance.RDS"))
+p2g_granges <- readRDS(paste0(data_path, "csv_files/", "Peak_to_gene_linkage_df_250000_distance.RDS"))
 head(p2g_granges)
 
 # read in gene locations
-gene_locations <- readRDS(paste0(data_path, "Gene_locations.RDS"))
+gene_locations <- readRDS(paste0(data_path, "csv_files/", "Gene_locations.RDS"))
 head(gene_locations)
 
 ###########################################################################################
