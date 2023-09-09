@@ -168,10 +168,10 @@ cols <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_type)]
 cols_broad <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_type_broad)]
 
 ### Plot transferred clusters
-png(paste0(plot_path, "transferred_clusterse.png"), width=30, height=40, units = 'cm', res = 200)
+png(paste0(plot_path, "transferred_clusters.png"), width=30, height=40, units = 'cm', res = 200)
 plotEmbedding(ArchR,
               name = "transferred_clusters",
-              plotAs = "points", size = 1.8,
+              plotAs = "points", size = 2.5,
               baseSize = 0, labelSize = 0, legendSize = 0,
               randomize = TRUE)
 graphics.off()
@@ -180,7 +180,7 @@ graphics.off()
 png(paste0(plot_path, "transferred_scHelper_cell_type_cell_type.png"), width=30, height=40, units = 'cm', res = 200)
 plotEmbedding(ArchR,
               name = "transferred_scHelper_cell_type", pal = cols,
-              plotAs = "points", size = 1.8,
+              plotAs = "points", size = 2.5,
               baseSize = 0, labelSize = 0, legendSize = 0,
               randomize = TRUE)
 graphics.off()
@@ -189,15 +189,20 @@ graphics.off()
 png(paste0(plot_path, "transferred_scHelper_cell_type_cell_type_broad.png"), width=30, height=40, units = 'cm', res = 200)
 plotEmbedding(ArchR,
               name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
-              plotAs = "points", size = 1.8,
+              plotAs = "points", size = 2.5,
               baseSize = 0, labelSize = 0, legendSize = 0,
               randomize = TRUE)
 graphics.off()
 
 ### Plot integration scores
 png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "transferred_predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
+plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 2.5, baseSize = 0, 
               legendSize = 10)
+graphics.off()
+
+png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
+plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
+  name = "predictedScore_Un", plotAs = "Violin", alpha = 0.4)
 graphics.off()
 
 ##################### Distribution of labels across clusters ##################################
