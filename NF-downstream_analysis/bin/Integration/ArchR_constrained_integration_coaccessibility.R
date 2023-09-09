@@ -522,6 +522,10 @@ write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distan
 granges <- getPeak2GeneLinks(ArchR, corCutOff = 0, returnLoops = TRUE)[[1]]
 saveRDS(granges, paste0(csv_path, "Peak_to_gene_linkage_250000_distance.RDS"))
 
+# extract gene locations
+gene_metadata <- metadata(getPeak2GeneLinks(ArchR, corCutOff = 0, returnLoops = FALSE))$geneSet
+saveRDS(gene_metadata, paste0(csv_path, "Gene_locations.RDS"))
+
 print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
 
 ##################################################################################
