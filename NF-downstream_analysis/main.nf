@@ -273,11 +273,23 @@ workflow A {
 
         // Coaccessibility plots grouped by clusters
         // need to have the stages objects + the coaccessibility csv from full data
-        //PLOT_MOTIF_CLUSTERS()
+        INTEGRATE.out
+            .map{it[1].findAll{it =~ /csv_files/}[0]}
+            .set{ ch_full_coaccessibility }
+        TRANSFER_LABELS_AND_PEAKS.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .set{ stages_labelled_data }
+        stages_labelled_data
+            .combine(ch_full_coaccessibility)
+            .view() //[[sample_id:ss8], [ss8_Save-ArchR], FullData_Save-ArchR]
+            .map { row -> [row[0], [row[1][0], row[2]]]}
+            .view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
+            .set{ch_stages_coaccessibility}
+        PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
         
         // Motif analysis plots grouped by clusters
         // just needs the archr objects
-        //PLOT_COACCESSIBILITY_CLUSTERS()
+        PLOT_MOTIF_CLUSTERS( MOTIF_STAGES.out )
         
 
 
