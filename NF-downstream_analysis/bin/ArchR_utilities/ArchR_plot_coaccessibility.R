@@ -197,7 +197,7 @@ p2g_df <- read.csv(paste0(data_path, "csv_files/", "Peak_to_gene_linkage_df_2500
 head(p2g_df)
 
 # read in P2G granges
-p2g_granges <- readRDS(paste0(data_path, "csv_files/", "Peak_to_gene_linkage_df_250000_distance.RDS"))
+p2g_granges <- readRDS(paste0(data_path, "csv_files/", "Peak_to_gene_linkage_250000_distance.RDS"))
 head(p2g_granges)
 
 # read in gene locations
