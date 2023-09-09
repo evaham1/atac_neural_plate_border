@@ -208,7 +208,7 @@ workflow A {
         INTEGRATE( ch_integrate )
 
         // Run motif analysis on full data
-        MOTIF_FULL( INTEGRATE.out )
+        //MOTIF_FULL( INTEGRATE.out )
 
         ////    Process stage data   ////
         // Extract just the stage data objects
@@ -243,7 +243,7 @@ workflow A {
         TRANSFER_LABELS_AND_PEAKS(ch_transfer)
 
         // Run motif analysis on stages data
-        MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
+        //MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
 
         ////    Extra processing with full data  ////
         // Remove contam from Full data and re-cluster
@@ -289,7 +289,7 @@ workflow A {
         
         // Motif analysis plots grouped by clusters
         // just needs the archr objects
-        PLOT_MOTIF_CLUSTERS( MOTIF_STAGES.out )
+        //PLOT_MOTIF_CLUSTERS( MOTIF_STAGES.out )
         
 
 
