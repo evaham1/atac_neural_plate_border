@@ -71,6 +71,17 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+###### FUNCTIONS TO UPDATE IN SCHELPER:
+ArchRCellCountsHeatmap <- function (ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters") 
+{
+  group1_data <- getCellColData(ArchR, select = group1)[, 1]
+  group2_data <- getCellColData(ArchR, select = group2)[, 1]
+  cM <- confusionMatrix(paste0(group2_data), paste0(group1_data))
+  cM <- cM/Matrix::rowSums(cM)
+  p <- pheatmap::pheatmap(mat = cM, color = paletteContinuous("whiteBlue"), 
+                          border_color = "black", fontsize = 25)
+}
+
 ############################## Read in ArchR project #######################################
 
 # Extract stage name
@@ -212,7 +223,7 @@ graphics.off()
 
 # visualise distribution across clusters: confusion matrix
 png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "transferred_scHelper_cell_type", group2 = "clusters")
+ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "transferred_scHelper_cell_type", group2 = "clusters")
 graphics.off()
 
 # visualise distribution across clusters: table of cell percentages
