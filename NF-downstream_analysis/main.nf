@@ -247,7 +247,7 @@ workflow A {
 
         //    Extra processing with full data  ////
         //Remove contam from Full data and re-cluster
-        REMOVE_CONTAM_FULL( MOTIF_FULL.out )
+        REMOVE_CONTAM_FULL( INTEGRATE.out )
         RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
 
         // Read in RNA object with latent time
