@@ -243,7 +243,7 @@ workflow A {
         TRANSFER_LABELS_AND_PEAKS(ch_transfer)
 
         // Run motif analysis on stages data
-        MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
+        //MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
 
         ////    Extra processing with full data  ////
         // Remove contam from Full data and re-cluster
