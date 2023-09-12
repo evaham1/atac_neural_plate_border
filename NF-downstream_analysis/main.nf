@@ -245,25 +245,25 @@ workflow A {
         // Run motif analysis on stages data
         //MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
 
-        ////    Extra processing with full data  ////
-        // Remove contam from Full data and re-cluster
-        // REMOVE_CONTAM_FULL( MOTIF_FULL.out )
-        // RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
+        //    Extra processing with full data  ////
+        //Remove contam from Full data and re-cluster
+        REMOVE_CONTAM_FULL( MOTIF_FULL.out )
+        RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
 
-        // // Read in RNA object with latent time
-        // METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
+        // Read in RNA object with latent time
+        METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
 
-        // // Transfer latent time from RNA full data to ATAC full data
-        // RECLUSTER_FULL.out
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     .concat( METADATA_RNA_LATENT_TIME.out.metadata )
-        //     .groupTuple( by:0 )
-        //     //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
-        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-        //     //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
-        //     .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
+        // Transfer latent time from RNA full data to ATAC full data
+        RECLUSTER_FULL.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( METADATA_RNA_LATENT_TIME.out.metadata )
+            .groupTuple( by:0 )
+            //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
+            .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
 
-        // TRANSFER_LATENT_TIME( ch_transfer_latent_time )
+        TRANSFER_LATENT_TIME( ch_transfer_latent_time )
 
 
         ////// PLOTTING /////// - maybe move to multiview section once I've tested that it works
