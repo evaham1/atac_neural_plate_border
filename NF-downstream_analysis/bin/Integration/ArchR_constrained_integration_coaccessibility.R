@@ -75,6 +75,17 @@ if(opt$verbose) print(opt)
   dir.create(csv_path, recursive = T)
 }
 
+###### FUNCTIONS TO UPDATE IN SCHELPER:
+ArchRCellCountsHeatmap <- function (ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters") 
+{
+  group1_data <- getCellColData(ArchR, select = group1)[, 1]
+  group2_data <- getCellColData(ArchR, select = group2)[, 1]
+  cM <- confusionMatrix(paste0(group2_data), paste0(group1_data))
+  cM <- cM/Matrix::rowSums(cM)
+  p <- pheatmap::pheatmap(mat = cM, color = paletteContinuous("whiteBlue"), 
+                          border_color = "black", fontsize = 25)
+}
+
 ############################## Read in ArchR project and seurat object #######################################
 
 # Load atac data in rds_files
@@ -174,10 +185,8 @@ print(umap_rna_old + umap_atac)
 graphics.off()
 
 umap_atac <- plotEmbedding(ArchR, name = "stage", plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 0, cols = stage_cols)
-umap_rna <- DimPlot(seurat_data, group.by = 'stage', label = TRUE, 
-                    label.size = 3,
-                    label.box = TRUE, repel = TRUE,
-                    pt.size = 1, 
+umap_rna <- DimPlot(seurat_data, group.by = 'stage', label = FALSE, 
+                    pt.size = 1.8, 
                     cols = stage_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
@@ -193,11 +202,6 @@ print("Pre-integration plots made.")
 ############################## Constrained integration #######################################
 
 Idents(object = seurat_data) <- "stage"
-
-ATAC_HH5_cells <- ArchR$cellNames[ArchR$stage %in% "HH5"]
-head(ATAC_HH5_cells)
-RNA_HH5_cells <- SeuratObject::WhichCells(seurat_data, idents = "HH5")
-head(RNA_HH5_cells)
 
 groupList <- SimpleList(
   GroupHH5 = SimpleList(
@@ -346,15 +350,19 @@ graphics.off()
 
 print("Post-integration plots made.")
 
-############################## Gene Integration Count Plots for key TFs #######################################
+############################## Gene Integration and Score Plots for key TFs #######################################
 
-plot_path = "./plots/gene_integration_plots_of_key_TFs/"
+plot_path = "./plots/plots_of_key_TFs/"
 dir.create(plot_path, recursive = T)
 
 # set genes of interest
-TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
-         "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2")
-# CTNRP and LMX1B and ZEB2 not found
+TFs <- c("SIX1", "EYA2", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
+         "TFAP2A", "TFAP2B", "TFAP2C", 
+         "PITX1", "PITX2",
+         "PAX7", "MSX1", "ETS1", 
+         "SOX2", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "SOX3",
+         "NKX6-2", "CSRNP1", "SNAI2", "LMX1B", "ZEB2",
+         "EPAS1", "BMP4", "YEATS4", "HOXB1", "EOMES", "ADMP")
 
 ArchR <- addImputeWeights(ArchR)
 
@@ -362,63 +370,35 @@ ArchR <- addImputeWeights(ArchR)
 for (TF in TFs){
   print(TF)
   
-  p <- plotGroups(ArchR, groupBy = "clusters", 
-                  colorBy = "GeneIntegrationMatrix", 
-                  name = TF,
-                  imputeWeights = getImputeWeights(ArchR))
-  
   # Plot distribution of GeneIntegration values for each cluster
   png(paste0(plot_path, TF, '_gene_integration_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(p)
+  plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneIntegrationMatrix") + 
+    theme_ArchR(baseSize = 17, plotMarginCm = 0.5)
   graphics.off()
   
   # Plot GeneIntegration values on UMAP
-  p <- plotEmbedding(ArchR, colorBy = "GeneIntegrationMatrix", name = TF, embedding = "UMAP", continuousSet = "blueYellow", 
-                     imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
   png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(p)
+  plotEmbedding(ArchR, name = TF,
+                plotAs = "points", size = 1.8,
+                colorBy = "GeneIntegrationMatrix", continuousSet = "blueYellow") + 
+    theme_ArchR(legendTextSize = 17, baseSize = 17, plotMarginCm = 0.5)
+  graphics.off()
+  
+  # Plot distribution of GeneScore values for each cluster
+  png(paste0(plot_path, TF, '_gene_score_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
+  plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneScoreMatrix") + 
+    theme_ArchR(baseSize = 17, plotMarginCm = 0.5)
+  graphics.off()
+  
+  # Plot GeneScore values on UMAP
+  png(paste0(plot_path, TF, '_gene_score_UMAP.png'), height = 12, width = 14, units = 'cm', res = 400)
+  plotEmbedding(ArchR, name = TF,
+                plotAs = "points", size = 1.8,
+                colorBy = "GeneScoreMatrix", continuousSet = "horizon") + 
+    theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
   graphics.off()
   
 }
-
-############################## Gene scores plots #######################################
-#### compare gene scores with integrated gene exp values
-
-plot_path = "./plots/gene_scores_vs_integrated_gex_marker_genes/"
-dir.create(plot_path, recursive = T)
-
-ArchR <- addImputeWeights(ArchR)
-print("Impute weights added")
-
-# look for late marker genes
-late_markers <- c(
-  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
-  "MSX1", "TFAP2A", "TFAP2B", #mix
-  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
-  "SOX2", "SOX21" # neural
-)
-
-png(paste0(plot_path, 'late_markers_GeneScoreMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", late_markers)
-graphics.off()
-
-png(paste0(plot_path, 'late_markers_GeneIntegrationMatrix.png'), height = 40, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", late_markers)
-graphics.off()
-
-# look for early marker genes
-early_markers <- c(
-  "EPAS1", "BMP4", "YEATS4", "SOX3",
-  "HOXB1", "EOMES", "ADMP"
-)
-
-png(paste0(plot_path, 'early_markers_GeneScoreMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneScoreMatrix", early_markers)
-graphics.off()
-
-png(paste0(plot_path, 'early_markers_GeneIntegrationMatrix.png'), height = 20, width = 25, units = 'cm', res = 400)
-scHelper::ArchR_FeaturePlotGrid(ArchR, matrix = "GeneIntegrationMatrix", early_markers)
-graphics.off()
 
 ##################### Distribution of labels across clusters ##################################
 
@@ -432,7 +412,7 @@ graphics.off()
 
 # visualise distribution across clusters: confusion matrix
 png(paste0(plot_path, "label_by_cluster_distribution.png"), width=25, height=20, units = 'cm', res = 200)
-scHelper::ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters")
+ArchRCellCountsHeatmap(ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters")
 graphics.off()
 
 # visualise distribution across clusters: table of cell percentages
