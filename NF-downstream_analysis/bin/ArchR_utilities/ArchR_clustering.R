@@ -221,57 +221,43 @@ if ( !(is.null(ArchR$stage_clusters)) ) {
 #################################################################################
 ############################ GENE SCORE PLOTS ###################################
 
-plot_path_temp = "./plots/Gene_score_plots/"
-dir.create(plot_path_temp, recursive = T)
+plot_path = "./plots/Gene_score_plots/"
+dir.create(plot_path, recursive = T)
 
 ##########    Feature plots
 
 ArchR <- addImputeWeights(ArchR, seed = 1)
 
-# Contaminating markers
-contaminating_markers <- c(
-  'DAZL', #PGC
-  'CDH5', 'TAL1', 'HBZ', # Blood island
-  'CDX2', 'GATA6', 'ALX1', 'PITX2', 'TWIST1', 'TBXT', 'MESP1', #mesoderm
-  'SOX17', 'CXCR4', 'FOXA2', 'NKX2-2', 'GATA6' #endoderm
-)
-# Late marker genes
-late_markers <- c(
-  "GATA3", "DLX5", "SIX1", "EYA2", #PPR
-  "MSX1", "TFAP2A", "TFAP2B", #mix
-  "PAX7", "CSRNP1", "SNAI2", "SOX10", #NC
-  "SOX2", "SOX21" # neural
-)
-# look for ap marker genes
-ap_markers <- c(
-  "PAX2", "WNT4", "SIX3", "SHH" # no GBX2 in matrix
-)
-# look for early markers
-early_markers <- c(
-  "EPAS1", "BMP4", "YEATS4", "SOX3", "HOXB1", "ADMP", "EOMES"
-)
-feature_plot_genes <- c("SIX1", "PAX7", "DLX5", "CSRNP1", "SOX10",
-                        "SOX21", "SOX2", "BMP4", "HOXB1")
+# set genes of interest
+TFs <- c("SIX1", "EYA2", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
+         "TFAP2A", "TFAP2B", "TFAP2C", 
+         "PITX1", "PITX2",
+         "PAX7", "MSX1", "ETS1", 
+         "SOX2", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "SOX3",
+         "NKX6-2", "CSRNP1", "SNAI2", "LMX1B", "ZEB2",
+         "EPAS1", "BMP4", "YEATS4", "HOXB1", "EOMES", "ADMP")
 
-png(paste0(plot_path_temp, 'Contaminating_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = contaminating_markers)
-graphics.off()
+ArchR <- addImputeWeights(ArchR)
 
-png(paste0(plot_path_temp, 'Late_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = late_markers)
-graphics.off()
-
-png(paste0(plot_path_temp, 'AP_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = ap_markers)
-graphics.off()
-
-png(paste0(plot_path_temp, 'Early_markers_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = early_markers)
-graphics.off()
-
-png(paste0(plot_path_temp, 'Useful_FeaturePlots.png'), height = 25, width = 25, units = 'cm', res = 400)
-ArchR_FeaturePlotGrid(ArchR, feature_list = feature_plot_genes)
-graphics.off()
+# Plot ridge plot of each TF deviation
+for (TF in TFs){
+  print(TF)
+  
+  # Plot distribution of GeneScore values for each cluster
+  png(paste0(plot_path, TF, '_gene_score_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
+  plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneScoreMatrix") + 
+    theme_ArchR(baseSize = 17, plotMarginCm = 0.5)
+  graphics.off()
+  
+  # Plot GeneScore values on UMAP
+  png(paste0(plot_path, TF, '_gene_score_UMAP.png'), height = 12, width = 14, units = 'cm', res = 400)
+  plotEmbedding(ArchR, name = TF,
+                plotAs = "points", size = 1.8,
+                colorBy = "GeneScoreMatrix", continuousSet = "horizon") + 
+    theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
+  graphics.off()
+  
+}
 
 print("Feature plots done")
 
