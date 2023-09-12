@@ -501,8 +501,8 @@ ArchR <- addPeak2GeneLinks(ArchR, maxDist = 250000)
 # biggest chrom chrom 1 size: 197608386 (200000000), default is 250000
 # tried running at max distance but then found very few interactions very far away...
 
-# extract resulting interactions as df
-p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0, returnLoops = FALSE)
+# extract all positively correlated interactions as df
+p2g <- getPeak2GeneLinks(ArchR, corCutOff = 0, FDRCutOff = 1, returnLoops = FALSE)
 p2g_df <- as.data.frame(p2g)
 
 # add correct Peak IDs and gene names to df
@@ -523,21 +523,33 @@ head(p2g_df)
 # save df
 write.csv(p2g_df, file = paste0(csv_path, "Peak_to_gene_linkage_df_250000_distance.csv"), row.names = FALSE)
 
-# extract resulting interactions as granges object
-granges <- getPeak2GeneLinks(ArchR, corCutOff = 0, FDRCutOff = 1, returnLoops = TRUE)[[1]]
+# extract all positively correlated interactions as granges object
 print("Extracting P2G granges:")
-head(granges)
-dim(granges)
+granges <- getPeak2GeneLinks(ArchR, returnLoops = TRUE,
+                             corCutOff = 0, FDRCutOff = 1)[[1]]
+print(granges)
+
+# check that interactions df and interactions granges are the same size
+if(nrow(p2g_df) != length(granges)){stop("Df and granges extraction resulted in different interaction numebers!")}
+
+# save the granges
 saveRDS(granges, paste0(csv_path, "Peak_to_gene_linkage_250000_distance.RDS"))
+
+print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
+
+####################################################################################################################
+############################## EXTRACT GENE LOCATIONS #################################
 
 # extract gene locations
 gene_metadata <- metadata(getPeak2GeneLinks(ArchR, corCutOff = 0, FDRCutOff = 1, returnLoops = FALSE))$geneSet
 print("Extracting gene metadata:")
-head(gene_metadata)
-dim(gene_metadata)
-saveRDS(gene_metadata, paste0(csv_path, "Gene_locations.RDS"))
+print(gene_metadata)
 
-print("Coaccessibility between peaks and genes (250000 dist) calculated and saved.")
+# check that every gene from interaction has a corresponding location
+if(sum(unique(p2g_df$gene_name) %in% gene_metadata$name) != length(unique(p2g_df$gene_name))){stop("Some genes from interactions don't have a genomic location!")}
+
+# save the gene locations
+saveRDS(gene_metadata, paste0(csv_path, "Gene_locations.RDS"))
 
 ##################################################################################
 ############################## SAVE ARCHR OBJECT #################################
