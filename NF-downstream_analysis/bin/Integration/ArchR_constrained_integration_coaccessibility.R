@@ -372,30 +372,30 @@ for (TF in TFs){
   
   # Plot distribution of GeneIntegration values for each cluster
   png(paste0(plot_path, TF, '_gene_integration_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-  plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneIntegrationMatrix") + 
-    theme_ArchR(baseSize = 17, plotMarginCm = 0.5)
+  print(plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneIntegrationMatrix") + 
+    theme_ArchR(baseSize = 17, plotMarginCm = 0.5))
   graphics.off()
   
   # Plot GeneIntegration values on UMAP
   png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
-  plotEmbedding(ArchR, name = TF,
+  print(plotEmbedding(ArchR, name = TF,
                 plotAs = "points", size = 1.8,
                 colorBy = "GeneIntegrationMatrix", continuousSet = "blueYellow") + 
-    theme_ArchR(legendTextSize = 17, baseSize = 17, plotMarginCm = 0.5)
+    theme_ArchR(legendTextSize = 17, baseSize = 17, plotMarginCm = 0.5))
   graphics.off()
   
   # Plot distribution of GeneScore values for each cluster
   png(paste0(plot_path, TF, '_gene_score_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-  plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneScoreMatrix") + 
-    theme_ArchR(baseSize = 17, plotMarginCm = 0.5)
+  print(plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneScoreMatrix") + 
+    theme_ArchR(baseSize = 17, plotMarginCm = 0.5))
   graphics.off()
   
   # Plot GeneScore values on UMAP
   png(paste0(plot_path, TF, '_gene_score_UMAP.png'), height = 12, width = 14, units = 'cm', res = 400)
-  plotEmbedding(ArchR, name = TF,
+  print(plotEmbedding(ArchR, name = TF,
                 plotAs = "points", size = 1.8,
                 colorBy = "GeneScoreMatrix", continuousSet = "horizon") + 
-    theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
+    theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5))
   graphics.off()
   
 }
