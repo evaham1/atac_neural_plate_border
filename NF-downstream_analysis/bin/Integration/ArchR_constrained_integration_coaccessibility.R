@@ -184,7 +184,8 @@ png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), 
 print(umap_rna_old + umap_atac)
 graphics.off()
 
-umap_atac <- plotEmbedding(ArchR, name = "stage", plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 0, cols = stage_cols)
+umap_atac <- plotEmbedding(ArchR, name = "stage", plotAs = "points", size = 1.8, baseSize = 0, 
+labelSize = 8, legendSize = 0, cols = stage_colours)
 umap_rna <- DimPlot(seurat_data, group.by = 'stage', label = FALSE, 
                     pt.size = 1.8, 
                     cols = stage_cols, shuffle = TRUE) +
