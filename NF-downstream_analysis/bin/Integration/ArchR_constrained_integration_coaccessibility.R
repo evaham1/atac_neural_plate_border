@@ -205,8 +205,8 @@ Idents(object = seurat_data) <- "stage"
 
 groupList <- SimpleList(
   GroupHH5 = SimpleList(
-    ATAC = ATAC_HH5_cells,
-    RNA = RNA_HH5_cells
+    ATAC = ArchR$cellNames[ArchR$stage %in% "HH5"],
+    RNA = SeuratObject::WhichCells(seurat_data, idents = "HH5")
   ),
   GroupHH6 = SimpleList(
     ATAC = ArchR$cellNames[ArchR$stage %in% "HH6"],
