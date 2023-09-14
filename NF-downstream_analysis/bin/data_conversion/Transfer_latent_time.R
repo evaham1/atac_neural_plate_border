@@ -59,7 +59,7 @@ set.seed(42)
 ############################## Read in data #######################################
 
 # read in ATAC data ( in input/rds_files)
-ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/", "TransferLabels_Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, "rds_files/", "FullData_Save-ArchR"), force = FALSE, showLogo = TRUE)
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 # read in RNA data (in input)
