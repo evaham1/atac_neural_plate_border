@@ -323,7 +323,7 @@ workflow A {
         ////    Prep RNA data    ////
 
         // read in RNA full data
-        METADATA_RNA_SC( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        METADATA_RNA_SC( params.rna_fulldata_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                             // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                             // etc
         // remove HH4 from RNA full data
