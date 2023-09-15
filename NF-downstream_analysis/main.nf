@@ -314,7 +314,8 @@ workflow A {
 
         // read in ATAC full transfer label object with latent time
         METADATA_SINGLECELL_PROCESSED( params.mega_input_sample_sheet ) // single cell data with individual peaks called
-        ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata 
+        ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata
+        ch_singlecell_processed.view()
 
         // convert ArchR full data object into seurat object
         ARCHR_TO_SEURAT( ch_singlecell_processed )
