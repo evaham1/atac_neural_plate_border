@@ -285,7 +285,7 @@ workflow A {
             .map { row -> [row[0], [row[1][0], row[2]]]}
             //.view() //[[sample_id:HH7], [rds_files, csv_files]]
             .set{ch_stages_coaccessibility}
-        PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
+        //PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
         
         // Motif analysis plots grouped by clusters
         // just needs the archr objects
