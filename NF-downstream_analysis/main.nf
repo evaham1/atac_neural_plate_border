@@ -20,7 +20,6 @@ nextflow.enable.dsl = 2
 // METADATA WORKFLOWS FOR CHANNEL SWITCHES
 
 // include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
-// include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 // include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
 // include { METADATA as METADATA_MEGA_INPUT } from "$baseDir/subworkflows/local/metadata"
 
@@ -53,6 +52,8 @@ include {R as PLOT_MOTIF_CLUSTERS} from "$baseDir/modules/local/r/main"         
 include {R as PLOT_COACCESSIBILITY_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_coaccessibility.R", checkIfExists: true) )
 
 // MEGA PROCESSING
+include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+
 include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 
