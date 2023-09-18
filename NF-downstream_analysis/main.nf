@@ -47,7 +47,9 @@ include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"              
 include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
-include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
+include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_diff_peaks.R", checkIfExists: true) )
+include {R as PLOT_DIM_RED_GENOMIC_SUBSETS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_dim_red_genomic_subsets.R", checkIfExists: true) )
+
 include {R as PLOT_MOTIF_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_motifs.R", checkIfExists: true) )
 include {R as PLOT_COACCESSIBILITY_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_coaccessibility.R", checkIfExists: true) )
 
@@ -271,6 +273,9 @@ workflow A {
 
         // Plot diff peaks between clusters in stages
         PLOT_DIFF_PEAKS( TRANSFER_LABELS_AND_PEAKS.out )
+
+        // Plot UMAPs of dim reduction using different subsets
+        PLOT_DIM_RED_GENOMIC_SUBSETS( TRANSFER_LABELS_AND_PEAKS.out )
 
         // Coaccessibility plots grouped by clusters
         // need to have the stages objects + the coaccessibility csv from full data
