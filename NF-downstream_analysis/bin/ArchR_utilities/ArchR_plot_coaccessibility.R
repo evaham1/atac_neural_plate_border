@@ -35,9 +35,9 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # ArchR object with no coaccessibility data
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/Transfer_peaks/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Transfer_labels_and_peaks/"
     # co-accessibility csv and RDS files
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/csv_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/"
     # # ArchR object with coaccessibility data
     # data_path = "./output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/"
     
@@ -51,6 +51,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
+    txt_path = "./text_files/"
     data_path = "./input/"
     ncores = opt$cores
     
@@ -64,6 +65,9 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
+  dir.create(txt_path, recursive = T)
+  
+  
 }
 
 
@@ -84,7 +88,7 @@ ArchR_ExtractTss <- function(gene_metadata, gene){
 # It find the centre coordinate of the TSS and all the peaks, make the ranges and then uses these
 # to filter the original P2G linkage data associated with the ArchR object
 
-ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, gene_locations, interacting_peaks, interactions_granges, corCutOff = 0.5){
+ArchR_ExtractLoopsToPlot <- function(gene, gene_locations, interacting_peaks, interactions_granges){
   
   # extract TSS coordinate of gene of interest
   chr <- ArchR_ExtractTss(gene_locations, gene)[1]
@@ -102,15 +106,9 @@ ArchR_ExtractLoopsToPlot <- function(ArchR_obj, gene, gene_locations, interactin
     mutate(end = apply(df, 1, function(x) max(x))) %>%
     mutate(chr = chr) %>% 
     dplyr::select(chr, start, end)
-  
-  # subset granges of interactions by corCutOff
-  all_interactions <- interactions_granges[(elementMetadata(interactions_granges)[,1] > corCutOff)]
-  
+
   # filter all interactions from P2G for these ones
-  filtered_granges <- subset(all_interactions, start %in% df_ordered$start & end %in% df_ordered$end)
-  
-  # check have extracted all interactions
-  if (length(filtered_granges) == nrow(df_ordered)){"Check passed"}else{stop("Not all interactions have been extracted!")}
+  filtered_granges <- subset(interactions_granges, start %in% df_ordered$start & end %in% df_ordered$end)
   
   # return interactions
   return(filtered_granges)
@@ -209,6 +207,9 @@ gene_locations
 ###########################################################################################
 ############################## BROWSER TRACKS P2G LINKAGE #################################
 
+plot_path = "./plots/key_genes/"
+dir.create(plot_path, recursive = T)
+
 # set genes of interest
 genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
            "PAX7", "MSX1", "CSRNP1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5",
@@ -288,54 +289,846 @@ enhancers_df_list <- list(
 )
 names(enhancers_df_list) <- c("SIX1", "SOX2", "SOX10", "ETS1", "FOXI3", "FOXD3", "LMX1A", "LMX1B", "MSX1", "PAX2", "PAX7", "TFAP2A", "TFAP2B")
 
+# init list of interacting peaks
+peaks <- list()
 
 # loop through genes and make plots (+ with enhancers highlighted if have that data)
 for (gene in genes){
   
   print(gene)
   
-  # extract interactions to gene of interest - from the csv file
-  interactions <- p2g_df %>% filter(gene_name %in% gene)
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
   print(paste0(nrow(interactions), " interactions found"))
   
   # extract the peak IDs that interact with that gene - from the csv file
   interacting_peaks <- unique(interactions$PeakID)
   
-  # extract loops between the gene and these peaks - now from archr but make it from csv file?
-  extracted_loops <- ArchR_ExtractLoopsToPlot(ArchR, 
-                                              gene = gene, gene_locations = gene_locations,
-                                              interacting_peaks = interacting_peaks, 
-                                              interactions_granges = p2g_granges,
-                                              corCutOff = 0.5)
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
   
-  # make plot of these interactions
-  p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
-                              interactions_granges = extracted_loops, return_plot = TRUE,
-                              group_by = opt$group_by,
-                              extend_by = 500, max_dist = Inf)
-  
-  
-  grid::grid.newpage()
-  
-  # plot
-  png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
-  grid::grid.draw(p[[1]])
-  graphics.off()
-  
-  # overlay known enhancers
-  if (gene %in% names(enhancers_df_list)){
-    enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
-    grid::grid.newpage()
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
     p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
-                                interactions_granges = extracted_loops, 
-                                return_plot = TRUE,
-                                extend_by = 500, max_dist = Inf, 
-                                highlight_granges = enhancers_granges,
-                                group_by = opt$group_by)
-    png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
     grid::grid.draw(p[[1]])
     graphics.off()
+    
+    # overlay known enhancers
+    if (gene %in% names(enhancers_df_list)){
+      enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
+      grid::grid.newpage()
+      p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                  interactions_granges = extracted_loops, 
+                                  return_plot = TRUE,
+                                  extend_by = 500, max_dist = Inf, 
+                                  highlight_granges = enhancers_granges,
+                                  group_by = opt$group_by)
+      png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+      grid::grid.draw(p[[1]])
+      graphics.off()
+    }
+    
   }
   
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "key_genes_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+###########################################################################################
+############################## ALEX'S GMs P2G LINKAGE #################################
+
+# from Alex's GMs analysis, GMs made on ss8 data, these are the ones used for coexpression and temporal analysis
+
+# PPR specific GMs
+# GM12; AKR1D1, ATP1A1, ATP1B1, ATP2B1, B3GNT7, CCDC25, CGNL1, DAG1, EMILIN2, ENSGALG00000004814, EPCAM, FAM184B, FAM89A, GATA2, GATA3, IRAK2, IRF6, MAP7, METRNL, MPZL3, NET1, PLEKHA5, POGLUT2, PPFIBP1, RGN, SLC16A10, SLC25A4, TSPAN13, TTC39A, UNC5B, Z-TJP2
+# GM14; BRINP1, CITED4, DLX5, DLX6, ENSGALG00000023936, ENSGALG00000040010, FN1, HESX1, HIF1A, KCNAB1, LAMB1, LRP11, NFKB1, PAX6, PITX1, PITX2, SEM1, SFRP1, SH3D19, SHISA2, SIX3, SPON1, SST, WDR1, Z-HAPLN1
+# GM13; AKAP12, ASS1, BASP1, CD99, ENSGALG00000011296, ENSGALG00000041054, ENSGALG00000042443, EYA2, FERMT2, LGMN, METTL24, NR2F2, NUCKS1, SIX1
+
+
+# PPR_genes <- c("AKR1D1", "ATP1A1", "ATP1B1", "ATP2B1", "B3GNT7", "CCDC25", "CGNL1", "DAG1", "EMILIN2", "ENSGALG00000004814", "EPCAM", "FAM184B", "FAM89A", "GATA2", "GATA3", "IRAK2", "IRF6", "MAP7", "METRNL", "MPZL3", "NET1", "PLEKHA5", "POGLUT2", "PPFIBP1", "RGN", "SLC16A10", "SLC25A4", "TSPAN13", "TTC39A", "UNC5B", "Z-TJP2",
+#                "BRINP1", "CITED4", "DLX5", "DLX6", "ENSGALG00000023936", "ENSGALG00000040010", "FN1", "HESX1", "HIF1A", "KCNAB1", "LAMB1", "LRP11", "NFKB1", "PAX6", "PITX1", "PITX2", "SEM1", "SFRP1", "SH3D19", "SHISA2", "SIX3", "SPON1", "SST", "WDR1", "Z-HAPLN1",
+#                "AKAP12", "ASS1", "BASP1", "CD99", "ENSGALG00000011296", "ENSGALG00000041054", "ENSGALG00000042443", "EYA2", "FERMT2", "LGMN", "METTL24", "NR2F2", "NUCKS1", "SIX1")
+# 
+# # NC specific GMs
+# # GM40; AGTRAP, BRINP2, CDH11, CMTM8, ENSGALG00000001136, FRZB, GADD45A, HUNK, LARP7, LMX1B, MRAS, MSX1, SFRP2, SOX11, SPSB4, Z-FST, ZEB2, ZIC1
+# # GM42; BMP5, CDH6, CSRNP1, DRAXIN, EN1, ENSGALG00000013505, FOXD3, NKD1, NRP2, OLFM1, PAX7, SNAI2, SOX9, TFAP2B, TMEM132C, TSPAN18, WLS, WNT6, Z-ENC1, ZFHX4, ZNF423
+# # GM43; COL9A3, ENSGALG00000037717, ENSGALG00000053185, ERMN, ETS1, LMO4, PPP1R1C, RASL11B, RFTN2, SOX10, SOX8, TNC, Z-MEF2C, Z-PLK2
+# # GM44; CXCR4, ENSGALG00000030512, ENSGALG00000031427, FABP7, FKBP11, GLIPR2, ID1, ID2, MEOX1, MYL4, OLFML3, SOX5, WNT1
+# 
+# NC_genes <- c("AGTRAP", "BRINP2", "CDH11", "CMTM8", "ENSGALG00000001136", "FRZB", "GADD45A", "HUNK", "LARP7", "LMX1B", "MRAS", "MSX1", "SFRP2", "SOX11", "SPSB4", "Z-FST", "ZEB2", "ZIC1",
+#               "BMP5", "CDH6", "CSRNP1", "DRAXIN", "EN1", "ENSGALG00000013505", "FOXD3", "NKD1", "NRP2", "OLFM1", "PAX7", "SNAI2", "SOX9", "TFAP2B", "TMEM132C", "TSPAN18", "WLS", "WNT6", "Z-ENC1", "ZFHX4", "ZNF423",
+#               "CDON", "COTL1", "ENSGALG00000048488", "MFAP2", "PRTG", "TUBB3",
+#               "COL9A3", "ENSGALG00000037717", "ENSGALG00000053185", "ERMN", "ETS1", "LMO4", "PPP1R1C", "RASL11B", "RFTN2", "SOX10", "SOX8", "TNC", "Z-MEF2C", "Z-PLK2",
+#               "CXCR4", "ENSGALG00000030512", "ENSGALG00000031427", "FABP7", "FKBP11", "GLIPR2", "ID1", "ID2", "MEOX1", "MYL4", "OLFML3", "SOX5", "WNT1")
+
+
+#####################################################################
+############################## ss8 PPR GM12 #################################
+
+plot_path = "./plots/ss8_PPR_GM12/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("AKR1D1", "ATP1A1", "ATP1B1", "ATP2B1", "B3GNT7", "CCDC25", "CGNL1", "DAG1", "EMILIN2", "ENSGALG00000004814", "EPCAM", "FAM184B", "FAM89A", "GATA2", "GATA3", "IRAK2", "IRF6", "MAP7", "METRNL", "MPZL3", "NET1", "PLEKHA5", "POGLUT2", "PPFIBP1", "RGN", "SLC16A10", "SLC25A4", "TSPAN13", "TTC39A", "UNC5B", "Z-TJP2")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
   
 }
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "ss8_PPR_GM12_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## ss8 PPR GM14 #################################
+
+plot_path = "./plots/ss8_PPR_GM14/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("BRINP1", "CITED4", "DLX5", "DLX6", "ENSGALG00000023936", "ENSGALG00000040010", "FN1", "HESX1", "HIF1A", "KCNAB1", "LAMB1", "LRP11", "NFKB1", "PAX6", "PITX1", "PITX2", "SEM1", "SFRP1", "SH3D19", "SHISA2", "SIX3", "SPON1", "SST", "WDR1", "Z-HAPLN1")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "ss8_PPR_GM14_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## ss8 PPR GM13 #################################
+
+plot_path = "./plots/ss8_PPR_GM13/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("AKAP12", "ASS1", "BASP1", "CD99", "ENSGALG00000011296", "ENSGALG00000041054", "ENSGALG00000042443", "EYA2", "FERMT2", "LGMN", "METTL24", "NR2F2", "NUCKS1", "SIX1")
+
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "ss8_PPR_GM13_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+# NC_genes <- c("AGTRAP", "BRINP2", "CDH11", "CMTM8", "ENSGALG00000001136", "FRZB", "GADD45A", "HUNK", "LARP7", "LMX1B", "MRAS", "MSX1", "SFRP2", "SOX11", "SPSB4", "Z-FST", "ZEB2", "ZIC1",
+#               "BMP5", "CDH6", "CSRNP1", "DRAXIN", "EN1", "ENSGALG00000013505", "FOXD3", "NKD1", "NRP2", "OLFM1", "PAX7", "SNAI2", "SOX9", "TFAP2B", "TMEM132C", "TSPAN18", "WLS", "WNT6", "Z-ENC1", "ZFHX4", "ZNF423",
+#               "CDON", "COTL1", "ENSGALG00000048488", "MFAP2", "PRTG", "TUBB3",
+#               "COL9A3", "ENSGALG00000037717", "ENSGALG00000053185", "ERMN", "ETS1", "LMO4", "PPP1R1C", "RASL11B", "RFTN2", "SOX10", "SOX8", "TNC", "Z-MEF2C", "Z-PLK2",
+#               "CXCR4", "ENSGALG00000030512", "ENSGALG00000031427", "FABP7", "FKBP11", "GLIPR2", "ID1", "ID2", "MEOX1", "MYL4", "OLFML3", "SOX5", "WNT1")
+
+#####################################################################
+############################## ss8_NC_GM40 #################################
+
+plot_path = "./plots/ss8_NC_GM40/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("AGTRAP", "BRINP2", "CDH11", "CMTM8", "ENSGALG00000001136", "FRZB", "GADD45A", "HUNK", "LARP7", "LMX1B", "MRAS", "MSX1", "SFRP2", "SOX11", "SPSB4", "Z-FST", "ZEB2", "ZIC1")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "ss8_NC_GM40_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## ss8_NC_GM42 #################################
+
+plot_path = "./plots/ss8_NC_GM42/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("BMP5", "CDH6", "CSRNP1", "DRAXIN", "EN1", "ENSGALG00000013505", "FOXD3", "NKD1", "NRP2", "OLFM1", "PAX7", "SNAI2", "SOX9", "TFAP2B", "TMEM132C", "TSPAN18", "WLS", "WNT6", "Z-ENC1", "ZFHX4", "ZNF423")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "ss8_NC_GM42_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## ss8_NC_GM43 #################################
+
+plot_path = "./plots/ss8_NC_GM43/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("COL9A3", "ENSGALG00000037717", "ENSGALG00000053185", "ERMN", "ETS1", "LMO4", "PPP1R1C", "RASL11B", "RFTN2", "SOX10", "SOX8", "TNC", "Z-MEF2C", "Z-PLK2")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "ss8_NC_GM43_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## ss8_NC_GM42 #################################
+
+plot_path = "./plots/ss8_NC_GM42/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("CXCR4", "ENSGALG00000030512", "ENSGALG00000031427", "FABP7", "FKBP11", "GLIPR2", "ID1", "ID2", "MEOX1", "MYL4", "OLFML3", "SOX5", "WNT1")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "ss8_NC_GM42_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+
+
+# Full data GMs!!!!
+# PPR:
+#   GM23 <- c("ASS1", "BMP4", "BMP6", "CLDN3", "CSRP2", "DLX5", "DLX6", "EMILIN2", "ENSGALG00000001885", "ENSGALG00000023936", "ENSGALG00000040010", "ENSGALG00000042443", "ENSGALG00000050334", "ENSGALG00000052786", "EYA2", "FABP3", "FAM184B", "FAM89A", "FN1", "GATA2", "GATA3", "HAS2", "KCNAB1", "KRT18", "KRT19", "KRT7", "LAMB1", "NEDD9", "NET1", "PITX1", "SIX1", "SPON1", "TFAP2A", "TUBAL3", "UNC5B", "Z-HAPLN1")
+# Neural:
+#   GM9 <- c("CDH2", "CNTNAP1", "ENSGALG00000054487", "FEZF2", "LMO1", "LRRN1", "MSN", "MYLK", "NUAK1", "SOX21", "TOX", "Z-GRP", "Z-RAX")
+# Epiblast:
+#   GM21 <- c("ACSL1", "ACTN1", "AKR1D1", "ATP1A1", "ATP1B1", "B3GNT7", "BAMBI", "CCDC25", "CDK6", "CITED4", "CTSB", "CXCL12", "DAG1", "ENSGALG00000002988", "ENSGALG00000004814", "ENSGALG00000005572", "ENSGALG00000008518", "ENSGALG00000016570", "ENSGALG00000027805", "ENSGALG00000051984", "FIBIN", "HOMER2", "ID3", "IRF6", "KLF3", "LY6E", "MAP7", "METRNL", "MYL3", "MYL9", "NDRG1", "NT5DC2", "PDZK1IP1", "RGN", "S100A11", "SMIM4", "TFAP2C", "TTC39A")
+#   GM24 <- c("ADD3", "AIG1", "AMY1A", "AP1S3", "ARFGAP1", "ARL8BL", "ATP2B1", "CACNG3", "CD24", "CLDN1", "ENSGALG00000026754", "ENSGALG00000040886", "ENSGALG00000043421", "EPCAM", "G3BP1", "HSPA9", "IVNS1ABP", "MPZL3", "PDGFA", "SALL4", "SLC25A4", "SUCLG1", "TSPAN13", "Z-CTSV", "Z-PLPP1")
+
+#####################################################################
+############################## FullData_PPR_GM23 #################################
+
+plot_path = "./plots/FullData_PPR_GM23/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("ASS1", "BMP4", "BMP6", "CLDN3", "CSRP2", "DLX5", "DLX6", "EMILIN2", "ENSGALG00000001885", "ENSGALG00000023936", "ENSGALG00000040010", "ENSGALG00000042443", "ENSGALG00000050334", "ENSGALG00000052786", "EYA2", "FABP3", "FAM184B", "FAM89A", "FN1", "GATA2", "GATA3", "HAS2", "KCNAB1", "KRT18", "KRT19", "KRT7", "LAMB1", "NEDD9", "NET1", "PITX1", "SIX1", "SPON1", "TFAP2A", "TUBAL3", "UNC5B", "Z-HAPLN1")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "FullData_PPR_GM23_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## FullData_Neural_GM9 #################################
+
+plot_path = "./plots/FullData_Neural_GM9/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("CDH2", "CNTNAP1", "ENSGALG00000054487", "FEZF2", "LMO1", "LRRN1", "MSN", "MYLK", "NUAK1", "SOX21", "TOX", "Z-GRP", "Z-RAX")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "FullData_Neural_GM9_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## FullData_Epiblast_GM21 #################################
+
+plot_path = "./plots/FullData_Epiblast_GM21/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("ACSL1", "ACTN1", "AKR1D1", "ATP1A1", "ATP1B1", "B3GNT7", "BAMBI", "CCDC25", "CDK6", "CITED4", "CTSB", "CXCL12", "DAG1", "ENSGALG00000002988", "ENSGALG00000004814", "ENSGALG00000005572", "ENSGALG00000008518", "ENSGALG00000016570", "ENSGALG00000027805", "ENSGALG00000051984", "FIBIN", "HOMER2", "ID3", "IRF6", "KLF3", "LY6E", "MAP7", "METRNL", "MYL3", "MYL9", "NDRG1", "NT5DC2", "PDZK1IP1", "RGN", "S100A11", "SMIM4", "TFAP2C", "TTC39A")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "FullData_Epiblast_GM21_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
+
+#####################################################################
+############################## FullData_Epiblast_GM24 #################################
+
+plot_path = "./plots/FullData_Epiblast_GM24/"
+dir.create(plot_path, recursive = T)
+
+# set genes of interest
+genes <- c("ADD3", "AIG1", "AMY1A", "AP1S3", "ARFGAP1", "ARL8BL", "ATP2B1", "CACNG3", "CD24", "CLDN1", "ENSGALG00000026754", "ENSGALG00000040886", "ENSGALG00000043421", "EPCAM", "G3BP1", "HSPA9", "IVNS1ABP", "MPZL3", "PDGFA", "SALL4", "SLC25A4", "SUCLG1", "TSPAN13", "Z-CTSV", "Z-PLPP1")
+
+# init list of interacting peaks
+peaks <- list()
+
+# loop through genes and make plots (+ with enhancers highlighted if have that data)
+for (gene in genes){
+  
+  print(gene)
+  
+  # extract interactions to gene of interest above a correlation cut off
+  interactions <- p2g_df %>% 
+    filter(gene_name %in% gene) %>%
+    filter(Correlation > 0.5)
+  print(paste0(nrow(interactions), " interactions found"))
+  
+  # extract the peak IDs that interact with that gene - from the csv file
+  interacting_peaks <- unique(interactions$PeakID)
+  
+  # write the interacting peaks to list
+  peaks[[gene]] <- interacting_peaks
+  
+  # only run this bit if there are interacting peaks
+  if (length(interacting_peaks) > 0){
+    # extract the loops between the gene and these peaks for plotting
+    extracted_loops <- ArchR_ExtractLoopsToPlot(gene = gene, gene_locations = gene_locations,
+                                                interacting_peaks = interacting_peaks, 
+                                                interactions_granges = p2g_granges)
+    extracted_loops
+    
+    # make plot of these interactions
+    p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                interactions_granges = extracted_loops, return_plot = TRUE,
+                                group_by = opt$group_by,
+                                extend_by = 500, max_dist = Inf)
+    
+    
+    grid::grid.newpage()
+    
+    # plot
+    png(paste0(plot_path, gene, '_interactions_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p[[1]])
+    graphics.off()
+    
+  }
+  
+}
+
+# Open the file for writing
+file_conn <- file(paste0(txt_path, "FullData_Epiblast_GM24_interacting_peaks.txt"), "w")
+
+# Write the list to the file with the desired format
+for (key in names(peaks)) {
+  cat(paste(key, ";", paste0("\"", peaks[[key]], "\"", collapse = ", "), "\n"), file = file_conn)
+}
+
+# Close the file connection
+close(file_conn)
