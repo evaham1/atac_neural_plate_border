@@ -35,8 +35,7 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/"
-    rds_path = "./output/NF-downstream_analysis/Processing/ss8/motif_analysis/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Motif_analysis/rds_files/"
     plot_path = "./output/NF-downstream_analysis/Processing/ss8/motif_analysis/plots/"
     
     addArchRThreads(threads = 1) 
@@ -200,12 +199,22 @@ TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3",
         "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2", 
         "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX21", "NKX6-2")
 
+# extract all motif positions
+motifPositions <- getPositions(ArchR)
+
+# compute pseudoreplicates
+ArchR <- addGroupCoverages(ArchR, groupBy = opt$group_by)
+
 # loop through each TF to do footprinting
 for (TF in TFs){
   print(paste0("Calculating and plotting footprint for: ", TF))
   
+  # extract motif positions for that TF
+  positions <- motifPositions[TF]
+  print(paste0(length(positions[[1]]), " motif positions found"))
+  
   # compute footprints for TFs of interest
-  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = opt$group_by)
+  seFoot <- getFootprints(ArchR, positions = positions, groupBy = opt$group_by)
   seFoot
   
   ####### Plot TF footprints
