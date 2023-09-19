@@ -368,7 +368,7 @@ workflow A {
         SEURAT_EXPORT_DATA( MEGA_PAIRING_CHROMVAR.out )
         
         // then run scMEGA GRNi on the full data paired seurat object
-        //MEGA_GRNI( MEGA_CHROMVAR.out )
+        MEGA_GRNI( MEGA_PAIRING_CHROMVAR.out )
         
 
     }
