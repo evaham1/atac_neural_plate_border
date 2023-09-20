@@ -33,6 +33,8 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1)
     
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/" # ATAC
+    data_path = "./output/NF-downstream_analysis/rna_objects/" # RNA
     rds_path = "./output/NF-downstream_analysis/Processing/FullData/Transfer_latent_time/"
     
   } else if (opt$runtype == "nextflow"){
@@ -72,15 +74,24 @@ RNA_obj <- readRDS(paste0(data_path, "seurat_label_transfer_latent_time.RDS"))
 RNA_metadata <- FetchData(RNA_obj, vars = c("latent_time", "lineage_NC_probability", "lineage_neural_probability", "lineage_placodal_probability"))
 RNA_metadata <- rownames_to_column(RNA_metadata, var = "predictedCell_Un")
 head(RNA_metadata)
+dim(RNA_metadata) # 17992     5
 
 # extract the matched RNA cell IDs from the ATAC object
 ATAC_metadata <- getCellColData(ArchR, select = "predictedCell_Un")
 ATAC_metadata <- rownames_to_column(as.data.frame(ATAC_metadata), var = "ATAC_Cell_ID")
 head(ATAC_metadata)
+dim(ATAC_metadata) # 86217     2
 
 # match the two dataframes using the matched RNA cell IDs
-merged_metadata <- merge(RNA_metadata, ATAC_metadata, by = "predictedCell_Un")
+merged_metadata <- merge(ATAC_metadata, RNA_metadata, by = "predictedCell_Un", all.x = TRUE)
 head(merged_metadata)
+dim(merged_metadata) # 86217     6
+
+# make new column indicating if that cell is not part of the latent time calculation
+sum(is.na(merged_metadata$latent_time)) # 4316 cells NA for latent time
+merged_metadata <- merged_metadata %>% 
+  mutate(in_trajectory = ifelse(is.na(latent_time), FALSE, TRUE)) %>%
+  mutate_all(~ifelse(is.na(.), 0, .))
 
 ############################## Add data to ArchR object #######################################
 
@@ -89,28 +100,38 @@ ArchR <- addCellColData(ArchR, data = merged_metadata$latent_time, name = "rna_l
 ArchR <- addCellColData(ArchR, data = merged_metadata$lineage_neural_probability, name = "rna_lineage_neural_probability", cells = merged_metadata$ATAC_Cell_ID, force = T)
 ArchR <- addCellColData(ArchR, data = merged_metadata$lineage_NC_probability, name = "rna_lineage_NC_probability", cells = merged_metadata$ATAC_Cell_ID, force = T)
 ArchR <- addCellColData(ArchR, data = merged_metadata$lineage_placodal_probability, name = "rna_lineage_placodal_probability", cells = merged_metadata$ATAC_Cell_ID, force = T)
+ArchR <- addCellColData(ArchR, data = merged_metadata$in_trajectory, name = "in_rna_lineage", cells = merged_metadata$ATAC_Cell_ID, force = T)
 
 ############################## Plots #######################################
 
 # plot these transferred labels
+
 png(paste0(plot_path, 'UMAP_latent_time.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "rna_latent_time", plotAs = "points", size = 2, baseSize = 0, 
-              labelSize = 0, legendSize = 0, labelAsFactors = FALSE)
+              labelSize = 0, legendSize = 0, labelAsFactors = FALSE, pal = ArchRPalettes$beach,
+              highlightCells = merged_metadata[merged_metadata$in_trajectory == TRUE, "ATAC_Cell_ID"]) + 
+  theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
 graphics.off()
 
 png(paste0(plot_path, 'UMAP_lineage_neural_probability.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "rna_lineage_neural_probability", plotAs = "points", size = 2, baseSize = 0, 
-              labelSize = 0, legendSize = 0, labelAsFactors = FALSE)
+              labelSize = 0, legendSize = 0, labelAsFactors = FALSE, pal = ArchRPalettes$beach,
+              highlightCells = merged_metadata[merged_metadata$in_trajectory == TRUE, "ATAC_Cell_ID"]) + 
+  theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
 graphics.off()
 
 png(paste0(plot_path, 'UMAP_lineage_NC_probability.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "rna_lineage_NC_probability", plotAs = "points", size = 2, baseSize = 0, 
-              labelSize = 0, legendSize = 0, labelAsFactors = FALSE)
+              labelSize = 0, legendSize = 0, labelAsFactors = FALSE, pal = ArchRPalettes$beach,
+              highlightCells = merged_metadata[merged_metadata$in_trajectory == TRUE, "ATAC_Cell_ID"]) + 
+  theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
 graphics.off()
 
 png(paste0(plot_path, 'UMAP_lineage_placodal_probability.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "rna_lineage_placodal_probability", plotAs = "points", size = 2, baseSize = 0, 
-              labelSize = 0, legendSize = 0, labelAsFactors = FALSE)
+              labelSize = 0, legendSize = 0, labelAsFactors = FALSE, pal = ArchRPalettes$beach,
+              highlightCells = merged_metadata[merged_metadata$in_trajectory == TRUE, "ATAC_Cell_ID"]) + 
+  theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
 graphics.off()
 
 
@@ -123,9 +144,21 @@ saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, "Transfer
 
 # ArchR <- addImputeWeights(ArchR)
 # 
+# trajMM  <- getTrajectory(ArchR, name = "rna_lineage_placodal_probability", useMatrix = "GeneScoreMatrix", log2Norm = FALSE)
+# p1 <- plotTrajectoryHeatmap(trajMM, varCutOff = 0.1, pal = paletteContinuous(set = "solarExtra"))
+# p1[[1]]
+# 
+# trajMM  <- getTrajectory(ArchR, name = "rna_lineage_neural_probability", useMatrix = "GeneScoreMatrix", log2Norm = FALSE)
+# p1 <- plotTrajectoryHeatmap(trajMM, varCutOff = 0.1, pal = paletteContinuous(set = "solarExtra"))
+# p1[[1]]
+# 
+# p1 <- plotTrajectory(ArchR, trajectory = "rna_lineage_placodal_probability", colorBy = "cellColData", name = "rna_lineage_placodal_probability", 
+#                      addArrow = F)
+# p1[[1]]
+# 
 # 
 # trajMM  <- getTrajectory(ArchR, name = "rna_lineage_placodal_probability", useMatrix = "GeneScoreMatrix", log2Norm = FALSE)
-# p2 <- trajectoryHeatmap(trajMM,  pal = paletteContinuous(set = "horizonExtra"))
+# p2 <- plotTrajectoryHeatmap(trajMM,  pal = paletteContinuous(set = "horizonExtra"))
 # 
 # p2 <- plotTrajectory(ArchR, trajectory = "rna_lineage_placodal_probability", colorBy = "GeneScoreMatrix", name = "SIX1", continuousSet = "blueYellow", addArrow = F)
 # p2[[1]]
