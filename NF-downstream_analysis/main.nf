@@ -46,6 +46,7 @@ include {R as REMOVE_CONTAM_FULL} from "$baseDir/modules/local/r/main"          
 include {R as RECLUSTER_FULL} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_clustering.R", checkIfExists: true) )
 include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/local/metadata"
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
+include {R as TRANSFER_LATENT_TIME_MINUS_CONTAM} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_diff_peaks.R", checkIfExists: true) )
 include {R as PLOT_DIM_RED_GENOMIC_SUBSETS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_dim_red_genomic_subsets.R", checkIfExists: true) )
@@ -249,15 +250,12 @@ workflow A {
         //MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
 
         //    Extra processing with full data  ////
-        //Remove contam from Full data and re-cluster
-        REMOVE_CONTAM_FULL( INTEGRATE.out )
-        RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
-
+        
         // Read in RNA object with latent time
         METADATA_RNA_LATENT_TIME( params.rna_latent_time_sample_sheet )
 
         // Transfer latent time from RNA full data to ATAC full data
-        RECLUSTER_FULL.out
+        INTEGRATE.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( METADATA_RNA_LATENT_TIME.out.metadata )
             .groupTuple( by:0 )
@@ -265,8 +263,22 @@ workflow A {
             .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
             .set {ch_transfer_latent_time} //[[sample_id:FullData], [plots, rds_files]]
-
         TRANSFER_LATENT_TIME( ch_transfer_latent_time )
+
+        // Remove contam from Full data and re-cluster
+        REMOVE_CONTAM_FULL( INTEGRATE.out )
+        RECLUSTER_FULL( REMOVE_CONTAM_FULL.out )
+
+        // Transfer latent time from RNA full data to ATAC full data WITHOUT CONTAM
+        RECLUSTER_FULL.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( METADATA_RNA_LATENT_TIME.out.metadata )
+            .groupTuple( by:0 )
+            //.view() //[[sample_id:FullData], [[rds_files], [seurat_label_transfer_latent_time.RDS]]]
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_latent_time.RDS]]
+            .set {ch_transfer_latent_time_minus_contam} //[[sample_id:FullData], [plots, rds_files]]
+        TRANSFER_LATENT_TIME_MINUS_CONTAM( ch_transfer_latent_time_minus_contam )
 
 
         ////// PLOTTING /////// - maybe move to multiview section once I've tested that it works
@@ -291,7 +303,7 @@ workflow A {
             .map { row -> [row[0], [row[1][0], row[2]]]}
             //.view() //[[sample_id:HH7], [rds_files, csv_files]]
             .set{ch_stages_coaccessibility}
-        //PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
+        PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
         
         // Motif analysis plots grouped by clusters
         // just needs the archr objects
