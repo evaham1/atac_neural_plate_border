@@ -85,18 +85,22 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo')
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+                              'PGC', 'BI', 'meso', 'endo',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                "#A5718D", "#3F918C", "#ed5e5f", "#9792A3")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo')
-# set colour palettes for UMAPs
-atac_scHelper_old_cols <- scHelper_cell_type_colours[unique(ArchR$scHelper_cell_type_old)]
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo',
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam')
+cols <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_type)]
+cols_broad <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_type_broad)]
 
 
 ###############################################################################################
@@ -109,13 +113,19 @@ dir.create(plot_path, recursive = T)
 ArchR_original <- ArchR
 
 png(paste0(plot_path, 'Original_tile_matrix.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_original, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'Original_tile_matrix_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_original, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, "Original_tile_matrix_broad.png"), width=30, height=40, units = 'cm', res = 200)
+plotEmbedding(ArchR,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
 ########################## Dim reduction on peak matrix: ALL peaks ###############################
@@ -128,25 +138,27 @@ ArchR_peaks <- addClusters(ArchR_peaks, name = "clusters", resolution = 1, force
 print("clustering ran")
 
 png(paste0(plot_path, 'All_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR_peaks,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'All_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, 'All_peaks_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_peaks,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
 
 ########################## Dim reduction on peak matrix: DISTAL peaks ###############################
 
-#peak_matrix <- getMatrixFromProject(ArchR, useMatrix = "PeakMatrix", threads = 1)
 peak_set <- getPeakSet(ArchR)
 
 # extract distal peaks
-#distal_names <- peak_data[which(peak_data$peakType == "Distal"), ]$name
-#distal_peaks <- peak_matrix[which(rowData(peak_matrix)$name %in% distal_names), ]
-
 distal_peak_set <- peak_set[which(peak_set$peakType == "Distal"), ]
 
 # overwrite peakset of ArchR object to only include distal peaks
@@ -163,13 +175,19 @@ ArchR_distal_peaks <- addClusters(ArchR_distal_peaks, name = "clusters", resolut
 print("clustering ran")
 
 png(paste0(plot_path, 'Distal_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_distal_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR_distal_peaks,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'Distal_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_distal_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, 'Distal_peaks_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_distal_peaks,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
 ########################## Dim reduction on peak matrix: PROMOTER peaks ###############################
@@ -190,13 +208,19 @@ ArchR_promoter_peaks <- addClusters(ArchR_promoter_peaks, name = "clusters", res
 print("clustering ran")
 
 png(paste0(plot_path, 'Promoter_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_promoter_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR_promoter_peaks,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'Promoter_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_promoter_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, 'Promoter_peaks_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_promoter_peaks,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
 ########################## Dim reduction on peak matrix: PROMOTER+EXONIC peaks ###############################
@@ -217,13 +241,19 @@ ArchR_genes_peaks <- addClusters(ArchR_genes_peaks, name = "clusters", resolutio
 print("clustering ran")
 
 png(paste0(plot_path, 'Promoter_and_exonic_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR_genes_peaks,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'Promoter_and_exonic_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, 'Promoter_and_exonic_peaks_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_genes_peaks,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
 ########################## Dim reduction on peak matrix: EXONIC peaks ###############################
@@ -244,13 +274,19 @@ ArchR_exonic_peaks <- addClusters(ArchR_exonic_peaks, name = "clusters", resolut
 print("clustering ran")
 
 png(paste0(plot_path, 'Exonic_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_exonic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR_exonic_peaks,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'Exonic_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_exonic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, 'Exonic_peaks_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_exonic_peaks,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
 ########################## Dim reduction on peak matrix: INTRONIC peaks ###############################
@@ -271,13 +307,19 @@ ArchR_intronic_peaks <- addClusters(ArchR_intronic_peaks, name = "clusters", res
 print("clustering ran")
 
 png(paste0(plot_path, 'Intronic_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_intronic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR_intronic_peaks,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'Intronic_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_intronic_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, 'Intronic_peaks_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_intronic_peaks,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
 ########################## Dim reduction on peak matrix: INTRONIC+DISTAL peaks ###############################
@@ -298,11 +340,17 @@ ArchR_ex_genes_peaks <- addClusters(ArchR_ex_genes_peaks, name = "clusters", res
 print("clustering ran")
 
 png(paste0(plot_path, 'Intronic_and_distal_peaks.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_ex_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 8, legendSize = 0, pal = atac_scHelper_old_cols, labelAsFactors = FALSE)
+plotEmbedding(ArchR_ex_genes_peaks,
+              name = "transferred_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
 
-png(paste0(plot_path, 'Intronic_and_distal_peaks_nolabel.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_ex_genes_peaks, name = "scHelper_cell_type_old", plotAs = "points", size = 1.8, baseSize = 0, 
-              labelSize = 0, legendSize = 0, pal = atac_scHelper_old_cols)
+png(paste0(plot_path, 'Intronic_and_distal_peaks_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR_ex_genes_peaks,
+              name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE)
 graphics.off()
