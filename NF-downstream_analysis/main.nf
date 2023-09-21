@@ -341,19 +341,15 @@ workflow A {
 
         // read in RNA full data
         METADATA_RNA_SC( params.rna_latent_time_sample_sheet )
-        // remove HH4 from RNA full data
-        // REMOVE_HH4( METADATA_RNA_SC.out.metadata )
-        
-        // // extract RNA seurat object
-        // REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     .flatMap {it[1][0].listFiles()}
-        //     //.view() //seurat_label_transfer_minus_HH4.RDS
-        //     .map { row -> [[sample_id:'FullData'], row] }
-        //     .set { ch_rna }
-
-        METADATA_RNA_SC.out.metadata
-            .set{ ch_rna }
+        //remove HH4 from RNA full data
+        REMOVE_HH4( METADATA_RNA_SC.out.metadata )
+        // extract RNA seurat object
+        REMOVE_HH4.out //[[sample_id:FullData], [plots, rds_files]]
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .flatMap {it[1][0].listFiles()}
+            //.view() //seurat_label_transfer_minus_HH4.RDS
+            .map { row -> [[sample_id:'FullData'], row] }
+            .set { ch_rna }
    
         ////    Integrate RNA and ATAC data    ////
 
