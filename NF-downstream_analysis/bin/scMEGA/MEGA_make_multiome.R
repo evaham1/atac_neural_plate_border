@@ -215,33 +215,33 @@ print("Checking metadata...")
 print(obj.pair)
 print(head(obj.pair@meta.data))
 
-# ############################## Add motif information #######################################
+############################## Add motif information #######################################
 
-# # download motif database
-# motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
+# download motif database
+motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
 
-# # add motif information to ATAC data
-# obj.pair <- AddMotifs(
-#   object = obj.pair,
-#   genome = BSgenome.Ggallus.UCSC.galGal6,
-#   pfm = motifList,
-#   assay = "ATAC"
-# )
+# add motif information to ATAC data
+obj.pair <- AddMotifs(
+  object = obj.pair,
+  genome = BSgenome.Ggallus.UCSC.galGal6,
+  pfm = motifList,
+  assay = "ATAC"
+)
 
-# ############################## Run chromvar #######################################
+############################## Run chromvar #######################################
 
-# ## NB if I try to rename motifList by TF names like I do when running chromvar in ArchR this fails
+## NB if I try to rename motifList by TF names like I do when running chromvar in ArchR this fails
 
-# print("Running chromVar...")
+print("Running chromVar...")
 
-# BiocParallel::register(SerialParam())
+BiocParallel::register(SerialParam())
 
-# # run chromvar
-# obj.pair <- RunChromVAR(
-#   object = obj.pair,
-#   genome = BSgenome.Ggallus.UCSC.galGal6,
-#   assay = 'ATAC'
-# )
+# run chromvar
+obj.pair <- RunChromVAR(
+  object = obj.pair,
+  genome = BSgenome.Ggallus.UCSC.galGal6,
+  assay = 'ATAC'
+)
 
 ############################## Save #######################################
 
