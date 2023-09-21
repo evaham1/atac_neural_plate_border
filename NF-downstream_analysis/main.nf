@@ -60,8 +60,8 @@ include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflow
 include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
 
-include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
-include {R as MEGA_PAIRING_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_pairing_and_chromvar.R", checkIfExists: true) )
+// include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
+include {R as MEGA_PAIRING_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_make_multiome.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 
 include {R as SEURAT_EXPORT_DATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_export_data.R", checkIfExists: true) )
@@ -340,9 +340,7 @@ workflow A {
         ////    Prep RNA data    ////
 
         // read in RNA full data
-        METADATA_RNA_SC( params.rna_fulldata_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
-                                            // [[sample_id:HH6], [HH6_clustered_data.RDS]]
-                                            // etc
+        METADATA_RNA_SC( params.rna_latent_time_sample_sheet )
         // remove HH4 from RNA full data
         REMOVE_HH4( METADATA_RNA_SC.out.metadata )
         
@@ -366,9 +364,6 @@ workflow A {
             .map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
             //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
             .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
-
-        // integrate the stages into a coembedding seurat object
-        MEGA_INTEGRATION( ch_integrate )
 
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
         MEGA_PAIRING_CHROMVAR( MEGA_INTEGRATION.out )

@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("Run scMEGA on integrated RNA/ATAC object to infer GRN")
+print("Pair RNA and ATAC cells to make multiome data, then run ChromVar")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -207,129 +207,42 @@ graphics.off()
 
 print("cells paired!")
 
-############################## Transfer over RNA trajectories #######################################
-# when tried recalculating trajectories was crap so instead use RNA velocity latent time and
-# lineage probabilities which were calculated on RNA data
+############################## Check object #######################################
 
-## NEED TO SEE WHERE THIS TRAJECTORY COMES FROM IN SEURAT OBJECT
+print("Checking metadata...")
 
-############################## Run chromvar #######################################
+# check final object has all the correct metadata (including the latent time values)
+print(obj.pair)
+print(head(obj.pair@meta.data))
 
-## NB if I try to rename motifList by TF names like I do when running chromvar in ArchR this fails
+# ############################## Add motif information #######################################
 
-BiocParallel::register(SerialParam())
+# # download motif database
+# motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
 
-# run chromvar
-obj_chromvar <- RunChromVAR(
-  object = obj.motifs,
-  genome = BSgenome.Ggallus.UCSC.galGal6,
-  assay = 'ATAC'
-)
+# # add motif information to ATAC data
+# obj.pair <- AddMotifs(
+#   object = obj.pair,
+#   genome = BSgenome.Ggallus.UCSC.galGal6,
+#   pfm = motifList,
+#   assay = "ATAC"
+# )
 
-## NEED TO SEE WHERE THIS IS SAVED TO SEE IF I CAN JUST USE CHROMVAR FROM ARCHR
+# ############################## Run chromvar #######################################
 
-############################## Filter genes and TFs #######################################
+# ## NB if I try to rename motifList by TF names like I do when running chromvar in ArchR this fails
 
-# select the TFs that correlate in 'activity' and expression
-res <- SelectTFs(object = obj.trajectory, trajectory.name = "Trajectory", return.heatmap = TRUE,
-                 cor.cutoff = 0.1)
+# print("Running chromVar...")
 
-# save the (top 100?) TFs that correlate
-df.cor <- res$tfs
-write.csv(df.cor, file = paste0(temp_rds_path, "TF_correlations.csv"), row.names = FALSE)
+# BiocParallel::register(SerialParam())
 
-# plot TF activity dynamics across trajectory
-ht <- res$heatmap
-png(paste0(temp_plot_path, 'TFs_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
-draw(ht)
-graphics.off()
+# # run chromvar
+# obj.pair <- RunChromVAR(
+#   object = obj.pair,
+#   genome = BSgenome.Ggallus.UCSC.galGal6,
+#   assay = 'ATAC'
+# )
 
-# select top 10% genes that vary with the trajectory and correlate with peaks
-res <- SelectGenes(object = obj.trajectory,
-                   labelTop1 = 0,
-                   labelTop2 = 0)
+############################## Save #######################################
 
-# save the most variable genes
-df.p2g <- res$p2g
-write.csv(df.p2g, file = paste0(temp_rds_path, "Variable_genes_and_matched_enhancers.csv"), row.names = FALSE)
-
-# plot the dynamics of these genes across trajectory
-ht <- res$heatmap
-png(paste0(temp_plot_path, 'Genes_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
-draw(ht)
-graphics.off()
-
-############################## GRN inference #######################################
-
-# GRN inference
-tf.gene.cor <- GetTFGeneCorrelation(object = obj.trajectory, 
-                                    tf.use = df.cor$tfs, 
-                                    gene.use = unique(df.p2g$gene),
-                                    tf.assay = "chromvar", 
-                                    gene.assay = "RNA",
-                                    trajectory.name = "Trajectory")
-
-## plot TF-gene correlation heatmap
-ht <- GRNHeatmap(tf.gene.cor, tf.timepoint = df.cor$time_point)
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
-ht
-graphics.off()
-
-# associate genes with TFs by looking for TF binding sites in their respective linked enhancers
-motif.matching <- obj.trajectory@assays$ATAC@motifs@data
-colnames(motif.matching) <- obj.trajectory@assays$ATAC@motifs@motif.names
-motif.matching <- motif.matching[unique(df.p2g$peak), unique(tf.gene.cor$tf)]
-
-# take the TF-gene correlation, peak-TF binding prediction and peaks-to-genes linkage to build network
-df.grn <- GetGRN(motif.matching = motif.matching, 
-                 df.cor = tf.gene.cor, 
-                 df.p2g = df.p2g)
-
-# save network
-write.csv(df.grn, file = paste0(temp_rds_path, "GRN_data.csv"), row.names = FALSE)
-
-############################## GRN visualisation #######################################
-
-# define colors for nodes representing TFs (i.e., regulators)
-df.cor <- df.cor[order(df.cor$time_point), ]
-tfs.timepoint <- df.cor$time_point
-names(tfs.timepoint) <- df.cor$tfs
-
-# filter the grn before plotting
-df.grn2 <- df.grn %>%
-  subset(correlation > 0.8) %>%
-  dplyr::select(c(tf, gene, correlation)) %>%
-  rename(weights = correlation)
-
-# which TFs are left in the GRN
-unique(df.grn2$tf)
-
-# plot GRN, specifying set of TFS
-p <- GRNPlot(df.grn2, 
-             tfs.use = c("SIX1", "DLX5", "DLX6", "GATA2", "GATA3", "SNAI2", "SOX13", "SOX2", "SOX21",
-                         "TFAP2A", "TFAP2B", "TFAP2C", "ZIC1", "ZIC3"),
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             seed = 42, 
-             plot.importance = TRUE,
-             min.importance = 2,
-             remove.isolated = FALSE)
-
-options(repr.plot.height = 20, repr.plot.width = 20)
-
-png(paste0(temp_plot_path, 'Network_filtered_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
-
-# plot all TFs 
-p <- GRNPlot(df.grn2,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             seed = 42, 
-             plot.importance = TRUE,
-             min.importance = 2,
-             remove.isolated = FALSE)
-
-png(paste0(temp_plot_path, 'Network_all.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
+saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
