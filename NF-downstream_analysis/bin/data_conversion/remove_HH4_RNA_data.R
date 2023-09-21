@@ -55,8 +55,12 @@ if(opt$verbose) print(opt)
 
 ############################## Load data #######################################
 
+# input can be named anything but needs to be only one input file
+label <- unique(list.files(data_path))
+print(label) 
+
 # Load seurat data
-seurat_data <- readRDS(paste0(data_path, "seurat_label_transfer.RDS"))
+seurat_data <- readRDS(paste0(data_path, label))
 
 ############################## Remove HH4 #######################################
 
