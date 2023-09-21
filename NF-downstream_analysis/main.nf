@@ -366,7 +366,7 @@ workflow A {
             .set {ch_integrate} //[[sample_id:FullData], [plots, rds_files]]
 
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
-        MEGA_PAIRING_CHROMVAR( MEGA_INTEGRATION.out )
+        MEGA_PAIRING_CHROMVAR( ch_integrate.out )
 
         ////    GRN inference    ////
 
