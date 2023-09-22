@@ -20,6 +20,7 @@ library(BSgenome.Ggallus.UCSC.galGal6)
 library(SummarizedExperiment)
 library(igraph)
 library(ggraph)
+library(BiocParallel)
 
 ############################## Set up script options #######################################
 # Read in command line opts
