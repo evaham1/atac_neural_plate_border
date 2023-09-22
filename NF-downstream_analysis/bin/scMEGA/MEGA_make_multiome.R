@@ -55,7 +55,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     rds_path = "./rds_files/"
     ncores = opt$cores
     
@@ -83,8 +83,11 @@ obj.rna <- readRDS(paste0(data_path, "seurat_label_transfer_minus_HH4.RDS"))
 obj.atac <- readRDS(paste0(data_path, "rds_files/ATAC_seurat.RDS"))
 
 # read in cell pairings from archr integration - in input/rds_files folder
-df.pair <- read.csv(paste0(data_path, "./rds_files/archr_cell_pairings.csv"))
+df.pair <- read.csv(paste0(data_path, "rds_files/archr_cell_pairings.csv"))
 head(df.pair)
+
+# read in gene activity matrix - in input/rds_files folder
+gene.activity <- readRDS(paste0(data_path, "rds_files/gene_score_matrix.RDS"))
 
 print("data read in!")
 
