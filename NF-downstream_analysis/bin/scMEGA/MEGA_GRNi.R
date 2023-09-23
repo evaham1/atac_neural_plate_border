@@ -302,12 +302,12 @@ head(obj.pair@meta.data)
 
 # then need them to be between 0 and 100
 summary(obj.pair@meta.data$lineage_placodal_probability)
-obj.pair@meta.data$rna_lineage_placodal_probability <- obj.pair@meta.data$lineage_placodal_probability * 100
+obj.pair@meta.data$lineage_placodal_probability <- obj.pair@meta.data$lineage_placodal_probability * 100
 summary(obj.pair@meta.data$lineage_placodal_probability)
-# hist(obj.pair@meta.data$rna_lineage_placodal_probability, breaks = 100)
+# hist(obj.pair@meta.data$lineage_placodal_probability, breaks = 100)
 
-obj.pair@meta.data$rna_lineage_NC_probability <- obj.pair@meta.data$lineage_NC_probability * 100
-obj.pair@meta.data$rna_lineage_neural_probability <- obj.pair@meta.data$lineage_neural_probability * 100
+obj.pair@meta.data$lineage_NC_probability <- obj.pair@meta.data$lineage_NC_probability * 100
+obj.pair@meta.data$lineage_neural_probability <- obj.pair@meta.data$lineage_neural_probability * 100
 
 ############################## Save seurat object #######################################
 
