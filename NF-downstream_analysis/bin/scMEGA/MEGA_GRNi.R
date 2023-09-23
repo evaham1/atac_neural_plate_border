@@ -301,13 +301,13 @@ obj.pair
 head(obj.pair@meta.data)
 
 # then need them to be between 0 and 100
-summary(obj.pair@meta.data$rna_lineage_placodal_probability)
-obj.pair@meta.data$rna_lineage_placodal_probability <- obj.pair@meta.data$rna_lineage_placodal_probability * 100
-summary(obj.pair@meta.data$rna_lineage_placodal_probability)
+summary(obj.pair@meta.data$lineage_placodal_probability)
+obj.pair@meta.data$rna_lineage_placodal_probability <- obj.pair@meta.data$lineage_placodal_probability * 100
+summary(obj.pair@meta.data$lineage_placodal_probability)
 # hist(obj.pair@meta.data$rna_lineage_placodal_probability, breaks = 100)
 
-obj.pair@meta.data$rna_lineage_NC_probability <- obj.pair@meta.data$rna_lineage_NC_probability * 100
-obj.pair@meta.data$rna_lineage_neural_probability <- obj.pair@meta.data$rna_lineage_neural_probability * 100
+obj.pair@meta.data$rna_lineage_NC_probability <- obj.pair@meta.data$lineage_NC_probability * 100
+obj.pair@meta.data$rna_lineage_neural_probability <- obj.pair@meta.data$lineage_neural_probability * 100
 
 ############################## Save seurat object #######################################
 
@@ -325,7 +325,7 @@ temp_csv_path = "./csv_files/placodal_lineage/"
 dir.create(temp_csv_path, recursive = T)
 
 # select genes that vary with the trajectory and correlate with peaks
-res <- SelectGenes_updated(obj.pair, trajectory.name = "rna_lineage_placodal_probability", groupEvery = 2,
+res <- SelectGenes_updated(obj.pair, trajectory.name = "lineage_placodal_probability", groupEvery = 2,
                            var.cutoff.gene = 0.3, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.3, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
@@ -342,7 +342,7 @@ draw(ht)
 graphics.off()
 
 # select the TFs that correlate in 'activity' as defined by chromvar and expression
-res <- SelectTFs_updated(object = obj.pair, trajectory.name = "rna_lineage_placodal_probability", return.heatmap = TRUE,
+res <- SelectTFs_updated(object = obj.pair, trajectory.name = "lineage_placodal_probability", return.heatmap = TRUE,
                  groupEvery = 2,
                  p.cutoff = 0.01, cor.cutoff = 0.3)
 
@@ -369,7 +369,7 @@ df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.pair,
                                     gene.assay = "RNA",
                                     var.cutoff.gene = 0.3,
                                     groupEvery = 2,
-                                    trajectory.name = "rna_lineage_placodal_probability")
+                                    trajectory.name = "lineage_placodal_probability")
 
 # check that all the selected TFs and genes are in the correlation matrix
 if ( sum(unique(df.tfs$tf) %in% unique(df.tf.gene$tf)) != length(unique(df.tfs$tf)) ){
