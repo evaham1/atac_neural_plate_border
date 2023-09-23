@@ -442,7 +442,7 @@ png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 
 print(p)
 graphics.off()
 
-############################## Plot GRN maps using igraphs #######################################
+############################## Plot whole GRN map using igraphs #######################################
 
 # filter grn to only include TFs
 df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
@@ -451,6 +451,9 @@ dim(df.grn.tfs)
 # filter grn to only include positive interactions
 df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
 dim(df.grn.tfs)
+
+# extract data to plot
+links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
 
 # timepoint expression information of TFs
 nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
@@ -468,13 +471,129 @@ cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
 network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
 
 # Plot network - its different everytime, cant seem to fix randomness
-p <- plot(network, edge.arrow.size=0.2, edge.width = E(network)$correlation*5,
-     vertex.color = cols_matched$col,
-     vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8)
-
 png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
+plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
+          vertex.color = cols_matched$col,
+          vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+     layout = layout_nicely(network))
 graphics.off()
+
+## annoyingly there doesnt seem to be an easy way to prevent node overlap
+# plot(network, edge.arrow.size=0.2, edge.width = E(network)$correlation*5,
+#      vertex.color = cols_matched$col,
+#      vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+#      layout = layout_as_tree(network))
+
+############################## Plot known GRN map using igraphs #######################################
+
+# Plot network of just known TFs
+df.grn.known.tfs <- df.grn.tfs %>% 
+  filter(tf %in% c("ZNF462", "DLX5", "DLX6", "GATA2", "GATA3", "SIX1", "EYA2", "SIX4",
+                   "FOXI1", "FOXI3", "TFAP2A", "ZIC1", "ZIC5", "PRDM1", "PAX3", "PAX7",
+                   "MSX1", "AXUD1", "FOXD3", "SNAI2"))
+
+# extract data to plot
+links <- df.grn.known.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+
+# timepoint expression information of TFs
+nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+length(unique(nodes$tf))
+nodes <- nodes %>% 
+  dplyr::filter(tf %in% c(links$tf, links$gene)) %>% # remove TFs with no links
+  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+
+# colours for latent time
+cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+                   val = seq(1:100))
+cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+
+# Turn it into igraph object
+network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+
+# Plot network - its different everytime, cant seem to fix randomness
+png(paste0(temp_plot_path, 'Network_known_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+plot(network, edge.arrow.size=1, edge.width = E(network)$correlation*5,
+     vertex.color = cols_matched$col,
+     vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+     layout = layout_nicely(network))
+graphics.off()
+
+############################## Plot GRN map with high centrality using igraphs #######################################
+
+# TEAD3     TEAD3   6.083333
+# JUN         JUN   7.666667
+# ATF6       ATF6  25.000000
+# GATA3     GATA3  28.416667
+# REL         REL  41.333333
+# KLF6       KLF6  41.416667
+# ZBTB7A   ZBTB7A  53.750000
+# KLF11     KLF11  95.833333
+# RFX2       RFX2  99.500000
+# PBX1       PBX1 106.000000
+
+# Plot network of just known TFs
+df.grn.known.tfs <- df.grn.tfs %>% 
+  filter(tf %in% c("TEAD3", "JUN", "ATF6", "GATA3", "REL", "KLF6", "ZBTB7A", "KLF11",
+                   "RFX2", "PBX1"))
+
+# extract data to plot
+links <- df.grn.known.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+
+# timepoint expression information of TFs
+nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+length(unique(nodes$tf))
+nodes <- nodes %>% 
+  dplyr::filter(tf %in% c(links$tf, links$gene)) %>% # remove TFs with no links
+  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+
+# colours for latent time
+cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+                   val = seq(1:100))
+cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+
+# Turn it into igraph object
+network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+
+# Plot network - its different everytime, cant seem to fix randomness
+png(paste0(temp_plot_path, 'Network_high_betweeness_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+plot(network, edge.arrow.size=1, edge.width = E(network)$correlation*5,
+     vertex.color = cols_matched$col,
+     vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+     layout = layout_nicely(network))
+graphics.off()
+
+
+############################## Network analysis #######################################
+
+# degree: how many connections
+# eigenvector centrality: vertices that are in turn connected to other vertices that are highly interconnected in the network
+# betweenness: how frequently a vertex lies on the shortest path(s) between any two vertices in the network.
+
+# local degree centrality, ie the number of links held by a node
+degree.cent <- centr_degree(network, mode = "all")
+results <- data.frame(tf = nodes$tf,
+                      res = degree.cent$res)
+results <- results[order(results$res), ]
+print(results)
+
+# closeness centrality, closeness to all other nodes in the network
+closeness.cent <- closeness(network, mode="all")
+results <- data.frame(tf = nodes$tf,
+                      res = closeness.cent)
+results <- results[order(results$res), ]
+print(results)
+
+# betweeness, how frequently the vertex lies on shortest path between ay two vertices in network
+# ie how critical this node is to flow of information through the network
+betweeness <- betweenness(network, directed = "TRUE")
+results <- data.frame(tf = nodes$tf,
+                      res = betweeness)
+results <- results[order(results$res), ]
+print(results)
+
+# grouping factors
+x <- fastgreedy.community(network)
+
 
 ############################## Plot lineage dynamics #######################################
 
@@ -490,15 +609,77 @@ for (TF in df.tfs$tfs){
   graphics.off()
 }
 
-############################## Network analysis #######################################
-# Doesn't seem to work...
-
-netobj <- graph_from_data_frame(df.grn, directed = TRUE)
-V(netobj)$type <- ifelse(V(netobj)$name %in% df.grn$tf,"TF/Gene","Gene")
-
-TopEmbGRN(df.grn = netobj)
-
-NetCentPlot(netobj,"SOX10")
-subs
 
 
+############################## Interactive visualisation #######################################
+
+# Libraries
+library(tidyverse)
+library(viridis)
+library(patchwork)
+library(ggraph)
+library(igraph)
+library(networkD3)
+
+# Plot
+simpleNetwork(links,     
+              Source = 1,                 # column number of source
+              Target = 2,                 # column number of target
+              height = 880,               # height of frame area in pixels
+              width = 1980,
+              linkDistance = 50,         # distance between node. Increase this value to have more space between nodes
+              charge = -4,              # numeric value indicating either the strength of the node repulsion (negative value) or attraction (positive value)
+              fontSize = 5,              # size of the node names
+              fontFamily = "serif",       # font og node names
+              linkColour = "#666",        # colour of edges, MUST be a common colour for the whole graph
+              nodeColour = "#69b3a2",     # colour of nodes, MUST be a common colour for the whole graph
+              opacity = 0.9,              # opacity of nodes. 0=transparent. 1=no transparency
+              zoom = T                    # Can you zoom on the figure?
+)
+
+
+############################## Playing around with ggraph #######################################
+
+package <- data.frame(
+  name = c("igraph", "ggraph", "dplyr", "ggplot", "tidygraph")
+)
+
+tie <- data.frame(
+  from = c("igraph", "igraph", "ggplot", "igraph", "dplyr", "ggraph"),
+  to =   c("ggraph", "tidygraph", "ggraph", "tidygraph", "tidygraph", "tidygraph")
+)
+
+g = graph_from_data_frame(links, directed = TRUE, vertices = nodes)
+
+# use arrows for directions
+ggraph(g, layout = 'graphopt') + 
+  geom_edge_link(aes(start_cap = label_rect(node1.name), end_cap = label_rect(node2.name)), 
+                 arrow = arrow(type = "closed", length = unit(3, 'mm'))) + 
+  geom_node_text(aes(label = name)) +
+  geom_node_point(aes(fill = tfs.timepoint, size = 20),shape = 21) +
+  theme_graph()
+
+ 
+    
+ggraph(g, layout = 'graphopt') + 
+  geom_edge_link(aes(edge_width = correlation),edge_colour = "grey66") +
+    geom_node_text(aes(label = name)) +
+    geom_node_point(aes(colour = tfs.timepoint), size = 4)
+  theme_graph()
+  
+  got_palette <- c("#1A5878", "#C44237", "#AD8941", "#E99093", 
+                   "#50594B", "#8968CD", "#9ACD32", "#feb24c")
+  size = 2
+  ggraph(g, layout = "stress")+
+    geom_edge_link(aes(edge_width = correlation),edge_colour = "grey66",
+                    arrow = arrow(type = "open", length = unit(4, 'mm')),
+                    start_cap = label_rect(node1.name), end_cap = label_rect(node2.name))+
+    geom_node_text(aes(label = name)) +
+    geom_node_point(aes(fill = tfs.timepoint, size = 2),shape = 21)+
+    geom_node_text(aes(filter = size >= 26, label = name),family="serif")+
+    scale_fill_continuous()+
+    scale_edge_width(range = c(0.2,3))+
+    scale_size(range = c(1,8))+
+    theme_graph()+
+    theme(legend.position = "right")
+  
