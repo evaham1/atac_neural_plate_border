@@ -673,7 +673,7 @@ graphics.off()
 
 ############################## Plot lineage dynamics #######################################
 
-obj.pair <- AddTargetAssay_updated(test, df.grn = df.grn)
+obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
 
 # plot dynamics of each TF in network
 for (TF in df.tfs$tfs){
