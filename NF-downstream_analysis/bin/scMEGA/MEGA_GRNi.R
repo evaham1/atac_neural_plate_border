@@ -673,6 +673,9 @@ graphics.off()
 
 ############################## Plot lineage dynamics #######################################
 
+temp_plot_path = "./plots/placodal_lineage/lineage_dynamics_plots/"
+dir.create(temp_plot_path, recursive = T)
+
 obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
 
 # plot dynamics of each TF in network
@@ -680,7 +683,7 @@ for (TF in df.tfs$tfs){
   print(TF)
   
   png(paste0(temp_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-  PseudotimePlot_updated(obj.pair, trajectory.name = "rna_lineage_placodal_probability",
-                         tf.use = TF)
+  print(PseudotimePlot_updated(obj.pair, trajectory.name = "rna_lineage_placodal_probability",
+                         tf.use = TF))
   graphics.off()
 }
