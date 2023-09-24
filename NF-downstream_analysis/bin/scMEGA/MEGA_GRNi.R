@@ -510,8 +510,13 @@ dir.create(temp_plot_path, recursive = T)
 temp_csv_path = "./csv_files/placodal_lineage/"
 dir.create(temp_csv_path, recursive = T)
 
+trajectory <- "lineage_placodal_probability"
+
+temp_lineage_plot_path = "./plots/placodal_lineage/lineage_dynamics_plots/"
+dir.create(temp_lineage_plot_path, recursive = T)
+
 # select genes that vary with the trajectory and correlate with peaks
-res <- SelectGenes_updated(obj.pair, trajectory.name = "lineage_placodal_probability", groupEvery = 2,
+res <- SelectGenes_updated(obj.pair, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.3, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.3, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
@@ -528,7 +533,7 @@ draw(ht)
 graphics.off()
 
 # select the TFs that correlate in 'activity' as defined by chromvar and expression
-res <- SelectTFs_updated(object = obj.pair, trajectory.name = "lineage_placodal_probability", return.heatmap = TRUE,
+res <- SelectTFs_updated(object = obj.pair, trajectory.name = trajectory, return.heatmap = TRUE,
                  groupEvery = 2,
                  p.cutoff = 0.01, cor.cutoff = 0.3)
 
@@ -555,7 +560,7 @@ df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.pair,
                                     gene.assay = "RNA",
                                     var.cutoff.gene = 0.3,
                                     groupEvery = 2,
-                                    trajectory.name = "lineage_placodal_probability")
+                                    trajectory.name = trajectory)
 
 # check that all the selected TFs and genes are in the correlation matrix
 if ( sum(unique(df.tfs$tf) %in% unique(df.tf.gene$tf)) != length(unique(df.tfs$tf)) ){
@@ -673,8 +678,196 @@ graphics.off()
 
 ############################## Plot lineage dynamics #######################################
 
-temp_plot_path = "./plots/placodal_lineage/lineage_dynamics_plots/"
+obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
+
+# plot dynamics of each TF in network
+for (TF in df.tfs$tfs){
+  print(TF)
+  
+  png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
+  print(PseudotimePlot_updated(obj.pair, trajectory.name = trajectory,
+                         tf.use = TF))
+  graphics.off()
+}
+
+######################################################################################
+##############################    NC     #######################################
+######################################################################################
+
+############################## Filter genes and TFs #######################################
+
+temp_plot_path = "./plots/NC_lineage/"
 dir.create(temp_plot_path, recursive = T)
+temp_csv_path = "./csv_files/NC_lineage/"
+dir.create(temp_csv_path, recursive = T)
+
+trajectory <- "lineage_NC_probability"
+
+temp_lineage_plot_path = "./plots/NC_lineage/lineage_dynamics_plots/"
+dir.create(temp_lineage_plot_path, recursive = T)
+
+# select genes that vary with the trajectory and correlate with peaks
+res <- SelectGenes_updated(obj.pair, trajectory.name = trajectory, groupEvery = 2,
+                           var.cutoff.gene = 0.3, # how much gene expression has to vary across trajectory
+                           cor.cutoff = 0.3, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+
+# save the most variable genes
+df.p2g <- res$p2g
+dim(df.p2g)
+length(unique(df.p2g$gene))
+write.csv(df.p2g, file = paste0(temp_csv_path, "Variable_genes_and_matched_enhancers.csv"), row.names = FALSE)
+
+# plot the dynamics of these genes across trajectory
+ht <- res$heatmap
+png(paste0(temp_plot_path, 'Genes_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+# select the TFs that correlate in 'activity' as defined by chromvar and expression
+res <- SelectTFs_updated(object = obj.pair, trajectory.name = trajectory, return.heatmap = TRUE,
+                 groupEvery = 2,
+                 p.cutoff = 0.01, cor.cutoff = 0.3)
+
+# save the selected TFs
+df.tfs <- res$tfs
+dim(df.tfs)
+write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations.csv"), row.names = FALSE)
+unique(df.tfs$tfs)
+
+# plot TF activity dynamics across trajectory
+ht <- res$heatmap
+png(paste0(temp_plot_path, 'TFs_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+############################## Building quantiative GRN #######################################
+# by using correlation between accessibility of selected TF targets and expression of selected genes over trajectory
+
+# GRN inference
+df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.pair, 
+                                    tf.use = df.tfs$tfs, 
+                                    gene.use = unique(df.p2g$gene),
+                                    tf.assay = "chromvar", 
+                                    gene.assay = "RNA",
+                                    var.cutoff.gene = 0.3,
+                                    groupEvery = 2,
+                                    trajectory.name = trajectory)
+
+# check that all the selected TFs and genes are in the correlation matrix
+if ( sum(unique(df.tfs$tf) %in% unique(df.tf.gene$tf)) != length(unique(df.tfs$tf)) ){
+  stop("Not all selected TFs are in TF-gene correlation matrix!")
+}
+if ( sum(unique(df.p2g$gene) %in% unique(df.tf.gene$gene)) != length(unique(df.p2g$gene)) ){
+  stop("Not all selected genes are in TF-gene correlation matrix!")
+}
+
+# save the correlation matrix
+dim(df.tf.gene)
+write.csv(df.tf.gene, file = paste0(temp_csv_path, "TF_to_gene_correlations.csv"), row.names = FALSE)
+
+# plot TF-gene correlation heatmap
+ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
+png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+ht
+graphics.off()
+
+############################## Building enhancer-based GRN #######################################
+# To associate genes to TFs, we will use the peak-to-gene links and TF binding sites information 
+# if a gene is regulated by a peak AND this peak is bound by a TF, THEN we say this gene is a target of this TF
+
+# peak by TF matrix to indicate prescence of binding sites
+motif.matching <- obj.pair@assays$ATAC@motifs@data
+colnames(motif.matching) <- obj.pair@assays$ATAC@motifs@motif.names
+motif.matching <- motif.matching[unique(df.p2g$peak), unique(df.tfs$tf)]
+
+# take the TF-gene correlation, peak-TF binding prediction and peaks-to-genes linkage to build network
+df.grn <- GetGRN(motif.matching = motif.matching, 
+                 df.cor = df.tf.gene, 
+                 df.p2g = df.p2g)
+dim(df.grn)
+
+# check which tfs and genes in final network
+if ( sum(unique(df.tfs$tf) %in% unique(df.grn$tf)) != length(unique(df.tfs$tf)) ){
+  stop("Not all selected TFs are in TF-gene correlation matrix!")
+}
+print("How many selected genes didn't make it to final GRN: ")
+print(table(unique(df.p2g$gene) %in% unique(df.grn$gene)))
+
+# save network
+write.csv(df.grn, file = paste0(temp_csv_path, "GRN_data.csv"), row.names = FALSE)
+saveRDS(df.grn, file = paste0(temp_csv_path, "GRN_data.RDS"))
+
+
+############################## Plot GRN maps using scMEGA #######################################
+
+# define colors for nodes representing TFs (i.e., regulators)
+df.tfs <- df.tfs[order(df.tfs$time_point), ]
+tfs.timepoint <- df.tfs$time_point
+names(tfs.timepoint) <- df.tfs$tfs
+
+# plot whole GRN
+p <- GRNPlot(df.grn,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             seed = 42, 
+             plot.importance = TRUE,
+             min.importance = 2,
+             remove.isolated = FALSE)
+
+png(paste0(temp_plot_path, 'Network_all.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+
+# only plot TFs
+p <- GRNPlot(df.grn,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             plot.importance = TRUE,
+             genes.use = df.tfs$tfs,
+             remove.isolated = TRUE)
+
+png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+############################## Plot whole GRN map using igraphs #######################################
+
+# filter grn to only include TFs
+df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
+dim(df.grn.tfs)
+
+# filter grn to only include positive interactions
+df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
+dim(df.grn.tfs)
+
+# extract data to plot
+links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+
+# timepoint expression information of TFs
+nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+length(unique(nodes$tf))
+nodes <- nodes %>% 
+  dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
+  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+
+# colours for latent time
+cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+                   val = seq(1:100))
+cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+
+# Turn it into igraph object
+network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+
+# Plot network - its different everytime, cant seem to fix randomness
+png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
+          vertex.color = cols_matched$col,
+          vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+     layout = layout_nicely(network))
+graphics.off()
+
+############################## Plot lineage dynamics #######################################
 
 obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
 
@@ -682,8 +875,200 @@ obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
 for (TF in df.tfs$tfs){
   print(TF)
   
-  png(paste0(temp_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-  print(PseudotimePlot_updated(obj.pair, trajectory.name = "lineage_placodal_probability",
+  png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
+  print(PseudotimePlot_updated(obj.pair, trajectory.name = trajectory,
+                         tf.use = TF))
+  graphics.off()
+}
+
+
+######################################################################################
+##############################    Neural     #######################################
+######################################################################################
+
+############################## Filter genes and TFs #######################################
+
+temp_plot_path = "./plots/neural_lineage/"
+dir.create(temp_plot_path, recursive = T)
+temp_csv_path = "./csv_files/neural_lineage/"
+dir.create(temp_csv_path, recursive = T)
+
+trajectory <- "lineage_neural_probability"
+
+temp_lineage_plot_path = "./plots/neural_lineage/lineage_dynamics_plots/"
+dir.create(temp_lineage_plot_path, recursive = T)
+
+# select genes that vary with the trajectory and correlate with peaks
+res <- SelectGenes_updated(obj.pair, trajectory.name = trajectory, groupEvery = 2,
+                           var.cutoff.gene = 0.3, # how much gene expression has to vary across trajectory
+                           cor.cutoff = 0.3, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+
+# save the most variable genes
+df.p2g <- res$p2g
+dim(df.p2g)
+length(unique(df.p2g$gene))
+write.csv(df.p2g, file = paste0(temp_csv_path, "Variable_genes_and_matched_enhancers.csv"), row.names = FALSE)
+
+# plot the dynamics of these genes across trajectory
+ht <- res$heatmap
+png(paste0(temp_plot_path, 'Genes_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+# select the TFs that correlate in 'activity' as defined by chromvar and expression
+res <- SelectTFs_updated(object = obj.pair, trajectory.name = trajectory, return.heatmap = TRUE,
+                 groupEvery = 2,
+                 p.cutoff = 0.01, cor.cutoff = 0.3)
+
+# save the selected TFs
+df.tfs <- res$tfs
+dim(df.tfs)
+write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations.csv"), row.names = FALSE)
+unique(df.tfs$tfs)
+
+# plot TF activity dynamics across trajectory
+ht <- res$heatmap
+png(paste0(temp_plot_path, 'TFs_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+############################## Building quantiative GRN #######################################
+# by using correlation between accessibility of selected TF targets and expression of selected genes over trajectory
+
+# GRN inference
+df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.pair, 
+                                    tf.use = df.tfs$tfs, 
+                                    gene.use = unique(df.p2g$gene),
+                                    tf.assay = "chromvar", 
+                                    gene.assay = "RNA",
+                                    var.cutoff.gene = 0.3,
+                                    groupEvery = 2,
+                                    trajectory.name = trajectory)
+
+# check that all the selected TFs and genes are in the correlation matrix
+if ( sum(unique(df.tfs$tf) %in% unique(df.tf.gene$tf)) != length(unique(df.tfs$tf)) ){
+  stop("Not all selected TFs are in TF-gene correlation matrix!")
+}
+if ( sum(unique(df.p2g$gene) %in% unique(df.tf.gene$gene)) != length(unique(df.p2g$gene)) ){
+  stop("Not all selected genes are in TF-gene correlation matrix!")
+}
+
+# save the correlation matrix
+dim(df.tf.gene)
+write.csv(df.tf.gene, file = paste0(temp_csv_path, "TF_to_gene_correlations.csv"), row.names = FALSE)
+
+# plot TF-gene correlation heatmap
+ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
+png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+ht
+graphics.off()
+
+############################## Building enhancer-based GRN #######################################
+# To associate genes to TFs, we will use the peak-to-gene links and TF binding sites information 
+# if a gene is regulated by a peak AND this peak is bound by a TF, THEN we say this gene is a target of this TF
+
+# peak by TF matrix to indicate prescence of binding sites
+motif.matching <- obj.pair@assays$ATAC@motifs@data
+colnames(motif.matching) <- obj.pair@assays$ATAC@motifs@motif.names
+motif.matching <- motif.matching[unique(df.p2g$peak), unique(df.tfs$tf)]
+
+# take the TF-gene correlation, peak-TF binding prediction and peaks-to-genes linkage to build network
+df.grn <- GetGRN(motif.matching = motif.matching, 
+                 df.cor = df.tf.gene, 
+                 df.p2g = df.p2g)
+dim(df.grn)
+
+# check which tfs and genes in final network
+if ( sum(unique(df.tfs$tf) %in% unique(df.grn$tf)) != length(unique(df.tfs$tf)) ){
+  stop("Not all selected TFs are in TF-gene correlation matrix!")
+}
+print("How many selected genes didn't make it to final GRN: ")
+print(table(unique(df.p2g$gene) %in% unique(df.grn$gene)))
+
+# save network
+write.csv(df.grn, file = paste0(temp_csv_path, "GRN_data.csv"), row.names = FALSE)
+saveRDS(df.grn, file = paste0(temp_csv_path, "GRN_data.RDS"))
+
+
+############################## Plot GRN maps using scMEGA #######################################
+
+# define colors for nodes representing TFs (i.e., regulators)
+df.tfs <- df.tfs[order(df.tfs$time_point), ]
+tfs.timepoint <- df.tfs$time_point
+names(tfs.timepoint) <- df.tfs$tfs
+
+# plot whole GRN
+p <- GRNPlot(df.grn,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             seed = 42, 
+             plot.importance = TRUE,
+             min.importance = 2,
+             remove.isolated = FALSE)
+
+png(paste0(temp_plot_path, 'Network_all.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+
+# only plot TFs
+p <- GRNPlot(df.grn,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             plot.importance = TRUE,
+             genes.use = df.tfs$tfs,
+             remove.isolated = TRUE)
+
+png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
+
+############################## Plot whole GRN map using igraphs #######################################
+
+# filter grn to only include TFs
+df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
+dim(df.grn.tfs)
+
+# filter grn to only include positive interactions
+df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
+dim(df.grn.tfs)
+
+# extract data to plot
+links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+
+# timepoint expression information of TFs
+nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+length(unique(nodes$tf))
+nodes <- nodes %>% 
+  dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
+  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+
+# colours for latent time
+cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+                   val = seq(1:100))
+cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+
+# Turn it into igraph object
+network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+
+# Plot network - its different everytime, cant seem to fix randomness
+png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
+          vertex.color = cols_matched$col,
+          vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+     layout = layout_nicely(network))
+graphics.off()
+
+############################## Plot lineage dynamics #######################################
+
+obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
+
+# plot dynamics of each TF in network
+for (TF in df.tfs$tfs){
+  print(TF)
+  
+  png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
+  print(PseudotimePlot_updated(obj.pair, trajectory.name = trajectory,
                          tf.use = TF))
   graphics.off()
 }
