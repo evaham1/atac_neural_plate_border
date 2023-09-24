@@ -683,7 +683,7 @@ for (TF in df.tfs$tfs){
   print(TF)
   
   png(paste0(temp_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-  print(PseudotimePlot_updated(obj.pair, trajectory.name = "rna_lineage_placodal_probability",
+  print(PseudotimePlot_updated(obj.pair, trajectory.name = "lineage_placodal_probability",
                          tf.use = TF))
   graphics.off()
 }
