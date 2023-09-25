@@ -672,41 +672,41 @@ png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 
 print(p)
 graphics.off()
 
-############################## Plot whole GRN map using igraphs #######################################
+# ############################## Plot whole GRN map using igraphs #######################################
 
-# filter grn to only include TFs
-df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
-dim(df.grn.tfs)
+# # filter grn to only include TFs
+# df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
+# dim(df.grn.tfs)
 
-# filter grn to only include positive interactions
-df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
-dim(df.grn.tfs)
+# # filter grn to only include positive interactions
+# df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
+# dim(df.grn.tfs)
 
-# extract data to plot
-links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+# # extract data to plot
+# links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
 
-# timepoint expression information of TFs
-nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-length(unique(nodes$tf))
-nodes <- nodes %>% 
-  dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
-  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+# # timepoint expression information of TFs
+# nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+# length(unique(nodes$tf))
+# nodes <- nodes %>% 
+#   dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
+#   mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
 
-# colours for latent time
-cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-                   val = seq(1:100))
-cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+# # colours for latent time
+# cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+#                    val = seq(1:100))
+# cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
 
-# Turn it into igraph object
-network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+# # Turn it into igraph object
+# network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
 
-# Plot network - its different everytime, cant seem to fix randomness
-png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
-          vertex.color = cols_matched$col,
-          vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-     layout = layout_nicely(network))
-graphics.off()
+# # Plot network - its different everytime, cant seem to fix randomness
+# png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+# plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
+#           vertex.color = cols_matched$col,
+#           vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+#      layout = layout_nicely(network))
+# graphics.off()
 
 # ############################## Plot lineage dynamics #######################################
 
@@ -896,41 +896,41 @@ png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 
 print(p)
 graphics.off()
 
-############################## Plot whole GRN map using igraphs #######################################
+# ############################## Plot whole GRN map using igraphs #######################################
 
-# filter grn to only include TFs
-df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
-dim(df.grn.tfs)
+# # filter grn to only include TFs
+# df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
+# dim(df.grn.tfs)
 
-# filter grn to only include positive interactions
-df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
-dim(df.grn.tfs)
+# # filter grn to only include positive interactions
+# df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
+# dim(df.grn.tfs)
 
-# extract data to plot
-links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+# # extract data to plot
+# links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
 
-# timepoint expression information of TFs
-nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-length(unique(nodes$tf))
-nodes <- nodes %>% 
-  dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
-  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+# # timepoint expression information of TFs
+# nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+# length(unique(nodes$tf))
+# nodes <- nodes %>% 
+#   dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
+#   mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
 
-# colours for latent time
-cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-                   val = seq(1:100))
-cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+# # colours for latent time
+# cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+#                    val = seq(1:100))
+# cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
 
-# Turn it into igraph object
-network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+# # Turn it into igraph object
+# network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
 
-# Plot network - its different everytime, cant seem to fix randomness
-png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
-          vertex.color = cols_matched$col,
-          vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-     layout = layout_nicely(network))
-graphics.off()
+# # Plot network - its different everytime, cant seem to fix randomness
+# png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+# plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
+#           vertex.color = cols_matched$col,
+#           vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+#      layout = layout_nicely(network))
+# graphics.off()
 
 # ############################## Plot lineage dynamics #######################################
 
@@ -1121,41 +1121,41 @@ png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 
 print(p)
 graphics.off()
 
-############################## Plot whole GRN map using igraphs #######################################
+# ############################## Plot whole GRN map using igraphs #######################################
 
-# filter grn to only include TFs
-df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
-dim(df.grn.tfs)
+# # filter grn to only include TFs
+# df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
+# dim(df.grn.tfs)
 
-# filter grn to only include positive interactions
-df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
-dim(df.grn.tfs)
+# # filter grn to only include positive interactions
+# df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
+# dim(df.grn.tfs)
 
-# extract data to plot
-links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+# # extract data to plot
+# links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
 
-# timepoint expression information of TFs
-nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-length(unique(nodes$tf))
-nodes <- nodes %>% 
-  dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
-  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+# # timepoint expression information of TFs
+# nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+# length(unique(nodes$tf))
+# nodes <- nodes %>% 
+#   dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
+#   mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
 
-# colours for latent time
-cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-                   val = seq(1:100))
-cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+# # colours for latent time
+# cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+#                    val = seq(1:100))
+# cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
 
-# Turn it into igraph object
-network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+# # Turn it into igraph object
+# network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
 
-# Plot network - its different everytime, cant seem to fix randomness
-png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
-          vertex.color = cols_matched$col,
-          vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-     layout = layout_nicely(network))
-graphics.off()
+# # Plot network - its different everytime, cant seem to fix randomness
+# png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+# plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
+#           vertex.color = cols_matched$col,
+#           vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+#      layout = layout_nicely(network))
+# graphics.off()
 
 # ############################## Plot lineage dynamics #######################################
 
