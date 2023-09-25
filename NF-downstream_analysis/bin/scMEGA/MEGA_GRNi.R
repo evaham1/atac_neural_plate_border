@@ -602,10 +602,42 @@ if ( sum(unique(df.tfs$tf) %in% unique(df.grn$tf)) != length(unique(df.tfs$tf)) 
 print("How many selected genes didn't make it to final GRN: ")
 print(table(unique(df.p2g$gene) %in% unique(df.grn$gene)))
 
-# save network
-write.csv(df.grn, file = paste0(temp_csv_path, "GRN_data.csv"), row.names = FALSE)
-saveRDS(df.grn, file = paste0(temp_csv_path, "GRN_data.RDS"))
+############################## Save and filter final GRN #######################################
 
+# full network numbers
+df <- data.frame(nTFs = length(unique(df.grn$tf)),
+           nGenes = length(unique(df.grn$gene)),
+           nInteractions = nrow(df.grn),
+           nPositiveInteractions = length(which(df.grn$correlation > 0)),
+           nNegativeInteractions = length(which(df.grn$correlation < 0))
+           )
+png(paste0(temp_plot_path, 'Network_all_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# save full network (but shouldn't really use this)
+write.csv(df.grn, file = paste0(temp_csv_path, "GRN_unfiltered.csv"), row.names = FALSE)
+
+# filter network so only keep significant interactions (FDR < 0.01)
+df.grn <- df.grn %>%
+  dplyr::filter(fdr < 0.01)
+
+# filtered network numbers
+df <- data.frame(nTFs = length(unique(df.grn$tf)),
+           nGenes = length(unique(df.grn$gene)),
+           nInteractions = nrow(df.grn),
+           nPositiveInteractions = length(which(df.grn$correlation > 0)),
+           nNegativeInteractions = length(which(df.grn$correlation < 0))
+           )
+png(paste0(temp_plot_path, 'Network_filtered_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# save filtered network
+write.csv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.csv"), row.names = FALSE)
+saveRDS(df.grn, file = paste0(temp_csv_path, "GRN_filtered.RDS"))
 
 ############################## Plot GRN maps using scMEGA #######################################
 
