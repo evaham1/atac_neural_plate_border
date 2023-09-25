@@ -678,14 +678,14 @@ graphics.off()
 
 ############################## Plot lineage dynamics #######################################
 
-obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
+obj.temp <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
 
 # plot dynamics of each TF in network
 for (TF in df.tfs$tfs){
   print(TF)
   
   png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-  print(PseudotimePlot_updated(obj.pair, trajectory.name = trajectory,
+  print(PseudotimePlot_updated(obj.temp, trajectory.name = trajectory,
                          tf.use = TF))
   graphics.off()
 }
@@ -869,14 +869,14 @@ graphics.off()
 
 ############################## Plot lineage dynamics #######################################
 
-obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
+obj.temp <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
 
 # plot dynamics of each TF in network
 for (TF in df.tfs$tfs){
   print(TF)
   
   png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-  print(PseudotimePlot_updated(obj.pair, trajectory.name = trajectory,
+  print(PseudotimePlot_updated(obj.temp, trajectory.name = trajectory,
                          tf.use = TF))
   graphics.off()
 }
@@ -1061,14 +1061,14 @@ graphics.off()
 
 ############################## Plot lineage dynamics #######################################
 
-obj.pair <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
+obj.temp <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
 
 # plot dynamics of each TF in network
 for (TF in df.tfs$tfs){
   print(TF)
   
   png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-  print(PseudotimePlot_updated(obj.pair, trajectory.name = trajectory,
+  print(PseudotimePlot_updated(obj.temp, trajectory.name = trajectory,
                          tf.use = TF))
   graphics.off()
 }
