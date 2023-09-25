@@ -137,7 +137,7 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, gene_locations, interactions
   
   # make plot of all the interactions pertaining to one gene around that gene
   if(is.null(highlight_granges)){
-    p <- plotBrowserTrack(
+    p <- ArchR::plotBrowserTrack(
       ArchRProj = ArchR_obj,
       groupBy = group_by,
       geneSymbol = gene, 
@@ -147,7 +147,7 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, gene_locations, interactions
       title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
     )
   } else {
-    p <- plotBrowserTrack(
+    p <- ArchR::plotBrowserTrack(
       ArchRProj = ArchR_obj,
       groupBy = group_by,
       geneSymbol = gene, 
