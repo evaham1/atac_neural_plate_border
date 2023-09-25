@@ -102,9 +102,7 @@ ArchR <- addCellColData(ArchR, data = merged_metadata$lineage_NC_probability, na
 ArchR <- addCellColData(ArchR, data = merged_metadata$lineage_placodal_probability, name = "rna_lineage_placodal_probability", cells = merged_metadata$ATAC_Cell_ID, force = T)
 ArchR <- addCellColData(ArchR, data = merged_metadata$in_trajectory, name = "in_rna_lineage", cells = merged_metadata$ATAC_Cell_ID, force = T)
 
-############################## Plots #######################################
-
-# plot these transferred labels
+############################## Plots of lineage probabilities on full data #######################################
 
 png(paste0(plot_path, 'UMAP_latent_time.png'), height = 20, width = 20, units = 'cm', res = 400)
 plotEmbedding(ArchR, name = "rna_latent_time", plotAs = "points", size = 2, baseSize = 0, 
@@ -134,6 +132,87 @@ plotEmbedding(ArchR, name = "rna_lineage_placodal_probability", plotAs = "points
   theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
 graphics.off()
 
+############################## Plots of lineage probabilities thresholding at 25% #######################################
+# plot these lineages with a threshold of 25% and see which cell states are in them
+# these are the cells which are used for scMEGA GRN inference
+
+## Placodal
+idxPass <- which(ArchR$rna_lineage_placodal_probability > 0.25)
+cellsPass <- ArchR$cellNames[idxPass]
+ArchR_subset <- ArchR[cellsPass, ]
+
+png(paste0(plot_path, 'UMAP_lineage_placodal_probability_threshold.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "rna_lineage_placodal_probability", plotAs = "points", size = 2, baseSize = 0, 
+              labelSize = 0, legendSize = 0, labelAsFactors = FALSE, pal = ArchRPalettes$beach,
+              highlightCells = cellsPass) + 
+  theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
+graphics.off()
+
+cell_metadata <- getCellColData(ArchR_subset, select = c("rna_lineage_placodal_probability", "scHelper_cell_type", "stage"))
+
+cell_counts <- as.data.frame(table(cell_metadata$scHelper_cell_type))
+png(paste0(plot_path, 'placodal_trajectory_state_cell_counts_table.png'), height = 30, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+cell_counts <- as.data.frame(table(cell_metadata$stage))
+png(paste0(plot_path, 'placodal_trajectory_stage_cell_counts_table.png'), height = 10, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+## NC
+idxPass <- which(ArchR$rna_lineage_NC_probability > 0.2)
+cellsPass <- ArchR$cellNames[idxPass]
+ArchR_subset <- ArchR[cellsPass, ]
+
+png(paste0(plot_path, 'UMAP_lineage_NC_probability_threshold.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "rna_lineage_NC_probability", plotAs = "points", size = 2, baseSize = 0, 
+              labelSize = 0, legendSize = 0, labelAsFactors = FALSE, pal = ArchRPalettes$beach,
+              highlightCells = cellsPass) + 
+  theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
+graphics.off()
+
+cell_metadata <- getCellColData(ArchR_subset, select = c("rna_lineage_NC_probability", "scHelper_cell_type", "stage"))
+
+cell_counts <- as.data.frame(table(cell_metadata$scHelper_cell_type))
+png(paste0(plot_path, 'NC_trajectory_state_cell_counts_table.png'), height = 30, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+cell_counts <- as.data.frame(table(cell_metadata$stage))
+png(paste0(plot_path, 'NC_trajectory_stage_cell_counts_table.png'), height = 10, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+## Neural
+idxPass <- which(ArchR$rna_lineage_neural_probability > 0.25)
+cellsPass <- ArchR$cellNames[idxPass]
+ArchR_subset <- ArchR[cellsPass, ]
+
+png(paste0(plot_path, 'UMAP_lineage_neural_probability_threshold.png'), height = 20, width = 20, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "rna_lineage_neural_probability", plotAs = "points", size = 2, baseSize = 0, 
+              labelSize = 0, legendSize = 0, labelAsFactors = FALSE, pal = ArchRPalettes$beach,
+              highlightCells = cellsPass) + 
+  theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5)
+graphics.off()
+
+cell_metadata <- getCellColData(ArchR_subset, select = c("rna_lineage_neural_probability", "scHelper_cell_type", "stage"))
+
+cell_counts <- as.data.frame(table(cell_metadata$scHelper_cell_type))
+png(paste0(plot_path, 'neural_trajectory_state_cell_counts_table.png'), height = 30, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+cell_counts <- as.data.frame(table(cell_metadata$stage))
+png(paste0(plot_path, 'neural_trajectory_stage_cell_counts_table.png'), height = 10, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 ############################## Save #######################################
 
