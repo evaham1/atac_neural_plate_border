@@ -331,20 +331,24 @@ for (gene in genes){
     grid::grid.draw(p[[1]])
     graphics.off()
     
-    # overlay known enhancers
-    if (gene %in% names(enhancers_df_list)){
-      enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
-      grid::grid.newpage()
-      p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
-                                  interactions_granges = extracted_loops, 
-                                  return_plot = TRUE,
-                                  extend_by = 500, max_dist = Inf, 
-                                  highlight_granges = enhancers_granges,
-                                  group_by = opt$group_by)
-      png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
-      grid::grid.draw(p[[1]])
-      graphics.off()
-    }
+    # overlay known enhancers - not working atm 
+          # Error in ArchR::plotBrowserTrack(ArchRProj = ArchR_obj, groupBy = group_by,  : 
+          # unused argument (highlight = highlight_granges)
+          # Calls: ArchR_PlotInteractions
+          # Execution halted
+    # if (gene %in% names(enhancers_df_list)){
+    #   enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
+    #   grid::grid.newpage()
+    #   p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+    #                               interactions_granges = extracted_loops, 
+    #                               return_plot = TRUE,
+    #                               extend_by = 500, max_dist = Inf, 
+    #                               highlight_granges = enhancers_granges,
+    #                               group_by = opt$group_by)
+    #   png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+    #   grid::grid.draw(p[[1]])
+    #   graphics.off()
+    # }
     
   }
   
