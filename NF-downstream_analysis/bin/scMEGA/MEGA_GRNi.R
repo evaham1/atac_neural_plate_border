@@ -473,6 +473,244 @@ LengthCheck <- function(values, cutoff = 0) {
   ))
 }
 
+centerRollMean <- function(v = NULL, k = NULL){
+  o1 <- data.table::frollmean(v, k, align = "right", na.rm = FALSE)
+  if(k%%2==0){
+    o2 <- c(rep(o1[k], floor(k/2)-1), o1[-seq_len(k-1)], rep(o1[length(o1)], floor(k/2)))
+  }else if(k%%2==1){
+    o2 <- c(rep(o1[k], floor(k/2)), o1[-seq_len(k-1)], rep(o1[length(o1)], floor(k/2)))
+  }else{
+    stop("Error!")
+  }
+  o2
+}
+
+PseudotimePlot_updated <- function (object, tf.use, tf.assay = "chromvar", rna.assay = "RNA", 
+                                    atac.assay = "ATAC", target.assay = "target", trajectory.name = "Trajectory", 
+                                    groupEvery = 1) 
+{
+  trajMM <- suppressMessages(GetTrajectory_updated(object, assay = tf.assay, 
+                                                   trajectory.name = trajectory.name, groupEvery = groupEvery, 
+                                                   slot = "data", smoothWindow = 7, log2Norm = FALSE))
+  rownames(trajMM) <- object@assays[[atac.assay]]@motifs@motif.names
+  df.tf.activity <- assay(trajMM)
+  df.tf.activity <- t(scale(t(df.tf.activity)))
+  df.tf.activity <- as.data.frame(df.tf.activity)
+  colnames(df.tf.activity) <- seq(0, 100, groupEvery)[-1]
+  df.tf.activity$tf <- toupper(rownames(df.tf.activity))
+  df.tf.activity <- tidyr::pivot_longer(df.tf.activity, -tf, 
+                                        names_to = "pseudotime", values_to = "value")
+  df.tf.activity$pseudotime <- as.numeric(df.tf.activity$pseudotime)
+  trajGEX <- suppressMessages(GetTrajectory_updated(object, assay = rna.assay, 
+                                                    trajectory.name = trajectory.name, groupEvery = groupEvery, 
+                                                    slot = "data", smoothWindow = 7, log2Norm = TRUE))
+  df.tf.expression <- assay(trajGEX)
+  df.tf.expression <- t(scale(t(df.tf.expression)))
+  df.tf.expression <- as.data.frame(df.tf.expression)
+  colnames(df.tf.expression) <- seq(0, 100, groupEvery)[-1]
+  df.tf.expression$tf <- toupper(rownames(df.tf.expression))
+  df.tf.expression <- tidyr::pivot_longer(df.tf.expression, 
+                                          -tf, names_to = "pseudotime", values_to = "value")
+  df.tf.expression$pseudotime <- as.numeric(df.tf.expression$pseudotime)
+  traj.target <- suppressMessages(GetTrajectory_updated(object, assay = target.assay, 
+                                                        trajectory.name = trajectory.name, groupEvery = groupEvery, 
+                                                        slot = "data", smoothWindow = 7, log2Norm = FALSE))
+  df.target <- assay(traj.target)
+  df.target <- t(scale(t(df.target)))
+  df.target <- as.data.frame(df.target)
+  colnames(df.target) <- seq(0, 100, groupEvery)[-1]
+  df.target$tf <- toupper(rownames(df.target))
+  df.target <- tidyr::pivot_longer(df.target, -tf, names_to = "pseudotime", 
+                                   values_to = "value")
+  df.target$pseudotime <- as.numeric(df.target$pseudotime)
+  df.tf.activity$data <- "TF activity"
+  df.tf.expression$data <- "TF expression"
+  df.target$data <- "Targets expression"
+  df.tf <- rbind(df.tf.activity, df.tf.expression, df.target)
+  df.plot <- subset(df.tf, tf == tf.use)
+  p <- ggplot(df.plot, aes(x = pseudotime, y = value, color = data)) + 
+    geom_smooth(method = "loess", se = FALSE) + ggtitle(tf.use) + 
+    cowplot::theme_cowplot() + ylab("") + theme(legend.title = element_blank())
+  return(p)
+}
+
+AddModuleScore_updated <- function (object, features, pool = NULL, nbin = 24, ctrl = 100, 
+                                    k = FALSE, assay = NULL, name = "Cluster", seed = 1, search = FALSE, 
+                                    ...) 
+{
+  if (!is.null(x = seed)) {
+    set.seed(seed = seed)
+  }
+  assay.old <- DefaultAssay(object = object)
+  assay <- assay %||% assay.old
+  DefaultAssay(object = object) <- assay
+  # GetAssayData doesnt work package issues
+  # assay.data <- GetAssayData(object = object)
+  assay.data <- object[[assay]]$counts
+  
+  features.old <- features
+  if (k) {
+    .NotYetUsed(arg = "k")
+    features <- list()
+    for (i in as.numeric(x = names(x = table(object@kmeans.obj[[1]]$cluster)))) {
+      features[[i]] <- names(x = which(x = object@kmeans.obj[[1]]$cluster == 
+                                         i))
+    }
+    cluster.length <- length(x = features)
+  }
+  else {
+    if (is.null(x = features)) {
+      stop("Missing input feature list")
+    }
+    features <- lapply(X = features, FUN = function(x) {
+      missing.features <- setdiff(x = x, y = rownames(x = object))
+      if (length(x = missing.features) > 0) {
+        warning("The following features are not present in the object: ", 
+                paste(missing.features, collapse = ", "), ifelse(test = search, 
+                                                                 yes = ", attempting to find updated synonyms", 
+                                                                 no = ", not searching for symbol synonyms"), 
+                call. = FALSE, immediate. = TRUE)
+        if (search) {
+          tryCatch(expr = {
+            updated.features <- UpdateSymbolList(symbols = missing.features, 
+                                                 ...)
+            names(x = updated.features) <- missing.features
+            for (miss in names(x = updated.features)) {
+              index <- which(x == miss)
+              x[index] <- updated.features[miss]
+            }
+          }, error = function(...) {
+            warning("Could not reach HGNC's gene names database", 
+                    call. = FALSE, immediate. = TRUE)
+          })
+          missing.features <- setdiff(x = x, y = rownames(x = object))
+          if (length(x = missing.features) > 0) {
+            warning("The following features are still not present in the object: ", 
+                    paste(missing.features, collapse = ", "), 
+                    call. = FALSE, immediate. = TRUE)
+          }
+        }
+      }
+      return(intersect(x = x, y = rownames(x = object)))
+    })
+    cluster.length <- length(x = features)
+  }
+  if (!all(LengthCheck(values = features))) {
+    warning(paste("Could not find enough features in the object from the following feature lists:", 
+                  paste(names(x = which(x = !LengthCheck(values = features)))), 
+                  "Attempting to match case..."))
+    features <- lapply(X = features.old, FUN = CaseMatch, 
+                       match = rownames(x = object))
+  }
+  if (!all(LengthCheck(values = features))) {
+    stop(paste("The following feature lists do not have enough features present in the object:", 
+               paste(names(x = which(x = !LengthCheck(values = features)))), 
+               "exiting..."))
+  }
+  pool <- pool %||% rownames(x = object)
+  data.avg <- Matrix::rowMeans(x = assay.data[pool, ])
+  data.avg <- data.avg[order(data.avg)]
+  data.cut <- cut_number(x = data.avg + rnorm(n = length(data.avg))/1e+30, 
+                         n = nbin, labels = FALSE, right = FALSE)
+  names(x = data.cut) <- names(x = data.avg)
+  ctrl.use <- vector(mode = "list", length = cluster.length)
+  for (i in 1:cluster.length) {
+    features.use <- features[[i]]
+    for (j in 1:length(x = features.use)) {
+      ctrl.use[[i]] <- c(ctrl.use[[i]], names(x = sample(x = data.cut[which(x = data.cut == 
+                                                                              data.cut[features.use[j]])], size = ctrl, replace = FALSE)))
+    }
+  }
+  ctrl.use <- lapply(X = ctrl.use, FUN = unique)
+  ctrl.scores <- matrix(data = numeric(length = 1L), nrow = length(x = ctrl.use), 
+                        ncol = ncol(x = object))
+  for (i in 1:length(ctrl.use)) {
+    features.use <- ctrl.use[[i]]
+    ctrl.scores[i, ] <- Matrix::colMeans(x = assay.data[features.use, 
+    ])
+  }
+  features.scores <- matrix(data = numeric(length = 1L), nrow = cluster.length, 
+                            ncol = ncol(x = object))
+  for (i in 1:cluster.length) {
+    features.use <- features[[i]]
+    data.use <- assay.data[features.use, , drop = FALSE]
+    features.scores[i, ] <- Matrix::colMeans(x = data.use)
+  }
+  features.scores.use <- features.scores - ctrl.scores
+  rownames(x = features.scores.use) <- paste0(name, 1:cluster.length)
+  features.scores.use <- as.data.frame(x = t(x = features.scores.use))
+  rownames(x = features.scores.use) <- colnames(x = object)
+  object[[colnames(x = features.scores.use)]] <- features.scores.use
+  CheckGC()
+  DefaultAssay(object = object) <- assay.old
+  return(object)
+}
+
+AddTargetAssay_updated <- function (object, target.assay = "target", rna.assay = "RNA", 
+                                    df.grn = NULL) 
+{
+  if (is.na(df.grn)) {
+    stop("Cannot find the gene regulatory network!")
+  }
+  df.genes <- split(df.grn$gene, df.grn$tf)
+  object <- AddModuleScore_updated(object, features = df.genes, assay = rna.assay, 
+                                   name = "tf_target_", ctrl = 80)
+  target_gex <- object@meta.data %>% as.data.frame() %>% dplyr::select(contains("tf_target_"))
+  colnames(target_gex) <- names(df.genes)
+  object[["target"]] <- CreateAssayObject(data = t(target_gex))
+  return(object)
+}
+
+LengthCheck <- function(values, cutoff = 0) {
+  return(vapply(
+    X = values,
+    FUN = function(x) {
+      return(length(x = x) > cutoff)
+    },
+    FUN.VALUE = logical(1)
+  ))
+}
+
+### New function to plot network using igraph
+# colours nodes by timepoint
+# colours edges by positive/negative and thickness is by correlation strength
+# edit so can optionally colour nodes
+
+PlotTFNetwork <- function(df.grn, tfs.timepoint){
+  # extract data to plot
+  links <- df.grn %>% 
+    dplyr::select(c("tf", "gene", "correlation")) %>%
+    dplyr::mutate(abs_corr = abs(correlation))
+  
+  # timepoint expression information of TFs
+  nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
+  length(unique(nodes$tf))
+  nodes <- nodes %>% 
+    dplyr::filter(tf %in% c(links$tf, links$gene)) %>% # remove TFs/genes with no links
+    mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+  length(unique(nodes$tf))
+  
+  # colours for latent time
+  cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
+                     val = seq(1:100))
+  cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+  
+  # Turn it into igraph object
+  network <- graph_from_data_frame(d = links, vertices = nodes, directed = T)
+  
+  # colours for positive or negative interactions
+  E(network)$color <- ifelse(E(network)$correlation > 0,'red','blue')
+  
+  # make plot
+  p <- plot(network, edge.arrow.size=E(network)$abs_corr*0.75, edge.width = E(network)$abs_corr*5,
+            vertex.color = cols_matched$col,
+            vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
+            layout = layout_nicely(network))
+  
+  return(p)
+}
+
+
 
 ############################## Read in seurat object #######################################
 
@@ -486,12 +724,13 @@ obj.pair
 
 head(obj.pair@meta.data)
 
-# then need them to be between 0 and 100
+# then need them to be between 0 and 100 - check for placodal
 summary(obj.pair@meta.data$lineage_placodal_probability)
 obj.pair@meta.data$lineage_placodal_probability <- obj.pair@meta.data$lineage_placodal_probability * 100
 summary(obj.pair@meta.data$lineage_placodal_probability)
 # hist(obj.pair@meta.data$lineage_placodal_probability, breaks = 100)
 
+# then run for neural and NC
 obj.pair@meta.data$lineage_NC_probability <- obj.pair@meta.data$lineage_NC_probability * 100
 obj.pair@meta.data$lineage_neural_probability <- obj.pair@meta.data$lineage_neural_probability * 100
 
@@ -509,21 +748,24 @@ temp_plot_path = "./plots/placodal_lineage/"
 dir.create(temp_plot_path, recursive = T)
 temp_csv_path = "./csv_files/placodal_lineage/"
 dir.create(temp_csv_path, recursive = T)
-
-trajectory <- "lineage_placodal_probability"
-
 temp_lineage_plot_path = "./plots/placodal_lineage/lineage_dynamics_plots/"
 dir.create(temp_lineage_plot_path, recursive = T)
 
+# set trajectory
+trajectory <- "lineage_placodal_probability"
+
+# remove cells that have a placodal probability of less than 25%
+obj.traj <- subset(obj.pair, subset = lineage_placodal_probability > 25)
+obj.traj
+
 # select genes that vary with the trajectory and correlate with peaks
-res <- SelectGenes_updated(obj.pair, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = 0.3, # how much gene expression has to vary across trajectory
+res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
+                           var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.3, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save the most variable genes
 df.p2g <- res$p2g
-dim(df.p2g)
-length(unique(df.p2g$gene))
+length(unique(df.p2g$gene)) # 1147
 write.csv(df.p2g, file = paste0(temp_csv_path, "Variable_genes_and_matched_enhancers.csv"), row.names = FALSE)
 
 # plot the dynamics of these genes across trajectory
@@ -533,15 +775,21 @@ draw(ht)
 graphics.off()
 
 # select the TFs that correlate in 'activity' as defined by chromvar and expression
-res <- SelectTFs_updated(object = obj.pair, trajectory.name = trajectory, return.heatmap = TRUE,
+res <- SelectTFs_updated(object = obj.traj, trajectory.name = trajectory, return.heatmap = TRUE,
                  groupEvery = 2,
                  p.cutoff = 0.01, cor.cutoff = 0.3)
 
 # save the selected TFs
 df.tfs <- res$tfs
-dim(df.tfs)
+dim(df.tfs) # 79 TFs
 write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations.csv"), row.names = FALSE)
 unique(df.tfs$tfs)
+# [1] "POU4F3"  "POU4F2"  "PAX7"    "POU4F1"  "OLIG2"   "MAFK"    "FOS"     "ZIC3"    "MSANTD3" "PROX1"   "MEF2A"   "TGIF2"   "ESR2"    "HMBOX1" 
+# [15] "SOX21"   "JUND"    "HES6"    "BACH2"   "EBF1"    "ZEB1"    "TCF3"    "BACH1"   "HOXD4"   "TFAP2A"  "TFAP2B"  "GATA4"   "TFAP2C"  "GATA2"  
+# [29] "GATA3"   "GATA6"   "TFAP2E"  "SP1"     "MEOX1"   "DRGX"    "HOXA1"   "EMX1"    "HOXA5"   "DLX6"    "EMX2"    "EVX1"    "GBX1"    "KLF6"   
+# [43] "DLX5"    "EN2"     "LMX1A"   "KLF10"   "RAX2"    "LHX9"    "MSX2"    "BARX1"   "PRRX2"   "MGA"     "ZBTB6"   "REL"     "JDP2"    "PPARG"  
+# [57] "NFKB2"   "KLF15"   "CUX1"    "TEAD1"   "TEAD4"   "TEAD3"   "SIX1"    "SP2"     "FOXK2"   "HOXA7"   "HOXD8"   "FOXP3"   "FOXK1"   "FOXG1"  
+# [71] "ATF2"    "THRB"    "BATF3"   "CEBPG"   "EGR1"    "EHF"     "PRDM4"   "HEY1"    "NKX2-5" 
 
 # plot TF activity dynamics across trajectory
 ht <- res$heatmap
@@ -553,7 +801,7 @@ graphics.off()
 # by using correlation between accessibility of selected TF targets and expression of selected genes over trajectory
 
 # GRN inference
-df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.pair, 
+df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj, 
                                     tf.use = df.tfs$tfs, 
                                     gene.use = unique(df.p2g$gene),
                                     tf.assay = "chromvar", 
@@ -571,7 +819,7 @@ if ( sum(unique(df.p2g$gene) %in% unique(df.tf.gene$gene)) != length(unique(df.p
 }
 
 # save the correlation matrix
-dim(df.tf.gene)
+dim(df.tf.gene) # 189837 (ie 2403 genes x 79 TFs)
 write.csv(df.tf.gene, file = paste0(temp_csv_path, "TF_to_gene_correlations.csv"), row.names = FALSE)
 
 # plot TF-gene correlation heatmap
@@ -593,7 +841,7 @@ motif.matching <- motif.matching[unique(df.p2g$peak), unique(df.tfs$tf)]
 df.grn <- GetGRN(motif.matching = motif.matching, 
                  df.cor = df.tf.gene, 
                  df.p2g = df.p2g)
-dim(df.grn)
+dim(df.grn) # 158,667      7
 
 # check which tfs and genes in final network
 if ( sum(unique(df.tfs$tf) %in% unique(df.grn$tf)) != length(unique(df.tfs$tf)) ){
@@ -647,6 +895,7 @@ tfs.timepoint <- df.tfs$time_point
 names(tfs.timepoint) <- df.tfs$tfs
 
 # plot whole GRN
+png(paste0(temp_plot_path, 'Network_all_importance.png'), height = 10, width = 35, units = 'cm', res = 400)
 p <- GRNPlot(df.grn,
              tfs.timepoint = tfs.timepoint,
              show.tf.labels = TRUE,
@@ -654,11 +903,11 @@ p <- GRNPlot(df.grn,
              plot.importance = TRUE,
              min.importance = 2,
              remove.isolated = FALSE)
+graphics.off()
 
 png(paste0(temp_plot_path, 'Network_all.png'), height = 30, width = 45, units = 'cm', res = 400)
 print(p)
 graphics.off()
-
 
 # only plot TFs
 p <- GRNPlot(df.grn,
@@ -672,55 +921,35 @@ png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 
 print(p)
 graphics.off()
 
-# ############################## Plot whole GRN map using igraphs #######################################
+############################## Plot whole GRN map using igraphs #######################################
 
-# # filter grn to only include TFs
-# df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
-# dim(df.grn.tfs)
+# filter grn to only include source TFs
+df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
+dim(df.grn.tfs)
 
-# # filter grn to only include positive interactions
-# df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
-# dim(df.grn.tfs)
+# extract TFs timepoints
+df.tfs <- df.tfs[order(df.tfs$time_point), ]
+tfs.timepoint <- df.tfs$time_point
+names(tfs.timepoint) <- df.tfs$tfs
 
-# # extract data to plot
-# links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
+# Plot network - its different everytime, cant seem to fix randomness
+png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
+PlotTFNetwork(df.grn.tfs, tfs.timepoint)
+graphics.off()
 
-# # timepoint expression information of TFs
-# nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-# length(unique(nodes$tf))
-# nodes <- nodes %>% 
-#   dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
-#   mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
+############################## Plot lineage dynamics #######################################
 
-# # colours for latent time
-# cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-#                    val = seq(1:100))
-# cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
+obj.temp <- AddTargetAssay_updated(obj.traj, df.grn = df.grn)
 
-# # Turn it into igraph object
-# network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
+# plot dynamics of each TF in network
+for (TF in df.tfs$tfs){
+  print(TF)
 
-# # Plot network - its different everytime, cant seem to fix randomness
-# png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-# plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
-#           vertex.color = cols_matched$col,
-#           vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-#      layout = layout_nicely(network))
-# graphics.off()
-
-# ############################## Plot lineage dynamics #######################################
-
-# obj.temp <- AddTargetAssay_updated(obj.pair, df.grn = df.grn)
-
-# # plot dynamics of each TF in network
-# for (TF in df.tfs$tfs){
-#   print(TF)
-  
-#   png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-#   print(PseudotimePlot_updated(obj.temp, trajectory.name = trajectory,
-#                          tf.use = TF))
-#   graphics.off()
-# }
+  png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
+  print(PseudotimePlot_updated(obj.temp, trajectory.name = trajectory,
+                         tf.use = TF))
+  graphics.off()
+}
 
 ######################################################################################
 ##############################    NC     #######################################
