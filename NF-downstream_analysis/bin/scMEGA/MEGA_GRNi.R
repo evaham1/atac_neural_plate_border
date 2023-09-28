@@ -586,9 +586,9 @@ if ( sum(unique(df.tfs$tf) %in% unique(df.grn$tf)) != length(unique(df.tfs$tf)) 
 print("How many selected genes didn't make it to final GRN: ")
 print(table(unique(df.p2g.final$gene) %in% unique(df.grn$gene)))
 
-############################## Save and filter final GRN #######################################
+############################## Final full GRN #######################################
 
-print("Filtering GRN...")
+print("Final full GRN...")
 
 # full network numbers
 df <- data.frame(
@@ -604,16 +604,28 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-# add column for positive/negative correlations
+# add column for positive/negative correlations and abs correlation
 df.grn <- df.grn %>%
-  dplyr::mutate(direction = ifelse(correlation > 0, "P", "N"))
+  dplyr::mutate(direction = ifelse(correlation > 0, "P", "N")) %>%
+  mutate(abscorr = abs(correlation))
 
 # save full network (but shouldn't really use this)
 write.csv(df.grn, file = paste0(temp_csv_path, "GRN_unfiltered.csv"), row.names = FALSE)
 
-# filter network so only keep significant interactions (FDR < 0.01)
+############################## Filter full GRN #######################################
+
+print("Filtering final GRN..")
+
+# distribution of nPeaks
+summary(df.grn$n_peaks)
+png(paste0(temp_plot_path, 'nPeaks_initial_distribution.png'), height = 8, width = 12, units = 'cm', res = 400)
+hist(df.grn$n_peaks, breaks = 80)
+graphics.off()
+
+# filter network
 df.grn <- df.grn %>%
-  dplyr::filter(fdr < 0.01)
+  dplyr::filter(fdr < 0.01) %>% # only keep significant correlations between TF binding and target gene expression (FDR < 0.01)
+  dplyr::filter(n_peaks > 3) # only keep interactions where at least 3 connected peaks have the TF binding site
 
 # filtered network numbers
 df <- data.frame(
@@ -633,7 +645,7 @@ graphics.off()
 write.csv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.csv"), row.names = FALSE)
 write_tsv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.txt"))
 
-############################## Filter GRN to only include source nodes #######################################
+############################## Subset GRN to only include source nodes #######################################
 # only keep nodes that regulate other nodes
 
 print("Making source GRN...")
@@ -660,7 +672,7 @@ graphics.off()
 write.csv(df.grn.source, file = paste0(temp_csv_path, "GRN_filtered_source_nodes.csv"), row.names = FALSE)
 write_tsv(df.grn.source, file = paste0(temp_csv_path, "GRN_filtered_source_nodes.txt"))
 
-############################## Filter GRN to only include TFs #######################################
+############################## Subset GRN to only include TFs #######################################
 # only keep nodes which are known TFs (they might not regulate any other nodes in this network)
 
 print("Making TF GRN...")
@@ -701,13 +713,12 @@ node_metadata <- node_metadata %>%
 
 # add ordering of source nodes
 df.tfs <- df.tfs[order(df.tfs$time_point), ]
-df.timepoint <- df.tfs %>% dplyr::select(time_point)
-df.timepoint <- rownames_to_column(df.timepoint, var = "node")
-node_metadata <- merge(node_metadata, df.timepoint, by = "node", all = TRUE)
+df.timepoint <- df.tfs %>% dplyr::select(c(tfs, time_point))
+node_metadata <- merge(node_metadata, df.timepoint, by.x = "node", by.y = "tfs", all = TRUE)
 
 # check final
 head(node_metadata)
-dim(node_metadata) # 1482    3
+nrow(node_metadata) # 1,327
 
 # save
 write.csv(node_metadata, file = paste0(temp_csv_path, "Node_metadata.csv"), row.names = FALSE)
