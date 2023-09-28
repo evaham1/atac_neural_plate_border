@@ -398,7 +398,7 @@ print("Selecting source nodes...")
 
 # extract the source nodes - not filtering based on correlation of gene expression and binding
 res <- SelectTFs_updated(object = obj.traj, trajectory.name = trajectory, return.heatmap = TRUE,
-                         groupEvery = 2,
+                         groupEvery = 1,
                          p.cutoff = NULL, cor.cutoff = NULL)
 
 # save the selected source nodes
@@ -487,7 +487,8 @@ print("Selecting target nodes...")
 # select target nodes that vary with the trajectory AND correlate with peaks
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+                           cor.cutoff = 0.7, fdr.cutoff = 1e-04, # how much peaks and genes need to correlate
+                           groupEvery = 1) 
 
 # save target nodes
 df.p2g.var <- res$p2g
@@ -502,7 +503,8 @@ graphics.off()
 # select genes correlate with peaks (don't have to be variable across trajectory)
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+                           cor.cutoff = 0.7, fdr.cutoff = 1e-04, # how much peaks and genes need to correlate
+                           groupEvery = 1) 
 
 # save target nodes
 df.p2g <- res$p2g
@@ -529,9 +531,9 @@ write.csv(df.p2g.final, file = paste0(temp_csv_path, "Final_target_genes_with_ma
 
 # plot heatmaps of target nodes and their connected peaks
 trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
-                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
+                                 groupEvery = 1, slot = "data", smoothWindow = 7, 
                                  log2Norm = TRUE)
-trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
+trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 1, 
                                   trajectory.name = trajectory, slot = "data", smoothWindow = 7, 
                                   log2Norm = TRUE)
 trajATAC <- trajATAC[df.p2g.final$peak, ]
