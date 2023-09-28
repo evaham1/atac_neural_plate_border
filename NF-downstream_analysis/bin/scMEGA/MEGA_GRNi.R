@@ -654,16 +654,14 @@ write.csv(df.grn, file = paste0(temp_csv_path, "GRN_unfiltered.csv"), row.names 
 
 print("Filtering final GRN..")
 
-# distribution of nPeaks
-
-png(paste0(temp_plot_path, 'nPeaks_initial_distribution.png'), height = 20, width = 12, units = 'cm', res = 400)
-hist(df.grn$n_peaks, breaks = 80)
-graphics.off()
-
 ## how many peaks supports each interaction
 summary(df.grn$n_peaks)
 png(paste0(temp_plot_path, 'Interactions_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
 print(hist(df.grn$n_peaks, breaks = 100))
+graphics.off()
+
+png(paste0(temp_plot_path, 'Interactions_nPeaks_log10.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(log10(df.grn$n_peaks), breaks = 100))
 graphics.off()
 
 subset <- df.grn %>% dplyr::filter(n_peaks < 40)
@@ -676,6 +674,12 @@ graphics.off()
 df.grn <- df.grn %>%
   dplyr::filter(fdr < 0.01) %>% # only keep significant correlations between TF binding and target gene expression (FDR < 0.01)
   dplyr::filter(n_peaks > 3) # only keep interactions where at least 3 connected peaks have the TF binding site
+
+## how many peaks supports each interaction after filtering
+summary(df.grn$n_peaks)
+png(paste0(temp_plot_path, 'Interactions_nPeaks_after_filtering.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(df.grn$n_peaks, breaks = 100))
+graphics.off()
 
 # filtered network numbers
 df <- data.frame(
