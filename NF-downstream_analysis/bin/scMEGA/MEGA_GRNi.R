@@ -893,6 +893,7 @@ df.grn <- df.grn %>%
 
 # save filtered network
 write.csv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.csv"), row.names = FALSE)
+write_tsv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.txt"))
 
 ############################## Filter GRN to only include source nodes #######################################
 # only keep nodes that regulate other nodes
@@ -903,6 +904,7 @@ dim(df.grn.source) # 298   7
 
 # save network
 write.csv(df.grn.source, file = paste0(temp_csv_path, "GRN_filtered_source_nodes.csv"), row.names = FALSE)
+write_tsv(df.grn.source, file = paste0(temp_csv_path, "GRN_filtered_source_nodes.txt"))
 
 ############################## Filter GRN to only include TFs #######################################
 # only keep nodes which are known TFs (they might not regulate any other nodes in this network)
@@ -918,7 +920,7 @@ df.grn.TFs <- df.grn[df.grn$gene %in% TF_names, ]
 dim(df.grn.TFs) # 736   7
 
 # save network
-write.csv(df.grn.TFs, file = paste0(temp_csv_path, "GRN_filtered_TF_nodes.csv"), row.names = FALSE)
+write_tsv(df.grn.TFs, file = paste0(temp_csv_path, "GRN_filtered_TF_nodes.txt"))
 
 ############################## Make node metadata table to import into Cytoscape #######################################
 
@@ -943,6 +945,7 @@ dim(node_metadata)
 
 # save
 write.csv(node_metadata, file = paste0(temp_csv_path, "Node_metadata.csv"), row.names = FALSE)
+write_tsv(node_metadata, file = paste0(temp_csv_path, "Node_metadata.txt"))
 
 ############################## Plot GRN maps using scMEGA #######################################
 
