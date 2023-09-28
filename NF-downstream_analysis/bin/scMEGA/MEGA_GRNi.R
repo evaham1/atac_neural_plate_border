@@ -596,7 +596,7 @@ write.csv(df.tf.gene, file = paste0(temp_csv_path, "TF_to_gene_correlations.csv"
 
 # plot TF-gene correlation heatmap
 ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 60, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
 ht
 graphics.off()
 
@@ -818,6 +818,31 @@ png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, u
 PlotTFNetwork(df.grn.source, tfs.timepoint)
 graphics.off()
 
+############################## Network analysis #######################################
+
+print("Analysing network...")
+
+# make network using igraph
+dgg <- graph.edgelist(as.matrix(df.grn[,1:2], directed = T))
+
+# how many edges each node has
+edges <- igraph::degree(dgg)
+png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
+hist(edges, breaks = 100)
+graphics.off()
+summary(edges)
+
+# betweeness score for each node
+betweeness <- igraph::betweenness(dgg)
+png(paste0(temp_plot_path, 'Betweeness_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
+hist(betweeness, breaks = 100)
+graphics.off()
+summary(betweeness)
+
+png(paste0(temp_plot_path, 'Betweeness_log_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
+hist(log10(betweeness), breaks = 100)
+graphics.off()
+summary(betweeness)
 
 # ############################## Plot lineage dynamics #######################################
 
