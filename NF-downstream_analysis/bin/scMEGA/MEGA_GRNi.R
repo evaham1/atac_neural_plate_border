@@ -398,7 +398,7 @@ print("Selecting source nodes...")
 
 # extract the source nodes - not filtering based on correlation of gene expression and binding
 res <- SelectTFs_updated(object = obj.traj, trajectory.name = trajectory, return.heatmap = TRUE,
-                         groupEvery = 1,
+                         groupEvery = 2,
                          p.cutoff = NULL, cor.cutoff = NULL)
 
 # save the selected source nodes
@@ -487,8 +487,7 @@ print("Selecting target nodes...")
 # select target nodes that vary with the trajectory AND correlate with peaks
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04, # how much peaks and genes need to correlate
-                           groupEvery = 1) 
+                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
 df.p2g.var <- res$p2g
@@ -503,8 +502,7 @@ graphics.off()
 # select genes correlate with peaks (don't have to be variable across trajectory)
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04, # how much peaks and genes need to correlate
-                           groupEvery = 1) 
+                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
 df.p2g <- res$p2g
@@ -531,9 +529,9 @@ write.csv(df.p2g.final, file = paste0(temp_csv_path, "Final_target_genes_with_ma
 
 # plot heatmaps of target nodes and their connected peaks
 trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
-                                 groupEvery = 1, slot = "data", smoothWindow = 7, 
+                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
                                  log2Norm = TRUE)
-trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 1, 
+trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
                                   trajectory.name = trajectory, slot = "data", smoothWindow = 7, 
                                   log2Norm = TRUE)
 trajATAC <- trajATAC[df.p2g.final$peak, ]
@@ -545,6 +543,15 @@ ht <- suppressMessages(CorrelationHeatmap(trajectory1 = trajATAC, trajectory2 = 
 png(paste0(temp_plot_path, 'Genes_peaks_heatmap_final.png'), height = 30, width = 45, units = 'cm', res = 400)
 draw(ht)
 graphics.off()
+
+## how many peaks is each target node associated with?
+npeaks <- as.data.frame(table(df.p2g.final$gene))
+png(paste0(temp_plot_path, 'Target_node_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(npeaks$Freq, breaks = 100))
+graphics.off()
+summary(npeaks$Freq)
+
+############  TOTAL NODES NUMBERS
 
 ## plot node numbers
 df <- data.frame(
@@ -648,10 +655,22 @@ write.csv(df.grn, file = paste0(temp_csv_path, "GRN_unfiltered.csv"), row.names 
 print("Filtering final GRN..")
 
 # distribution of nPeaks
-summary(df.grn$n_peaks)
-png(paste0(temp_plot_path, 'nPeaks_initial_distribution.png'), height = 8, width = 12, units = 'cm', res = 400)
+
+png(paste0(temp_plot_path, 'nPeaks_initial_distribution.png'), height = 20, width = 12, units = 'cm', res = 400)
 hist(df.grn$n_peaks, breaks = 80)
 graphics.off()
+
+## how many peaks supports each interaction
+summary(df.grn$n_peaks)
+png(paste0(temp_plot_path, 'Interactions_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(df.grn$n_peaks, breaks = 100))
+graphics.off()
+
+subset <- df.grn %>% dplyr::filter(n_peaks < 40)
+png(paste0(temp_plot_path, 'Interactions_nPeaks_under_40.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(subset$n_peaks, breaks = 100))
+graphics.off()
+
 
 # filter network
 df.grn <- df.grn %>%
