@@ -757,7 +757,7 @@ p <- GRNPlot(df.grn,
 
 png(paste0(temp_plot_path, 'Network_TFs_MEGA.png'), height = 30, width = 45, units = 'cm', res = 400)
 print(p)
-graphics.off()`
+graphics.off()
 
 ############################## Plot whole GRN map using igraphs #######################################
 
