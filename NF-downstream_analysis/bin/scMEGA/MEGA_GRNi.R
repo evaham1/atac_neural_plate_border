@@ -738,6 +738,17 @@ obj.pair@meta.data$lineage_neural_probability <- obj.pair@meta.data$lineage_neur
 
 saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
 
+
+############################## Extract all known TF names #######################################
+
+TF_names <- obj.pair@assays$ATAC@motifs@motif.names
+names(TF_names) <- NULL
+TF_names <- unlist(TF_names)
+length(TF_names) # 746 known TFs
+fileConn<-file("Known_TF_names.txt")
+writeLines(TF_names, fileConn)
+close(fileConn)
+
 ######################################################################################
 ##############################    PLACODAL     #######################################
 ######################################################################################
@@ -758,47 +769,21 @@ obj.traj
 
 ############################## Select nodes #######################################
 
-# select genes that vary with the trajectory and correlate with peaks
-res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+############  SOURCE NODES
 
-# save the most variable genes
-df.p2g <- res$p2g
-length(unique(df.p2g$gene)) # 1147
-write.csv(df.p2g, file = paste0(temp_csv_path, "Variable_genes_with_matched_enhancers.csv"), row.names = FALSE)
+print("Selecting source nodes...")
 
-# plot the dynamics of these genes across trajectory
-ht <- res$heatmap
-png(paste0(temp_plot_path, 'Genes_peaks_variable_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
-draw(ht)
-graphics.off()
-
-# select genes correlate with peaks
-res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
-
-# save the most variable genes
-df.p2g <- res$p2g
-length(unique(df.p2g$gene)) # 1147
-write.csv(df.p2g, file = paste0(temp_csv_path, "Genes_with_matched_enhancers.csv"), row.names = FALSE)
-
-# plot the dynamics of these genes across trajectory
-ht <- res$heatmap
-png(paste0(temp_plot_path, 'Genes_peaks_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
-draw(ht)
-graphics.off()
-
-# select the TFs - dont worry about correlating activity and gex
+# select the source nodes - dont worry about correlating activity and gex
 res <- SelectTFs_updated(object = obj.traj, trajectory.name = trajectory, return.heatmap = TRUE,
-                 groupEvery = 2,
-                 p.cutoff = 1, cor.cutoff = 0)
+                         groupEvery = 2,
+                         p.cutoff = 1, cor.cutoff = 0)
 
-# save the selected TFs
+# save the selected source nodes
 df.tfs <- res$tfs
-dim(df.tfs) # 79 TFs
 write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations.csv"), row.names = FALSE)
+
+# how many source nodes are there
+nrow(df.tfs) # 79 TFs
 unique(df.tfs$tfs)
 # [1] "POU4F3"  "POU4F2"  "PAX7"    "POU4F1"  "OLIG2"   "MAFK"    "FOS"     "ZIC3"    "MSANTD3" "PROX1"   "MEF2A"   "TGIF2"   "ESR2"    "HMBOX1" 
 # [15] "SOX21"   "JUND"    "HES6"    "BACH2"   "EBF1"    "ZEB1"    "TCF3"    "BACH1"   "HOXD4"   "TFAP2A"  "TFAP2B"  "GATA4"   "TFAP2C"  "GATA2"  
@@ -807,9 +792,101 @@ unique(df.tfs$tfs)
 # [57] "NFKB2"   "KLF15"   "CUX1"    "TEAD1"   "TEAD4"   "TEAD3"   "SIX1"    "SP2"     "FOXK2"   "HOXA7"   "HOXD8"   "FOXP3"   "FOXK1"   "FOXG1"  
 # [71] "ATF2"    "THRB"    "BATF3"   "CEBPG"   "EGR1"    "EHF"     "PRDM4"   "HEY1"    "NKX2-5" 
 
+# how do these source nodes overlap with previous predictions
+Alex_TFs <- c("GATA2", "SIX1", "DLX5", "TFAP2A", "IRF6", "DLX6", 
+              "GATA3", "TFAP2C", "EPAS1", "PITX1", "PITX2", "RARB", "HRKB1", "IRX1" )
+Chromvar_TFs <- c("TEAD3", "TEAD4", "TEAD2", "TEAD1", "TFAP2A", "TFAP2C", 
+                  "Rbpjl", "Ptf1a", "SNAI2", "SNAI1", "SNAI3", "TCF12")   
+
+print("Overlap with Alex's TFs:")
+print(Alex_TFs[Alex_TFs %in% unique(df.tfs$tfs)])
+print("Overlap with ChromVar TFs:")
+print(Chromvar_TFs[Chromvar_TFs %in% unique(df.tfs$tfs)])
+
 # plot TF activity dynamics across trajectory
 ht <- res$heatmap
 png(paste0(temp_plot_path, 'TFs_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+# sense check that all source nodes are also a known TF
+if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
+  stop("Problem! Not all source nodes are known TFs!")
+}
+
+############  TARGET NODES
+
+print("Selecting target nodes...")
+
+# select target nodes that vary with the trajectory AND correlate with peaks
+res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
+                           var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
+                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+
+# save target nodes
+df.p2g.var <- res$p2g
+write.csv(df.p2g.var, file = paste0(temp_csv_path, "Variable_genes_with_matched_enhancers.csv"), row.names = FALSE)
+
+# plot the dynamics of these genes across trajectory
+ht <- res$heatmap
+png(paste0(temp_plot_path, 'Genes_peaks_variable_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+# select genes correlate with peaks (don't have to be variable across trajectory)
+res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
+                           var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
+                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+
+# save target nodes
+df.p2g <- res$p2g
+write.csv(df.p2g, file = paste0(temp_csv_path, "Genes_with_matched_enhancers.csv"), row.names = FALSE)
+
+# plot the dynamics of these genes across trajectory
+ht <- res$heatmap
+png(paste0(temp_plot_path, 'Genes_peaks_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+# for final target node df, combine the variable ones with all TFs from non variable one
+df.p2g.tfs <- df.p2g %>% 
+  dplyr::filter(gene %in% TF_names) %>% # filter p2g to only include TFs
+  dplyr::filter(!gene %in% df.p2g.var$gene)
+nrow(df.p2g.tfs) # 1,307 new interactions added
+length(unique(df.p2g.tfs$gene)) # 67 new nodes added
+
+df.p2g.final <- rbind(df.p2g.var, df.p2g.tfs)
+nrow(df.p2g.final) # 74,125 final interactions
+
+## plot node numbers
+df <- data.frame(
+  SourceNodes = nrow(df.tfs),
+  P2G_genes = length(unique(df.p2g$gene)),
+  P2G_genes_var = length(unique(df.p2g.var$gene)),
+  P2G_genes_tfs = sum(unique(df.p2g$gene) %in% TF_names),
+  P2G_genes_var_tfs = sum(unique(df.p2g.var$gene) %in% TF_names),
+  TargetNodes = length(unique(df.p2g.final$gene)),
+  BothNodes = sum(unique(df.p2g.final$gene) %in% df.tfs$tfs)
+)
+png(paste0(temp_plot_path, 'Node_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+## plotting heatmaps of target nodes and their connected peaks
+trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
+                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
+                                 log2Norm = TRUE)
+trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
+                                  trajectory.name = trajectory, slot = "data", smoothWindow = 7, 
+                                  log2Norm = TRUE)
+trajATAC <- trajATAC[df.p2g.final$peak, ]
+trajRNA <- trajRNA[df.p2g.final$gene, ]
+ht <- suppressMessages(CorrelationHeatmap(trajectory1 = trajATAC, trajectory2 = trajRNA, 
+                                          name1 = "Chromatin accessibility", name2 = "Gene expression", 
+                                          labelTop1 = 50, labelTop2 = 50, labelRows1 = FALSE, labelRows2 = FALSE))
+
+png(paste0(temp_plot_path, 'Genes_peaks_heatmap_final.png'), height = 30, width = 45, units = 'cm', res = 400)
 draw(ht)
 graphics.off()
 
