@@ -68,9 +68,9 @@ set.seed(42)
 ############################## EDITED FUNCTIONS #######################################
 
 SelectTFs_updated <- function (object, tf.assay = "chromvar", rna.assay = "RNA", atac.assay = "ATAC", 
-                               trajectory.name = "Trajectory", groupEvery = 1, p.cutoff = 0.01, 
-                               cor.cutoff = 0.3, return.heatmap = TRUE) 
-{
+                               trajectory.name = "Trajectory", groupEvery = 1, return.heatmap = TRUE,
+                               p.cutoff = 0.01, cor.cutoff = 0.3) 
+  {
   trajMM <- GetTrajectory_updated(object, assay = tf.assay, trajectory.name = trajectory.name, 
                                   groupEvery = groupEvery, slot = "data", smoothWindow = 7, 
                                   log2Norm = FALSE)
@@ -78,9 +78,16 @@ SelectTFs_updated <- function (object, tf.assay = "chromvar", rna.assay = "RNA",
   trajRNA <- GetTrajectory_updated(object, assay = rna.assay, trajectory.name = trajectory.name, 
                                    groupEvery = groupEvery, slot = "data", smoothWindow = 7, 
                                    log2Norm = TRUE)
-  df.cor <- GetCorrelation(trajMM, trajRNA) # correlation between TF expression RNAseq and binding activity ATACseq
-  df.cor <- df.cor[df.cor$adj_p < p.cutoff & df.cor$correlation > 
-                     cor.cutoff, ]
+  
+  df.cor <- GetCorrelation(trajMM, trajRNA) # correlation between TF expression RNAseq and binding activity ATACseq using cor.test
+  if (is.null(p.cutoff) & is.null(cor.cutoff)){
+    print("No filtering being applied to TFs!")
+  } else{
+    print("TFs being filtered on correlation of expression and chromvar score!")
+    df.cor <- df.cor[df.cor$adj_p < p.cutoff & df.cor$correlation > 
+                       cor.cutoff, ]
+  }
+  
   matMM <- suppressMessages(TrajectoryHeatmap(trajMM, varCutOff = 0, 
                                               pal = paletteContinuous(set = "solarExtra"), limits = c(-2, 
                                                                                                       2), name = "TF activity", returnMatrix = TRUE))
@@ -389,41 +396,63 @@ obj.traj
 
 print("Selecting source nodes...")
 
-# select the source nodes - dont worry about correlating activity and gex
+# extract the source nodes - not filtering based on correlation of gene expression and binding
 res <- SelectTFs_updated(object = obj.traj, trajectory.name = trajectory, return.heatmap = TRUE,
                          groupEvery = 2,
-                         p.cutoff = 1, cor.cutoff = 0)
+                         p.cutoff = NULL, cor.cutoff = NULL)
 
 # save the selected source nodes
 df.tfs <- res$tfs
-write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations.csv"), row.names = FALSE)
+write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations_all.csv"), row.names = FALSE)
 
 # how many source nodes are there
-nrow(df.tfs) # 155
+nrow(df.tfs) # 311
 unique(df.tfs$tfs)
-# [1] "SOX2"    "ARNT2"   "POU4F3"  "POU4F2"  "HIF1A"   "PAX7"    "GABPA"  
-# [8] "POU4F1"  "OLIG2"   "SMAD5"   "ZIC5"    "MAFK"    "FOS"     "TBX3"   
-# [15] "TBX20"   "TEF"     "OVOL2"   "TCF7"    "BHLHE40" "MAFG"    "HES5"   
-# [22] "ZIC3"    "ASCL1"   "MSANTD3" "TBXT"    "HLF"     "PROX1"   "ZIC1"   
-# [29] "RUNX3"   "ZBTB26"  "ETV3"    "JUN"     "RBPJ"    "MEF2A"   "CREB3L1"
-# [36] "NFKB1"   "TGIF1"   "ELF1"    "TGIF2"   "DMRTA2"  "LIN54"   "ESR2"   
-# [43] "NKX2-3"  "HMBOX1"  "STAT1"   "TP63"    "SOX21"   "NR5A1"   "NR2C1"  
-# [50] "ONECUT1" "JUND"    "HES6"    "HOXA9"   "IRF6"    "NFE2L1"  "NR3C2"  
-# [57] "PITX1"   "HESX1"   "BACH2"   "EBF1"    "EBF3"    "ZEB1"    "SNAI1"  
-# [64] "TCF3"    "TBR1"    "BACH1"   "EOMES"   "TBX2"    "HOXD4"   "NFE2"   
-# [71] "ETV4"    "TFAP2A"  "TFAP2B"  "GATA4"   "TFAP2C"  "GATA2"   "SNAI2"  
-# [78] "GATA3"   "GATA5"   "GATA6"   "TFAP2E"  "HOXA2"   "SP1"     "MEOX1"  
-# [85] "DRGX"    "HOXA1"   "GBX2"    "EMX1"    "HOXA5"   "DLX6"    "EMX2"   
-# [92] "EVX1"    "GBX1"    "KLF6"    "DLX5"    "EN2"     "MIXL1"   "LMX1A"  
-# [99] "KLF10"   "KLF11"   "RAX2"    "LHX9"    "FOXP2"   "MSX2"    "BARX1"  
-# [106] "PRRX2"   "LMX1B"   "MGA"     "KLF5"    "KLF3"    "ZBTB6"   "REL"    
-# [113] "JDP2"    "PPARG"   "SREBF1"  "NFKB2"   "KLF15"   "SREBF2"  "CUX1"   
-# [120] "TEAD1"   "TEAD4"   "TEAD3"   "SIX1"    "SP2"     "TFCP2"   "FOXK2"  
-# [127] "HOXA7"   "HOXD8"   "FOXP3"   "FEV"     "ATF3"    "ELK4"    "FOXK1"  
-# [134] "FOXG1"   "CREM"    "ATF2"    "ZBTB7A"  "FOXN3"   "BATF"    "THRB"   
-# [141] "BATF3"   "PITX2"   "E2F1"    "PLAG1"   "CEBPG"   "GMEB2"   "EGR1"   
-# [148] "EHF"     "RELA"    "RARA"    "PRDM4"   "ZNF652"  "HEY1"    "ETV1"   
-# [155] "NKX2-5" 
+# [1] "RFX2"    "SOX4"    "SOX10"   "SOX2"    "SOX18"   "PRDM1"   "NRF1"   
+# [8] "YY1"     "MYCN"    "RFX7"    "ZNF143"  "CDX2"    "ZNF341"  "ARNT2"  
+# [15] "ZNF148"  "LEF1"    "MEF2B"   "NEUROD1" "ZBTB14"  "NR3C1"   "MYB"    
+# [22] "SRF"     "MYBL1"   "POU4F3"  "E2F7"    "POU4F2"  "PLAGL2"  "SMAD3"  
+# [29] "HIF1A"   "PAX7"    "GABPA"   "POU4F1"  "OLIG2"   "NFATC1"  "HIC2"   
+# [36] "ESRRB"   "SMAD5"   "ZIC5"    "MAFK"    "NR2F2"   "FOS"     "TBX3"   
+# [43] "NFAT5"   "TBX20"   "POU3F1"  "NFIC"    "GLI3"    "TEF"     "NFATC2" 
+# [50] "PBX3"    "BHLHE23" "NFATC3"  "PKNOX1"  "HOXD13"  "GLI2"    "OVOL2"  
+# [57] "E2F8"    "PBX1"    "SOX13"   "SOX8"    "SOX9"    "VEZF1"   "SOX14"  
+# [64] "TP73"    "TCF7"    "ZBED1"   "POU2F1"  "BHLHE40" "MAF"     "GLIS1"  
+# [71] "MAFG"    "MAFA"    "HES5"    "FOXC2"   "MAFF"    "TFDP1"   "MYBL2"  
+# [78] "ZIC3"    "MXI1"    "CDX4"    "MSGN1"   "NR1D1"   "ASCL1"   "MYC"    
+# [85] "TFEB"    "TCF7L2"  "TFAP4"   "MYF6"    "MSANTD3" "OTX1"    "ATF6"   
+# [92] "CLOCK"   "IRF8"    "IRF7"    "TBXT"    "IRF2"    "HES1"    "HLF"    
+# [99] "PROX1"   "ZBTB18"  "ZIC1"    "RUNX3"   "E2F6"    "MEIS1"   "ZBTB26" 
+# [106] "ETV3"    "JUN"     "PKNOX2"  "RBPJ"    "MEF2A"   "HSF2"    "XBP1"   
+# [113] "CREB3L1" "MEF2D"   "ZBTB33"  "NFKB1"   "HINFP"   "E2F3"    "HSF1"   
+# [120] "USF1"    "TGIF1"   "MTF1"    "PAX6"    "ELF1"    "TGIF2"   "DMRTA2" 
+# [127] "LIN54"   "ESR2"    "NKX2-3"  "HNF4G"   "HMBOX1"  "TBP"     "ZNF282" 
+# [134] "BARX2"   "IRF1"    "NFIA"    "BHLHE22" "NR6A1"   "STAT1"   "TP63"   
+# [141] "TWIST1"  "SOX21"   "NR5A1"   "NR2C1"   "FOXC1"   "ONECUT1" "NFIX"   
+# [148] "JUND"    "OVOL1"   "HES6"    "ZNF384"  "MAX"     "MNT"     "NR1D2"  
+# [155] "NKX6-3"  "HOXA9"   "IRF6"    "FOSL2"   "NFE2L1"  "NR3C2"   "GSC"    
+# [162] "PITX1"   "STAT3"   "NOTO"    "HESX1"   "LHX6"    "BACH2"   "CTCFL"  
+# [169] "EBF1"    "EBF3"    "ZEB1"    "SNAI1"   "TCF3"    "TBR1"    "BACH1"  
+# [176] "EOMES"   "TBX2"    "HOXD4"   "ZNF410"  "NFE2"    "ETV4"    "TFAP2A" 
+# [183] "TFAP2B"  "GATA4"   "TFAP2C"  "GATA2"   "SNAI2"   "GATA3"   "GATA5"  
+# [190] "GATA6"   "TFAP2E"  "HOXA2"   "SP1"     "MEOX1"   "DRGX"    "HOXA1"  
+# [197] "SP4"     "GBX2"    "VAX1"    "VSX2"    "EN1"     "EMX1"    "HOXA5"  
+# [204] "LHX5"    "DLX6"    "EMX2"    "SP3"     "EVX1"    "GBX1"    "LHX1"   
+# [211] "SP8"     "KLF6"    "SP9"     "DLX5"    "NKX6-2"  "EN2"     "PRRX1"  
+# [218] "MNX1"    "MIXL1"   "LMX1A"   "KLF10"   "KLF11"   "RAX2"    "LHX9"   
+# [225] "FOXP2"   "MSX1"    "MSX2"    "BSX"     "BARX1"   "PRRX2"   "LMX1B"  
+# [232] "MGA"     "KLF13"   "KLF5"    "KLF3"    "ZBTB6"   "REL"     "JDP2"   
+# [239] "PPARG"   "SREBF1"  "NFKB2"   "KLF15"   "SREBF2"  "CUX2"    "VDR"    
+# [246] "CUX1"    "TEAD1"   "TEAD4"   "TEAD3"   "SIX1"    "NFYA"    "SP2"    
+# [253] "NFYC"    "NFYB"    "ELK3"    "TFCP2"   "FOXK2"   "HOXA7"   "HOXD8"  
+# [260] "FOXO6"   "FOXP3"   "FEV"     "ATF3"    "ELK4"    "ETV5"    "FOXK1"  
+# [267] "ETS1"    "FOXG1"   "ELF2"    "ERG"     "CREM"    "FOXA2"   "ETV6"   
+# [274] "ZNF740"  "ATF2"    "ZBTB7A"  "ETS2"    "RREB1"   "RXRG"    "CREB1"  
+# [281] "FOXN3"   "BATF"    "THRB"    "FOXA1"   "OTX2"    "BATF3"   "PPARD"  
+# [288] "MLXIPL"  "EGR4"    "PITX2"   "E2F1"    "PLAG1"   "CEBPG"   "RORA"   
+# [295] "TCF7L1"  "NR2C2"   "E2F4"    "BHLHE41" "MLX"     "GMEB2"   "NKX2-2" 
+# [302] "EGR1"    "EHF"     "RELA"    "RARA"    "PRDM4"   "ZNF652"  "ATF4"   
+# [309] "HEY1"    "ETV1"    "NKX2-5" 
 
 # how do these source nodes overlap with previous predictions
 Alex_TFs <- c("GATA2", "SIX1", "DLX5", "TFAP2A", "IRF6", "DLX6", 
@@ -438,11 +467,11 @@ print(Alex_TFs[Alex_TFs %in% unique(df.tfs$tfs)])
 
 print("Overlap with ChromVar TFs:")
 print(Chromvar_TFs[Chromvar_TFs %in% unique(df.tfs$tfs)])
-# "TEAD3"  "TEAD4"  "TEAD1"  "TFAP2A" "TFAP2C" "SNAI2"  "SNAI1" 
+# [1] "TEAD3"  "TEAD4"  "TEAD1"  "TFAP2A" "TFAP2C" "SNAI2"  "SNAI1" 
 
 # plot TF activity dynamics across trajectory
 ht <- res$heatmap
-png(paste0(temp_plot_path, 'TFs_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'TFs_all_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
 draw(ht)
 graphics.off()
 
