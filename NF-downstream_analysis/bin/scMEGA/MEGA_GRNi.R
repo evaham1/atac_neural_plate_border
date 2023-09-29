@@ -18,7 +18,7 @@ library(SummarizedExperiment)
 library(igraph)
 library(ggraph)
 library(RColorBrewer)
-library(VennDiagram)
+# library(VennDiagram) # this package isnt in this container atm
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -697,31 +697,31 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-# plot venn of nodes
-yCol <- brewer.pal(2, "Pastel2")
-venn.diagram(
-  x = list(unique(df.grn$tf), unique(df.grn$gene)[!is.na(unique(df.grn$gene))]),
-  category.names = c("Source node", "Target node"),
-  filename = paste0(temp_plot_path, 'Nodes.png'),
-  output=TRUE, disable.logging = TRUE,
-  # Output features
-  imagetype="png",
-  height = 600, 
-  width = 600, 
-  resolution = 300,
-  compression = "lzw",
-  # Circles
-  lwd = 2,
-  lty = 'blank',
-  fill = myCol[1:2],
-  # Numbers
-  cex = .6,
-  fontface = "bold",
-  fontfamily = "sans",
-  # Set names
-  cat.cex = 0,
-  cat.fontface = "bold"
-)
+# # plot venn of nodes
+# yCol <- brewer.pal(2, "Pastel2")
+# venn.diagram(
+#   x = list(unique(df.grn$tf), unique(df.grn$gene)[!is.na(unique(df.grn$gene))]),
+#   category.names = c("Source node", "Target node"),
+#   filename = paste0(temp_plot_path, 'Nodes.png'),
+#   output=TRUE, disable.logging = TRUE,
+#   # Output features
+#   imagetype="png",
+#   height = 600, 
+#   width = 600, 
+#   resolution = 300,
+#   compression = "lzw",
+#   # Circles
+#   lwd = 2,
+#   lty = 'blank',
+#   fill = myCol[1:2],
+#   # Numbers
+#   cex = .6,
+#   fontface = "bold",
+#   fontfamily = "sans",
+#   # Set names
+#   cat.cex = 0,
+#   cat.fontface = "bold"
+# )
 
 
 # plot piechart of interactions
