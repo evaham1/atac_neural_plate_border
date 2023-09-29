@@ -787,6 +787,44 @@ graphics.off()
 # save network
 write_tsv(df.grn.TFs, file = paste0(temp_csv_path, "GRN_filtered_TF_nodes.txt"))
 
+############################## Subset GRN to only include positive TFs #######################################
+# only keep source nodes which overall positive correlate with target nodes
+
+# filter correlation matrix
+summarized_tf_gene_corr <- df.tf.gene %>%
+  group_by(tf) %>%
+  summarize(mean_correlation = mean(correlation)) %>%
+  arrange(desc(mean_correlation)) %>%
+  filter(mean_correlation > 0)
+# tail(summarized_tf_gene_corr)
+# summary(summarized_tf_gene_corr$mean_correlation)
+# hist(summarized_tf_gene_corr$mean_correlation, breaks = 100)
+
+# how many TFs remaining
+length(summarized_tf_gene_corr$tf)
+
+# filter grn to only include thes positive TFs
+df.grn.pos <- df.grn[df.grn$gene %in% summarized_tf_gene_corr$tf, ]
+
+# TF network numbers
+df <- data.frame(
+  nSource = length(unique(df.grn.pos$tf)),
+  nTarget = length(unique(df.grn.pos$gene)),
+  nBoth = sum(unique(df.grn.pos$tf) %in% unique(df.grn.pos$gene)),
+  nInteractions = nrow(df.grn.pos),
+  nPositiveInteractions = length(which(df.grn.pos$correlation > 0)),
+  nNegativeInteractions = length(which(df.grn.pos$correlation < 0))
+)
+png(paste0(temp_plot_path, 'Network_filtered_positive_source_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# save network
+write_tsv(df.grn.pos, file = paste0(temp_csv_path, "GRN_filtered_positive_corr_only.txt"))
+
+
+
 ############################## Make node metadata table to import into Cytoscape #######################################
 
 print("Making node metdata...")
@@ -822,7 +860,7 @@ tfs.timepoint <- df.tfs$time_point
 names(tfs.timepoint) <- df.tfs$tfs
 
 # plot whole GRN
-png(paste0(temp_plot_path, 'Network_all_importance_MEGA.png'), height = 10, width = 115, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Network_all_importance_MEGA.png'), height = 10, width = 140, units = 'cm', res = 400)
 p <- GRNPlot(df.grn,
              tfs.timepoint = tfs.timepoint,
              show.tf.labels = TRUE,
