@@ -361,7 +361,7 @@ obj.pair@meta.data$lineage_neural_probability <- obj.pair@meta.data$lineage_neur
 
 ############################## Save seurat object #######################################
 
-saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
+# saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
 
 
 ############################## Extract all known TF names #######################################
