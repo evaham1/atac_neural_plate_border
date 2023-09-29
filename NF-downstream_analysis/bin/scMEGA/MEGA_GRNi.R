@@ -787,7 +787,7 @@ tfs.timepoint <- df.tfs$time_point
 names(tfs.timepoint) <- df.tfs$tfs
 
 # plot whole GRN
-png(paste0(temp_plot_path, 'Network_all_importance_MEGA.png'), height = 10, width = 60, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Network_all_importance_MEGA.png'), height = 10, width = 115, units = 'cm', res = 400)
 p <- GRNPlot(df.grn,
              tfs.timepoint = tfs.timepoint,
              show.tf.labels = TRUE,
