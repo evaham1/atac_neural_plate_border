@@ -17,6 +17,8 @@ library(scMEGA)
 library(SummarizedExperiment)
 library(igraph)
 library(ggraph)
+library(RColorBrewer)
+library(VennDiagram)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -695,6 +697,39 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+# plot venn of nodes
+yCol <- brewer.pal(2, "Pastel2")
+venn.diagram(
+  x = list(unique(df.grn$tf), unique(df.grn$gene)[!is.na(unique(df.grn$gene))]),
+  category.names = c("Source node", "Target node"),
+  filename = paste0(temp_plot_path, 'Nodes.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600, 
+  width = 600, 
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol[1:2],
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0,
+  cat.fontface = "bold"
+)
+
+
+# plot piechart of interactions
+pie <- c(length(which(df.grn$correlation > 0)), length(which(df.grn$correlation < 0)))
+png(paste0(temp_plot_path, 'Interactions_pie.png'), height = 8, width = 8, units = 'cm', res = 400)
+pie(pie, labels = c("Positive interactions", "Negative interactions"))
+graphics.off()
+
 # save filtered network
 write.csv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.csv"), row.names = FALSE)
 write_tsv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.txt"))
@@ -797,6 +832,27 @@ p <- GRNPlot(df.grn,
              remove.isolated = FALSE)
 graphics.off()
 
+# plot correlation heatmap for top 45 most important nodes
+factor_list = c("ZNF384", "TCF3", "HMBOX1", "TEAD4", "TFAP2A", 
+                "ETV1","MEIS1", "GATA3", "KLF6", "E2F8", 
+                "FOXK1", "RFX2","MTF1", "ETV6", "REL", 
+                "IRF7", "ZBTB7A", "KLF11","E2F6", "MCYN", 
+                "THRB", "OTX1", "RREB1", "MNT", "MSX1", 
+                "PPARD", "TGIF1", "ZNF143", "POU2F1", "NFYC",
+                "SP8", "MEF2D", "JUN", "NR2C2", "KLF3",
+                "ZBTB14", "MAFK", "HES5", "TFAP2E", "LIN54",
+                "NFIC", "HESX1", "TBX20", "TEAD3", "PPARG")
+
+df.tf.gene.subset <- df.tf.gene %>% 
+  dplyr::filter(tf %in% factor_list)
+df.tfs.subset <-  df.tfs %>% 
+  dplyr::filter(tfs %in% factor_list)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+
+png(paste0(temp_plot_path, 'top_importance_TF_gene_corr_heatmap.png'), height = 10, width = 25, units = 'cm', res = 400)
+ht
+graphics.off()
+
 png(paste0(temp_plot_path, 'Network_all_MEGA.png'), height = 30, width = 45, units = 'cm', res = 400)
 print(p)
 graphics.off()
@@ -831,10 +887,22 @@ dgg <- graph.edgelist(as.matrix(df.grn[,1:2], directed = T))
 
 # how many edges each node has
 edges <- igraph::degree(dgg)
+edges <- edges[order(edges, decreasing = TRUE)]
 png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
 hist(edges, breaks = 100)
 graphics.off()
 summary(edges)
+
+# plot correlation heatmap for top 10 most connected nodes
+df.tf.gene.subset <- df.tf.gene %>% 
+  dplyr::filter(tf %in% names(edges[1:10]))
+df.tfs.subset <-  df.tfs %>% 
+  dplyr::filter(tfs %in% names(edges[1:10]))
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+
+png(paste0(temp_plot_path, 'top_edges_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+ht
+graphics.off()
 
 # betweeness score for each node
 betweeness <- igraph::betweenness(dgg)
