@@ -361,8 +361,7 @@ obj.pair@meta.data$lineage_neural_probability <- obj.pair@meta.data$lineage_neur
 
 ############################## Save seurat object #######################################
 
-# saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
-
+saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
 
 ############################## Extract all known TF names #######################################
 
@@ -370,7 +369,7 @@ TF_names <- obj.pair@assays$ATAC@motifs@motif.names
 names(TF_names) <- NULL
 TF_names <- unlist(TF_names)
 length(TF_names) # 746 known TFs
-fileConn <- file(paste0(rds_path, "Known_TF_names.txt"))
+fileConn <- file(paste0(csv_path, "Known_TF_names.txt"))
 writeLines(TF_names, fileConn)
 close(fileConn)
 
@@ -650,7 +649,7 @@ df.grn <- df.grn %>%
   mutate(abscorr = abs(correlation))
 
 # save full network (but shouldn't really use this)
-write.csv(df.grn, file = paste0(temp_csv_path, "GRN_unfiltered.csv"), row.names = FALSE)
+write_tsv(df.grn, file = paste0(temp_csv_path, "GRN_initial.txt"))
 
 ############################## Filter full GRN #######################################
 
@@ -670,7 +669,6 @@ subset <- df.grn %>% dplyr::filter(n_peaks < 40)
 png(paste0(temp_plot_path, 'Interactions_nPeaks_under_40.png'), height = 10, width = 15, units = 'cm', res = 400)
 print(hist(subset$n_peaks, breaks = 100))
 graphics.off()
-
 
 # filter network
 df.grn <- df.grn %>%
@@ -697,32 +695,31 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-# # plot venn of nodes
-# yCol <- brewer.pal(2, "Pastel2")
-# venn.diagram(
-#   x = list(unique(df.grn$tf), unique(df.grn$gene)[!is.na(unique(df.grn$gene))]),
-#   category.names = c("Source node", "Target node"),
-#   filename = paste0(temp_plot_path, 'Nodes.png'),
-#   output=TRUE, disable.logging = TRUE,
-#   # Output features
-#   imagetype="png",
-#   height = 600, 
-#   width = 600, 
-#   resolution = 300,
-#   compression = "lzw",
-#   # Circles
-#   lwd = 2,
-#   lty = 'blank',
-#   fill = myCol[1:2],
-#   # Numbers
-#   cex = .6,
-#   fontface = "bold",
-#   fontfamily = "sans",
-#   # Set names
-#   cat.cex = 0,
-#   cat.fontface = "bold"
-# )
-
+# plot venn of nodes
+yCol <- brewer.pal(2, "Pastel2")
+venn.diagram(
+  x = list(unique(df.grn$tf), unique(df.grn$gene)[!is.na(unique(df.grn$gene))]),
+  category.names = c("Source node", "Target node"),
+  filename = paste0(temp_plot_path, 'Nodes.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600, 
+  width = 600, 
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol[1:2],
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0,
+  cat.fontface = "bold"
+)
 
 # plot piechart of interactions
 pie <- c(length(which(df.grn$correlation > 0)), length(which(df.grn$correlation < 0)))
@@ -731,40 +728,77 @@ pie(pie, labels = c("Positive interactions", "Negative interactions"))
 graphics.off()
 
 # save filtered network
-write.csv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.csv"), row.names = FALSE)
 write_tsv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.txt"))
 
-############################## Subset GRN to only include source nodes #######################################
-# only keep nodes that regulate other nodes
+############################## Subset GRN to only include positive TFs and all target nodes they interact with #######################################
+# only keep source nodes with overall positive correlate with target nodes
 
-print("Making source GRN...")
+# filter correlation matrix
+summarized_tf_gene_corr <- df.tf.gene %>%
+  group_by(tf) %>%
+  summarize(mean_correlation = mean(correlation)) %>%
+  arrange(desc(mean_correlation)) %>%
+  filter(mean_correlation > 0) # filter
 
-# filter grn to only include source TFs
-df.grn.source <- df.grn[df.grn$gene %in% df.grn$tf, ]
-nrow(df.grn.source) # 1872 interactions
+# how many TFs remaining
+length(summarized_tf_gene_corr$tf) # 152
 
-# source network numbers
+# filter grn to only include these positive corr TFs
+sum(summarized_tf_gene_corr$tf %in% df.grn$tf) # 2 have already been removed
+df.grn.pos <- df.grn[df.grn$tf %in% summarized_tf_gene_corr$tf, ]
+nrow(df.grn.pos) # 33529
+
+# TF network numbers
 df <- data.frame(
-  nSource = length(unique(df.grn.source$tf)),
-  nTarget = length(unique(df.grn.source$gene)),
-  nBoth = sum(unique(df.grn.source$tf) %in% unique(df.grn.source$gene)),
-  nInteractions = nrow(df.grn.source),
-  nPositiveInteractions = length(which(df.grn.source$correlation > 0)),
-  nNegativeInteractions = length(which(df.grn.source$correlation < 0))
+  nSource = length(unique(df.grn.pos$tf)),
+  nTarget = length(unique(df.grn.pos$gene)),
+  nBoth = sum(unique(df.grn.pos$tf) %in% unique(df.grn.pos$gene)),
+  nInteractions = nrow(df.grn.pos),
+  nPositiveInteractions = length(which(df.grn.pos$correlation > 0)),
+  nNegativeInteractions = length(which(df.grn.pos$correlation < 0))
 )
-png(paste0(temp_plot_path, 'Network_filtered_source_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Network_filtered_positive_source_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+# plot venn of nodes
+myCol <- brewer.pal(2, "Pastel2")
+venn.diagram(
+  x = list(unique(df.grn.pos$tf), unique(df.grn.pos$gene)[!is.na(unique(df.grn.pos$gene))]),
+  category.names = c("Source node", "Target node"),
+  filename = paste0(temp_plot_path, 'Nodes_pos_corr.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600,
+  width = 600,
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol[1:2],
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0,
+  cat.fontface = "bold"
+)
+
+# plot piechart of interactions
+pie <- c(length(which(df.grn.pos$correlation > 0)), length(which(df.grn.pos$correlation < 0)))
+png(paste0(temp_plot_path, 'Interactions_pie_pos_corr.png'), height = 8, width = 8, units = 'cm', res = 400)
+pie(pie, labels = c("Positive interactions", "Negative interactions"))
+graphics.off()
+
 # save network
-write.csv(df.grn.source, file = paste0(temp_csv_path, "GRN_filtered_source_nodes.csv"), row.names = FALSE)
-write_tsv(df.grn.source, file = paste0(temp_csv_path, "GRN_filtered_source_nodes.txt"))
+write_tsv(df.grn.pos, file = paste0(temp_csv_path, "GRN_filtered_pos_corr.txt"))
 
-############################## Subset GRN to only include TFs #######################################
+############################## Subset filtered GRN to only include TFs #######################################
 # only keep nodes which are known TFs (they might not regulate any other nodes in this network)
-
-print("Making TF GRN...")
 
 # filter grn to only include known TFs
 df.grn.TFs <- df.grn[df.grn$gene %in% TF_names, ]
@@ -785,45 +819,31 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
 graphics.off()
 
 # save network
-write_tsv(df.grn.TFs, file = paste0(temp_csv_path, "GRN_filtered_TF_nodes.txt"))
+write_tsv(df.grn.TFs, file = paste0(temp_csv_path, "GRN_filtered_TFs.txt"))
 
-############################## Subset GRN to only include positive TFs #######################################
-# only keep source nodes which overall positive correlate with target nodes
-
-# filter correlation matrix
-summarized_tf_gene_corr <- df.tf.gene %>%
-  group_by(tf) %>%
-  summarize(mean_correlation = mean(correlation)) %>%
-  arrange(desc(mean_correlation)) %>%
-  filter(mean_correlation > 0)
-# tail(summarized_tf_gene_corr)
-# summary(summarized_tf_gene_corr$mean_correlation)
-# hist(summarized_tf_gene_corr$mean_correlation, breaks = 100)
-
-# how many TFs remaining
-length(summarized_tf_gene_corr$tf)
+############################## Subset positive corr GRN to only include TFs #######################################
+# only keep TF nodes which overall positive correlate with target nodes
 
 # filter grn to only include thes positive TFs
-df.grn.pos <- df.grn[df.grn$gene %in% summarized_tf_gene_corr$tf, ]
+df.grn.pos.TFs <- df.grn.pos[df.grn.pos$gene %in% TF_names, ]
+nrow(df.grn.pos.TFs) # 6,707 interactions
 
 # TF network numbers
 df <- data.frame(
-  nSource = length(unique(df.grn.pos$tf)),
-  nTarget = length(unique(df.grn.pos$gene)),
-  nBoth = sum(unique(df.grn.pos$tf) %in% unique(df.grn.pos$gene)),
-  nInteractions = nrow(df.grn.pos),
-  nPositiveInteractions = length(which(df.grn.pos$correlation > 0)),
-  nNegativeInteractions = length(which(df.grn.pos$correlation < 0))
+  nSource = length(unique(df.grn.pos.TFs$tf)),
+  nTarget = length(unique(df.grn.pos.TFs$gene)),
+  nBoth = sum(unique(df.grn.pos.TFs$tf) %in% unique(df.grn.pos.TFs$gene)),
+  nInteractions = nrow(df.grn.pos.TFs),
+  nPositiveInteractions = length(which(df.grn.pos.TFs$correlation > 0)),
+  nNegativeInteractions = length(which(df.grn.pos.TFs$correlation < 0))
 )
-png(paste0(temp_plot_path, 'Network_filtered_positive_source_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Network_filtered_positive_source_TFs_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
 # save network
-write_tsv(df.grn.pos, file = paste0(temp_csv_path, "GRN_filtered_positive_corr_only.txt"))
-
-
+write_tsv(df.grn.pos.TFs, file = paste0(temp_csv_path, "GRN_filtered_pos_corr_TFs.txt"))
 
 ############################## Make node metadata table to import into Cytoscape #######################################
 
@@ -848,124 +868,4 @@ head(node_metadata)
 nrow(node_metadata) # 1,327
 
 # save
-write.csv(node_metadata, file = paste0(temp_csv_path, "Node_metadata.csv"), row.names = FALSE)
 write_tsv(node_metadata, file = paste0(temp_csv_path, "Node_metadata.txt"))
-
-############################## Plot GRN maps using scMEGA #######################################
-
-print("Plotting GRNs with scMEGA...")
-
-# set order for cols
-tfs.timepoint <- df.tfs$time_point
-names(tfs.timepoint) <- df.tfs$tfs
-
-# plot whole GRN
-png(paste0(temp_plot_path, 'Network_all_importance_MEGA.png'), height = 10, width = 140, units = 'cm', res = 400)
-p <- GRNPlot(df.grn,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             seed = 42,
-             plot.importance = TRUE,
-             min.importance = 2,
-             remove.isolated = FALSE)
-graphics.off()
-
-# plot correlation heatmap for top 45 most important nodes
-factor_list = c("ZNF384", "TCF3", "HMBOX1", "TEAD4", "TFAP2A", 
-                "ETV1","MEIS1", "GATA3", "KLF6", "E2F8", 
-                "FOXK1", "RFX2","MTF1", "ETV6", "REL", 
-                "IRF7", "ZBTB7A", "KLF11","E2F6", "MCYN", 
-                "THRB", "OTX1", "RREB1", "MNT", "MSX1", 
-                "PPARD", "TGIF1", "ZNF143", "POU2F1", "NFYC",
-                "SP8", "MEF2D", "JUN", "NR2C2", "KLF3",
-                "ZBTB14", "MAFK", "HES5", "TFAP2E", "LIN54",
-                "NFIC", "HESX1", "TBX20", "TEAD3", "PPARG")
-
-df.tf.gene.subset <- df.tf.gene %>% 
-  dplyr::filter(tf %in% factor_list)
-df.tfs.subset <-  df.tfs %>% 
-  dplyr::filter(tfs %in% factor_list)
-ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
-
-png(paste0(temp_plot_path, 'top_importance_TF_gene_corr_heatmap.png'), height = 10, width = 25, units = 'cm', res = 400)
-ht
-graphics.off()
-
-png(paste0(temp_plot_path, 'Network_all_MEGA.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
-
-# only plot TFs
-p <- GRNPlot(df.grn,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             plot.importance = TRUE,
-             genes.use = df.tfs$tfs,
-             remove.isolated = TRUE)
-
-png(paste0(temp_plot_path, 'Network_TFs_MEGA.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
-
-############################## Plot whole GRN map using igraphs #######################################
-
-print("Plotting GRNs with igraph...")
-
-# Plot source network - its different everytime, cant seem to fix randomness
-png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-PlotTFNetwork(df.grn.source, tfs.timepoint)
-graphics.off()
-
-############################## Network analysis #######################################
-
-print("Analysing network...")
-
-# make network using igraph
-dgg <- graph.edgelist(as.matrix(df.grn[,1:2], directed = T))
-
-# how many edges each node has
-edges <- igraph::degree(dgg)
-edges <- edges[order(edges, decreasing = TRUE)]
-png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
-hist(edges, breaks = 100)
-graphics.off()
-summary(edges)
-
-# plot correlation heatmap for top 10 most connected nodes
-df.tf.gene.subset <- df.tf.gene %>% 
-  dplyr::filter(tf %in% names(edges[1:10]))
-df.tfs.subset <-  df.tfs %>% 
-  dplyr::filter(tfs %in% names(edges[1:10]))
-ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
-
-png(paste0(temp_plot_path, 'top_edges_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-ht
-graphics.off()
-
-# betweeness score for each node
-betweeness <- igraph::betweenness(dgg)
-png(paste0(temp_plot_path, 'Betweeness_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
-hist(betweeness, breaks = 100)
-graphics.off()
-summary(betweeness)
-
-png(paste0(temp_plot_path, 'Betweeness_log_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
-hist(log10(betweeness), breaks = 100)
-graphics.off()
-summary(betweeness)
-
-# ############################## Plot lineage dynamics #######################################
-
-# print("Plotting lineage dynamics...")
-
-# obj.temp <- AddTargetAssay_updated(obj.traj, df.grn = df.grn)
-# 
-# # plot dynamics of each TF in network
-# for (TF in df.tfs$tfs){
-#   print(TF)
-# 
-#   png(paste0(temp_lineage_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-#   print(PseudotimePlot_updated(obj.temp, trajectory.name = trajectory,
-#                          tf.use = TF))
-#   graphics.off()
-# }

@@ -367,14 +367,11 @@ workflow A {
         // use previously calculated integration to pair ATAC and RNA cells -> fake multimodal data
         MEGA_PAIRING_CHROMVAR( ch_integrate )
 
-        ////    GRN inference    ////
-
-            /// NEED TO DEBUG FROM HERE ON: ///
-        // looks like I need to convert the seurat V5 object to a v4 or something??
-        // SEURAT_EXPORT_DATA( MEGA_PAIRING_CHROMVAR.out )
-        
-        // // then run scMEGA GRNi on the full data paired seurat object
+        // then run scMEGA GRNi on the full data paired seurat object
         MEGA_GRNI( MEGA_PAIRING_CHROMVAR.out )
+
+        // once have full GRN explore the network
+        MEGA_EXPLORE_GRN( MEGA_GRNI )
         
 
     }
