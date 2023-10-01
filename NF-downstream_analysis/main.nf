@@ -59,17 +59,9 @@ include { METADATA as METADATA_SINGLECELL_PROCESSED } from "$baseDir/subworkflow
 
 include {R as REMOVE_HH4} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/remove_HH4_RNA_data.R", checkIfExists: true) )
 include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/ArchR_to_seurat.R", checkIfExists: true) )
-
-// include {R as MEGA_INTEGRATION} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_integration.R", checkIfExists: true) )
 include {R as MEGA_PAIRING_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_make_multiome.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
-
-include {R as SEURAT_EXPORT_DATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/seurat_export_data.R", checkIfExists: true) )
-
-
-
-// MEGA SCRATCH
-
+include {R as MEGA_GRN_VIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRN_vis.R", checkIfExists: true) )
 
 // // METACELL PROCESSING
 // include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -371,7 +363,7 @@ workflow A {
         MEGA_GRNI( MEGA_PAIRING_CHROMVAR.out )
 
         // once have full GRN explore the network
-        MEGA_EXPLORE_GRN( MEGA_GRNI )
+        MEGA_GRN_VIS( MEGA_GRNI.out )
         
 
     }

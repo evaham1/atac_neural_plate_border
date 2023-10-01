@@ -372,26 +372,8 @@ obj.pair
 
 head(obj.pair@meta.data)
 
-obj.pair@meta.data$rna_lineage_NC_probability # all NAs atm...
-
-# for now just transfer them onto data
-archr <- loadArchRProject("./output/NF-downstream_analysis/Processing/FullData/Transfer_latent_time/rds_files/TransferLabel_Save-ArchR")
-lineage_probs <- getCellColData(archr, select = c("rna_lineage_neural_probability", "rna_lineage_NC_probability", "rna_lineage_placodal_probability"))
-obj.pair@meta.data$rna_lineage_placodal_probability <- lineage_probs[match(rownames(obj.pair@meta.data), rownames(lineage_probs)), "rna_lineage_placodal_probability"]
-obj.pair@meta.data$rna_lineage_NC_probability <- lineage_probs[match(rownames(obj.pair@meta.data), rownames(lineage_probs)), "rna_lineage_NC_probability"]
-obj.pair@meta.data$rna_lineage_neural_probability <- lineage_probs[match(rownames(obj.pair@meta.data), rownames(lineage_probs)), "rna_lineage_neural_probability"]
-
-# then need them to be between 0 and 100
-summary(obj.pair@meta.data$rna_lineage_placodal_probability)
-obj.pair@meta.data$rna_lineage_placodal_probability <- obj.pair@meta.data$rna_lineage_placodal_probability * 100
-summary(obj.pair@meta.data$rna_lineage_placodal_probability)
-hist(obj.pair@meta.data$rna_lineage_placodal_probability, breaks = 100)
-
-obj.pair@meta.data$rna_lineage_NC_probability <- obj.pair@meta.data$rna_lineage_NC_probability * 100
-obj.pair@meta.data$rna_lineage_neural_probability <- obj.pair@meta.data$rna_lineage_neural_probability * 100
-
-# and then for now subsample data so can run quicker
-test <- subset(obj.pair, downsample = 100)
+# # and then for now subsample data so can run quicker
+# test <- subset(obj.pair, downsample = 100)
 
 ######################################################################################
 ##############################    PLACODAL     #######################################
