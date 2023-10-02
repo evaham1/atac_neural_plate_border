@@ -17,6 +17,8 @@ library(scMEGA)
 library(SummarizedExperiment)
 library(igraph)
 library(ggraph)
+library(clusterProfiler)
+library(org.Gg.eg.db)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -449,7 +451,7 @@ graphics.off()
 dgg <- graph.edgelist(as.matrix(df.grn[,1:2]), directed = T)
 
 ########## EDGES
-# extract degree centrality
+# extract number of edges
 edges <- as.data.frame(igraph::degree(dgg))
 edges <- rownames_to_column(edges, var = "node")
 colnames(edges)[2] <- "nEdges"
@@ -460,9 +462,9 @@ png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 20, units = '
 hist(edges$nEdges, breaks = 100)
 graphics.off()
 
-# plot TF-target corr of top 10 factors
 factors <- edges[1:10, 1]
 
+# plot TF-target corr
 df.tf.gene.subset <- df.tf.gene %>%
   dplyr::filter(tf %in% factors)
 df.tfs.subset <- df.tfs %>%
@@ -538,14 +540,16 @@ graphics.off()
 dgg <- graph.edgelist(as.matrix(df.grn.pos[,1:2]), directed = T)
 
 ########## EDGES
-# extract top genes and make edges plot
+temp_plot_path_subset = paste0(temp_plot_path, "top_edges/")
+k = 5
+
 edges <- as.data.frame(igraph::degree(dgg))
 edges <- rownames_to_column(edges, var = "node")
 colnames(edges)[2] <- "nEdges"
 edges <- edges %>% arrange(desc(nEdges))
 print(edges[1:20,])
 
-png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
 hist(edges$nEdges, breaks = 100)
 graphics.off()
 
@@ -558,9 +562,48 @@ df.tfs.subset <- df.tfs %>%
   dplyr::filter(tfs %in% factors)
 ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-png(paste0(temp_plot_path, 'Top_edges_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
 ht
 graphics.off()
+
+# Create target gene heatmap
+target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
+colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+hm <- pheatmap::pheatmap(target_genes_df,
+                         color = c("grey", "purple"),  # Color scheme
+                         cluster_rows = TRUE,  # Do not cluster rows
+                         cluster_cols = TRUE,  # Do not cluster columns
+                         fontsize_row = 0.1,  # Font size for row labels
+                         fontsize_col = 10,   # Font size for column labels
+                         cutree_rows = k)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+hm
+graphics.off()
+
+# GO analysis on each cluster of targets
+df_row_cluster = data.frame(cluster = cutree(hm$tree_row, k = k))
+for (i in 1:k){
+  print(i)
+  targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
+  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  if (nrow(as.data.frame(go_output)) > 0){
+    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    plot(barplot(go_output, showCategory = 20))
+    graphics.off()
+  }
+}
+
+# GO analysis of each TF's target genes
+for (i in length(factors)){
+  TF <- factors[i]
+  targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
+  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  if (nrow(as.data.frame(go_output)) > 0){
+    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    plot(barplot(go_output, showCategory = 20))
+    graphics.off()
+  }
+}
 
 # subset network
 df.grn.pos.selected <- df.grn.pos %>%
@@ -577,30 +620,72 @@ df <- data.frame(
   nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
   nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
 )
-png(paste0(temp_plot_path, 'Top_edges_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
 # save network
-write_tsv(df.grn.pos.selected, file = paste0(temp_csv_path, "GRN_subset_top_edges.txt"))
+write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
 ########## scMEGA IMPORTANCE
-# have to extract manually top 40 factors:
+# have to extract manually top 15 factors:
 factors <- c("TCF3", "HMBOX1", "TEAD4", "FOXK1", "GATA3",
              "ETV1", "REL", "TFAP2A", "KLF6", "THRB",
              "PPARD", "TGIF1", "MSX1", "HES5", "TFAP2E")
 
-# plot TF-target corr of top 40 factors
+temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
+k = 5
+
+# plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
   dplyr::filter(tf %in% factors)
 df.tfs.subset <- df.tfs %>%
   dplyr::filter(tfs %in% factors)
 ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-png(paste0(temp_plot_path, 'Top_importance_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
 ht
 graphics.off()
+
+# Create target gene heatmap
+target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
+colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+hm <- pheatmap::pheatmap(target_genes_df,
+                         color = c("grey", "purple"),  # Color scheme
+                         cluster_rows = TRUE,  # Do not cluster rows
+                         cluster_cols = TRUE,  # Do not cluster columns
+                         fontsize_row = 0.1,  # Font size for row labels
+                         fontsize_col = 10,   # Font size for column labels
+                         cutree_rows = k)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+hm
+graphics.off()
+
+# GO analysis on each cluster of targets
+df_row_cluster = data.frame(cluster = cutree(hm$tree_row, k = k))
+for (i in 1:k){
+  print(i)
+  targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
+  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  if (nrow(as.data.frame(go_output)) > 0){
+    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    plot(barplot(go_output, showCategory = 20))
+    graphics.off()
+  }
+}
+
+# GO analysis of each TF's target genes
+for (i in length(factors)){
+  TF <- factors[i]
+  targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
+  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  if (nrow(as.data.frame(go_output)) > 0){
+    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    plot(barplot(go_output, showCategory = 20))
+    graphics.off()
+  }
+}
 
 # subset network
 df.grn.pos.selected <- df.grn.pos %>%
@@ -617,11 +702,10 @@ df <- data.frame(
   nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
   nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
 )
-png(paste0(temp_plot_path, 'Top_importance_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
 # save network
-write_tsv(df.grn.pos.selected, file = paste0(temp_csv_path, "GRN_subset_top_importance.txt"))
-
+write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
