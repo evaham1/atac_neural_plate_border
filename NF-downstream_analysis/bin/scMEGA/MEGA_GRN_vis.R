@@ -19,6 +19,8 @@ library(igraph)
 library(ggraph)
 library(clusterProfiler)
 library(org.Gg.eg.db)
+library(pheatmap)
+library(ComplexHeatmap)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -395,6 +397,9 @@ extract_target_genes_df <- function(TF_list, grn_df){
 
 ############################## Read in data #######################################
 
+TF_names <- read_tsv("./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi/Known_TF_names.txt", col_names = FALSE)
+TF_names <- TF_names$X1
+
 temp_data_path = paste0(data_path, "./placodal_lineage/")
 
 # read in csvs
@@ -541,7 +546,8 @@ dgg <- graph.edgelist(as.matrix(df.grn.pos[,1:2]), directed = T)
 
 ########## EDGES
 temp_plot_path_subset = paste0(temp_plot_path, "top_edges/")
-k = 5
+dir.create(temp_plot_path_subset, recursive = T)
+k = 6
 
 edges <- as.data.frame(igraph::degree(dgg))
 edges <- rownames_to_column(edges, var = "node")
@@ -576,7 +582,7 @@ hm <- pheatmap::pheatmap(target_genes_df,
                          fontsize_row = 0.1,  # Font size for row labels
                          fontsize_col = 10,   # Font size for column labels
                          cutree_rows = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 18, width = 10, units = 'cm', res = 400)
 hm
 graphics.off()
 
@@ -588,7 +594,7 @@ for (i in 1:k){
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
     png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
-    plot(barplot(go_output, showCategory = 20))
+    print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
 }
@@ -600,7 +606,7 @@ for (i in length(factors)){
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
     png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
-    plot(barplot(go_output, showCategory = 20))
+    print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
 }
@@ -635,7 +641,8 @@ factors <- c("TCF3", "HMBOX1", "TEAD4", "FOXK1", "GATA3",
              "PPARD", "TGIF1", "MSX1", "HES5", "TFAP2E")
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
-k = 5
+dir.create(temp_plot_path_subset, recursive = T)
+k = 8
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
@@ -658,7 +665,7 @@ hm <- pheatmap::pheatmap(target_genes_df,
                          fontsize_row = 0.1,  # Font size for row labels
                          fontsize_col = 10,   # Font size for column labels
                          cutree_rows = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 18, width = 10, units = 'cm', res = 400)
 hm
 graphics.off()
 
@@ -670,7 +677,7 @@ for (i in 1:k){
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
     png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
-    plot(barplot(go_output, showCategory = 20))
+    print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
 }
@@ -682,7 +689,7 @@ for (i in length(factors)){
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
     png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
-    plot(barplot(go_output, showCategory = 20))
+    print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
 }
