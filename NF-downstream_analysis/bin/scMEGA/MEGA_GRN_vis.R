@@ -21,6 +21,8 @@ library(clusterProfiler)
 library(org.Gg.eg.db)
 library(pheatmap)
 library(ComplexHeatmap)
+library(VennDiagram)
+library(RColorBrewer)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -408,6 +410,7 @@ df.p2g <- read.csv(paste0(temp_data_path, "Variable_genes_with_matched_enhancers
 df.tf.gene <- read.csv(paste0(temp_data_path, "TF_to_gene_correlations.csv"))
 
 # read in networks
+df.grn.un <- read.csv(paste0(temp_data_path, "GRN_unfiltered.csv"))
 df.grn <- read_tsv(paste0(temp_data_path, "GRN_filtered.txt"))
 df.grn.pos <- read_tsv(paste0(temp_data_path, "GRN_filtered_pos_corr.txt"))
 
@@ -638,7 +641,7 @@ write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.
 # have to extract manually top 15 factors:
 factors <- c("TCF3", "HMBOX1", "TEAD4", "FOXK1", "GATA3",
              "ETV1", "REL", "TFAP2A", "KLF6", "THRB",
-             "PPARD", "TGIF1", "MSX1", "HES5", "TFAP2E")
+             "PPARD", "TGIF1", "MSX1", "HES5", "MEF2D")
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
 dir.create(temp_plot_path_subset, recursive = T)
