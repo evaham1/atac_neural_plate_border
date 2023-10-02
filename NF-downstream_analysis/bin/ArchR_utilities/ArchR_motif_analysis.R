@@ -66,6 +66,13 @@ if(opt$verbose) print(opt)
 }
 
 
+TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
+           "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2",
+           "EPAS1", "RARB", "HRKB1", "IRX1",
+           "TEAD3", "TEAD4", "TEAD2", "TEAD1",
+            "SNAI2", "SNAI1", "SNAI3", "TCF12",
+            "TCF3", "HMBOX1", "FOXK1", "ETV1","REL", "KLF6", "THRB")
+
 ############################## Read in ArchR project #######################################
 
 # Extract stage name by removing anything with the word 'peak' in it
@@ -158,9 +165,7 @@ rownames(motif_matrix) <- rowData(motifs_peaks)$name
 colnames(motif_matrix) <- colnames(motifs_peaks)
 
 # then can subset the matrix to only include TFs and only peaks with a motif in at least one of these
-subsetted_motif_matrix <- motif_matrix[ , c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
-                  "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2", 
-                  "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX21", "NKX6-2")]
+subsetted_motif_matrix <- motif_matrix[ , TFs]
 subsetted_motif_matrix <- subsetted_motif_matrix[rowSums(subsetted_motif_matrix[])>0,]
 
 # now want to extract the list of target peak IDs for each TF
@@ -248,10 +253,6 @@ if (topn > 1){
 
 ############################## Extract TFs of interest #######################################
 
-# set genes of interest
-TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
-           "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2")
-# CTNRP and LMX1B and ZEB2 not found
 
 ArchR <- addImputeWeights(ArchR)
 
@@ -290,10 +291,9 @@ print("Chromvar plots made!")
 plot_path = "./plots/Footprinting/"
 dir.create(plot_path, recursive = T)
 
-# slightly smaller TFs list:
-TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
-        "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2", 
-        "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX21", "NKX6-2")
+# set up for footprinting
+motifPositions <- getPositions(ArchR)
+ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = opt$group_by)
 
 # loop through each TF to do footprinting
 for (TF in TFs){
