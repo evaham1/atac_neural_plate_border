@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("Run scMEGA on paired RNA/ATAC object to infer GRN")
+print("Downstream analysis on GRN")
 
 ############################## Load libraries #######################################
 library(getopt)
@@ -38,8 +38,10 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1)
     
-    # full data
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_cell_pairing_and_chromvar/rds_files/" # paired object with chromvar run
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi/csv_files/"
+    
+    plot_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRN_vis/plots/"
+    csv_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRN_vis/csv_files/"
     
     
   } else if (opt$runtype == "nextflow"){
@@ -66,7 +68,6 @@ if(opt$verbose) print(opt)
 set.seed(42)
 
 ############################## EDITED FUNCTIONS #######################################
-
 
 GetTrajectory_updated <- function (object = NULL, trajectory.name = "Trajectory", assay = NULL, 
                                    slot = "counts", groupEvery = 1, log2Norm = TRUE, scaleTo = 10000, 
@@ -359,39 +360,58 @@ LengthCheck <- function(values, cutoff = 0) {
   ))
 }
 
+## function extract df showing shared and unique target genes for a list of TFs
+extract_target_genes_df <- function(TF_list, grn_df){
+  # extract target genes into list called targets_list
+  targets_list <- list()
+  for (TF in TF_list){
+    df.temp <- grn_df %>% 
+      filter(tf == TF)
+    genes <- unique(df.temp$gene)
+    targets_list[[TF]] <- genes
+  }
+  
+  # combine target lists into df called all_targets
+  all_targets <- data.frame(
+    ID = unique(unlist(targets_list))
+  )
+  for (i in 1:length(targets_list)){
+    print(i)
+    targets <- targets_list[[i]]
+    df2 <- data.frame(
+      ID = targets,
+      TF = rep(1, length(targets))
+    )
+    colnames(df2)[2] <- TF_list[i]
+    all_targets <- merge(all_targets, df2, by = "ID", all = TRUE)
+  }
+  all_targets <- all_targets %>%
+    mutate_all(~ ifelse(is.na(.), 0, .))
+  all_targets <- column_to_rownames(all_targets, var = "ID")
+}
 
-############################## Read in seurat object #######################################
 
-print("reading in data...")
+############################## Read in data #######################################
 
-## read in paired seurat object
-obj.pair <- readRDS(paste0(data_path, "paired_object_chromvar.RDS"))
-obj.pair
+temp_data_path = paste0(data_path, "./placodal_lineage/")
 
-#### TEMP: Check lineage trajectories are there
+# read in csvs
+df.tfs <- read.csv(paste0(temp_data_path, "TF_correlations_all.csv"))
+df.p2g <- read.csv(paste0(temp_data_path, "Variable_genes_with_matched_enhancers.csv"))
+df.tf.gene <- read.csv(paste0(temp_data_path, "TF_to_gene_correlations.csv"))
 
-head(obj.pair@meta.data)
-
-# # and then for now subsample data so can run quicker
-# test <- subset(obj.pair, downsample = 100)
+# read in networks
+df.grn <- read_tsv(paste0(temp_data_path, "GRN_filtered.txt"))
+df.grn.pos <- read_tsv(paste0(temp_data_path, "GRN_filtered_pos_corr.txt"))
 
 ######################################################################################
-##############################    PLACODAL     #######################################
+##############################    FILTERED GRN     ###################################
 ######################################################################################
 
-############################## Read in csv files #######################################
-
-temp_plot_path = "./plots/placodal_lineage/"
+temp_plot_path = paste0(plot_path, "filtered_network/")
 dir.create(temp_plot_path, recursive = T)
 
-temp_csv_path = "./csv_files/placodal_lineage/"
-
-df.p2g <- read.csv(paste0(temp_csv_path, "Variable_genes_and_matched_enhancers.csv"))
-df.tfs <- read.csv(paste0(temp_csv_path, "TF_correlations.csv"))
-df.tf.gene <- read.csv(paste0(temp_csv_path, "TF_to_gene_correlations.csv"))
-df.grn <- read.csv(paste0(temp_csv_path, "GRN_data.csv"))
-
-############################## Plot GRN maps using scMEGA #######################################
+############################## Plot filtered GRN #######################################
 
 # define colors for nodes representing TFs (i.e., regulators)
 df.tfs <- df.tfs[order(df.tfs$time_point), ]
@@ -407,10 +427,9 @@ p <- GRNPlot(df.grn,
              min.importance = 2,
              remove.isolated = FALSE)
 
-png(paste0(temp_plot_path, 'Network_all.png'), height = 30, width = 45, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Network_filtered.png'), height = 30, width = 45, units = 'cm', res = 400)
 print(p)
 graphics.off()
-
 
 # only plot TFs
 p <- GRNPlot(df.grn,
@@ -420,248 +439,189 @@ p <- GRNPlot(df.grn,
              genes.use = df.tfs$tfs,
              remove.isolated = TRUE)
 
-png(paste0(temp_plot_path, 'Network_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Network_filtered_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
 print(p)
 graphics.off()
 
-############################## Plot whole GRN map using igraphs #######################################
+############################## Top factors of filtered network #######################################
 
-# filter grn to only include TFs
-df.grn.tfs <- df.grn[df.grn$gene %in% df.grn$tf, ]
-dim(df.grn.tfs)
+# make network
+dgg <- graph.edgelist(as.matrix(df.grn[,1:2]), directed = T)
 
-# filter grn to only include positive interactions
-df.grn.tfs <- df.grn.tfs %>% dplyr::filter(correlation > 0.1)
-dim(df.grn.tfs)
+########## EDGES
+# extract degree centrality
+edges <- as.data.frame(igraph::degree(dgg))
+edges <- rownames_to_column(edges, var = "node")
+colnames(edges)[2] <- "nEdges"
+edges <- edges %>% arrange(desc(nEdges))
+print(edges[1:20,])
 
-# extract data to plot
-links <- df.grn.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
-
-# timepoint expression information of TFs
-nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-length(unique(nodes$tf))
-nodes <- nodes %>% 
-  dplyr::filter(tf %in% unique(links$tf)) %>% # remove TFs with no links
-  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
-
-# colours for latent time
-cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-                   val = seq(1:100))
-cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
-
-# Turn it into igraph object
-network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
-
-# Plot network - its different everytime, cant seem to fix randomness
-png(paste0(temp_plot_path, 'Network_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-plot(network, edge.arrow.size=0.5, edge.width = E(network)$correlation*5,
-          vertex.color = cols_matched$col,
-          vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-     layout = layout_nicely(network))
+png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
+hist(edges$nEdges, breaks = 100)
 graphics.off()
 
-## annoyingly there doesnt seem to be an easy way to prevent node overlap
-# plot(network, edge.arrow.size=0.2, edge.width = E(network)$correlation*5,
-#      vertex.color = cols_matched$col,
-#      vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-#      layout = layout_as_tree(network))
+# plot TF-target corr of top 10 factors
+factors <- edges[1:10, 1]
 
-############################## Plot known GRN map using igraphs #######################################
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% factors)
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% factors)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-# Plot network of just known TFs
-df.grn.known.tfs <- df.grn.tfs %>% 
-  filter(tf %in% c("ZNF462", "DLX5", "DLX6", "GATA2", "GATA3", "SIX1", "EYA2", "SIX4",
-                   "FOXI1", "FOXI3", "TFAP2A", "ZIC1", "ZIC5", "PRDM1", "PAX3", "PAX7",
-                   "MSX1", "AXUD1", "FOXD3", "SNAI2"))
-
-# extract data to plot
-links <- df.grn.known.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
-
-# timepoint expression information of TFs
-nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-length(unique(nodes$tf))
-nodes <- nodes %>% 
-  dplyr::filter(tf %in% c(links$tf, links$gene)) %>% # remove TFs with no links
-  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
-
-# colours for latent time
-cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-                   val = seq(1:100))
-cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
-
-# Turn it into igraph object
-network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
-
-# Plot network - its different everytime, cant seem to fix randomness
-png(paste0(temp_plot_path, 'Network_known_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-plot(network, edge.arrow.size=1, edge.width = E(network)$correlation*5,
-     vertex.color = cols_matched$col,
-     vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-     layout = layout_nicely(network))
+png(paste0(temp_plot_path, 'Top_edges_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+ht
 graphics.off()
 
-############################## Plot GRN map with high centrality using igraphs #######################################
+########## scMEGA IMPORTANCE
+# have to extract manually top 40 factors:
+factors <- c("ZNF384", "TCF3", "HMBOX1", "TEAD4", "TFAP2A",
+             "ETV1", "MEIS1", "GATA3", "KLF6", "E2F8",
+             "FOXK1", "RFX2", "MTF1", "ETV6", "REL",
+             "IRF7", "ZBTB7A", "KLF11", "E2F6", "MYCN", 
+             "THRB", "OTX1", "REB1", "MNT", "MSX1", 
+             "PPARD", "TGIF1", "ZNF143", "POU2E1","NFYC", 
+             "SP8", "MEF2D", "JUN", "NR2C2", "KLF3", 
+             "ZBTB14", "MAFK", "HES5", "TFAP2E", "LIN54")
 
-# TEAD3     TEAD3   6.083333
-# JUN         JUN   7.666667
-# ATF6       ATF6  25.000000
-# GATA3     GATA3  28.416667
-# REL         REL  41.333333
-# KLF6       KLF6  41.416667
-# ZBTB7A   ZBTB7A  53.750000
-# KLF11     KLF11  95.833333
-# RFX2       RFX2  99.500000
-# PBX1       PBX1 106.000000
+# plot TF-target corr of top 40 factors
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% factors)
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% factors)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-# Plot network of just known TFs
-df.grn.known.tfs <- df.grn.tfs %>% 
-  filter(tf %in% c("TEAD3", "JUN", "ATF6", "GATA3", "REL", "KLF6", "ZBTB7A", "KLF11",
-                   "RFX2", "PBX1"))
-
-# extract data to plot
-links <- df.grn.known.tfs %>% dplyr::select(c("tf", "gene", "correlation"))
-
-# timepoint expression information of TFs
-nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-length(unique(nodes$tf))
-nodes <- nodes %>% 
-  dplyr::filter(tf %in% c(links$tf, links$gene)) %>% # remove TFs with no links
-  mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
-
-# colours for latent time
-cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-                   val = seq(1:100))
-cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
-
-# Turn it into igraph object
-network <- graph_from_data_frame(d = links, vertices = nodes, directed = T) 
-
-# Plot network - its different everytime, cant seem to fix randomness
-png(paste0(temp_plot_path, 'Network_high_betweeness_TFs_igraph.png'), height = 30, width = 45, units = 'cm', res = 400)
-plot(network, edge.arrow.size=1, edge.width = E(network)$correlation*5,
-     vertex.color = cols_matched$col,
-     vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-     layout = layout_nicely(network))
+png(paste0(temp_plot_path, 'Top_importance_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+ht
 graphics.off()
 
+######################################################################################
+##############################    POS CORR GRN     ###################################
+######################################################################################
 
-############################## Network analysis #######################################
+temp_plot_path = paste0(plot_path, "filtered__pos_corr_network/")
+dir.create(temp_plot_path, recursive = T)
 
-# degree: how many connections
-# eigenvector centrality: vertices that are in turn connected to other vertices that are highly interconnected in the network
-# betweenness: how frequently a vertex lies on the shortest path(s) between any two vertices in the network.
+temp_csv_path = paste0(csv_path, "filtered__pos_corr_network/")
+dir.create(temp_csv_path, recursive = T)
 
-# local degree centrality, ie the number of links held by a node
-degree.cent <- centr_degree(network, mode = "all")
-results <- data.frame(tf = nodes$tf,
-                      res = degree.cent$res)
-results <- results[order(results$res), ]
-print(results)
+############################## Plot filtered pos corr GRN #######################################
 
-# closeness centrality, closeness to all other nodes in the network
-closeness.cent <- closeness(network, mode="all")
-results <- data.frame(tf = nodes$tf,
-                      res = closeness.cent)
-results <- results[order(results$res), ]
-print(results)
+# plot whole GRN
+p <- GRNPlot(df.grn.pos,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             seed = 42, 
+             plot.importance = TRUE,
+             min.importance = 2,
+             remove.isolated = FALSE)
 
-# betweeness, how frequently the vertex lies on shortest path between ay two vertices in network
-# ie how critical this node is to flow of information through the network
-betweeness <- betweenness(network, directed = "TRUE")
-results <- data.frame(tf = nodes$tf,
-                      res = betweeness)
-results <- results[order(results$res), ]
-print(results)
+png(paste0(temp_plot_path, 'Network_filtered_pos_corr.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# grouping factors
-x <- fastgreedy.community(network)
+# only plot TFs
+p <- GRNPlot(df.grn.pos,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             plot.importance = TRUE,
+             genes.use = df.tfs$tfs,
+             remove.isolated = TRUE)
 
+png(paste0(temp_plot_path, 'Network_filtered_pos_corrTFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-############################## Plot lineage dynamics #######################################
+############################## Top factors of filtered network #######################################
 
-obj.pair <- AddTargetAssay_updated(test, df.grn = df.grn)
+# make network
+dgg <- graph.edgelist(as.matrix(df.grn.pos[,1:2]), directed = T)
 
-# plot dynamics of each TF in network
-for (TF in df.tfs$tfs){
-  print(TF)
-  
-  png(paste0(temp_plot_path, TF, '_dynamics_plot.png'), height = 15, width = 20, units = 'cm', res = 400)
-  PseudotimePlot_updated(obj.pair, trajectory.name = "rna_lineage_placodal_probability",
-                         tf.use = TF)
-  graphics.off()
-}
+########## EDGES
+# extract top genes and make edges plot
+edges <- as.data.frame(igraph::degree(dgg))
+edges <- rownames_to_column(edges, var = "node")
+colnames(edges)[2] <- "nEdges"
+edges <- edges %>% arrange(desc(nEdges))
+print(edges[1:20,])
 
+png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
+hist(edges$nEdges, breaks = 100)
+graphics.off()
 
+factors <- edges[1:10, 1]
 
-############################## Interactive visualisation #######################################
+# plot corr heatmap
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% factors)
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% factors)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-# Libraries
-library(tidyverse)
-library(viridis)
-library(patchwork)
-library(ggraph)
-library(igraph)
-library(networkD3)
+png(paste0(temp_plot_path, 'Top_edges_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+ht
+graphics.off()
 
-# Plot
-simpleNetwork(links,     
-              Source = 1,                 # column number of source
-              Target = 2,                 # column number of target
-              height = 880,               # height of frame area in pixels
-              width = 1980,
-              linkDistance = 50,         # distance between node. Increase this value to have more space between nodes
-              charge = -4,              # numeric value indicating either the strength of the node repulsion (negative value) or attraction (positive value)
-              fontSize = 5,              # size of the node names
-              fontFamily = "serif",       # font og node names
-              linkColour = "#666",        # colour of edges, MUST be a common colour for the whole graph
-              nodeColour = "#69b3a2",     # colour of nodes, MUST be a common colour for the whole graph
-              opacity = 0.9,              # opacity of nodes. 0=transparent. 1=no transparency
-              zoom = T                    # Can you zoom on the figure?
+# subset network
+df.grn.pos.selected <- df.grn.pos %>%
+  dplyr::filter(tf %in% factors) %>%
+  dplyr::filter(gene %in% factors)
+nrow(df.grn.pos.selected) # 15,345 interactions
+
+# TF network numbers
+df <- data.frame(
+  nSource = length(unique(df.grn.pos.selected$tf)),
+  nTarget = length(unique(df.grn.pos.selected$gene)),
+  nBoth = sum(unique(df.grn.pos.selected$tf) %in% unique(df.grn.pos.selected$gene)),
+  nInteractions = nrow(df.grn.pos.selected),
+  nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
+  nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
 )
+png(paste0(temp_plot_path, 'Top_edges_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
+# save network
+write_tsv(df.grn.pos.selected, file = paste0(temp_csv_path, "GRN_subset_top_edges.txt"))
 
-############################## Playing around with ggraph #######################################
+########## scMEGA IMPORTANCE
+# have to extract manually top 40 factors:
+factors <- c("TCF3", "HMBOX1", "TEAD4", "FOXK1", "GATA3",
+             "ETV1", "REL", "TFAP2A", "KLF6", "THRB",
+             "PPARD", "TGIF1", "MSX1", "HES5", "TFAP2E")
 
-package <- data.frame(
-  name = c("igraph", "ggraph", "dplyr", "ggplot", "tidygraph")
+# plot TF-target corr of top 40 factors
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% factors)
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% factors)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+
+png(paste0(temp_plot_path, 'Top_importance_TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+ht
+graphics.off()
+
+# subset network
+df.grn.pos.selected <- df.grn.pos %>%
+  dplyr::filter(tf %in% factors) %>%
+  dplyr::filter(gene %in% factors)
+nrow(df.grn.pos.selected) # 15,345 interactions
+
+# TF network numbers
+df <- data.frame(
+  nSource = length(unique(df.grn.pos.selected$tf)),
+  nTarget = length(unique(df.grn.pos.selected$gene)),
+  nBoth = sum(unique(df.grn.pos.selected$tf) %in% unique(df.grn.pos.selected$gene)),
+  nInteractions = nrow(df.grn.pos.selected),
+  nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
+  nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
 )
+png(paste0(temp_plot_path, 'Top_importance_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
-tie <- data.frame(
-  from = c("igraph", "igraph", "ggplot", "igraph", "dplyr", "ggraph"),
-  to =   c("ggraph", "tidygraph", "ggraph", "tidygraph", "tidygraph", "tidygraph")
-)
+# save network
+write_tsv(df.grn.pos.selected, file = paste0(temp_csv_path, "GRN_subset_top_importance.txt"))
 
-g = graph_from_data_frame(links, directed = TRUE, vertices = nodes)
-
-# use arrows for directions
-ggraph(g, layout = 'graphopt') + 
-  geom_edge_link(aes(start_cap = label_rect(node1.name), end_cap = label_rect(node2.name)), 
-                 arrow = arrow(type = "closed", length = unit(3, 'mm'))) + 
-  geom_node_text(aes(label = name)) +
-  geom_node_point(aes(fill = tfs.timepoint, size = 20),shape = 21) +
-  theme_graph()
-
- 
-    
-ggraph(g, layout = 'graphopt') + 
-  geom_edge_link(aes(edge_width = correlation),edge_colour = "grey66") +
-    geom_node_text(aes(label = name)) +
-    geom_node_point(aes(colour = tfs.timepoint), size = 4)
-  theme_graph()
-  
-  got_palette <- c("#1A5878", "#C44237", "#AD8941", "#E99093", 
-                   "#50594B", "#8968CD", "#9ACD32", "#feb24c")
-  size = 2
-  ggraph(g, layout = "stress")+
-    geom_edge_link(aes(edge_width = correlation),edge_colour = "grey66",
-                    arrow = arrow(type = "open", length = unit(4, 'mm')),
-                    start_cap = label_rect(node1.name), end_cap = label_rect(node2.name))+
-    geom_node_text(aes(label = name)) +
-    geom_node_point(aes(fill = tfs.timepoint, size = 2),shape = 21)+
-    geom_node_text(aes(filter = size >= 26, label = name),family="serif")+
-    scale_fill_continuous()+
-    scale_edge_width(range = c(0.2,3))+
-    scale_size(range = c(1,8))+
-    theme_graph()+
-    theme(legend.position = "right")
-  

@@ -296,46 +296,6 @@ centerRollMean <- function(v = NULL, k = NULL){
   o2
 }
 
-### New function to plot network using igraph
-# colours nodes by timepoint
-# colours edges by positive/negative and thickness is by correlation strength
-# edit so can optionally colour nodes
-
-PlotTFNetwork <- function(df.grn, tfs.timepoint){
-  # extract data to plot
-  links <- df.grn %>% 
-    dplyr::select(c("tf", "gene", "correlation")) %>%
-    dplyr::mutate(abs_corr = abs(correlation))
-  
-  # timepoint expression information of TFs
-  nodes <- rownames_to_column(as.data.frame(tfs.timepoint), var = "tf")
-  length(unique(nodes$tf))
-  nodes <- nodes %>% 
-    dplyr::filter(tf %in% c(links$tf, links$gene)) %>% # remove TFs/genes with no links
-    mutate(tfs.timepoint = round(tfs.timepoint, digits = 0))
-  length(unique(nodes$tf))
-  
-  # colours for latent time
-  cols <- data.frame(col = paletteContinuous(set = "beach", n = 100),
-                     val = seq(1:100))
-  cols_matched <- merge(cols, nodes, by.x = "val", by.y = "tfs.timepoint")
-  
-  # Turn it into igraph object
-  network <- graph_from_data_frame(d = links, vertices = nodes, directed = T)
-  
-  # colours for positive or negative interactions
-  E(network)$color <- ifelse(E(network)$correlation > 0,'red','blue')
-  
-  # make plot
-  p <- plot(network, edge.arrow.size=E(network)$abs_corr*0.75, edge.width = E(network)$abs_corr*5,
-            vertex.color = cols_matched$col,
-            vertex.label.color = "black", vertex.label.family = "Helvetica", vertex.label.cex = 0.8,
-            layout = layout_nicely(network))
-  
-  return(p)
-}
-
-
 
 ############################## Read in seurat object #######################################
 
