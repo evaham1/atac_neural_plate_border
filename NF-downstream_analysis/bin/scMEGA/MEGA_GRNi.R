@@ -18,7 +18,7 @@ library(SummarizedExperiment)
 library(igraph)
 library(ggraph)
 library(RColorBrewer)
-# library(VennDiagram) # this package isnt in this container atm
+library(VennDiagram)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -349,7 +349,9 @@ trajectory <- "lineage_placodal_probability"
 
 # remove cells that have a placodal probability of less than 25%
 obj.traj <- subset(obj.pair, subset = lineage_placodal_probability > 25)
-obj.traj
+
+# save subsetted object
+saveRDS(obj.pair, file = paste0(rds_path, "Placodal_traj_obj.RDS"))
 
 ############################## Select nodes #######################################
 
@@ -460,10 +462,14 @@ png(paste0(temp_plot_path, 'Genes_peaks_variable_heatmap.png'), height = 30, wid
 draw(ht)
 graphics.off()
 
-# select genes correlate with peaks (don't have to be variable across trajectory)
-res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
+# # select genes correlate with peaks (don't have to be variable across trajectory)
+# res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
+#                            var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
+#                            cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+
+res <- SelectGenes(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+                           cor.cutoff = 0, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
 df.p2g <- res$p2g
@@ -529,6 +535,37 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+############################## Extract TF by peak matrix #######################################
+
+print("Motif matrix...")
+
+# peak by TF matrix to indicate presence of binding sites
+motif.matching <- obj.pair@assays$ATAC@motifs@data
+colnames(motif.matching) <- obj.pair@assays$ATAC@motifs@motif.names
+motif.matching <- motif.matching[unique(df.p2g$peak), unique(df.tfs$tf)]
+dim(motif.matching)
+
+# distribution of motifs by TF
+n_hits_per_TF <- colSums(motif.matching)
+png(paste0(temp_plot_path, 'Motif_hits_per_TF.png'), height = 8, width = 10, units = 'cm', res = 400)
+hist(n_hits_per_TF, breaks = 100)
+graphics.off()
+summary(n_hits_per_TF)
+print(n_hits_per_TF[order(n_hits_per_TF)])
+
+# distribution of peaks by TF
+n_hits_per_peak <- rowSums(motif.matching)
+png(paste0(temp_plot_path, 'Motif_hits_per_peak.png'), height = 8, width = 10, units = 'cm', res = 400)
+hist(n_hits_per_peak, breaks = 100)
+graphics.off()
+summary(n_hits_per_peak)
+
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+print(paste0("mode: ", getmode(n_hits_per_peak)))
+
 ############################## Building quantiative GRN #######################################
 # by using correlation between accessibility of selected TF targets and expression of selected genes over trajectory
 
@@ -566,11 +603,6 @@ graphics.off()
 # if a gene is regulated by a peak AND this peak is bound by a TF, THEN we say this gene is a target of this TF
 
 print("Building enhancer GRN...")
-
-# peak by TF matrix to indicate precence of binding sites
-motif.matching <- obj.pair@assays$ATAC@motifs@data
-colnames(motif.matching) <- obj.pair@assays$ATAC@motifs@motif.names
-motif.matching <- motif.matching[unique(df.p2g$peak), unique(df.tfs$tf)]
 
 # take the TF-gene correlation, peak-TF binding prediction and peaks-to-genes linkage to build network
 df.grn <- GetGRN(motif.matching = motif.matching,
