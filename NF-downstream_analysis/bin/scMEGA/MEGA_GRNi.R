@@ -321,9 +321,13 @@ obj.pair@meta.data$lineage_neural_probability <- obj.pair@meta.data$lineage_neur
 
 ############################## Save seurat object #######################################
 
+print("saving whole seurat object:")
+
 saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
 
 ############################## Extract all known TF names #######################################
+
+print("extracting TF names...")
 
 TF_names <- obj.pair@assays$ATAC@motifs@motif.names
 names(TF_names) <- NULL
@@ -337,6 +341,8 @@ close(fileConn)
 ##############################    PLACODAL     #######################################
 ######################################################################################
 
+print("Starting GRNi for placodal lineage...")
+
 temp_plot_path = "./plots/placodal_lineage/"
 dir.create(temp_plot_path, recursive = T)
 temp_csv_path = "./csv_files/placodal_lineage/"
@@ -348,6 +354,7 @@ dir.create(temp_lineage_plot_path, recursive = T)
 trajectory <- "lineage_placodal_probability"
 
 # remove cells that have a placodal probability of less than 25%
+obj.pair[["RNA"]] <- as(obj.pair[["RNA"]], "Assay5") # debugging seurat's subset function
 obj.traj <- subset(obj.pair, subset = lineage_placodal_probability > 25)
 
 # save subsetted object
