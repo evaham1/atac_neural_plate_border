@@ -359,7 +359,7 @@ obj.traj <- subset(obj.pair, subset = lineage_placodal_probability > 25)
 obj.traj
 
 # save subsetted object
-saveRDS(obj.pair, file = paste0(rds_path, "Placodal_traj_obj.RDS"))
+saveRDS(obj.traj, file = paste0(rds_path, "Placodal_traj_obj.RDS"))
 
 ############################## Select nodes #######################################
 
@@ -454,6 +454,8 @@ if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
 ############  TARGET NODES
 
 print("Selecting target nodes...")
+
+debug(SelectGenes_updated)
 
 # select target nodes that vary with the trajectory AND correlate with peaks
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
