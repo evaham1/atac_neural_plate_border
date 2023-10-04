@@ -354,8 +354,9 @@ dir.create(temp_lineage_plot_path, recursive = T)
 trajectory <- "lineage_placodal_probability"
 
 # remove cells that have a placodal probability of less than 25%
-obj.pair[["RNA"]] <- as(obj.pair[["RNA"]], "Assay5") # debugging seurat's subset function
+# obj.pair[["RNA"]] <- as(obj.pair[["RNA"]], "Assay5") # debugging seurat's subset function
 obj.traj <- subset(obj.pair, subset = lineage_placodal_probability > 25)
+obj.traj
 
 # save subsetted object
 saveRDS(obj.pair, file = paste0(rds_path, "Placodal_traj_obj.RDS"))
