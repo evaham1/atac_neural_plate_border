@@ -469,14 +469,10 @@ png(paste0(temp_plot_path, 'Genes_peaks_variable_heatmap.png'), height = 30, wid
 draw(ht)
 graphics.off()
 
-# # select genes correlate with peaks (don't have to be variable across trajectory)
-# res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-#                            var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
-#                            cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
-
-res <- SelectGenes(obj.traj, trajectory.name = trajectory, groupEvery = 2,
+# select genes correlate with peaks (don't have to be variable across trajectory)
+res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
 df.p2g <- res$p2g
