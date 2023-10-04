@@ -455,8 +455,7 @@ if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
 
 print("Selecting target nodes...")
 
-debug(SelectGenes_updated)
-
+print("Variable genes:")
 # select target nodes that vary with the trajectory AND correlate with peaks
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
@@ -464,6 +463,8 @@ res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 
 
 # save target nodes
 df.p2g.var <- res$p2g
+head(df.p2g.var)
+dim(df.p2g.var)
 write.csv(df.p2g.var, file = paste0(temp_csv_path, "Variable_genes_with_matched_enhancers.csv"), row.names = FALSE)
 
 # plot the dynamics of these genes across trajectory
@@ -473,12 +474,15 @@ draw(ht)
 graphics.off()
 
 # select genes correlate with peaks (don't have to be variable across trajectory)
+print("Non-variable genes:")
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
 df.p2g <- res$p2g
+head(df.p2g)
+dim(df.p2g)
 write.csv(df.p2g, file = paste0(temp_csv_path, "Genes_with_matched_enhancers.csv"), row.names = FALSE)
 
 # plot the dynamics of these genes across trajectory
@@ -488,12 +492,14 @@ draw(ht)
 graphics.off()
 
 # for final target node df, combine the variable ones with all TFs from non variable one
+print("filter all genes for TFs:")
 df.p2g.tfs <- df.p2g %>% 
   dplyr::filter(gene %in% TF_names) %>% # filter p2g to only include TFs
   dplyr::filter(!gene %in% df.p2g.var$gene)
 nrow(df.p2g.tfs) # 1,307 new interactions added
 length(unique(df.p2g.tfs$gene)) # 67 new nodes added
 
+print("Combining TFs with variable genes:")
 df.p2g.final <- rbind(df.p2g.var, df.p2g.tfs)
 nrow(df.p2g.final) # 74,125 final interactions
 
@@ -518,6 +524,7 @@ draw(ht)
 graphics.off()
 
 ## how many peaks is each target node associated with?
+print("How many peaks associated with each target node: ")
 npeaks <- as.data.frame(table(df.p2g.final$gene))
 png(paste0(temp_plot_path, 'Target_node_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
 print(hist(npeaks$Freq, breaks = 100))
@@ -525,6 +532,8 @@ graphics.off()
 summary(npeaks$Freq)
 
 ############  TOTAL NODES NUMBERS
+
+print("Calculating total node numbers: ")
 
 ## plot node numbers
 df <- data.frame(
