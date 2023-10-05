@@ -123,10 +123,10 @@ SelectGenes_updated <- function (object, atac.assay = "ATAC", rna.assay = "RNA",
   trajATAC <- GetTrajectory_updated(object, assay = atac.assay, groupEvery = groupEvery, 
                                     trajectory.name = trajectory.name, slot = "data", smoothWindow = 7, 
                                     log2Norm = TRUE)
-  groupMatRNA <- suppressMessages(TrajectoryHeatmap(trajRNA, 
+  groupMatRNA <- suppressMessages(TrajectoryHeatmap_updated(trajRNA, 
                                                     varCutOff = var.cutoff.gene, pal = paletteContinuous(set = "horizonExtra"), 
                                                     limits = c(-2, 2), returnMatrix = TRUE))
-  groupMatATAC <- suppressMessages(TrajectoryHeatmap(trajATAC, 
+  groupMatATAC <- suppressMessages(TrajectoryHeatmap_updated(trajATAC, 
                                                      varCutOff = 0, maxFeatures = nrow(trajATAC), pal = paletteContinuous(set = "solarExtra"), 
                                                      limits = c(-2, 2), name = "Chromatin accessibility", 
                                                      returnMatrix = TRUE))
@@ -148,6 +148,86 @@ SelectGenes_updated <- function (object, atac.assay = "ATAC", rna.assay = "RNA",
     res <- list(p2g = df.p2g)
   }
   return(res)
+}
+
+TrajectoryHeatmap_updated <- function (trajectory, varCutOff = 0.9, maxFeatures = 25000, scaleRows = TRUE, 
+                                       rowOrder = NULL, limits = c(-1.5, 1.5), labelRows = FALSE, 
+                                       pal = NULL, labelMarkers = NULL, labelTop = 50, name = "Heatmap", 
+                                       returnMatrix = FALSE) 
+{
+  mat <- assay(trajectory)
+  rSNA <- rowSums(is.na(mat))
+  if (sum(rSNA > 0) > 0) {
+    message("Removing rows with NA values...")
+    mat <- mat[rSNA == 0, ]
+  }
+  varQ <- ArchR:::.getQuantiles(matrixStats::rowVars(mat))
+  orderedVar <- FALSE
+  if (is.null(rowOrder)) {
+    mat <- mat[order(varQ, decreasing = TRUE), ]
+    orderedVar <- TRUE
+    if (is.null(varCutOff) & is.null(maxFeatures)) {
+      n <- nrow(mat)
+    }
+    else if (is.null(varCutOff)) {
+      n <- maxFeatures
+    }
+    else if (is.null(maxFeatures)) {
+      n <- (1 - varCutOff) * nrow(mat)
+    }
+    else {
+      n <- min((1 - varCutOff) * nrow(mat), maxFeatures)
+    }
+    n <- min(n, nrow(mat))
+    mat <- mat[head(seq_len(nrow(mat)), n), ]
+  }
+  if (!is.null(labelTop) & labelTop > 0) {
+    if (orderedVar) {
+      idxLabel <- rownames(mat)[seq_len(labelTop)]
+    }
+    else {
+      idxLabel <- rownames(mat)[order(varQ, decreasing = TRUE)][seq_len(labelTop)]
+    }
+  }
+  else {
+    idxLabel <- NULL
+  }
+  if (scaleRows) {
+    mat <- sweep(mat - rowMeans(mat), 1, matrixStats::rowSds(mat), 
+                 `/`)
+    mat[mat > max(limits)] <- max(limits)
+    mat[mat < min(limits)] <- min(limits)
+  }
+  if (nrow(mat) == 0) {
+    stop("No Features Remaining!")
+  }
+  if (is.null(pal)) {
+    pal <- ArchR::paletteContinuous(set = "blueYellow", n = 100)
+  }
+  if (!is.null(rowOrder)) {
+    idx <- rowOrder
+  }
+  else {
+    mat <- as.data.frame(lapply(mat, unlist))
+    idx <- order(apply(mat, 1, which.max))
+  }
+  if (!is.null(idxLabel)) {
+    customRowLabel <- match(idxLabel, rownames(mat[idx, ]))
+  }
+  else {
+    customRowLabel <- NULL
+  }
+  ht <- ArchR:::.ArchRHeatmap(mat = mat[idx, ], scale = FALSE, 
+                              limits = c(min(mat), max(mat)), color = pal, clusterCols = FALSE, 
+                              clusterRows = FALSE, labelRows = labelRows, labelCols = FALSE, 
+                              customRowLabel = customRowLabel, showColDendrogram = TRUE, 
+                              name = name, draw = FALSE)
+  if (returnMatrix) {
+    return(mat[idx, ])
+  }
+  else {
+    return(ht)
+  }
 }
 
 GetTFGeneCorrelation_updated <- function (object, tf.use = NULL, gene.use = NULL, tf.assay = "chromvar", 
@@ -476,7 +556,7 @@ graphics.off()
 # select genes correlate with peaks (don't have to be variable across trajectory)
 print("Non-variable genes:")
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
+                           var.cutoff.gene = NULL, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
