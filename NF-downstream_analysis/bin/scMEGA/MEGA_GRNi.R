@@ -716,7 +716,7 @@ if ( sum(unique(df.tfs$tf) %in% unique(df.grn$tf)) != length(unique(df.tfs$tf)) 
   stop("Not all selected TFs are in TF-gene correlation matrix!")
 }
 print("How many selected genes didn't make it to final GRN: ")
-print(table(unique(df.p2g.final$gene) %in% unique(df.grn$gene)))
+print(table(unique(df.p2g$gene) %in% unique(df.grn$gene)))
 
 ############################## Final full GRN #######################################
 
