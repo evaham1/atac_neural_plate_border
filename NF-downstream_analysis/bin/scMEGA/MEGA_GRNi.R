@@ -787,7 +787,7 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
 graphics.off()
 
 # plot venn of nodes
-yCol <- brewer.pal(2, "Pastel2")
+myCol <- brewer.pal(2, "Pastel2")
 venn.diagram(
   x = list(unique(df.grn$tf), unique(df.grn$gene)[!is.na(unique(df.grn$gene))]),
   category.names = c("Source node", "Target node"),
