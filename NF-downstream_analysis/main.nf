@@ -62,6 +62,8 @@ include {R as ARCHR_TO_SEURAT} from "$baseDir/modules/local/r/main"             
 include {R as MEGA_PAIRING_CHROMVAR} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_make_multiome.R", checkIfExists: true) )
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 include {R as MEGA_GRN_VIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRN_vis.R", checkIfExists: true) )
+include {R as MEGA_GRNI_GMS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi_GMs.R", checkIfExists: true) )
+
 
 // // METACELL PROCESSING
 // include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
@@ -374,6 +376,9 @@ workflow A {
 
         // once have full GRN explore the network
         MEGA_GRN_VIS( MEGA_GRNI.out )
+
+        // in parallel try running GRNi but only with genes in GMs + all TFs
+        MEGA_GRNI_GMS( ch_grni )
         
 
     }
