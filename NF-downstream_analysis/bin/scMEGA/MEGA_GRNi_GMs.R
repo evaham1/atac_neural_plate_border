@@ -810,7 +810,8 @@ df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
                                            gene.assay = "RNA",
                                            groupEvery = 2,
                                            trajectory.name = trajectory)
-ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
+df.tfs.tmp <- df.tfs %>% dplyr::filter(tfs %in% unique(df.grn$tf))
+ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs.tmp$time_point, km = 1)
 png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
 ht
 graphics.off()
@@ -908,7 +909,8 @@ df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
                                            gene.assay = "RNA",
                                            groupEvery = 2,
                                            trajectory.name = trajectory)
-ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
+df.tfs.tmp <- df.tfs %>% dplyr::filter(tfs %in% unique(df.grn$tf))
+ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs.tmp$time_point, km = 1)
 png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
 ht
 graphics.off()
