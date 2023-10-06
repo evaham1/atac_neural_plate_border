@@ -63,6 +63,7 @@ include {R as MEGA_PAIRING_CHROMVAR} from "$baseDir/modules/local/r/main"       
 include {R as MEGA_GRNI} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi.R", checkIfExists: true) )
 include {R as MEGA_GRN_VIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRN_vis.R", checkIfExists: true) )
 include {R as MEGA_GRNI_GMS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRNi_GMs.R", checkIfExists: true) )
+include {R as MEGA_GRN_GMS_VIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRN_vis.R", checkIfExists: true) )
 
 
 // // METACELL PROCESSING
@@ -373,12 +374,11 @@ workflow A {
             .view()
             .set {ch_grni} // add p2g csv file
         MEGA_GRNI( ch_grni )
-
-        // once have full GRN explore the network
         MEGA_GRN_VIS( MEGA_GRNI.out )
 
         // in parallel try running GRNi but only with genes in GMs + all TFs
         MEGA_GRNI_GMS( ch_grni )
+        MEGA_GRN_GMS_VIS( MEGA_GRNI_GMS.out )
         
 
     }
