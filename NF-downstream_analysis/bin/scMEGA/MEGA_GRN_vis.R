@@ -645,7 +645,7 @@ factors <- c("TCF3", "HMBOX1", "TEAD4", "FOXK1", "GATA3",
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
 dir.create(temp_plot_path_subset, recursive = T)
-k = 8
+k = 1
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
@@ -661,14 +661,14 @@ graphics.off()
 # Create target gene heatmap
 target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
 colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
-hm <- pheatmap::pheatmap(target_genes_df,
+hm <- pheatmap::pheatmap(t(target_genes_df),
                          color = c("grey", "purple"),  # Color scheme
                          cluster_rows = TRUE,  # Do not cluster rows
                          cluster_cols = TRUE,  # Do not cluster columns
-                         fontsize_row = 0.1,  # Font size for row labels
-                         fontsize_col = 10,   # Font size for column labels
+                         fontsize_row = 10,  # Font size for row labels
+                         fontsize_col = 0.0001,   # Font size for column labels
                          cutree_rows = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 18, width = 10, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
 hm
 graphics.off()
 
