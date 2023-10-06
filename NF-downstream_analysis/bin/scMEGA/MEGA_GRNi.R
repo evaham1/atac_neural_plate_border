@@ -123,10 +123,10 @@ SelectGenes_updated <- function (object, atac.assay = "ATAC", rna.assay = "RNA",
   trajATAC <- GetTrajectory_updated(object, assay = atac.assay, groupEvery = groupEvery, 
                                     trajectory.name = trajectory.name, slot = "data", smoothWindow = 7, 
                                     log2Norm = TRUE)
-  groupMatRNA <- suppressMessages(TrajectoryHeatmap_updated(trajRNA, 
+  groupMatRNA <- suppressMessages(TrajectoryHeatmap(trajRNA, 
                                                     varCutOff = var.cutoff.gene, pal = paletteContinuous(set = "horizonExtra"), 
                                                     limits = c(-2, 2), returnMatrix = TRUE))
-  groupMatATAC <- suppressMessages(TrajectoryHeatmap_updated(trajATAC, 
+  groupMatATAC <- suppressMessages(TrajectoryHeatmap(trajATAC, 
                                                      varCutOff = 0, maxFeatures = nrow(trajATAC), pal = paletteContinuous(set = "solarExtra"), 
                                                      limits = c(-2, 2), name = "Chromatin accessibility", 
                                                      returnMatrix = TRUE))
@@ -148,86 +148,6 @@ SelectGenes_updated <- function (object, atac.assay = "ATAC", rna.assay = "RNA",
     res <- list(p2g = df.p2g)
   }
   return(res)
-}
-
-TrajectoryHeatmap_updated <- function (trajectory, varCutOff = 0.9, maxFeatures = 25000, scaleRows = TRUE, 
-                                       rowOrder = NULL, limits = c(-1.5, 1.5), labelRows = FALSE, 
-                                       pal = NULL, labelMarkers = NULL, labelTop = 50, name = "Heatmap", 
-                                       returnMatrix = FALSE) 
-{
-  mat <- assay(trajectory)
-  rSNA <- rowSums(is.na(mat))
-  if (sum(rSNA > 0) > 0) {
-    message("Removing rows with NA values...")
-    mat <- mat[rSNA == 0, ]
-  }
-  varQ <- ArchR:::.getQuantiles(matrixStats::rowVars(mat))
-  orderedVar <- FALSE
-  if (is.null(rowOrder)) {
-    mat <- mat[order(varQ, decreasing = TRUE), ]
-    orderedVar <- TRUE
-    if (is.null(varCutOff) & is.null(maxFeatures)) {
-      n <- nrow(mat)
-    }
-    else if (is.null(varCutOff)) {
-      n <- maxFeatures
-    }
-    else if (is.null(maxFeatures)) {
-      n <- (1 - varCutOff) * nrow(mat)
-    }
-    else {
-      n <- min((1 - varCutOff) * nrow(mat), maxFeatures)
-    }
-    n <- min(n, nrow(mat))
-    mat <- mat[head(seq_len(nrow(mat)), n), ]
-  }
-  if (!is.null(labelTop) & labelTop > 0) {
-    if (orderedVar) {
-      idxLabel <- rownames(mat)[seq_len(labelTop)]
-    }
-    else {
-      idxLabel <- rownames(mat)[order(varQ, decreasing = TRUE)][seq_len(labelTop)]
-    }
-  }
-  else {
-    idxLabel <- NULL
-  }
-  if (scaleRows) {
-    mat <- sweep(mat - rowMeans(mat), 1, matrixStats::rowSds(mat), 
-                 `/`)
-    mat[mat > max(limits)] <- max(limits)
-    mat[mat < min(limits)] <- min(limits)
-  }
-  if (nrow(mat) == 0) {
-    stop("No Features Remaining!")
-  }
-  if (is.null(pal)) {
-    pal <- ArchR::paletteContinuous(set = "blueYellow", n = 100)
-  }
-  if (!is.null(rowOrder)) {
-    idx <- rowOrder
-  }
-  else {
-    mat <- as.data.frame(lapply(mat, unlist))
-    idx <- order(apply(mat, 1, which.max))
-  }
-  if (!is.null(idxLabel)) {
-    customRowLabel <- match(idxLabel, rownames(mat[idx, ]))
-  }
-  else {
-    customRowLabel <- NULL
-  }
-  ht <- ArchR:::.ArchRHeatmap(mat = mat[idx, ], scale = FALSE, 
-                              limits = c(min(mat), max(mat)), color = pal, clusterCols = FALSE, 
-                              clusterRows = FALSE, labelRows = labelRows, labelCols = FALSE, 
-                              customRowLabel = customRowLabel, showColDendrogram = TRUE, 
-                              name = name, draw = FALSE)
-  if (returnMatrix) {
-    return(mat[idx, ])
-  }
-  else {
-    return(ht)
-  }
 }
 
 GetTFGeneCorrelation_updated <- function (object, tf.use = NULL, gene.use = NULL, tf.assay = "chromvar", 
@@ -535,7 +455,8 @@ if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
 
 print("Selecting target nodes...")
 
-print("Variable genes:")
+print("Variable genes...")
+
 # select target nodes that vary with the trajectory AND correlate with peaks
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
                            var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
@@ -543,8 +464,7 @@ res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 
 
 # save target nodes
 df.p2g.var <- res$p2g
-head(df.p2g.var)
-dim(df.p2g.var)
+print(head(df.p2g.var))
 write.csv(df.p2g.var, file = paste0(temp_csv_path, "Variable_genes_with_matched_enhancers.csv"), row.names = FALSE)
 
 # plot the dynamics of these genes across trajectory
@@ -553,16 +473,16 @@ png(paste0(temp_plot_path, 'Genes_peaks_variable_heatmap.png'), height = 30, wid
 draw(ht)
 graphics.off()
 
+print("Non-variable genes...")
+
 # select genes correlate with peaks (don't have to be variable across trajectory)
-print("Non-variable genes:")
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = NULL, # how much gene expression has to vary across trajectory
+                           var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
 df.p2g <- res$p2g
-head(df.p2g)
-dim(df.p2g)
+print(head(df.p2g))
 write.csv(df.p2g, file = paste0(temp_csv_path, "Genes_with_matched_enhancers.csv"), row.names = FALSE)
 
 # plot the dynamics of these genes across trajectory
@@ -571,17 +491,18 @@ png(paste0(temp_plot_path, 'Genes_peaks_heatmap.png'), height = 30, width = 45, 
 draw(ht)
 graphics.off()
 
+print("Combining target nodes...")
+
 # for final target node df, combine the variable ones with all TFs from non variable one
-print("filter all genes for TFs:")
 df.p2g.tfs <- df.p2g %>% 
   dplyr::filter(gene %in% TF_names) %>% # filter p2g to only include TFs
   dplyr::filter(!gene %in% df.p2g.var$gene)
 nrow(df.p2g.tfs) # 1,307 new interactions added
 length(unique(df.p2g.tfs$gene)) # 67 new nodes added
 
-print("Combining TFs with variable genes:")
 df.p2g.final <- rbind(df.p2g.var, df.p2g.tfs)
 nrow(df.p2g.final) # 74,125 final interactions
+print(head(df.p2g.final))
 
 # save final target node df
 write.csv(df.p2g.final, file = paste0(temp_csv_path, "Final_target_genes_with_matched_enhancers.csv"), row.names = FALSE)
@@ -604,7 +525,6 @@ draw(ht)
 graphics.off()
 
 ## how many peaks is each target node associated with?
-print("How many peaks associated with each target node: ")
 npeaks <- as.data.frame(table(df.p2g.final$gene))
 png(paste0(temp_plot_path, 'Target_node_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
 print(hist(npeaks$Freq, breaks = 100))
@@ -613,7 +533,7 @@ summary(npeaks$Freq)
 
 ############  TOTAL NODES NUMBERS
 
-print("Calculating total node numbers: ")
+print("Total node numbers...")
 
 ## plot node numbers
 df <- data.frame(
