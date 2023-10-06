@@ -380,6 +380,28 @@ centerRollMean <- function(v = NULL, k = NULL){
   o2
 }
 
+CorrelationHeatmap_updated <- function (trajectory1, trajectory2, name1 = NULL, name2 = NULL, 
+          labelRows1 = TRUE, labelRows2 = TRUE, labelTop1 = 50, labelTop2 = 50, 
+          limits1 = c(-2, 2), limits2 = c(-2, 2)) 
+{
+  trajCombined <- trajectory1
+  assay(trajCombined, withDimnames = FALSE) <- t(apply(assay(trajectory2), 
+                                                       1, scale)) + t(apply(assay(trajectory1), 1, scale))
+  combinedMat <- TrajectoryHeatmap_updated(trajCombined, returnMatrix = TRUE, 
+                                   varCutOff = 0)
+  rowOrder <- match(rownames(combinedMat), rownames(trajectory1))
+  ht1 <- TrajectoryHeatmap_updated(trajectory1, pal = paletteContinuous(set = "solarExtra"), 
+                           varCutOff = 0, maxFeatures = nrow(trajectory1), rowOrder = rowOrder, 
+                           limits = limits1, labelRows = labelRows1, labelTop = labelTop1, 
+                           name = name1)
+  ht2 <- TrajectoryHeatmap_updated(trajectory2, pal = paletteContinuous(set = "horizonExtra"), 
+                           varCutOff = 0, maxFeatures = nrow(trajectory2), rowOrder = rowOrder, 
+                           limits = limits2, labelRows = labelRows2, labelTop = labelTop2, 
+                           name = name2)
+  ht <- ht1 + ht2
+  return(ht)
+}
+
 
 ############################## Read in seurat object #######################################
 
@@ -388,6 +410,9 @@ print("reading in data...")
 ## read in paired seurat object
 obj.pair <- readRDS(paste0(data_path, "paired_object_chromvar.RDS"))
 obj.pair
+
+## read in P2G linkage df
+P2G <- read_csv(paste0(data_path, "Peak_to_gene_linkage_df_250000_distance.csv"))
 
 ############################## Create trajectories from lineage probabilities #######################################
 
@@ -540,77 +565,50 @@ if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
 
 print("Selecting target nodes...")
 
-print("Variable genes...")
+## the scMEGA function 'SelectGenes' uses the human or mouse genome to connect genes to enhancers
+## instead just use the previously calculated Peak to gene linkage 250000 distance from ArchR
 
-# select target nodes that vary with the trajectory AND correlate with peaks
-res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = 0.7, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+# rename colnames so match output of SelectGenes
+names(P2G)[names(P2G) == 'PeakID'] <- 'peak'
+names(P2G)[names(P2G) == 'gene_name'] <- 'gene'
+head(P2G)
+dim(P2G)
 
-# save target nodes
-df.p2g.var <- res$p2g
-print(head(df.p2g.var))
-write.csv(df.p2g.var, file = paste0(temp_csv_path, "Variable_genes_with_matched_enhancers.csv"), row.names = FALSE)
+# filter peak-enhancer interactions based on FDR
+summary(P2G$FDR)
+hist(P2G$FDR, breaks = 100)
+P2G_filt <- P2G %>% dplyr::filter(FDR < 0.05)
+dim(P2G_filt)
 
-# plot the dynamics of these genes across trajectory
-ht <- res$heatmap
-png(paste0(temp_plot_path, 'Genes_peaks_variable_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
-draw(ht)
-graphics.off()
+# extract most variable genes along trajectory
+trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
+                                 groupEvery = 2, slot = "data", smoothWindow = 7, log2Norm = TRUE)
+groupMatRNA <- TrajectoryHeatmap_updated(trajRNA, varCutOff = 0.9, pal = paletteContinuous(set = "horizonExtra"), limits = c(-2, 2), returnMatrix = TRUE)
+variable_genes <- rownames(groupMatRNA)
 
-print("Non-variable genes...")
+# filter peak-enhancer interactions on variable genes + source nodes
+df.p2g <- P2G_filt %>% dplyr::filter(gene %in% unique(c(variable_genes, df.tfs$tfs)))
+dim(df.p2g)
 
-# select genes correlate with peaks (no restrictions on variability across trajectory)
-res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = NULL, # how much gene expression has to vary across trajectory
-                           cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
+# save final target node df
+write.csv(df.p2g, file = paste0(temp_csv_path, "Target_genes_with_matched_enhancers.csv"), row.names = FALSE)
 
-# save target nodes
-df.p2g <- res$p2g
-print(head(df.p2g))
-write.csv(df.p2g, file = paste0(temp_csv_path, "Genes_with_matched_enhancers.csv"), row.names = FALSE)
+# plot heatmaps of target nodes and their connected peaks
+trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
+                                  trajectory.name = trajectory, slot = "data", smoothWindow = 7, 
+                                  log2Norm = TRUE)
+trajATAC <- trajATAC[df.p2g$peak, ]
+trajRNA <- trajRNA[df.p2g$gene, ]
+ht <- CorrelationHeatmap_updated(trajectory1 = trajATAC, trajectory2 = trajRNA, 
+                         name1 = "Chromatin accessibility", name2 = "Gene expression", 
+                         labelTop1 = 50, labelTop2 = 50, labelRows1 = FALSE, labelRows2 = FALSE)
 
-# plot the dynamics of these genes across trajectory
-ht <- res$heatmap
 png(paste0(temp_plot_path, 'Genes_peaks_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
 draw(ht)
 graphics.off()
 
-print("Combining target nodes...")
-
-# for final target node df, combine the variable ones with all TFs from non variable one
-df.p2g.tfs <- df.p2g %>% 
-  dplyr::filter(gene %in% TF_names) %>% # filter p2g to only include TFs
-  dplyr::filter(!gene %in% df.p2g.var$gene)
-nrow(df.p2g.tfs) # 1,307 new interactions added
-length(unique(df.p2g.tfs$gene)) # 67 new nodes added
-
-df.p2g.final <- rbind(df.p2g.var, df.p2g.tfs)
-nrow(df.p2g.final) # 74,125 final interactions
-print(head(df.p2g.final))
-
-# save final target node df
-write.csv(df.p2g.final, file = paste0(temp_csv_path, "Final_target_genes_with_matched_enhancers.csv"), row.names = FALSE)
-
-# plot heatmaps of target nodes and their connected peaks
-trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
-                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
-                                 log2Norm = TRUE)
-trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
-                                  trajectory.name = trajectory, slot = "data", smoothWindow = 7, 
-                                  log2Norm = TRUE)
-trajATAC <- trajATAC[df.p2g.final$peak, ]
-trajRNA <- trajRNA[df.p2g.final$gene, ]
-ht <- suppressMessages(CorrelationHeatmap(trajectory1 = trajATAC, trajectory2 = trajRNA, 
-                                          name1 = "Chromatin accessibility", name2 = "Gene expression", 
-                                          labelTop1 = 50, labelTop2 = 50, labelRows1 = FALSE, labelRows2 = FALSE))
-
-png(paste0(temp_plot_path, 'Genes_peaks_heatmap_final.png'), height = 30, width = 45, units = 'cm', res = 400)
-draw(ht)
-graphics.off()
-
 ## how many peaks is each target node associated with?
-npeaks <- as.data.frame(table(df.p2g.final$gene))
+npeaks <- as.data.frame(table(df.p2g$gene))
 png(paste0(temp_plot_path, 'Target_node_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
 print(hist(npeaks$Freq, breaks = 100))
 graphics.off()
@@ -623,12 +621,8 @@ print("Total node numbers...")
 ## plot node numbers
 df <- data.frame(
   SourceNodes = nrow(df.tfs),
-  P2G_genes = length(unique(df.p2g$gene)),
-  P2G_genes_var = length(unique(df.p2g.var$gene)),
-  P2G_genes_tfs = sum(unique(df.p2g$gene) %in% TF_names),
-  P2G_genes_var_tfs = sum(unique(df.p2g.var$gene) %in% TF_names),
-  TargetNodes = length(unique(df.p2g.final$gene)),
-  BothNodes = sum(unique(df.p2g.final$gene) %in% df.tfs$tfs)
+  TargetNodes = length(unique(df.p2g$gene)),
+  BothNodes = sum(unique(df.p2g$gene) %in% df.tfs$tfs)
 )
 png(paste0(temp_plot_path, 'Node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -643,9 +637,9 @@ dir.create(temp_plot_path, recursive = T)
 print("Motif matrix...")
 
 # peak by TF matrix to indicate presence of binding sites
-motif.matching <- obj.pair@assays$ATAC@motifs@data
-colnames(motif.matching) <- obj.pair@assays$ATAC@motifs@motif.names
-motif.matching <- motif.matching[unique(df.p2g$peak), unique(df.tfs$tf)]
+motif.matching <- obj.traj@assays$ATAC@motifs@data
+colnames(motif.matching) <- obj.traj@assays$ATAC@motifs@motif.names
+motif.matching <- motif.matching[unique(df.p2g$peak), unique(df.tfs$tfs)]
 dim(motif.matching)
 
 # distribution of motifs by TF
@@ -680,7 +674,7 @@ print("Building quantiative GRN...")
 # GRN inference
 df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
                                     tf.use = df.tfs$tfs,
-                                    gene.use = unique(df.p2g.final$gene),
+                                    gene.use = unique(df.p2g$gene),
                                     tf.assay = "chromvar",
                                     gene.assay = "RNA",
                                     groupEvery = 2,
@@ -690,7 +684,7 @@ df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
 if ( sum(unique(df.tfs$tf) %in% unique(df.tf.gene$tf)) != length(unique(df.tfs$tf)) ){
   stop("Not all selected TFs are in TF-gene correlation matrix!")
 }
-if ( sum(unique(df.p2g.final$gene) %in% unique(df.tf.gene$gene)) != length(unique(df.p2g.final$gene)) ){
+if ( sum(unique(df.p2g$gene) %in% unique(df.tf.gene$gene)) != length(unique(df.p2g$gene)) ){
   stop("Not all selected genes are in TF-gene correlation matrix!")
 }
 
@@ -713,8 +707,9 @@ print("Building enhancer GRN...")
 # take the TF-gene correlation, peak-TF binding prediction and peaks-to-genes linkage to build network
 df.grn <- GetGRN(motif.matching = motif.matching,
                  df.cor = df.tf.gene,
-                 df.p2g = df.p2g.final)
+                 df.p2g = df.p2g)
 nrow(df.grn) # 148,113 interactions found
+head(df.grn)
 
 # check which tfs and genes in final network
 if ( sum(unique(df.tfs$tf) %in% unique(df.grn$tf)) != length(unique(df.tfs$tf)) ){
@@ -755,21 +750,6 @@ temp_plot_path = "./plots/placodal_lineage/filtered_network/"
 dir.create(temp_plot_path, recursive = T)
 
 print("Filtering final GRN..")
-
-# ## how many peaks supports each interaction
-# summary(df.grn$n_peaks)
-# png(paste0(temp_plot_path, 'Interactions_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
-# print(hist(df.grn$n_peaks, breaks = 100))
-# graphics.off()
-# 
-# png(paste0(temp_plot_path, 'Interactions_nPeaks_log10.png'), height = 10, width = 15, units = 'cm', res = 400)
-# print(hist(log10(df.grn$n_peaks), breaks = 100))
-# graphics.off()
-# 
-# subset <- df.grn %>% dplyr::filter(n_peaks < 40)
-# png(paste0(temp_plot_path, 'Interactions_nPeaks_under_40.png'), height = 10, width = 15, units = 'cm', res = 400)
-# print(hist(subset$n_peaks, breaks = 100))
-# graphics.off()
 
 # filter network
 df.grn <- df.grn %>%
@@ -832,6 +812,21 @@ df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
 ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
 png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
 ht
+graphics.off()
+
+## how many peaks supports each interaction
+summary(df.grn$n_peaks)
+png(paste0(temp_plot_path, 'Interactions_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(df.grn$n_peaks, breaks = 100))
+graphics.off()
+
+png(paste0(temp_plot_path, 'Interactions_nPeaks_log10.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(log10(df.grn$n_peaks), breaks = 100))
+graphics.off()
+
+subset <- df.grn %>% dplyr::filter(n_peaks < 40)
+png(paste0(temp_plot_path, 'Interactions_nPeaks_under_40.png'), height = 10, width = 15, units = 'cm', res = 400)
+print(hist(subset$n_peaks, breaks = 100))
 graphics.off()
 
 # save filtered network

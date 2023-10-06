@@ -119,6 +119,11 @@ Channel
     .value(params.fasta)
     .set{ch_fasta}
 
+// set channel to P2G linkage csv file created using integration wf
+Channel
+    .value(params.p2g)
+    .set{ch_p2g}
+
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
@@ -360,7 +365,12 @@ workflow A {
         MEGA_PAIRING_CHROMVAR( ch_integrate )
 
         // then run scMEGA GRNi on the full data paired seurat object
-        MEGA_GRNI( MEGA_PAIRING_CHROMVAR.out )
+        MEGA_PAIRING_CHROMVAR.out
+            .combine(ch_p2g)
+            .map{[it[0], it[1] + it[2]]}
+            .view()
+            .set {ch_grni} // add p2g csv file
+        MEGA_GRNI( ch_grni )
 
         // once have full GRN explore the network
         MEGA_GRN_VIS( MEGA_GRNI.out )
