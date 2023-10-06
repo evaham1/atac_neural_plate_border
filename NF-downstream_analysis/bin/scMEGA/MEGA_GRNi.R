@@ -48,7 +48,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     rds_path = "./rds_files/"
     csv_path = "./csv_files/"
     ncores = opt$cores
@@ -408,7 +408,7 @@ CorrelationHeatmap_updated <- function (trajectory1, trajectory2, name1 = NULL, 
 print("reading in data...")
 
 ## read in paired seurat object
-obj.pair <- readRDS(paste0(data_path, "paired_object_chromvar.RDS"))
+obj.pair <- readRDS(paste0(data_path, "rds_files/paired_object_chromvar.RDS"))
 obj.pair
 
 ## read in P2G linkage df
