@@ -54,7 +54,7 @@ if(opt$verbose) print(opt)
     cat('pipeline running through Nextflow\n')
     
     plot_path = "./plots/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     rds_path = "./rds_files/"
     csv_path = "./csv_files/"
     ncores = opt$cores
@@ -399,18 +399,18 @@ extract_target_genes_df <- function(TF_list, grn_df){
 
 ############################## Read in data #######################################
 
-TF_names <- read_tsv("./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi/Known_TF_names.txt", col_names = FALSE)
+TF_names <- read_tsv(paste0(data_path, "csv_files/Known_TF_names.txt"), col_names = FALSE)
 TF_names <- TF_names$X1
 
-temp_data_path = paste0(data_path, "./placodal_lineage/")
+temp_data_path = paste0(data_path, "./csv_files/placodal_lineage/")
 
 # read in csvs
 df.tfs <- read.csv(paste0(temp_data_path, "TF_correlations_all.csv"))
-df.p2g <- read.csv(paste0(temp_data_path, "Variable_genes_with_matched_enhancers.csv"))
+df.p2g <- read.csv(paste0(temp_data_path, "Target_genes_with_matched_enhancers.csv"))
 df.tf.gene <- read.csv(paste0(temp_data_path, "TF_to_gene_correlations.csv"))
 
 # read in networks
-df.grn.un <- read.csv(paste0(temp_data_path, "GRN_unfiltered.csv"))
+df.grn.un <- read.csv(paste0(temp_data_path, "GRN_initial.txt"))
 df.grn <- read_tsv(paste0(temp_data_path, "GRN_filtered.txt"))
 df.grn.pos <- read_tsv(paste0(temp_data_path, "GRN_filtered_pos_corr.txt"))
 
