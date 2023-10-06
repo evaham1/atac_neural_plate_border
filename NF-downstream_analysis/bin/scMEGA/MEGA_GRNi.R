@@ -939,19 +939,6 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
-# plot TF-gene correlation heatmap
-df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
-                                           tf.use = df.tfs$tfs,
-                                           gene.use = unique(df.grn.TFs$gene),
-                                           tf.assay = "chromvar",
-                                           gene.assay = "RNA",
-                                           groupEvery = 2,
-                                           trajectory.name = trajectory)
-ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
-ht
-graphics.off()
-
 # save network
 write_tsv(df.grn.TFs, file = paste0(temp_csv_path, "GRN_filtered_TFs.txt"))
 
@@ -977,19 +964,6 @@ df <- data.frame(
 png(paste0(temp_plot_path, 'Network_filtered_positive_source_TFs_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-# plot TF-gene correlation heatmap
-df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
-                                           tf.use = df.tfs$tfs,
-                                           gene.use = unique(df.grn.pos.TFs$gene),
-                                           tf.assay = "chromvar",
-                                           gene.assay = "RNA",
-                                           groupEvery = 2,
-                                           trajectory.name = trajectory)
-ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs$time_point, km = 1)
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
-ht
 graphics.off()
 
 # save network
