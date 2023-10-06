@@ -434,6 +434,18 @@ print("saving whole seurat object:")
 
 saveRDS(obj.pair, paste0(rds_path, "paired_object_chromvar.RDS"), compress = FALSE)
 
+############################## Extract all known TF names #######################################
+
+print("extracting TF names...")
+
+TF_names <- obj.pair@assays$ATAC@motifs@motif.names
+names(TF_names) <- NULL
+TF_names <- unlist(TF_names)
+length(TF_names) # 746 known TFs
+fileConn <- file(paste0(csv_path, "Known_TF_names.txt"))
+writeLines(TF_names, fileConn)
+close(fileConn)
+
 ############################## GENE MODULES #######################################
 
 # set up list of genes
