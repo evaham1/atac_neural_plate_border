@@ -475,9 +475,10 @@ graphics.off()
 
 print("Non-variable genes...")
 
-# select genes correlate with peaks (don't have to be variable across trajectory)
+# select genes correlate with peaks (less stringent on variable across trajectory)
+# tried setting var.cutoff.gene to NULL or 0 or less than 0.2 but it somehow creates NAs and fails..
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = 0.01, # how much gene expression has to vary across trajectory
+                           var.cutoff.gene = 0.25, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
