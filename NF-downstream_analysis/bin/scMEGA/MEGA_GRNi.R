@@ -803,7 +803,7 @@ graphics.off()
 
 # plot TF-gene correlation heatmap
 df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
-                                           tf.use = df.grn$tf,
+                                           tf.use = unique(df.grn$tf),
                                            gene.use = unique(df.grn$gene),
                                            tf.assay = "chromvar",
                                            gene.assay = "RNA",
@@ -901,7 +901,7 @@ graphics.off()
 
 # plot TF-gene correlation heatmap
 df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
-                                           tf.use = df.grn.pos$tf,
+                                           tf.use = unique(df.grn.pos$tf),
                                            gene.use = unique(df.grn.pos$gene),
                                            tf.assay = "chromvar",
                                            gene.assay = "RNA",
