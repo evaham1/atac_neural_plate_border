@@ -69,6 +69,90 @@ set.seed(42)
 
 ############################## EDITED FUNCTIONS #######################################
 
+TrajectoryHeatmap_updated <- function (trajectory, varCutOff = 0.9, maxFeatures = 25000, scaleRows = TRUE, 
+                                       rowOrder = NULL, limits = c(-1.5, 1.5), labelRows = FALSE, 
+                                       pal = NULL, labelMarkers = NULL, labelTop = 50, name = "Heatmap", 
+                                       returnMatrix = FALSE) 
+{
+  mat <- assay(trajectory)
+  rSNA <- rowSums(is.na(mat))
+  if (sum(rSNA > 0) > 0) {
+    message("Removing rows with NA values...")
+    mat <- mat[rSNA == 0, ]
+  }
+  varQ <- ArchR:::.getQuantiles(matrixStats::rowVars(mat))
+  orderedVar <- FALSE
+  if (is.null(rowOrder)) {
+    mat <- mat[order(varQ, decreasing = TRUE), ]
+    orderedVar <- TRUE
+    if (is.null(varCutOff) & is.null(maxFeatures)) {
+      n <- nrow(mat)
+    }
+    else if (is.null(varCutOff)) {
+      n <- maxFeatures
+    }
+    else if (is.null(maxFeatures)) {
+      n <- (1 - varCutOff) * nrow(mat)
+    }
+    else {
+      n <- min((1 - varCutOff) * nrow(mat), maxFeatures)
+    }
+    n <- min(n, nrow(mat))
+    mat <- mat[head(seq_len(nrow(mat)), n), ]
+  }
+  if (!is.null(labelTop) & labelTop > 0) {
+    if (orderedVar) {
+      idxLabel <- rownames(mat)[seq_len(labelTop)]
+    }
+    else {
+      idxLabel <- rownames(mat)[order(varQ, decreasing = TRUE)][seq_len(labelTop)]
+    }
+  }
+  else {
+    idxLabel <- NULL
+  }
+  if (scaleRows) {
+    # Subset the matrix to include only rows with non-zero standard deviations
+    row_sds <- matrixStats::rowSds(mat)
+    mat <- mat[row_sds != 0, ]
+    # then can scale and shouldnt create any NAs
+    mat <- sweep(mat - rowMeans(mat), 1, matrixStats::rowSds(mat), 
+                 `/`)
+    mat[mat > max(limits)] <- max(limits)
+    mat[mat < min(limits)] <- min(limits)
+  }
+  if (nrow(mat) == 0) {
+    stop("No Features Remaining!")
+  }
+  if (is.null(pal)) {
+    pal <- ArchR::paletteContinuous(set = "blueYellow", n = 100)
+  }
+  if (!is.null(rowOrder)) {
+    idx <- rowOrder
+  }
+  else {
+    idx <- order(apply(mat, 1, which.max))
+  }
+  if (!is.null(idxLabel)) {
+    customRowLabel <- match(idxLabel, rownames(mat[idx, ]))
+  }
+  else {
+    customRowLabel <- NULL
+  }
+  ht <- ArchR:::.ArchRHeatmap(mat = mat[idx, ], scale = FALSE,
+                              limits = c(min(mat), max(mat)), color = pal, clusterCols = FALSE,
+                              clusterRows = FALSE, labelRows = labelRows, labelCols = FALSE,
+                              customRowLabel = customRowLabel, showColDendrogram = TRUE,
+                              name = name, draw = FALSE)
+  if (returnMatrix) {
+    return(mat[idx, ])
+  }
+  else {
+    return(ht)
+  }
+  return(mat)
+}
+
 SelectTFs_updated <- function (object, tf.assay = "chromvar", rna.assay = "RNA", atac.assay = "ATAC", 
                                trajectory.name = "Trajectory", groupEvery = 1, return.heatmap = TRUE,
                                p.cutoff = 0.01, cor.cutoff = 0.3) 
@@ -90,7 +174,7 @@ SelectTFs_updated <- function (object, tf.assay = "chromvar", rna.assay = "RNA",
                        cor.cutoff, ]
   }
   
-  matMM <- suppressMessages(TrajectoryHeatmap(trajMM, varCutOff = 0, 
+  matMM <- suppressMessages(TrajectoryHeatmap_updated(trajMM, varCutOff = 0, 
                                               pal = paletteContinuous(set = "solarExtra"), limits = c(-2, 
                                                                                                       2), name = "TF activity", returnMatrix = TRUE))
   df_tf_time_point <- data.frame(tfs = rownames(matMM), time_point = seq(1, 
@@ -123,10 +207,10 @@ SelectGenes_updated <- function (object, atac.assay = "ATAC", rna.assay = "RNA",
   trajATAC <- GetTrajectory_updated(object, assay = atac.assay, groupEvery = groupEvery, 
                                     trajectory.name = trajectory.name, slot = "data", smoothWindow = 7, 
                                     log2Norm = TRUE)
-  groupMatRNA <- suppressMessages(TrajectoryHeatmap(trajRNA, 
+  groupMatRNA <- suppressMessages(TrajectoryHeatmap_updated(trajRNA, 
                                                     varCutOff = var.cutoff.gene, pal = paletteContinuous(set = "horizonExtra"), 
                                                     limits = c(-2, 2), returnMatrix = TRUE))
-  groupMatATAC <- suppressMessages(TrajectoryHeatmap(trajATAC, 
+  groupMatATAC <- suppressMessages(TrajectoryHeatmap_updated(trajATAC, 
                                                      varCutOff = 0, maxFeatures = nrow(trajATAC), pal = paletteContinuous(set = "solarExtra"), 
                                                      limits = c(-2, 2), name = "Chromatin accessibility", 
                                                      returnMatrix = TRUE))
@@ -161,10 +245,10 @@ GetTFGeneCorrelation_updated <- function (object, tf.use = NULL, gene.use = NULL
                                    trajectory.name = trajectory.name, groupEvery = groupEvery, 
                                    smoothWindow = 7, log2Norm = TRUE)
   rownames(trajMM) <- object@assays[[atac.assay]]@motifs@motif.names
-  tf_activity <- suppressMessages(TrajectoryHeatmap(trajMM, 
+  tf_activity <- suppressMessages(TrajectoryHeatmap_updated(trajMM, 
                                                     varCutOff = 0, pal = paletteContinuous(set = "solarExtra"), 
                                                     limits = c(-2, 2), name = "TF activity", returnMatrix = TRUE))
-  gene_expression <- suppressMessages(TrajectoryHeatmap(trajRNA, 
+  gene_expression <- suppressMessages(TrajectoryHeatmap_updated(trajRNA, 
                                                         varCutOff = 0, pal = paletteContinuous(set = "solarExtra"), 
                                                         limits = c(-2, 2), name = "Gene expression", returnMatrix = TRUE))
   if (!is.null(tf.use)) {
@@ -475,10 +559,9 @@ graphics.off()
 
 print("Non-variable genes...")
 
-# select genes correlate with peaks (less stringent on variable across trajectory)
-# tried setting var.cutoff.gene to NULL or 0 or less than 0.2 but it somehow creates NAs and fails..
+# select genes correlate with peaks (no restrictions on variability across trajectory)
 res <- SelectGenes_updated(obj.traj, trajectory.name = trajectory, groupEvery = 2,
-                           var.cutoff.gene = 0.25, # how much gene expression has to vary across trajectory
+                           var.cutoff.gene = NULL, # how much gene expression has to vary across trajectory
                            cor.cutoff = 0.7, fdr.cutoff = 1e-04) # how much peaks and genes need to correlate
 
 # save target nodes
