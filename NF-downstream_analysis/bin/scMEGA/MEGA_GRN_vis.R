@@ -484,6 +484,18 @@ ht
 graphics.off()
 
 ########## scMEGA IMPORTANCE
+
+# plot importance ranking
+png(paste0(temp_plot_path, 'Top_importance_plot.png'), height = 30, width = 120, units = 'cm', res = 400)
+p <- GRNPlot(df.grn,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             seed = 42, 
+             plot.importance = TRUE,
+             min.importance = 2,
+             remove.isolated = FALSE)
+graphics.off()
+
 # have to extract manually top 40 factors:
 factors <- c("ZNF384", "TCF3", "HMBOX1", "TEAD4", "TFAP2A",
              "ETV1", "MEIS1", "GATA3", "KLF6", "E2F8",
@@ -638,14 +650,26 @@ graphics.off()
 write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
 ########## scMEGA IMPORTANCE
+
+# plot importance ranking
+temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
+dir.create(temp_plot_path_subset, recursive = T)
+k = 1
+
+png(paste0(temp_plot_path_subset, 'Top_importance_plot.png'), height = 30, width = 120, units = 'cm', res = 400)
+p <- GRNPlot(df.grn.pos,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             seed = 42, 
+             plot.importance = TRUE,
+             min.importance = 2,
+             remove.isolated = FALSE)
+graphics.off()
+
 # have to extract manually top 15 factors:
 factors <- c("TCF3", "HMBOX1", "TEAD4", "FOXK1", "GATA3",
              "ETV1", "REL", "TFAP2A", "KLF6", "THRB",
              "PPARD", "TGIF1", "MSX1", "HES5", "MEF2D")
-
-temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
-dir.create(temp_plot_path_subset, recursive = T)
-k = 1
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
