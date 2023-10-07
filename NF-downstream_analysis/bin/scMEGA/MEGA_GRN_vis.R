@@ -44,7 +44,7 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1)
     
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi/csv_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi/"
     
     plot_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRN_vis/plots/"
     csv_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRN_vis/csv_files/"
@@ -396,6 +396,102 @@ extract_target_genes_df <- function(TF_list, grn_df){
   all_targets <- column_to_rownames(all_targets, var = "ID")
 }
 
+GRNPlot_updated <- function (df.grn, tfs.use = NULL, show.tf.labels = TRUE, tfs.timepoint = NULL, 
+          genes.cluster = NULL, genes.use = NULL, genes.highlight = NULL, 
+          cols.highlight = "#984ea3", seed = 42, plot.importance = TRUE, return.importance = TRUE,
+          min.importance = 2, remove.isolated = FALSE) 
+{
+  if (is.null(tfs.timepoint)) {
+    stop("Need time point for each TF!")
+  }
+  if (!is.null(tfs.use)) {
+    df.grn <- subset(df.grn, tf %in% tfs.use)
+  }
+  if (!is.null(genes.use)) {
+    df.grn <- subset(df.grn, gene %in% genes.use)
+  }
+  tf.list <- unique(df.grn$tf)
+  gene.list <- setdiff(unique(df.grn$gene), tf.list)
+  g <- igraph::graph_from_data_frame(df.grn, directed = TRUE)
+  if (remove.isolated) {
+    isolated <- which(degree(g) == 0)
+    g <- igraph::delete.vertices(g, isolated)
+  }
+  pagerank <- page_rank(g, weights = E(g)$weights)
+  bet <- betweenness(g, weights = E(g)$weights, normalized = TRUE)
+  df_measure <- data.frame(tf = V(g)$name, pagerank = pagerank$vector, 
+                           betweenness = bet) %>% subset(tf %in% df.grn$tf) %>% 
+    mutate(pagerank = scale(pagerank)[, 1]) %>% mutate(betweenness = scale(betweenness)[, 
+                                                                                        1])
+  min.page <- min(df_measure$pagerank)
+  min.bet <- min(df_measure$betweenness)
+  df_measure$importance <- sqrt((df_measure$pagerank - min.page)^2 + 
+                                  (df_measure$betweenness - min.bet)^2)
+  if (plot.importance) {
+    p <- ggplot(data = df_measure) + aes(x = reorder(tf, 
+                                                     -importance), y = importance) + geom_point() + xlab("TFs") + 
+      ylab("Importance") + cowplot::theme_cowplot() + theme(axis.text.x = element_text(angle = 60, 
+                                                                                       hjust = 1))
+    print(p)
+  }
+  if (return.importance) {
+    return(df_measure)
+  }
+  df_measure_sub <- subset(df_measure, importance > 2)
+  tf_size <- df_measure$importance
+  names(tf_size) <- df_measure$tf
+  gene_size <- rep(min(df_measure$importance), length(unique(df.grn$gene)))
+  names(gene_size) <- gene.list
+  v_size <- c(tf_size, gene_size)
+  V(g)$size <- v_size[V(g)$name]
+  cols.tf <- ArchR::paletteContinuous(set = "blueYellow", n = length(tfs.timepoint))
+  names(cols.tf) <- names(tfs.timepoint)
+  if (is.null(genes.cluster)) {
+    cols.gene <- rep("gray", length(gene.list))
+    names(cols.gene) <- gene.list
+  }
+  else {
+    genes.cluster <- genes.cluster %>% subset(gene %in% gene.list)
+    cols <- ArchR::paletteDiscrete(values = as.character(genes.cluster$cluster))
+    df.gene <- lapply(1:length(cols), function(x) {
+      df <- subset(genes.cluster, cluster == x)
+      df$color <- rep(cols[[x]], nrow(df))
+      return(df)
+    }) %>% Reduce(rbind, .)
+    cols.gene <- df.gene$color
+    names(cols.gene) <- df.gene$gene
+  }
+  v_color <- c(cols.tf, cols.gene)
+  v_color <- v_color[V(g)$name]
+  tf_alpha <- rep(1, length(tf.list))
+  gene_alpha <- rep(0.5, length(gene.list))
+  names(tf_alpha) <- tf.list
+  names(gene_alpha) <- gene.list
+  v_alpha <- c(tf.list, gene.list)
+  V(g)$alpha <- v_alpha[V(g)$name]
+  set.seed(seed)
+  layout <- layout_with_fr(g, weights = E(g)$weights, dim = 2, 
+                           niter = 1000)
+  p <- ggraph(g, layout = layout) + geom_edge_link(edge_colour = "gray", 
+                                                   edge_alpha = 0.25) + geom_node_point(aes(size = V(g)$size, 
+                                                                                            color = as.factor(name), alpha = V(g)$alpha), show.legend = FALSE) + 
+    scale_size(range = c(1, 10)) + scale_color_manual(values = v_color)
+  if (show.tf.labels) {
+    p <- p + geom_node_label(aes(filter = V(g)$name %in% 
+                                   tf.list, label = V(g)$name), repel = TRUE, hjust = "inward", 
+                             color = "#ff7f00", size = 5, show.legend = FALSE, 
+                             max.overlaps = Inf)
+  }
+  if (!is.null(genes.highlight)) {
+    p <- p + geom_node_label(aes(filter = V(g)$name %in% 
+                                   genes.highlight, label = V(g)$name), repel = TRUE, 
+                             hjust = "inward", size = 5, color = cols.highlight, 
+                             show.legend = FALSE)
+  }
+  p <- p + theme_void()
+  return(p)
+}
+
 
 ############################## Read in data #######################################
 
@@ -485,28 +581,24 @@ graphics.off()
 
 ########## scMEGA IMPORTANCE
 
-# plot importance ranking
+# plot importance ranking + save the df
 png(paste0(temp_plot_path, 'Top_importance_plot.png'), height = 30, width = 120, units = 'cm', res = 400)
-p <- GRNPlot(df.grn,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             seed = 42, 
-             plot.importance = TRUE,
-             min.importance = 2,
-             remove.isolated = FALSE)
+importance_df <- GRNPlot_updated(df.grn.pos,
+                                 tfs.timepoint = tfs.timepoint,
+                                 show.tf.labels = TRUE,
+                                 seed = 42, 
+                                 plot.importance = TRUE,
+                                 min.importance = 2,
+                                 remove.isolated = FALSE,
+                                 return.importance = TRUE)
 graphics.off()
+importance_df <- arrange(importance_df, by = desc(importance))
+write.csv(importance_df, file = paste0(temp_plot_path, "Importance_df.csv"))
 
-# have to extract manually top 40 factors:
-factors <- c("ZNF384", "TCF3", "HMBOX1", "TEAD4", "TFAP2A",
-             "ETV1", "MEIS1", "GATA3", "KLF6", "E2F8",
-             "FOXK1", "RFX2", "MTF1", "ETV6", "REL",
-             "IRF7", "ZBTB7A", "KLF11", "E2F6", "MYCN", 
-             "THRB", "OTX1", "REB1", "MNT", "MSX1", 
-             "PPARD", "TGIF1", "ZNF143", "POU2E1","NFYC", 
-             "SP8", "MEF2D", "JUN", "NR2C2", "KLF3", 
-             "ZBTB14", "MAFK", "HES5", "TFAP2E", "LIN54")
+# extract top 20 factors:
+factors <- importance_df[1:20, 1]
 
-# plot TF-target corr of top 40 factors
+# plot TF-target corr of top factors
 df.tf.gene.subset <- df.tf.gene %>%
   dplyr::filter(tf %in% factors)
 df.tfs.subset <- df.tfs %>%
@@ -651,25 +743,22 @@ write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.
 
 ########## scMEGA IMPORTANCE
 
-# plot importance ranking
-temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
-dir.create(temp_plot_path_subset, recursive = T)
-k = 1
-
+# plot importance ranking + save the df
 png(paste0(temp_plot_path_subset, 'Top_importance_plot.png'), height = 30, width = 120, units = 'cm', res = 400)
-p <- GRNPlot(df.grn.pos,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             seed = 42, 
-             plot.importance = TRUE,
-             min.importance = 2,
-             remove.isolated = FALSE)
+importance_df <- GRNPlot_updated(df.grn.pos,
+                                 tfs.timepoint = tfs.timepoint,
+                                 show.tf.labels = TRUE,
+                                 seed = 42, 
+                                 plot.importance = TRUE,
+                                 min.importance = 2,
+                                 remove.isolated = FALSE,
+                                 return.importance = TRUE)
 graphics.off()
+importance_df <- arrange(importance_df, by = desc(importance))
+write.csv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.csv"))
 
-# have to extract manually top 15 factors:
-factors <- c("TCF3", "HMBOX1", "TEAD4", "FOXK1", "GATA3",
-             "ETV1", "REL", "TFAP2A", "KLF6", "THRB",
-             "PPARD", "TGIF1", "MSX1", "HES5", "MEF2D")
+# extract top 20 factors:
+factors <- importance_df[1:20, 1]
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
