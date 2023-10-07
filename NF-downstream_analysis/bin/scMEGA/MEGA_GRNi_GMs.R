@@ -803,16 +803,13 @@ pie(pie, labels = c("Positive interactions", "Negative interactions"))
 graphics.off()
 
 # plot TF-gene correlation heatmap
-df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
-                                           tf.use = unique(df.grn$tf),
-                                           gene.use = unique(df.grn$gene),
-                                           tf.assay = "chromvar",
-                                           gene.assay = "RNA",
-                                           groupEvery = 2,
-                                           trajectory.name = trajectory)
-df.tfs.tmp <- df.tfs %>% dplyr::filter(tfs %in% unique(df.grn$tf))
-ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs.tmp$time_point, km = 1)
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% unique(df.grn$tf))
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% unique(df.grn$tf))
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+
+png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
 ht
 graphics.off()
 
@@ -902,16 +899,13 @@ pie(pie, labels = c("Positive interactions", "Negative interactions"))
 graphics.off()
 
 # plot TF-gene correlation heatmap
-df.tf.gene <- GetTFGeneCorrelation_updated(object = obj.traj,
-                                           tf.use = unique(df.grn.pos$tf),
-                                           gene.use = unique(df.grn.pos$gene),
-                                           tf.assay = "chromvar",
-                                           gene.assay = "RNA",
-                                           groupEvery = 2,
-                                           trajectory.name = trajectory)
-df.tfs.tmp <- df.tfs %>% dplyr::filter(tfs %in% unique(df.grn.pos$tf))
-ht <- GRNHeatmap(df.tf.gene, tf.timepoint = df.tfs.tmp$time_point, km = 1)
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% unique(df.grn.pos$tf))
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% unique(df.grn.pos$tf))
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+
+png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
 ht
 graphics.off()
 
