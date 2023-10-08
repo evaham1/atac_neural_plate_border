@@ -834,7 +834,7 @@ for (i in 1:k){
   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
     print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
@@ -846,7 +846,7 @@ for (i in length(factors)){
   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
     print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
@@ -930,7 +930,7 @@ for (i in 1:k){
   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
     print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
@@ -942,7 +942,7 @@ for (i in length(factors)){
   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
   if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 10, width = 20, units = 'cm', res = 400)
+    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
     print(plot(barplot(go_output, showCategory = 20)))
     graphics.off()
   }
