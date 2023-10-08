@@ -561,6 +561,7 @@ edges <- rownames_to_column(edges, var = "node")
 colnames(edges)[2] <- "nEdges"
 edges <- edges %>% arrange(desc(nEdges))
 print(edges[1:20,])
+write_tsv(edges[1:100,], file = paste0(temp_plot_path, "Edges_top_100_df.txt"))
 
 png(paste0(temp_plot_path, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
 hist(edges$nEdges, breaks = 100)
@@ -583,7 +584,7 @@ graphics.off()
 
 # plot importance ranking + save the df
 png(paste0(temp_plot_path, 'Top_importance_plot.png'), height = 30, width = 120, units = 'cm', res = 400)
-importance_df <- GRNPlot_updated(df.grn.pos,
+importance_df <- GRNPlot_updated(df.grn,
                                  tfs.timepoint = tfs.timepoint,
                                  show.tf.labels = TRUE,
                                  seed = 42, 
@@ -593,7 +594,7 @@ importance_df <- GRNPlot_updated(df.grn.pos,
                                  return.importance = TRUE)
 graphics.off()
 importance_df <- arrange(importance_df, by = desc(importance))
-write.csv(importance_df, file = paste0(temp_plot_path, "Importance_df.csv"))
+write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
 
 # extract top 20 factors:
 factors <- importance_df[1:20, 1]
@@ -661,6 +662,7 @@ edges <- rownames_to_column(edges, var = "node")
 colnames(edges)[2] <- "nEdges"
 edges <- edges %>% arrange(desc(nEdges))
 print(edges[1:20,])
+write_tsv(edges[1:100,], file = paste0(temp_plot_path_subset, "Edges_top_100_df.txt"))
 
 png(paste0(temp_plot_path_subset, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
 hist(edges$nEdges, breaks = 100)
@@ -755,7 +757,7 @@ importance_df <- GRNPlot_updated(df.grn.pos,
                                  return.importance = TRUE)
 graphics.off()
 importance_df <- arrange(importance_df, by = desc(importance))
-write.csv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.csv"))
+write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
 
 # extract top 20 factors:
 factors <- importance_df[1:20, 1]
