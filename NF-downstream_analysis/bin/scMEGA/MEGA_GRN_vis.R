@@ -594,7 +594,7 @@ importance_df <- GRNPlot_updated(df.grn,
                                  return.importance = TRUE)
 graphics.off()
 importance_df <- arrange(importance_df, by = desc(importance))
-write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
+write_tsv(importance_df, file = paste0(temp_plot_path, "Importance_df.txt"))
 
 # extract top 20 factors:
 factors <- importance_df[1:20, 1]
