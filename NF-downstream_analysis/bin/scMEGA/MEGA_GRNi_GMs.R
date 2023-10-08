@@ -809,7 +809,7 @@ df.tfs.subset <- df.tfs %>%
   dplyr::filter(tfs %in% unique(df.grn$tf))
 ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
 ht
 graphics.off()
 
@@ -905,7 +905,7 @@ df.tfs.subset <- df.tfs %>%
   dplyr::filter(tfs %in% unique(df.grn.pos$tf))
 ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'TF_gene_corr_heatmap.png'), height = 30, width = 115, units = 'cm', res = 400)
 ht
 graphics.off()
 
