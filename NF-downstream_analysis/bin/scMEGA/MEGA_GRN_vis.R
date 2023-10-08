@@ -593,7 +593,7 @@ hm <- pheatmap::pheatmap(t(target_genes_df),
                          fontsize_row = 10,  # Font size for row labels
                          fontsize_col = 0.0001,   # Font size for column labels
                          cutree_cols = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 18, width = 10, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
 hm
 graphics.off()
 
@@ -823,7 +823,7 @@ hm <- pheatmap::pheatmap(t(target_genes_df),
                          fontsize_row = 10,  # Font size for row labels
                          fontsize_col = 0.0001,   # Font size for column labels
                          cutree_cols = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 18, width = 10, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
 hm
 graphics.off()
 
