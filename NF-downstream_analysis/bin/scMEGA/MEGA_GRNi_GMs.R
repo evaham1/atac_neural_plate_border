@@ -454,6 +454,37 @@ GM14 <- c("BRINP1", "CITED4", "DLX5", "DLX6", "ENSGALG00000023936", "ENSGALG0000
 GM13 <- c("AKAP12", "ASS1", "BASP1", "CD99", "ENSGALG00000011296", "ENSGALG00000041054", "ENSGALG00000042443", "EYA2", "FERMT2", "LGMN", "METTL24", "NR2F2", "NUCKS1", "SIX1")
 GM23 <- c("ASS1", "BMP4", "BMP6", "CLDN3", "CSRP2", "DLX5", "DLX6", "EMILIN2", "ENSGALG00000001885", "ENSGALG00000023936", "ENSGALG00000040010", "ENSGALG00000042443", "ENSGALG00000050334", "ENSGALG00000052786", "EYA2", "FABP3", "FAM184B", "FAM89A", "FN1", "GATA2", "GATA3", "HAS2", "KCNAB1", "KRT18", "KRT19", "KRT7", "LAMB1", "NEDD9", "NET1", "PITX1", "SIX1", "SPON1", "TFAP2A", "TUBAL3", "UNC5B", "Z-HAPLN1")
 gm_genes <- unique(c(GM12, GM14, GM13, GM23))
+length(GM12)
+length(GM14)
+length(GM13)
+length(GM23)
+
+# plot venn of nodes
+myCol <- brewer.pal(4, "Pastel2")
+venn.diagram(
+  x = list(GM12, GM14, GM13, GM23),
+  category.names = c("GM12", "GM14", "GM13", "GM23"),
+  filename = paste0(plot_path, 'Gene_modules.png'),
+  output=TRUE, disable.logging = TRUE,
+  # Output features
+  imagetype="png",
+  height = 600, 
+  width = 600, 
+  resolution = 300,
+  compression = "lzw",
+  # Circles
+  lwd = 2,
+  lty = 'blank',
+  fill = myCol,
+  # Numbers
+  cex = .6,
+  fontface = "bold",
+  fontfamily = "sans",
+  # Set names
+  cat.cex = 0.7,
+  cat.fontface = "bold"
+)
+
 
 ######################################################################################
 ##############################    PLACODAL     #######################################
@@ -630,6 +661,18 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+## node numbers from each GM
+df <- data.frame(
+  GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
+  GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
+  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+)
+png(paste0(temp_plot_path, 'GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
 ############################## Extract TF by peak matrix #######################################
 
 temp_plot_path = "./plots/TF_by_peaks/"
@@ -737,6 +780,18 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
+## node numbers from each GM
+df <- data.frame(
+  GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
+  GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
+  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+)
+png(paste0(temp_plot_path, 'Unfiltered_GRN_GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
 # add column for positive/negative correlations and abs correlation
 df.grn <- df.grn %>%
   dplyr::mutate(direction = ifelse(correlation > 0, "P", "N")) %>%
@@ -766,6 +821,18 @@ df <- data.frame(
   nNegativeInteractions = length(which(df.grn$correlation < 0))
 )
 png(paste0(temp_plot_path, 'Network_filtered_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+## node numbers from each GM
+df <- data.frame(
+  GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
+  GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
+  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+)
+png(paste0(temp_plot_path, 'Filtered_GRN_GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
@@ -862,6 +929,18 @@ df <- data.frame(
   nNegativeInteractions = length(which(df.grn.pos$correlation < 0))
 )
 png(paste0(temp_plot_path, 'Network_filtered_positive_source_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+## node numbers from each GM
+df <- data.frame(
+  GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
+  GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
+  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+)
+png(paste0(temp_plot_path, 'Pos_corr_GRN_GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
