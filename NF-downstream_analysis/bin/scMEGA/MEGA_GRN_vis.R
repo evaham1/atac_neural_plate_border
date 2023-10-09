@@ -510,6 +510,9 @@ df.grn.un <- read.csv(paste0(temp_data_path, "GRN_initial.txt"))
 df.grn <- read_tsv(paste0(temp_data_path, "GRN_filtered.txt"))
 df.grn.pos <- read_tsv(paste0(temp_data_path, "GRN_filtered_pos_corr.txt"))
 
+# read in data object
+obj.traj <- readRDS(paste0(data_path, "rds_files/Placodal_traj_obj.RDS"))
+
 ######################################################################################
 ##############################    FILTERED GRN     ###################################
 ######################################################################################
@@ -667,6 +670,16 @@ write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt
 
 # extract top 20 factors:
 factors <- importance_df[1:20, 1]
+
+# Pseudotime plots
+obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn)
+for (i in length(factors)){
+  TF <- factors[i]
+  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF)
+  png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 10, units = 'cm', res = 400)
+  print(p)
+  graphics.off()
+}
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
