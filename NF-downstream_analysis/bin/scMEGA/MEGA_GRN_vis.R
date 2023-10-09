@@ -675,7 +675,7 @@ factors <- importance_df[1:20, 1]
 obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn)
 for (i in length(factors)){
   TF <- factors[i]
-  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF)
+  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 10, units = 'cm', res = 400)
   print(p)
   graphics.off()
