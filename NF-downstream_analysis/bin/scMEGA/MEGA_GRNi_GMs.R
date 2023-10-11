@@ -616,7 +616,7 @@ dim(P2G)
 
 # filter peak-enhancer interactions on GMs and also threshold correlation
 df.p2g <- P2G %>% 
-  dplyr::filter(FDR < 0.05) %>%
+  dplyr::filter(FDR < 0.01) %>%
   dplyr::filter(gene %in% unique(c(gm_genes, df.tfs$tfs)))
 dim(df.p2g)
 

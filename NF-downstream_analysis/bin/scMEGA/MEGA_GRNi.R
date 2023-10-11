@@ -577,7 +577,7 @@ dim(P2G)
 # filter peak-enhancer interactions based on FDR
 summary(P2G$FDR)
 hist(P2G$FDR, breaks = 100)
-P2G_filt <- P2G %>% dplyr::filter(FDR < 0.05)
+P2G_filt <- P2G %>% dplyr::filter(FDR < 0.01)
 dim(P2G_filt)
 
 # extract most variable genes along trajectory
