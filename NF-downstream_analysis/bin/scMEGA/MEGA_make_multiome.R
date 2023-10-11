@@ -73,6 +73,46 @@ if(opt$verbose) print(opt)
 
 set.seed(42)
 
+############################################################################################
+#########################             FUNCTIONS             ################################
+
+AddMotifs_to_Seurat <- function(object, assay, pfm, genome, cutOff = 5e-05){
+  # added this myself
+  DefaultAssay(object) <- assay
+  peak_ranges <- granges(object)
+  # this is from github
+  motif.matrix <- CreateMotifMatrix( 
+    features = peak_ranges, 
+    pwm = pfm, 
+    genome = genome, 
+    use.counts = FALSE,
+    p.cutoff = cutOff
+  ) 
+  message("Finding motif positions") 
+  
+  # for positions, a list of granges is returned 
+  # each element of list is a PFM name 
+  # each entry in granges is the position within a feature that matches motif 
+  peak_ranges_keep <- as.character(seqnames(x = peak_ranges)) %in% seqlevels(x = genome) 
+  motif.positions <- motifmatchr::matchMotifs( 
+    pwms = pfm, 
+    subject = peak_ranges[peak_ranges_keep], 
+    out = 'positions', 
+    genome = genome,
+    p.cutoff = cutOff
+  ) 
+  message("Creating Motif object") 
+  
+  motif <- CreateMotifObject( 
+    data = motif.matrix, 
+    positions = motif.positions, 
+    pwm = pfm 
+  ) 
+  object <- SetAssayData(object = object, slot = "motifs", 
+                         new.data = motif)
+  return(object)
+}
+
 ############################## Read in seurat objects #######################################
 
 print("reading in data...")
@@ -221,16 +261,48 @@ print(head(obj.pair@meta.data))
 
 ############################## Add motif information #######################################
 
+print("Adding motif information...")
+
 # download motif database
 motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
 
 # add motif information to ATAC data
-obj.pair <- AddMotifs(
-  object = obj.pair,
-  genome = BSgenome.Ggallus.UCSC.galGal6,
-  pfm = motifList,
-  assay = "ATAC"
-)
+
+# in-built signac function where I can't change the p val:
+# obj.pair <- AddMotifs(
+#   object = obj.pair,
+#   genome = BSgenome.Ggallus.UCSC.galGal6,
+#   pfm = motifList,
+#   assay = "ATAC"
+# )
+
+# edited function where I can edit p-val cutoff:
+obj.pair <- AddMotifs_to_Seurat(obj.pair, assay = "ATAC", pfm = motifList, genome = BSgenome.Ggallus.UCSC.galGal6, cutOff = 1e-05)
+
+############################## Check motif-peak annotations #######################################
+
+print("Checking motif information...")
+
+motif.matching <- obj.pair@assays$ATAC@motifs@data
+colnames(motif.matching) <- obj.pair@assays$ATAC@motifs@motif.names
+dim(motif.matching) # 271391    746
+print(paste0("Total motif-peak hits: ", sum(motif.matching)))
+
+# distribution of motifs by TF
+n_hits_per_TF <- colSums(motif.matching)
+png(paste0(temp_plot_path, 'Motif_hits_per_TF.png'), height = 8, width = 10, units = 'cm', res = 400)
+hist(n_hits_per_TF, breaks = 100)
+graphics.off()
+print("Number of hits per TF summary stats:")
+summary(n_hits_per_TF)
+
+# distribution of peaks by TF
+n_hits_per_peak <- rowSums(motif.matching)
+png(paste0(temp_plot_path, 'Motif_hits_per_peak.png'), height = 8, width = 10, units = 'cm', res = 400)
+hist(n_hits_per_peak, breaks = 100)
+graphics.off()
+print("Number of hits per peak summary stats:")
+summary(n_hits_per_peak)
 
 ############################## Run chromvar #######################################
 
