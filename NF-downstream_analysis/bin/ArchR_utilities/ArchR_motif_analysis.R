@@ -115,7 +115,7 @@ for (i in 1:length(motifList)){
 names(motifList) <- name_vector
 
 # annotate peaks in ArchR object with these motifs
-ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, force = T)
+ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, cutOff = 1e-05, force = T)
 print("Motifs matrix added to ArchR object!")
 
 ############################## Run ChromVar #######################################
