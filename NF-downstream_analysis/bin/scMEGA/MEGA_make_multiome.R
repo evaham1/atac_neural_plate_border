@@ -290,7 +290,7 @@ print(paste0("Total motif-peak hits: ", sum(motif.matching)))
 
 # distribution of motifs by TF
 n_hits_per_TF <- colSums(motif.matching)
-png(paste0(temp_plot_path, 'Motif_hits_per_TF.png'), height = 8, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'Motif_hits_per_TF.png'), height = 8, width = 10, units = 'cm', res = 400)
 hist(n_hits_per_TF, breaks = 100)
 graphics.off()
 print("Number of hits per TF summary stats:")
@@ -298,7 +298,7 @@ summary(n_hits_per_TF)
 
 # distribution of peaks by TF
 n_hits_per_peak <- rowSums(motif.matching)
-png(paste0(temp_plot_path, 'Motif_hits_per_peak.png'), height = 8, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'Motif_hits_per_peak.png'), height = 8, width = 10, units = 'cm', res = 400)
 hist(n_hits_per_peak, breaks = 100)
 graphics.off()
 print("Number of hits per peak summary stats:")
