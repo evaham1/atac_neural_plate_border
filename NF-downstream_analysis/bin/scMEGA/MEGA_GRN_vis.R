@@ -585,15 +585,15 @@ factors <- edges[1:10, 1]
 print("Top 10 edges factors:")
 print(factors)
 
-# Pseudotime plots
-obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn)
-for (TF in factors){
-  print(TF)
-  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-  png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
-}
+# # Pseudotime plots
+# obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn)
+# for (TF in factors){
+#   print(TF)
+#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+# }
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
@@ -695,14 +695,14 @@ factors <- importance_df[1:20, 1]
 print("Top 20 importance factors:")
 print(factors)
 
-# Pseudotime plots
-for (TF in factors){
-  print(TF)
-  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-  png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
-}
+# # Pseudotime plots
+# for (TF in factors){
+#   print(TF)
+#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+# }
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
@@ -791,6 +791,8 @@ dir.create(temp_csv_path, recursive = T)
 
 ############################## Plot filtered pos corr GRN #######################################
 
+print("Pos corr network plotting...")
+
 # plot whole GRN
 p <- GRNPlot(df.grn.pos,
              tfs.timepoint = tfs.timepoint,
@@ -818,7 +820,7 @@ graphics.off()
 
 ############################## Top factors of filtered pos corr network #######################################
 
-print("Filtered network analysis...")
+print("Pos corr network analysis...")
 
 ########## EDGES
 
@@ -845,15 +847,15 @@ factors <- edges[1:10, 1]
 print("Top 10 edges factors:")
 print(factors)
 
-# Pseudotime plots
-obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn.pos)
-for (TF in factors){
-  print(TF)
-  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-  png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
-}
+# # Pseudotime plots
+# obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn.pos)
+# for (TF in factors){
+#   print(TF)
+#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+# }
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
@@ -955,14 +957,14 @@ factors <- importance_df[1:20, 1]
 print("Top 20 importance factors:")
 print(factors)
 
-# Pseudotime plots
-for (TF in factors){
-  print(TF)
-  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-  png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
-}
+# # Pseudotime plots
+# for (TF in factors){
+#   print(TF)
+#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+# }
 
 # plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
