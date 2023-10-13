@@ -606,67 +606,67 @@ png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, widt
 ht
 graphics.off()
 
-# Create target gene heatmap
-target_genes_df <- extract_target_genes_df(factors, df.grn)
-colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
-hm <- pheatmap::pheatmap(t(target_genes_df),
-                         color = c("grey", "purple"),  # Color scheme
-                         cluster_rows = TRUE,  # Do not cluster rows
-                         cluster_cols = TRUE,  # Do not cluster columns
-                         fontsize_row = 10,  # Font size for row labels
-                         fontsize_col = 0.0001,   # Font size for column labels
-                         cutree_cols = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-hm
-graphics.off()
+# # Create target gene heatmap
+# target_genes_df <- extract_target_genes_df(factors, df.grn)
+# colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+# hm <- pheatmap::pheatmap(t(target_genes_df),
+#                          color = c("grey", "purple"),  # Color scheme
+#                          cluster_rows = TRUE,  # Do not cluster rows
+#                          cluster_cols = TRUE,  # Do not cluster columns
+#                          fontsize_row = 10,  # Font size for row labels
+#                          fontsize_col = 0.0001,   # Font size for column labels
+#                          cutree_cols = k)
+# png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+# hm
+# graphics.off()
 
-# GO analysis on each cluster of targets
-df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
-for (i in 1:k){
-  print(i)
-  targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
-}
+# # GO analysis on each cluster of targets
+# df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
+# for (i in 1:k){
+#   print(i)
+#   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
+#   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+#   if (nrow(as.data.frame(go_output)) > 0){
+#     png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+#     print(plot(barplot(go_output, showCategory = 20)))
+#     graphics.off()
+#   }
+# }
 
-# GO analysis of each TF's target genes
-for (i in length(factors)){
-  TF <- factors[i]
-  targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
-}
+# # GO analysis of each TF's target genes
+# for (i in length(factors)){
+#   TF <- factors[i]
+#   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
+#   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+#   if (nrow(as.data.frame(go_output)) > 0){
+#     png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+#     print(plot(barplot(go_output, showCategory = 20)))
+#     graphics.off()
+#   }
+# }
 
-# subset network
-df.grn.selected <- df.grn %>%
-  dplyr::filter(tf %in% factors) %>%
-  dplyr::filter(gene %in% factors)
-nrow(df.grn.selected)
+# # subset network
+# df.grn.selected <- df.grn %>%
+#   dplyr::filter(tf %in% factors) %>%
+#   dplyr::filter(gene %in% factors)
+# nrow(df.grn.selected)
 
-# TF network numbers
-df <- data.frame(
-  nSource = length(unique(df.grn.selected$tf)),
-  nTarget = length(unique(df.grn.selected$gene)),
-  nBoth = sum(unique(df.grn.selected$tf) %in% unique(df.grn.selected$gene)),
-  nInteractions = nrow(df.grn.selected),
-  nPositiveInteractions = length(which(df.grn.selected$correlation > 0)),
-  nNegativeInteractions = length(which(df.grn.selected$correlation < 0))
-)
-png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# # TF network numbers
+# df <- data.frame(
+#   nSource = length(unique(df.grn.selected$tf)),
+#   nTarget = length(unique(df.grn.selected$gene)),
+#   nBoth = sum(unique(df.grn.selected$tf) %in% unique(df.grn.selected$gene)),
+#   nInteractions = nrow(df.grn.selected),
+#   nPositiveInteractions = length(which(df.grn.selected$correlation > 0)),
+#   nNegativeInteractions = length(which(df.grn.selected$correlation < 0))
+# )
+# png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
-# save network
-write_tsv(df.grn.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
+# # save network
+# write_tsv(df.grn.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
 ########## scMEGA IMPORTANCE
 
@@ -868,67 +868,67 @@ png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, widt
 ht
 graphics.off()
 
-# Create target gene heatmap
-target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
-colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
-hm <- pheatmap::pheatmap(t(target_genes_df),
-                         color = c("grey", "purple"),  # Color scheme
-                         cluster_rows = TRUE,  # Do not cluster rows
-                         cluster_cols = TRUE,  # Do not cluster columns
-                         fontsize_row = 10,  # Font size for row labels
-                         fontsize_col = 0.0001,   # Font size for column labels
-                         cutree_cols = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-hm
-graphics.off()
+# # Create target gene heatmap
+# target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
+# colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+# hm <- pheatmap::pheatmap(t(target_genes_df),
+#                          color = c("grey", "purple"),  # Color scheme
+#                          cluster_rows = TRUE,  # Do not cluster rows
+#                          cluster_cols = TRUE,  # Do not cluster columns
+#                          fontsize_row = 10,  # Font size for row labels
+#                          fontsize_col = 0.0001,   # Font size for column labels
+#                          cutree_cols = k)
+# png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+# hm
+# graphics.off()
 
-# GO analysis on each cluster of targets
-df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
-for (i in 1:k){
-  print(i)
-  targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
-}
+# # GO analysis on each cluster of targets
+# df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
+# for (i in 1:k){
+#   print(i)
+#   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
+#   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+#   if (nrow(as.data.frame(go_output)) > 0){
+#     png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+#     print(plot(barplot(go_output, showCategory = 20)))
+#     graphics.off()
+#   }
+# }
 
-# GO analysis of each TF's target genes
-for (i in length(factors)){
-  TF <- factors[i]
-  targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
-}
+# # GO analysis of each TF's target genes
+# for (i in length(factors)){
+#   TF <- factors[i]
+#   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
+#   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+#   if (nrow(as.data.frame(go_output)) > 0){
+#     png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+#     print(plot(barplot(go_output, showCategory = 20)))
+#     graphics.off()
+#   }
+# }
 
-# subset network
-df.grn.pos.selected <- df.grn.pos %>%
-  dplyr::filter(tf %in% factors) %>%
-  dplyr::filter(gene %in% factors)
-nrow(df.grn.pos.selected)
+# # subset network
+# df.grn.pos.selected <- df.grn.pos %>%
+#   dplyr::filter(tf %in% factors) %>%
+#   dplyr::filter(gene %in% factors)
+# nrow(df.grn.pos.selected)
 
-# TF network numbers
-df <- data.frame(
-  nSource = length(unique(df.grn.pos.selected$tf)),
-  nTarget = length(unique(df.grn.pos.selected$gene)),
-  nBoth = sum(unique(df.grn.selected$tf) %in% unique(df.grn.pos.selected$gene)),
-  nInteractions = nrow(df.grn.selected),
-  nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
-  nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
-)
-png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
+# # TF network numbers
+# df <- data.frame(
+#   nSource = length(unique(df.grn.pos.selected$tf)),
+#   nTarget = length(unique(df.grn.pos.selected$gene)),
+#   nBoth = sum(unique(df.grn.selected$tf) %in% unique(df.grn.pos.selected$gene)),
+#   nInteractions = nrow(df.grn.selected),
+#   nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
+#   nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
+# )
+# png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+# grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+#              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+# graphics.off()
 
-# save network
-write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
+# # save network
+# write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
 ########## scMEGA IMPORTANCE
 
