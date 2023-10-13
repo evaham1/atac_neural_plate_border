@@ -452,18 +452,17 @@ close(fileConn)
 GM12 <- c("AKR1D1", "ATP1A1", "ATP1B1", "ATP2B1", "B3GNT7", "CCDC25", "CGNL1", "DAG1", "EMILIN2", "ENSGALG00000004814", "EPCAM", "FAM184B", "FAM89A", "GATA2", "GATA3", "IRAK2", "IRF6", "MAP7", "METRNL", "MPZL3", "NET1", "PLEKHA5", "POGLUT2", "PPFIBP1", "RGN", "SLC16A10", "SLC25A4", "TSPAN13", "TTC39A", "UNC5B", "Z-TJP2")
 GM14 <- c("BRINP1", "CITED4", "DLX5", "DLX6", "ENSGALG00000023936", "ENSGALG00000040010", "FN1", "HESX1", "HIF1A", "KCNAB1", "LAMB1", "LRP11", "NFKB1", "PAX6", "PITX1", "PITX2", "SEM1", "SFRP1", "SH3D19", "SHISA2", "SIX3", "SPON1", "SST", "WDR1", "Z-HAPLN1")
 GM13 <- c("AKAP12", "ASS1", "BASP1", "CD99", "ENSGALG00000011296", "ENSGALG00000041054", "ENSGALG00000042443", "EYA2", "FERMT2", "LGMN", "METTL24", "NR2F2", "NUCKS1", "SIX1")
-GM23 <- c("ASS1", "BMP4", "BMP6", "CLDN3", "CSRP2", "DLX5", "DLX6", "EMILIN2", "ENSGALG00000001885", "ENSGALG00000023936", "ENSGALG00000040010", "ENSGALG00000042443", "ENSGALG00000050334", "ENSGALG00000052786", "EYA2", "FABP3", "FAM184B", "FAM89A", "FN1", "GATA2", "GATA3", "HAS2", "KCNAB1", "KRT18", "KRT19", "KRT7", "LAMB1", "NEDD9", "NET1", "PITX1", "SIX1", "SPON1", "TFAP2A", "TUBAL3", "UNC5B", "Z-HAPLN1")
-gm_genes <- unique(c(GM12, GM14, GM13, GM23))
+# GM23 <- c("ASS1", "BMP4", "BMP6", "CLDN3", "CSRP2", "DLX5", "DLX6", "EMILIN2", "ENSGALG00000001885", "ENSGALG00000023936", "ENSGALG00000040010", "ENSGALG00000042443", "ENSGALG00000050334", "ENSGALG00000052786", "EYA2", "FABP3", "FAM184B", "FAM89A", "FN1", "GATA2", "GATA3", "HAS2", "KCNAB1", "KRT18", "KRT19", "KRT7", "LAMB1", "NEDD9", "NET1", "PITX1", "SIX1", "SPON1", "TFAP2A", "TUBAL3", "UNC5B", "Z-HAPLN1")
+gm_genes <- unique(c(GM12, GM14, GM13))
 length(GM12)
 length(GM14)
 length(GM13)
-length(GM23)
 
 # plot venn of nodes
-myCol <- brewer.pal(4, "Pastel2")
+myCol <- brewer.pal(3, "Pastel2")
 venn.diagram(
-  x = list(GM12, GM14, GM13, GM23),
-  category.names = c("GM12", "GM14", "GM13", "GM23"),
+  x = list(GM12, GM14, GM13),
+  category.names = c("GM12", "GM14", "GM13"),
   filename = paste0(plot_path, 'Gene_modules.png'),
   output=TRUE, disable.logging = TRUE,
   # Output features
@@ -529,66 +528,6 @@ write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations_all.csv"), row.n
 # how many source nodes are there
 nrow(df.tfs) # 311
 unique(df.tfs$tfs)
-# [1] "RFX2"    "SOX4"    "SOX10"   "SOX2"    "SOX18"   "PRDM1"   "NRF1"   
-# [8] "YY1"     "MYCN"    "RFX7"    "ZNF143"  "CDX2"    "ZNF341"  "ARNT2"  
-# [15] "ZNF148"  "LEF1"    "MEF2B"   "NEUROD1" "ZBTB14"  "NR3C1"   "MYB"    
-# [22] "SRF"     "MYBL1"   "POU4F3"  "E2F7"    "POU4F2"  "PLAGL2"  "SMAD3"  
-# [29] "HIF1A"   "PAX7"    "GABPA"   "POU4F1"  "OLIG2"   "NFATC1"  "HIC2"   
-# [36] "ESRRB"   "SMAD5"   "ZIC5"    "MAFK"    "NR2F2"   "FOS"     "TBX3"   
-# [43] "NFAT5"   "TBX20"   "POU3F1"  "NFIC"    "GLI3"    "TEF"     "NFATC2" 
-# [50] "PBX3"    "BHLHE23" "NFATC3"  "PKNOX1"  "HOXD13"  "GLI2"    "OVOL2"  
-# [57] "E2F8"    "PBX1"    "SOX13"   "SOX8"    "SOX9"    "VEZF1"   "SOX14"  
-# [64] "TP73"    "TCF7"    "ZBED1"   "POU2F1"  "BHLHE40" "MAF"     "GLIS1"  
-# [71] "MAFG"    "MAFA"    "HES5"    "FOXC2"   "MAFF"    "TFDP1"   "MYBL2"  
-# [78] "ZIC3"    "MXI1"    "CDX4"    "MSGN1"   "NR1D1"   "ASCL1"   "MYC"    
-# [85] "TFEB"    "TCF7L2"  "TFAP4"   "MYF6"    "MSANTD3" "OTX1"    "ATF6"   
-# [92] "CLOCK"   "IRF8"    "IRF7"    "TBXT"    "IRF2"    "HES1"    "HLF"    
-# [99] "PROX1"   "ZBTB18"  "ZIC1"    "RUNX3"   "E2F6"    "MEIS1"   "ZBTB26" 
-# [106] "ETV3"    "JUN"     "PKNOX2"  "RBPJ"    "MEF2A"   "HSF2"    "XBP1"   
-# [113] "CREB3L1" "MEF2D"   "ZBTB33"  "NFKB1"   "HINFP"   "E2F3"    "HSF1"   
-# [120] "USF1"    "TGIF1"   "MTF1"    "PAX6"    "ELF1"    "TGIF2"   "DMRTA2" 
-# [127] "LIN54"   "ESR2"    "NKX2-3"  "HNF4G"   "HMBOX1"  "TBP"     "ZNF282" 
-# [134] "BARX2"   "IRF1"    "NFIA"    "BHLHE22" "NR6A1"   "STAT1"   "TP63"   
-# [141] "TWIST1"  "SOX21"   "NR5A1"   "NR2C1"   "FOXC1"   "ONECUT1" "NFIX"   
-# [148] "JUND"    "OVOL1"   "HES6"    "ZNF384"  "MAX"     "MNT"     "NR1D2"  
-# [155] "NKX6-3"  "HOXA9"   "IRF6"    "FOSL2"   "NFE2L1"  "NR3C2"   "GSC"    
-# [162] "PITX1"   "STAT3"   "NOTO"    "HESX1"   "LHX6"    "BACH2"   "CTCFL"  
-# [169] "EBF1"    "EBF3"    "ZEB1"    "SNAI1"   "TCF3"    "TBR1"    "BACH1"  
-# [176] "EOMES"   "TBX2"    "HOXD4"   "ZNF410"  "NFE2"    "ETV4"    "TFAP2A" 
-# [183] "TFAP2B"  "GATA4"   "TFAP2C"  "GATA2"   "SNAI2"   "GATA3"   "GATA5"  
-# [190] "GATA6"   "TFAP2E"  "HOXA2"   "SP1"     "MEOX1"   "DRGX"    "HOXA1"  
-# [197] "SP4"     "GBX2"    "VAX1"    "VSX2"    "EN1"     "EMX1"    "HOXA5"  
-# [204] "LHX5"    "DLX6"    "EMX2"    "SP3"     "EVX1"    "GBX1"    "LHX1"   
-# [211] "SP8"     "KLF6"    "SP9"     "DLX5"    "NKX6-2"  "EN2"     "PRRX1"  
-# [218] "MNX1"    "MIXL1"   "LMX1A"   "KLF10"   "KLF11"   "RAX2"    "LHX9"   
-# [225] "FOXP2"   "MSX1"    "MSX2"    "BSX"     "BARX1"   "PRRX2"   "LMX1B"  
-# [232] "MGA"     "KLF13"   "KLF5"    "KLF3"    "ZBTB6"   "REL"     "JDP2"   
-# [239] "PPARG"   "SREBF1"  "NFKB2"   "KLF15"   "SREBF2"  "CUX2"    "VDR"    
-# [246] "CUX1"    "TEAD1"   "TEAD4"   "TEAD3"   "SIX1"    "NFYA"    "SP2"    
-# [253] "NFYC"    "NFYB"    "ELK3"    "TFCP2"   "FOXK2"   "HOXA7"   "HOXD8"  
-# [260] "FOXO6"   "FOXP3"   "FEV"     "ATF3"    "ELK4"    "ETV5"    "FOXK1"  
-# [267] "ETS1"    "FOXG1"   "ELF2"    "ERG"     "CREM"    "FOXA2"   "ETV6"   
-# [274] "ZNF740"  "ATF2"    "ZBTB7A"  "ETS2"    "RREB1"   "RXRG"    "CREB1"  
-# [281] "FOXN3"   "BATF"    "THRB"    "FOXA1"   "OTX2"    "BATF3"   "PPARD"  
-# [288] "MLXIPL"  "EGR4"    "PITX2"   "E2F1"    "PLAG1"   "CEBPG"   "RORA"   
-# [295] "TCF7L1"  "NR2C2"   "E2F4"    "BHLHE41" "MLX"     "GMEB2"   "NKX2-2" 
-# [302] "EGR1"    "EHF"     "RELA"    "RARA"    "PRDM4"   "ZNF652"  "ATF4"   
-# [309] "HEY1"    "ETV1"    "NKX2-5" 
-
-# how do these source nodes overlap with previous predictions
-Alex_TFs <- c("GATA2", "SIX1", "DLX5", "TFAP2A", "IRF6", "DLX6", 
-              "GATA3", "TFAP2C", "EPAS1", "PITX1", "PITX2", "RARB", "HRKB1", "IRX1" )
-Chromvar_TFs <- c("TEAD3", "TEAD4", "TEAD2", "TEAD1", "TFAP2A", "TFAP2C", 
-                  "Rbpjl", "Ptf1a", "SNAI2", "SNAI1", "SNAI3", "TCF12")   
-
-print("Overlap with Alex's TFs:")
-print(Alex_TFs[Alex_TFs %in% unique(df.tfs$tfs)])
-# [1] "GATA2"  "SIX1"   "DLX5"   "TFAP2A" "IRF6"   "DLX6"   "GATA3"  "TFAP2C"
-# [9] "PITX1"  "PITX2" 
-
-print("Overlap with ChromVar TFs:")
-print(Chromvar_TFs[Chromvar_TFs %in% unique(df.tfs$tfs)])
-# [1] "TEAD3"  "TEAD4"  "TEAD1"  "TFAP2A" "TFAP2C" "SNAI2"  "SNAI1" 
 
 # plot TF activity dynamics across trajectory
 ht <- res$heatmap
@@ -665,8 +604,7 @@ graphics.off()
 df <- data.frame(
   GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
   GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
-  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
-  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13)
 )
 png(paste0(temp_plot_path, 'GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -784,8 +722,7 @@ graphics.off()
 df <- data.frame(
   GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
   GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
-  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
-  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13)
 )
 png(paste0(temp_plot_path, 'Unfiltered_GRN_GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -829,8 +766,7 @@ graphics.off()
 df <- data.frame(
   GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
   GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
-  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
-  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13)
 )
 png(paste0(temp_plot_path, 'Filtered_GRN_GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -937,8 +873,7 @@ graphics.off()
 df <- data.frame(
   GM12_nodes = sum(unique(df.p2g$gene) %in% GM12),
   GM14_nodes = sum(unique(df.p2g$gene) %in% GM14),
-  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13),
-  GM23_nodes = sum(unique(df.p2g$gene) %in% GM23)
+  GM13_nodes = sum(unique(df.p2g$gene) %in% GM13)
 )
 png(paste0(temp_plot_path, 'Pos_corr_GRN_GM_node_numbers.png'), height = 8, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -1069,14 +1004,6 @@ df.gm <- data.frame(
   ss8_GM <- c( rep("GM12", length(GM12)), rep("GM14", length(GM14)), rep("GM13", length(GM13)) )
 )
 colnames(df.gm) <- c("node", "ss8_GM")
-node_metadata <- merge(node_metadata, df.gm, by = "node", all = TRUE)
-
-# add which GM node is part of (GMs calculated on full data)
-df.gm <- data.frame(
-  node <- GM23,
-  GM <- rep("GM23", length(GM23))
-)
-colnames(df.gm) <- c("node", "FullData_GM")
 node_metadata <- merge(node_metadata, df.gm, by = "node", all = TRUE)
 
 # check final
