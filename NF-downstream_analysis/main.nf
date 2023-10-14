@@ -67,7 +67,7 @@ include {R as MEGA_GRN_GMS_VIS} from "$baseDir/modules/local/r/main"            
 
 
 // METACELL PROCESSING
-include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_METACELL_INPUT } from "$baseDir/subworkflows/local/metadata"
 
 include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
 include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
@@ -398,10 +398,10 @@ workflow A {
 
     if(!skip_metacell_processing){
 
-        // read in split stages objects with consensus peak set
-        METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
-        ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
-        ch_peakcall_processed.view()
+        // read in stages objects with consensus peak set
+        METADATA_METACELL_INPUT( params.metacell_input_sample_sheet )
+        ch_metacell_input = METADATA_METACELL_INPUT.out.metadata 
+        ch_metacell_input.view()
         // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
         // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
         // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
@@ -411,7 +411,7 @@ workflow A {
         ///////     Calculate SEACells      ///////
 
         // Run Metacells on ATAC stages
-        SEACELLS_ATAC_WF( ch_peakcall_processed, ch_binary_knowledge_matrix )
+        SEACELLS_ATAC_WF( ch_metacell_input, ch_binary_knowledge_matrix )
              
         //read in RNA data (stages only)
         METADATA_RNA( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
