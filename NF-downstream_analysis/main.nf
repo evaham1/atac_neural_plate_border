@@ -66,14 +66,16 @@ include {R as MEGA_GRNI_GMS} from "$baseDir/modules/local/r/main"               
 include {R as MEGA_GRN_GMS_VIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/scMEGA/MEGA_GRN_vis.R", checkIfExists: true) )
 
 
-// // METACELL PROCESSING
-// include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
-// include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
-// include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_RNA_WF"
-// include { SEACELLS_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/SEACells_integration_WF"
+// METACELL PROCESSING
+include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
 
-// //PEAK CLUSTERING
-// include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
+include { SEACELLS_ATAC_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_ATAC_WF"
+include { METADATA as METADATA_RNA } from "$baseDir/subworkflows/local/metadata"
+include { SEACELLS_RNA_WF } from "$baseDir/subworkflows/local/PROCESSING/seacells_RNA_WF"
+include { SEACELLS_INTEGRATING_WF } from "$baseDir/subworkflows/local/PROCESSING/SEACells_integration_WF"
+
+//PEAK CLUSTERING
+include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCESSING/cluster_peaks_WF"
 
 // // MISC
 // include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/gtf_to_txdb.R", checkIfExists: true) )
@@ -399,7 +401,7 @@ workflow A {
         // read in split stages objects with consensus peak set
         METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet )
         ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
-        // ch_peakcall_processed.view()
+        ch_peakcall_processed.view()
         // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
         // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
         // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
