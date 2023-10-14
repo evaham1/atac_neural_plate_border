@@ -77,7 +77,10 @@ workflow CLUSTER_PEAKS_WF {
     CLUSTER_PEAKS.out.view()
 
     // Run homer motif enrichment on each peak module
-    HOMER_MOTIF_ENRICHMENT( CLUSTER_PEAKS.out, ch_fasta )
+    CLUSTER_PEAKS.out
+        .concat( ch_fasta )
+        .set { ch_homer_input }
+    HOMER_MOTIF_ENRICHMENT( ch_homer_input )
 
     emit:
     clustered_peaks = CLUSTER_PEAKS.out
