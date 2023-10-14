@@ -412,7 +412,7 @@ workflow A {
         SEACELLS_ATAC_WF( ch_peakcall_processed, ch_binary_knowledge_matrix )
              
         //read in RNA data (stages only)
-        METADATA_RNA( params.rna_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
+        METADATA_RNA( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
                                                 // [[sample_id:HH6], [HH6_clustered_data.RDS]]
                                                 // etc
         // Run Metacells on RNA stages
