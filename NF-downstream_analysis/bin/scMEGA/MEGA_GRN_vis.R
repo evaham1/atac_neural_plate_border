@@ -44,7 +44,7 @@ if(opt$verbose) print(opt)
     ncores = 8
     addArchRThreads(threads = 1)
     
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi/"
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRNi_motif_cutoff/"
     
     plot_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRN_vis/plots/"
     csv_path = "./output/NF-downstream_analysis/Processing/FullData/scMEGA/MEGA_GRN_vis/csv_files/"
@@ -492,6 +492,13 @@ GRNPlot_updated <- function (df.grn, tfs.use = NULL, show.tf.labels = TRUE, tfs.
   return(p)
 }
 
+## function to write out gene lists in nested list
+export_gene_list <- function(gene_list, publish_dir){
+  for(name in names(gene_list)){
+    print(name)
+    write(paste0(name, ": ", paste0(gene_list[[name]], collapse = ", ")), file = paste0(publish_dir, '.txt'), append = TRUE)
+  }
+}
 
 ############################## Read in data #######################################
 
@@ -936,10 +943,10 @@ print("Importance analysis...")
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
 dir.create(temp_plot_path_subset, recursive = T)
-k = 1
+k = 10
 
 # plot importance ranking + save the df
-png(paste0(temp_plot_path_subset, 'Top_importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
 importance_df <- GRNPlot_updated(df.grn.pos,
                                  tfs.timepoint = tfs.timepoint,
                                  show.tf.labels = TRUE,
@@ -950,7 +957,23 @@ importance_df <- GRNPlot_updated(df.grn.pos,
                                  return.importance = TRUE)
 graphics.off()
 importance_df <- arrange(importance_df, by = desc(importance))
-write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
+write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Analysis_metrics_df.txt"))
+
+# plot the individual metrics - betweeness
+betweeness_df <- importance_df %>% 
+  dplyr::select(c("tf", "betweenness")) %>%
+  arrange(by = desc(betweenness))
+png(paste0(temp_plot_path_subset, 'Betweeness_plot.png'), height = 10, width = 40, units = 'cm', res = 400)
+barplot(betweeness_df$betweenness, names.arg = betweeness_df$tf, las = 2, cex.names=.5)
+graphics.off()
+
+# plot the individual metrics - pagerank
+pagerank_df <- importance_df %>% 
+  dplyr::select(c("tf", "pagerank")) %>%
+  arrange(by = desc(pagerank))
+png(paste0(temp_plot_path_subset, 'Pagerank_plot.png'), height = 10, width = 40, units = 'cm', res = 400)
+barplot(pagerank_df$pagerank, names.arg = pagerank_df$tf, las = 2, cex.names=.5)
+graphics.off()
 
 # extract top 20 factors:
 factors <- importance_df[1:20, 1]
@@ -971,11 +994,33 @@ df.tf.gene.subset <- df.tf.gene %>%
   dplyr::filter(tf %in% factors)
 df.tfs.subset <- df.tfs %>%
   dplyr::filter(tfs %in% factors)
-ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = k)
+ht <- draw(ht)
 
 png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
 ht
 graphics.off()
+
+# extract target gene clusters
+mat.cor <- df.tf.gene.subset %>% as.data.frame() %>% 
+  select(c(tf, gene, correlation)) %>% 
+  tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
+  textshape::column_to_rownames("gene")
+target_gene_clusters <- list()
+for (cluster_name in names(row_order(ht))){
+  print(paste0("cluster: ", cluster_name))
+  indices <- row_order(ht)[[cluster_name]]
+  target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
+  print(length(target_gene_clusters[[cluster_name]]))
+  
+  # print expression of these genes
+  seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = "cluster")
+  png(paste0(temp_plot_path_subset, 'FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 20, units = 'cm', res = 400)
+  FeaturePlot(seurat, features = "cluster1", pt.size = 1.5)
+  graphics.off()
+  
+}
+export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_corr"))
 
 # Create target gene heatmap
 target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
@@ -991,31 +1036,38 @@ png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 1
 hm
 graphics.off()
 
-# GO analysis on each cluster of targets
+# Extract each cluster of targets
 df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
+target_gene_direct_clusters <- list()
 for (i in 1:k){
   print(i)
   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
+  target_gene_direct_clusters[[i]] <- targets
+  # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  # if (nrow(as.data.frame(go_output)) > 0){
+  #   png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+  #   print(plot(barplot(go_output, showCategory = 20)))
+  #   graphics.off()
+  # }
 }
+export_gene_list(target_gene_direct_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_direct_interactions"))
 
-# GO analysis of each TF's target genes
-for (i in length(factors)){
+# Extract each of the TF's target genes
+target_gene_direct <- list()
+for (i in 1:length(factors)){
+  print(i)
   TF <- factors[i]
   print(TF)
   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
+  target_gene_direct[[TF]] <- targets
+  # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  # if (nrow(as.data.frame(go_output)) > 0){
+  #   png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+  #   print(plot(barplot(go_output, showCategory = 20)))
+  #   graphics.off()
+  # }
 }
+export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
 
 # subset network
 df.grn.pos.selected <- df.grn %>%

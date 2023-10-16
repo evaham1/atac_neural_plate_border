@@ -129,6 +129,10 @@ Channel
     .value(params.p2g)
     .set{ch_p2g}
 
+// set channel to seurat object
+Channel
+    .value(params.seurat)
+    .set{ch_seurat}
 
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
@@ -373,14 +377,19 @@ workflow A {
         MEGA_PAIRING_CHROMVAR.out
             .combine(ch_p2g)
             .map{[it[0], it[1] + it[2]]}
-            .view()
+            //.view()
             .set {ch_grni} // add p2g csv file
         MEGA_GRNI( ch_grni )
-        MEGA_GRN_VIS( MEGA_GRNI.out )
+        MEGA_GRNI.out
+            .combine(ch_seurat)
+            .map{[it[0], it[1] + it[2]]}
+            .view()
+            .set {ch_grni_vis} // add p2g csv file
+        MEGA_GRN_VIS( ch_grni_vis )
 
         // in parallel try running GRNi but only with genes in GMs + all TFs
-        MEGA_GRNI_GMS( ch_grni )
-        MEGA_GRN_GMS_VIS( MEGA_GRNI_GMS.out )
+        // MEGA_GRNI_GMS( ch_grni )
+        // MEGA_GRN_GMS_VIS( MEGA_GRNI_GMS.out )
         
 
     }
