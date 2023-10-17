@@ -1058,55 +1058,58 @@ graphics.off()
 #   graphics.off()
 # }
 
-# # plot corr heatmap
-# df.tf.gene.subset <- df.tf.gene %>%
-#   dplyr::filter(tf %in% factors)
-# df.tfs.subset <- df.tfs %>%
-#   dplyr::filter(tfs %in% factors)
-# ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = k)
-# ht <- draw(ht)
+# plot corr heatmap
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% factors)
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% factors)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = k)
+ht <- draw(ht)
 
-# png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 20, width = 20, units = 'cm', res = 400)
-# ht
-# graphics.off()
+png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 20, width = 20, units = 'cm', res = 400)
+ht
+graphics.off()
 
-# # extract target gene clusters
-# mat.cor <- df.tf.gene.subset %>% as.data.frame() %>% 
-#   select(c(tf, gene, correlation)) %>% 
-#   tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
-#   textshape::column_to_rownames("gene")
-# target_gene_clusters <- list()
-# dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/'), recursive = T)
-# for (cluster_name in names(row_order(ht))){
-#   print(paste0("cluster: ", cluster_name))
-#   indices <- row_order(ht)[[cluster_name]]
-#   target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
-#   print(length(target_gene_clusters[[cluster_name]]))
+# extract target gene clusters
+mat.cor <- df.tf.gene.subset %>% as.data.frame() %>% 
+  select(c(tf, gene, correlation)) %>% 
+  tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
+  textshape::column_to_rownames("gene")
+target_gene_clusters <- list()
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/'), recursive = T)
+for (cluster_name in names(row_order(ht))){
+  print(paste0("cluster: ", cluster_name))
+  indices <- row_order(ht)[[cluster_name]]
+  target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
+  print(length(target_gene_clusters[[cluster_name]]))
   
-#   # print expression of these genes
-#   #seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
-#   seurat@meta.data[[cluster_name]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_clusters[[cluster_name]],])
-#   png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
-#   #print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
-#   print(FeaturePlot(seurat, features = cluster_name, pt.size = 1.5))
-#   graphics.off()
+  # print expression of these genes
+  # #seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
+  # seurat@meta.data[[cluster_name]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_clusters[[cluster_name]],])
+  # png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  # #print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
+  # print(FeaturePlot(seurat, features = cluster_name, pt.size = 1.5))
+  # graphics.off()
+  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_heatmap_', cluster_name, '.png'), height = 10, width = 40, units = 'cm', res = 400)
+  DoHeatmap(object = seurat, features = target_gene_clusters[[cluster_name]], group.by = "scHelper_cell_type")
+  graphics.off()
   
-# }
-# export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_corr"))
+}
+export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_corr"))
 
-# # Create target gene heatmap
-# target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
-# colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
-# hm <- pheatmap::pheatmap(t(target_genes_df),
-#                          color = c("grey", "purple"),  # Color scheme
-#                          cluster_rows = TRUE,  # Do not cluster rows
-#                          cluster_cols = TRUE,  # Do not cluster columns
-#                          fontsize_row = 10,  # Font size for row labels
-#                          fontsize_col = 0.0001,   # Font size for column labels
-#                          cutree_cols = k)
-# png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-# print(hm)
-# graphics.off()
+# Create target gene heatmap
+target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
+colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+hm <- pheatmap::pheatmap(t(target_genes_df),
+                         color = c("grey", "purple"),  # Color scheme
+                         cluster_rows = TRUE,  # Do not cluster rows
+                         cluster_cols = TRUE,  # Do not cluster columns
+                         fontsize_row = 10,  # Font size for row labels
+                         fontsize_col = 0.0001,   # Font size for column labels
+                         cutree_cols = k)
+png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+print(hm)
+graphics.off()
 
 # # # Extract each cluster of targets
 # # df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
@@ -1131,30 +1134,34 @@ graphics.off()
 # # export_gene_list(target_gene_direct_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_direct_interactions"))
 
 
-# # Extract each of the TF's target genes
-# target_gene_direct <- list()
-# dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/'), recursive = T)
-# for (i in 1:length(factors)){
-#   print(i)
-#   TF <- factors[i]
-#   print(TF)
-#   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
-#   target_gene_direct[[TF]] <- targets
-#   # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-#   # if (nrow(as.data.frame(go_output)) > 0){
-#   #   png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-#   #   print(plot(barplot(go_output, showCategory = 20)))
-#   #   graphics.off()
-#   # }
+# Extract each of the TF's target genes
+target_gene_direct <- list()
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/'), recursive = T)
+for (i in 1:length(factors)){
+  print(i)
+  TF <- factors[i]
+  print(TF)
+  targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
+  target_gene_direct[[TF]] <- targets
+  # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  # if (nrow(as.data.frame(go_output)) > 0){
+  #   png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+  #   print(plot(barplot(go_output, showCategory = 20)))
+  #   graphics.off()
+  # }
 
-#   # print expression of these genes
-#   #seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = TF)
-#   seurat@meta.data[[TF]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_direct[[TF]],])
-#   png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 12, units = 'cm', res = 400)
-#   #print(FeaturePlot(seurat, features = paste0(TF, "1"), pt.size = 1.5))
-#   print(FeaturePlot(seurat, features = TF, pt.size = 1.5))
-#   graphics.off()
-# }
+  # print expression of these genes
+  # #seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = TF)
+  # seurat@meta.data[[TF]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_direct[[TF]],])
+  # png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  # #print(FeaturePlot(seurat, features = paste0(TF, "1"), pt.size = 1.5))
+  # print(FeaturePlot(seurat, features = TF, pt.size = 1.5))
+  # graphics.off()
+
+  png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = 10, width = 40, units = 'cm', res = 400)
+  DoHeatmap(object = seurat, features = target_gene_direct[[TF]], group.by = "scHelper_cell_type")
+  graphics.off()
+}
 # export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
 
 # # plot expression of these target genes in a heatmap
