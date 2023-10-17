@@ -1091,7 +1091,7 @@ for (cluster_name in names(row_order(ht))){
   # print(FeaturePlot(seurat, features = cluster_name, pt.size = 1.5))
   # graphics.off()
   png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_heatmap_', cluster_name, '.png'), height = 10, width = 40, units = 'cm', res = 400)
-  DoHeatmap(object = seurat, features = target_gene_clusters[[cluster_name]], group.by = "scHelper_cell_type")
+  print(DoHeatmap(object = seurat, features = target_gene_clusters[[cluster_name]], group.by = "scHelper_cell_type"))
   graphics.off()
   
 }
@@ -1159,7 +1159,7 @@ for (i in 1:length(factors)){
   # graphics.off()
 
   png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = 10, width = 40, units = 'cm', res = 400)
-  DoHeatmap(object = seurat, features = target_gene_direct[[TF]], group.by = "scHelper_cell_type")
+  print(DoHeatmap(object = seurat, features = target_gene_direct[[TF]], group.by = "scHelper_cell_type"))
   graphics.off()
 }
 # export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
