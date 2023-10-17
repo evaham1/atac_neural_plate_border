@@ -953,7 +953,7 @@ print("Importance analysis...")
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
 dir.create(temp_plot_path_subset, recursive = T)
-k = 20
+k = 19
 
 # plot importance ranking + save the df
 png(paste0(temp_plot_path_subset, 'Importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
