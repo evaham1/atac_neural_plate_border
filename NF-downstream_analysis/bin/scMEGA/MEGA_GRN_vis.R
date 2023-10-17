@@ -1019,7 +1019,7 @@ for (cluster_name in names(row_order(ht))){
   # print expression of these genes
   seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = "cluster")
   png(paste0(temp_plot_path_subset, 'FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 20, units = 'cm', res = 400)
-  FeaturePlot(seurat, features = "cluster1", pt.size = 1.5)
+  print(FeaturePlot(seurat, features = "cluster1", pt.size = 1.5))
   graphics.off()
   
 }
@@ -1036,7 +1036,7 @@ hm <- pheatmap::pheatmap(t(target_genes_df),
                          fontsize_col = 0.0001,   # Font size for column labels
                          cutree_cols = k)
 png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-hm
+print(hm)
 graphics.off()
 
 # Extract each cluster of targets
