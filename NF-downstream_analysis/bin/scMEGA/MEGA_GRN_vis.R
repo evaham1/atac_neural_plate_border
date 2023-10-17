@@ -525,6 +525,10 @@ obj.traj <- readRDS(paste0(data_path, "rds_files/Placodal_traj_obj.RDS"))
 # read in RNA data object
 seurat <- readRDS(paste0(data_path, "seurat_label_transfer_minus_HH4.RDS"))
 
+# read in ATAC data object
+ArchR <- loadArchRProject(path = paste0(data_path, "ss8_Save-ArchR"), force = FALSE, showLogo = TRUE)
+getCellColData(ArchR)
+
 ######################################################################################
 ##############################    FILTERED GRN     ###################################
 ######################################################################################
@@ -982,6 +986,43 @@ graphics.off()
 factors <- importance_df[1:20, 1]
 print("Top 20 importance factors:")
 print(factors)
+
+# chromvar plots for these factors
+ArchR <- addImputeWeights(ArchR)
+
+# Plot ridge plot of each TF deviation
+print("Making chromvar plots...")
+for (TF in factors){
+  print(TF)
+  markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
+  if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
+  
+  # Plot chromvar scores on UMAP
+  p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
+                     imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
+  png(paste0(plot_path, TF, '_chromvar_UMAP_ss8.png'), height = 12, width = 10, units = 'cm', res = 400)
+  print(p)
+  graphics.off()
+  
+}
+
+# set up for footprinting
+print("setting up for footprinting...")
+motifPositions <- getPositions(ArchR)
+ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = opt$group_by)
+
+# Footprinting of these factors
+print("Footprinting...")
+for (TF in factors){
+  print(TF)
+  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = opt$group_by)
+  p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
+                      smoothWindow = 10, baseSize = 16, plot = FALSE)
+  png(paste0(plot_path, TF, '_TF_footprint_ss8.png'), height = 20, width = 20, units = 'cm', res = 400)
+  grid::grid.newpage()
+  grid::grid.draw(p[[1]])
+  graphics.off()
+}
 
 # # Pseudotime plots
 # for (TF in factors){

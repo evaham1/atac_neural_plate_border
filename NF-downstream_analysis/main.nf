@@ -134,6 +134,11 @@ Channel
     .value(params.seurat)
     .set{ch_seurat}
 
+// set channel to atac object to do footprinting for key factors
+Channel
+    .value(params.atac)
+    .set{ch_atac}
+
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
 //
@@ -382,7 +387,8 @@ workflow A {
         MEGA_GRNI( ch_grni )
         MEGA_GRNI.out
             .combine(ch_seurat)
-            .map{[it[0], it[1] + it[2]]}
+            .combine(ch_atac)
+            .map{[it[0], it[1] + it[2] + it[3]]}
             .view()
             .set {ch_grni_vis} // add p2g csv file
         MEGA_GRN_VIS( ch_grni_vis )
