@@ -990,59 +990,59 @@ factors <- importance_df[1:20, 1]
 print("Top 20 importance factors:")
 print(factors)
 
-# download motif database
-motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
+# # download motif database
+# motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
 
-# rename each motif to have TF name
-name_vector <- c()
-for (i in 1:length(motifList)){
-  name <- name(motifList[[i]])
-  name_vector <- c(name_vector, name)
-}
-names(motifList) <- name_vector
+# # rename each motif to have TF name
+# name_vector <- c()
+# for (i in 1:length(motifList)){
+#   name <- name(motifList[[i]])
+#   name_vector <- c(name_vector, name)
+# }
+# names(motifList) <- name_vector
 
-# annotate peaks in ArchR object with these motifs
-ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, cutOff = 1e-05, force = T)
-print("Motifs matrix added to ArchR object!")
+# # annotate peaks in ArchR object with these motifs
+# ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, cutOff = 1e-05, force = T)
+# print("Motifs matrix added to ArchR object!")
 
-# chromvar plots for these factors
-ArchR <- addBgdPeaks(ArchR)
-ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
-ArchR <- addImputeWeights(ArchR)
+# # chromvar plots for these factors
+# ArchR <- addBgdPeaks(ArchR)
+# ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
+# ArchR <- addImputeWeights(ArchR)
 
-# Plot ridge plot of each TF deviation
-print("Making chromvar plots...")
-for (TF in factors){
-  print(TF)
-  markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
-  if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
+# # Plot ridge plot of each TF deviation
+# print("Making chromvar plots...")
+# for (TF in factors){
+#   print(TF)
+#   markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
+#   if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
   
-  # Plot chromvar scores on UMAP
-  p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
-                     imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
-  png(paste0(plot_path, TF, '_chromvar_UMAP_ss8.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
+#   # Plot chromvar scores on UMAP
+#   p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
+#                      imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
+#   png(paste0(plot_path, TF, '_chromvar_UMAP_ss8.png'), height = 12, width = 10, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
   
-}
+# }
 
-# set up for footprinting
-print("setting up for footprinting...")
-motifPositions <- getPositions(ArchR)
-ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "transferred_scHelper_cell_type_broad")
+# # set up for footprinting
+# print("setting up for footprinting...")
+# motifPositions <- getPositions(ArchR)
+# ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "transferred_scHelper_cell_type_broad")
 
-# Footprinting of these factors
-print("Footprinting...")
-for (TF in factors){
-  print(TF)
-  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "transferred_scHelper_cell_type_broad")
-  p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
-                      smoothWindow = 10, baseSize = 16, plot = FALSE)
-  png(paste0(plot_path, TF, '_TF_footprint_ss8.png'), height = 20, width = 20, units = 'cm', res = 400)
-  grid::grid.newpage()
-  grid::grid.draw(p[[1]])
-  graphics.off()
-}
+# # Footprinting of these factors
+# print("Footprinting...")
+# for (TF in factors){
+#   print(TF)
+#   seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "transferred_scHelper_cell_type_broad")
+#   p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
+#                       smoothWindow = 10, baseSize = 16, plot = FALSE)
+#   png(paste0(plot_path, TF, '_TF_footprint_ss8.png'), height = 20, width = 20, units = 'cm', res = 400)
+#   grid::grid.newpage()
+#   grid::grid.draw(p[[1]])
+#   graphics.off()
+# }
 
 # # Pseudotime plots
 # for (TF in factors){
@@ -1071,7 +1071,7 @@ mat.cor <- df.tf.gene.subset %>% as.data.frame() %>%
   tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
   textshape::column_to_rownames("gene")
 target_gene_clusters <- list()
-dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/'), recursive = T)
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/'), recursive = T)
 for (cluster_name in names(row_order(ht))){
   print(paste0("cluster: ", cluster_name))
   indices <- row_order(ht)[[cluster_name]]
@@ -1079,9 +1079,11 @@ for (cluster_name in names(row_order(ht))){
   print(length(target_gene_clusters[[cluster_name]]))
   
   # print expression of these genes
-  seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
-  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
-  print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
+  #seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
+  seurat@meta.data[[cluster_name]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_clusters[[cluster_name]],])
+  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  #print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
+  print(FeaturePlot(seurat, features = cluster_name, pt.size = 1.5))
   graphics.off()
   
 }
@@ -1126,7 +1128,7 @@ graphics.off()
 
 # Extract each of the TF's target genes
 target_gene_direct <- list()
-dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/'), recursive = T)
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/'), recursive = T)
 for (i in 1:length(factors)){
   print(i)
   TF <- factors[i]
@@ -1141,9 +1143,11 @@ for (i in 1:length(factors)){
   # }
 
   # print expression of these genes
-  seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = TF)
-  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 12, units = 'cm', res = 400)
-  print(FeaturePlot(seurat, features = paste0(TF, "1"), pt.size = 1.5))
+  #seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = TF)
+  seurat@meta.data[[TF]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_direct[[TF]],])
+  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  #print(FeaturePlot(seurat, features = paste0(TF, "1"), pt.size = 1.5))
+  print(FeaturePlot(seurat, features = TF, pt.size = 1.5))
   graphics.off()
 }
 export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
