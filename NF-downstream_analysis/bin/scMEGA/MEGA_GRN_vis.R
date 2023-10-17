@@ -541,80 +541,189 @@ df.tfs <- df.tfs[order(df.tfs$time_point), ]
 tfs.timepoint <- df.tfs$time_point
 names(tfs.timepoint) <- df.tfs$tfs
 
-# plot whole GRN
-p <- GRNPlot(df.grn,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             seed = 42, 
-             plot.importance = TRUE,
-             min.importance = 2,
-             remove.isolated = FALSE)
+# # plot whole GRN
+# p <- GRNPlot(df.grn,
+#              tfs.timepoint = tfs.timepoint,
+#              show.tf.labels = TRUE,
+#              seed = 42, 
+#              plot.importance = TRUE,
+#              min.importance = 2,
+#              remove.isolated = FALSE)
 
-png(paste0(temp_plot_path, 'Network_filtered.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# png(paste0(temp_plot_path, 'Network_filtered.png'), height = 30, width = 45, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
-# only plot TFs
-p <- GRNPlot(df.grn,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             plot.importance = TRUE,
-             genes.use = df.tfs$tfs,
-             remove.isolated = TRUE)
+# # only plot TFs
+# p <- GRNPlot(df.grn,
+#              tfs.timepoint = tfs.timepoint,
+#              show.tf.labels = TRUE,
+#              plot.importance = TRUE,
+#              genes.use = df.tfs$tfs,
+#              remove.isolated = TRUE)
 
-png(paste0(temp_plot_path, 'Network_filtered_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# png(paste0(temp_plot_path, 'Network_filtered_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
-############################## Top factors of filtered network #######################################
+# ############################## Top factors of filtered network #######################################
 
-print("Filtered network analysis...")
+# print("Filtered network analysis...")
 
-########## EDGES
+# ########## EDGES
 
-print("Edges analysis...")
+# print("Edges analysis...")
 
-temp_plot_path_subset = paste0(temp_plot_path, "top_edges/")
-dir.create(temp_plot_path_subset, recursive = T)
-k = 1
+# temp_plot_path_subset = paste0(temp_plot_path, "top_edges/")
+# dir.create(temp_plot_path_subset, recursive = T)
+# k = 1
 
-# analyse edges
-dgg <- graph.edgelist(as.matrix(df.grn[,1:2]), directed = T)
-edges <- as.data.frame(igraph::degree(dgg))
-edges <- rownames_to_column(edges, var = "node")
-colnames(edges)[2] <- "nEdges"
-edges <- edges %>% arrange(desc(nEdges))
-print(edges[1:20,])
-write_tsv(edges[1:100,], file = paste0(temp_plot_path_subset, "Edges_top_100_df.txt"))
+# # analyse edges
+# dgg <- graph.edgelist(as.matrix(df.grn[,1:2]), directed = T)
+# edges <- as.data.frame(igraph::degree(dgg))
+# edges <- rownames_to_column(edges, var = "node")
+# colnames(edges)[2] <- "nEdges"
+# edges <- edges %>% arrange(desc(nEdges))
+# print(edges[1:20,])
+# write_tsv(edges[1:100,], file = paste0(temp_plot_path_subset, "Edges_top_100_df.txt"))
 
-png(paste0(temp_plot_path_subset, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
-hist(edges$nEdges, breaks = 100)
-graphics.off()
+# png(paste0(temp_plot_path_subset, 'Edges_hist.png'), height = 10, width = 20, units = 'cm', res = 400)
+# hist(edges$nEdges, breaks = 100)
+# graphics.off()
 
-factors <- edges[1:10, 1]
-print("Top 10 edges factors:")
-print(factors)
+# factors <- edges[1:10, 1]
+# print("Top 10 edges factors:")
+# print(factors)
 
-# # Pseudotime plots
-# obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn)
-# for (TF in factors){
-#   print(TF)
-#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
-# }
+# # # Pseudotime plots
+# # obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn)
+# # for (TF in factors){
+# #   print(TF)
+# #   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+# #   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+# #   print(p)
+# #   graphics.off()
+# # }
 
-# plot corr heatmap
-df.tf.gene.subset <- df.tf.gene %>%
-  dplyr::filter(tf %in% factors)
-df.tfs.subset <- df.tfs %>%
-  dplyr::filter(tfs %in% factors)
-ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+# # plot corr heatmap
+# df.tf.gene.subset <- df.tf.gene %>%
+#   dplyr::filter(tf %in% factors)
+# df.tfs.subset <- df.tfs %>%
+#   dplyr::filter(tfs %in% factors)
+# ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-ht
-graphics.off()
+# png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+# ht
+# graphics.off()
+
+# # # Create target gene heatmap
+# # target_genes_df <- extract_target_genes_df(factors, df.grn)
+# # colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+# # hm <- pheatmap::pheatmap(t(target_genes_df),
+# #                          color = c("grey", "purple"),  # Color scheme
+# #                          cluster_rows = TRUE,  # Do not cluster rows
+# #                          cluster_cols = TRUE,  # Do not cluster columns
+# #                          fontsize_row = 10,  # Font size for row labels
+# #                          fontsize_col = 0.0001,   # Font size for column labels
+# #                          cutree_cols = k)
+# # png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+# # hm
+# # graphics.off()
+
+# # # GO analysis on each cluster of targets
+# # df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
+# # for (i in 1:k){
+# #   print(i)
+# #   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
+# #   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+# #   if (nrow(as.data.frame(go_output)) > 0){
+# #     png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+# #     print(plot(barplot(go_output, showCategory = 20)))
+# #     graphics.off()
+# #   }
+# # }
+
+# # # GO analysis of each TF's target genes
+# # for (i in length(factors)){
+# #   TF <- factors[i]
+# #   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
+# #   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+# #   if (nrow(as.data.frame(go_output)) > 0){
+# #     png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+# #     print(plot(barplot(go_output, showCategory = 20)))
+# #     graphics.off()
+# #   }
+# # }
+
+# # # subset network
+# # df.grn.selected <- df.grn %>%
+# #   dplyr::filter(tf %in% factors) %>%
+# #   dplyr::filter(gene %in% factors)
+# # nrow(df.grn.selected)
+
+# # # TF network numbers
+# # df <- data.frame(
+# #   nSource = length(unique(df.grn.selected$tf)),
+# #   nTarget = length(unique(df.grn.selected$gene)),
+# #   nBoth = sum(unique(df.grn.selected$tf) %in% unique(df.grn.selected$gene)),
+# #   nInteractions = nrow(df.grn.selected),
+# #   nPositiveInteractions = length(which(df.grn.selected$correlation > 0)),
+# #   nNegativeInteractions = length(which(df.grn.selected$correlation < 0))
+# # )
+# # png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+# # grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+# #              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+# # graphics.off()
+
+# # # save network
+# # write_tsv(df.grn.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
+
+# ########## scMEGA IMPORTANCE
+
+# print("Importance analysis...")
+
+# temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
+# dir.create(temp_plot_path_subset, recursive = T)
+# k = 1
+
+# # plot importance ranking + save the df
+# png(paste0(temp_plot_path_subset, 'Top_importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
+# importance_df <- GRNPlot_updated(df.grn,
+#                                  tfs.timepoint = tfs.timepoint,
+#                                  show.tf.labels = TRUE,
+#                                  seed = 42, 
+#                                  plot.importance = TRUE,
+#                                  min.importance = 2,
+#                                  remove.isolated = FALSE,
+#                                  return.importance = TRUE)
+# graphics.off()
+# importance_df <- arrange(importance_df, by = desc(importance))
+# write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
+
+# # extract top 20 factors:
+# factors <- importance_df[1:20, 1]
+# print("Top 20 importance factors:")
+# print(factors)
+
+# # # Pseudotime plots
+# # for (TF in factors){
+# #   print(TF)
+# #   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+# #   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+# #   print(p)
+# #   graphics.off()
+# # }
+
+# # plot corr heatmap
+# df.tf.gene.subset <- df.tf.gene %>%
+#   dplyr::filter(tf %in% factors)
+# df.tfs.subset <- df.tfs %>%
+#   dplyr::filter(tfs %in% factors)
+# ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+
+# png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+# ht
+# graphics.off()
 
 # # Create target gene heatmap
 # target_genes_df <- extract_target_genes_df(factors, df.grn)
@@ -646,6 +755,7 @@ graphics.off()
 # # GO analysis of each TF's target genes
 # for (i in length(factors)){
 #   TF <- factors[i]
+#   print(TF)
 #   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
 #   go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
 #   if (nrow(as.data.frame(go_output)) > 0){
@@ -659,7 +769,7 @@ graphics.off()
 # df.grn.selected <- df.grn %>%
 #   dplyr::filter(tf %in% factors) %>%
 #   dplyr::filter(gene %in% factors)
-# nrow(df.grn.selected)
+# nrow(df.grn.selected) # 15,345 interactions
 
 # # TF network numbers
 # df <- data.frame(
@@ -678,116 +788,6 @@ graphics.off()
 # # save network
 # write_tsv(df.grn.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
-########## scMEGA IMPORTANCE
-
-print("Importance analysis...")
-
-temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
-dir.create(temp_plot_path_subset, recursive = T)
-k = 1
-
-# plot importance ranking + save the df
-png(paste0(temp_plot_path_subset, 'Top_importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
-importance_df <- GRNPlot_updated(df.grn,
-                                 tfs.timepoint = tfs.timepoint,
-                                 show.tf.labels = TRUE,
-                                 seed = 42, 
-                                 plot.importance = TRUE,
-                                 min.importance = 2,
-                                 remove.isolated = FALSE,
-                                 return.importance = TRUE)
-graphics.off()
-importance_df <- arrange(importance_df, by = desc(importance))
-write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
-
-# extract top 20 factors:
-factors <- importance_df[1:20, 1]
-print("Top 20 importance factors:")
-print(factors)
-
-# # Pseudotime plots
-# for (TF in factors){
-#   print(TF)
-#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
-# }
-
-# plot corr heatmap
-df.tf.gene.subset <- df.tf.gene %>%
-  dplyr::filter(tf %in% factors)
-df.tfs.subset <- df.tfs %>%
-  dplyr::filter(tfs %in% factors)
-ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
-
-png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-ht
-graphics.off()
-
-# Create target gene heatmap
-target_genes_df <- extract_target_genes_df(factors, df.grn)
-colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
-hm <- pheatmap::pheatmap(t(target_genes_df),
-                         color = c("grey", "purple"),  # Color scheme
-                         cluster_rows = TRUE,  # Do not cluster rows
-                         cluster_cols = TRUE,  # Do not cluster columns
-                         fontsize_row = 10,  # Font size for row labels
-                         fontsize_col = 0.0001,   # Font size for column labels
-                         cutree_cols = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-hm
-graphics.off()
-
-# GO analysis on each cluster of targets
-df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
-for (i in 1:k){
-  print(i)
-  targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
-}
-
-# GO analysis of each TF's target genes
-for (i in length(factors)){
-  TF <- factors[i]
-  print(TF)
-  targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
-  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  if (nrow(as.data.frame(go_output)) > 0){
-    png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-    print(plot(barplot(go_output, showCategory = 20)))
-    graphics.off()
-  }
-}
-
-# subset network
-df.grn.selected <- df.grn %>%
-  dplyr::filter(tf %in% factors) %>%
-  dplyr::filter(gene %in% factors)
-nrow(df.grn.selected) # 15,345 interactions
-
-# TF network numbers
-df <- data.frame(
-  nSource = length(unique(df.grn.selected$tf)),
-  nTarget = length(unique(df.grn.selected$gene)),
-  nBoth = sum(unique(df.grn.selected$tf) %in% unique(df.grn.selected$gene)),
-  nInteractions = nrow(df.grn.selected),
-  nPositiveInteractions = length(which(df.grn.selected$correlation > 0)),
-  nNegativeInteractions = length(which(df.grn.selected$correlation < 0))
-)
-png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
-
-# save network
-write_tsv(df.grn.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
-
 
 ######################################################################################
 ##############################    POS CORR GRN     ###################################
@@ -801,32 +801,32 @@ dir.create(temp_csv_path, recursive = T)
 
 ############################## Plot filtered pos corr GRN #######################################
 
-print("Pos corr network plotting...")
+# print("Pos corr network plotting...")
 
-# plot whole GRN
-p <- GRNPlot(df.grn.pos,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             seed = 42, 
-             plot.importance = TRUE,
-             min.importance = 2,
-             remove.isolated = FALSE)
+# # plot whole GRN
+# p <- GRNPlot(df.grn.pos,
+#              tfs.timepoint = tfs.timepoint,
+#              show.tf.labels = TRUE,
+#              seed = 42, 
+#              plot.importance = TRUE,
+#              min.importance = 2,
+#              remove.isolated = FALSE)
 
-png(paste0(temp_plot_path, 'Network_filtered_pos_corr.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# png(paste0(temp_plot_path, 'Network_filtered_pos_corr.png'), height = 30, width = 45, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
-# only plot TFs
-p <- GRNPlot(df.grn.pos,
-             tfs.timepoint = tfs.timepoint,
-             show.tf.labels = TRUE,
-             plot.importance = TRUE,
-             genes.use = df.tfs$tfs,
-             remove.isolated = TRUE)
+# # only plot TFs
+# p <- GRNPlot(df.grn.pos,
+#              tfs.timepoint = tfs.timepoint,
+#              show.tf.labels = TRUE,
+#              plot.importance = TRUE,
+#              genes.use = df.tfs$tfs,
+#              remove.isolated = TRUE)
 
-png(paste0(temp_plot_path, 'Network_filtered_pos_corrTFs.png'), height = 30, width = 45, units = 'cm', res = 400)
-print(p)
-graphics.off()
+# png(paste0(temp_plot_path, 'Network_filtered_pos_corrTFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+# print(p)
+# graphics.off()
 
 ############################## Top factors of filtered pos corr network #######################################
 
@@ -867,16 +867,16 @@ print(factors)
 #   graphics.off()
 # }
 
-# plot corr heatmap
-df.tf.gene.subset <- df.tf.gene %>%
-  dplyr::filter(tf %in% factors)
-df.tfs.subset <- df.tfs %>%
-  dplyr::filter(tfs %in% factors)
-ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+# # plot corr heatmap
+# df.tf.gene.subset <- df.tf.gene %>%
+#   dplyr::filter(tf %in% factors)
+# df.tfs.subset <- df.tfs %>%
+#   dplyr::filter(tfs %in% factors)
+# ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
-png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-ht
-graphics.off()
+# png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+# ht
+# graphics.off()
 
 # # Create target gene heatmap
 # target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
@@ -1000,7 +1000,7 @@ df.tfs.subset <- df.tfs %>%
 ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = k)
 ht <- draw(ht)
 
-png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 20, width = 20, units = 'cm', res = 400)
 ht
 graphics.off()
 
@@ -1018,9 +1018,9 @@ for (cluster_name in names(row_order(ht))){
   print(length(target_gene_clusters[[cluster_name]]))
   
   # print expression of these genes
-  seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = "cluster")
-  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 15, units = 'cm', res = 400)
-  print(FeaturePlot(seurat, features = "cluster1", pt.size = 1.5))
+  seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
+  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
   graphics.off()
   
 }
@@ -1080,9 +1080,9 @@ for (i in 1:length(factors)){
   # }
 
   # print expression of these genes
-  seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = "TF")
-  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 15, units = 'cm', res = 400)
-  print(FeaturePlot(seurat, features = "TF1", pt.size = 1.5))
+  seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = TF)
+  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  print(FeaturePlot(seurat, features = paste0(TF, "1"), pt.size = 1.5))
   graphics.off()
 }
 export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
