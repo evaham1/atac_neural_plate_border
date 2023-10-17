@@ -953,7 +953,7 @@ print("Importance analysis...")
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
 dir.create(temp_plot_path_subset, recursive = T)
-k = 10
+k = 20
 
 # plot importance ranking + save the df
 png(paste0(temp_plot_path_subset, 'Importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
@@ -1076,23 +1076,21 @@ mat.cor <- df.tf.gene.subset %>% as.data.frame() %>%
   tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
   textshape::column_to_rownames("gene")
 target_gene_clusters <- list()
-dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/'), recursive = T)
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/'), recursive = T)
 for (cluster_name in names(row_order(ht))){
   print(paste0("cluster: ", cluster_name))
   indices <- row_order(ht)[[cluster_name]]
   target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
   print(length(target_gene_clusters[[cluster_name]]))
   
-  # print expression of these genes
-  # #seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
-  # seurat@meta.data[[cluster_name]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_clusters[[cluster_name]],])
-  # png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_average/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
-  # #print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
-  # print(FeaturePlot(seurat, features = cluster_name, pt.size = 1.5))
-  # graphics.off()
-  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_heatmap_', cluster_name, '.png'), height = 10, width = 40, units = 'cm', res = 400)
-  print(DoHeatmap(object = seurat, features = target_gene_clusters[[cluster_name]], group.by = "scHelper_cell_type"))
+  #print expression of these genes
+  seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
+  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
   graphics.off()
+  # png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_heatmap_', cluster_name, '.png'), height = 10, width = 40, units = 'cm', res = 400)
+  # print(DoHeatmap(object = seurat, features = target_gene_clusters[[cluster_name]], group.by = "scHelper_cell_type"))
+  # graphics.off()
   
 }
 export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_corr"))
