@@ -1010,6 +1010,7 @@ mat.cor <- df.tf.gene.subset %>% as.data.frame() %>%
   tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
   textshape::column_to_rownames("gene")
 target_gene_clusters <- list()
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/'), recursive = T)
 for (cluster_name in names(row_order(ht))){
   print(paste0("cluster: ", cluster_name))
   indices <- row_order(ht)[[cluster_name]]
@@ -1061,8 +1062,10 @@ graphics.off()
 # }
 # export_gene_list(target_gene_direct_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_direct_interactions"))
 
+
 # Extract each of the TF's target genes
 target_gene_direct <- list()
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/'), recursive = T)
 for (i in 1:length(factors)){
   print(i)
   TF <- factors[i]
