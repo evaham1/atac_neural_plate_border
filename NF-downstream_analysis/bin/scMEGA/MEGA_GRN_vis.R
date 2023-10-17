@@ -1018,7 +1018,7 @@ for (cluster_name in names(row_order(ht))){
   
   # print expression of these genes
   seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = "cluster")
-  png(paste0(temp_plot_path_subset, 'FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 20, units = 'cm', res = 400)
+  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 15, units = 'cm', res = 400)
   print(FeaturePlot(seurat, features = "cluster1", pt.size = 1.5))
   graphics.off()
   
@@ -1039,21 +1039,27 @@ png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 1
 print(hm)
 graphics.off()
 
-# Extract each cluster of targets
-df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
-target_gene_direct_clusters <- list()
-for (i in 1:k){
-  print(i)
-  targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
-  target_gene_direct_clusters[[i]] <- targets
-  # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  # if (nrow(as.data.frame(go_output)) > 0){
-  #   png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-  #   print(plot(barplot(go_output, showCategory = 20)))
-  #   graphics.off()
-  # }
-}
-export_gene_list(target_gene_direct_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_direct_interactions"))
+# # Extract each cluster of targets
+# df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
+# target_gene_direct_clusters <- list()
+# for (cluster_name in names(row_order(ht))){
+#   print(i)
+#   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
+#   target_gene_direct_clusters[[i]] <- targets
+#   # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+#   # if (nrow(as.data.frame(go_output)) > 0){
+#   #   png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+#   #   print(plot(barplot(go_output, showCategory = 20)))
+#   #   graphics.off()
+#   # }
+
+#   # print expression of these genes
+#   seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct_clusters[[i]]), name = "cluster")
+#   png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_clusters/FeaturePlot_of_gene_cluster_', cluster_name, '.png'), height = 10, width = 15, units = 'cm', res = 400)
+#   print(FeaturePlot(seurat, features = "cluster1", pt.size = 1.5))
+#   graphics.off()
+# }
+# export_gene_list(target_gene_direct_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_direct_interactions"))
 
 # Extract each of the TF's target genes
 target_gene_direct <- list()
@@ -1069,6 +1075,12 @@ for (i in 1:length(factors)){
   #   print(plot(barplot(go_output, showCategory = 20)))
   #   graphics.off()
   # }
+
+  # print expression of these genes
+  seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = "TF")
+  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 15, units = 'cm', res = 400)
+  print(FeaturePlot(seurat, features = "TF1", pt.size = 1.5))
+  graphics.off()
 }
 export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
 
