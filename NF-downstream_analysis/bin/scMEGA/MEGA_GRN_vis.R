@@ -522,6 +522,9 @@ df.grn.pos <- read_tsv(paste0(temp_data_path, "GRN_filtered_pos_corr.txt"))
 # read in data object
 obj.traj <- readRDS(paste0(data_path, "rds_files/Placodal_traj_obj.RDS"))
 
+# read in RNA data object
+seurat <- readRDS(paste0(data_path, "seurat_label_transfer_minus_HH4.RDS"))
+
 ######################################################################################
 ##############################    FILTERED GRN     ###################################
 ######################################################################################
