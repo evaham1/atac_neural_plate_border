@@ -23,6 +23,9 @@ library(pheatmap)
 library(ComplexHeatmap)
 library(VennDiagram)
 library(RColorBrewer)
+library(TFBSTools)
+library(JASPAR2020)
+library(BSgenome.Ggallus.UCSC.galGal6)
 
 ############################## Set up script options #######################################
 # Read in command line opts
