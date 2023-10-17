@@ -987,20 +987,20 @@ factors <- importance_df[1:20, 1]
 print("Top 20 importance factors:")
 print(factors)
 
-# # download motif database
-# motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
+# download motif database
+motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
 
-# # rename each motif to have TF name
-# name_vector <- c()
-# for (i in 1:length(motifList)){
-#   name <- name(motifList[[i]])
-#   name_vector <- c(name_vector, name)
-# }
-# names(motifList) <- name_vector
+# rename each motif to have TF name
+name_vector <- c()
+for (i in 1:length(motifList)){
+  name <- name(motifList[[i]])
+  name_vector <- c(name_vector, name)
+}
+names(motifList) <- name_vector
 
-# # annotate peaks in ArchR object with these motifs
-# ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, cutOff = 1e-05, force = T)
-# print("Motifs matrix added to ArchR object!")
+# annotate peaks in ArchR object with these motifs
+ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, cutOff = 1e-05, force = T)
+print("Motifs matrix added to ArchR object!")
 
 # chromvar plots for these factors
 ArchR <- addBgdPeaks(ArchR)
