@@ -1009,13 +1009,13 @@ for (TF in factors){
 # set up for footprinting
 print("setting up for footprinting...")
 motifPositions <- getPositions(ArchR)
-ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = opt$group_by)
+ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "transferred_scHelper_cell_type_broad")
 
 # Footprinting of these factors
 print("Footprinting...")
 for (TF in factors){
   print(TF)
-  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = opt$group_by)
+  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "transferred_scHelper_cell_type_broad")
   p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
                       smoothWindow = 10, baseSize = 16, plot = FALSE)
   png(paste0(plot_path, TF, '_TF_footprint_ss8.png'), height = 20, width = 20, units = 'cm', res = 400)
