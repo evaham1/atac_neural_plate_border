@@ -1270,6 +1270,7 @@ for (i in 1:length(factors)){
   # graphics.off()
 
   height = length(targets)/3
+  print(height)
 
   png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
   print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets,
