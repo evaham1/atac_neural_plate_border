@@ -1269,7 +1269,7 @@ for (i in 1:length(factors)){
   # print(FeaturePlot(seurat, features = TF, pt.size = 1.5))
   # graphics.off()
 
-  height = length(targets)/3
+  height = length(targets)/4
   print(height)
 
   png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
