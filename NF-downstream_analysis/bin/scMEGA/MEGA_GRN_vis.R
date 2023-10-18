@@ -80,15 +80,15 @@ set.seed(42)
 ############################## EDITED FUNCTIONS #######################################
 
 TenxPheatmap <- function(data, metadata, col_order = metadata, custom_order = NULL, custom_order_column = NULL, 
-                          assay = "RNA", slot = "scale.data", selected_genes,
-                          main = '', hide_annotation = NULL, show_rownames = TRUE, hclust_rows = FALSE, hclust_cols = FALSE, gaps_col = NULL,
-                          cell_subset = NULL, treeheight_row = 0, use_seurat_colours = TRUE,  colour_scheme = c("PRGn", "RdYlBu", "Greys"),
-                          col_ann_order = rev(metadata)){
+                         assay = "RNA", slot = "scale.data", selected_genes,
+                         main = '', hide_annotation = NULL, show_rownames = TRUE, hclust_rows = FALSE, hclust_cols = FALSE, gaps_col = NULL,
+                         cell_subset = NULL, treeheight_row = 0, use_seurat_colours = TRUE,  annotation_colours = NULL,
+                         col_ann_order = rev(metadata)){
   
   if(!is.null(cell_subset)){
     data <- subset(data, cells = cell_subset)
   } else {}
-
+  
   # if there are any character cols in metadata convert to factor
   data@meta.data[sapply(data@meta.data, is.character)] <- lapply(data@meta.data[sapply(data@meta.data, is.character)], as.factor)
   
@@ -131,12 +131,14 @@ TenxPheatmap <- function(data, metadata, col_order = metadata, custom_order = NU
   } else{}
   
   if(use_seurat_colours == FALSE){
-    # set colours for metadata
-    ann_colours <- list()
-    for(tic in 1:ncol(HM.col)){
-      ann_colours[[colnames(HM.col[tic])]] <- setNames(colorRampPalette(brewer.pal(9, colour_scheme[tic])[2:9])(length(unique(HM.col[,tic]))),
-                                                       unique(HM.col[,tic]))
-    }
+    # must have given annotation colours
+    if(is.null(annotation_colours)){
+      "annotation_colours column must be specified \n"
+    } else {}
+    ### use custom colours
+    cols <- list()
+    cols[[metadata]] <- annotation_colours
+    cols[[metadata]] <- cols[[metadata]][match(levels(HM.col[[metadata]]), names(cols[[metadata]]))]
   } else {
     # set colours ggplot default colours, as in Seurat::DimPlot
     ann_colours <- list()
@@ -160,12 +162,9 @@ TenxPheatmap <- function(data, metadata, col_order = metadata, custom_order = NU
   print(pheatmap(t(new.dat), color = PurpleAndYellow(),
                  cluster_rows = hclust_rows, cluster_cols = hclust_cols, show_colnames = F,
                  annotation_col = HM.col[, rev(col_ann_order), drop = FALSE], fontsize = 22, fontsize_row = 12, gaps_col = gaps_col,
-                 main = main, show_rownames = show_rownames, annotation_colors = ann_colours, treeheight_row = treeheight_row))
+                 main = main, show_rownames = show_rownames, annotation_colors = cols, treeheight_row = treeheight_row))
 }
-ggPlotColours <- function(n = 6, h = c(0, 360) + 15){
-  if ((diff(h) %% 360) < 1) h[2] <- h[2] - 360/n
-  hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
-}
+
 
 GetTrajectory_updated <- function (object = NULL, trajectory.name = "Trajectory", assay = NULL, 
                                    slot = "counts", groupEvery = 1, log2Norm = TRUE, scaleTo = 10000, 
@@ -591,6 +590,28 @@ export_gene_list <- function(gene_list, publish_dir){
     write(paste0(name, ": ", paste0(gene_list[[name]], collapse = ", ")), file = paste0(publish_dir, '.txt'), append = TRUE)
   }
 }
+
+############################## Set colours and annotation order #######################################
+
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                         "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                         "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                         "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                         "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                         "#A5718D", "#3F918C", "#ed5e5f", "#9792A3")
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                                                                'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                                                                'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                                                                'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                                                                'PGC', 'BI', 'meso', 'endo',
+                                                                                'Neural', 'Placodal', 'Non-neural', 'Contam')
+
 
 ############################## Read in data #######################################
 
@@ -1222,6 +1243,9 @@ graphics.off()
 
 
 # Extract each of the TF's target genes
+order <- scHelper_cell_type_order[scHelper_cell_type_order %in% unique(seurat@meta.data$scHelper_cell_type)]
+cols <- scHelper_cell_type_colours[names(scHelper_cell_type_colours) %in% order]
+
 target_gene_direct <- list()
 dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/'), recursive = T)
 for (i in 1:length(factors)){
@@ -1245,10 +1269,14 @@ for (i in 1:length(factors)){
   # print(FeaturePlot(seurat, features = TF, pt.size = 1.5))
   # graphics.off()
 
-  height = length(targets)/4
+  height = length(targets)/3.5
 
   png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
-  print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets, hclust_rows = TRUE))
+  print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets,
+             custom_order = order, custom_order_column = "scHelper_cell_type",
+             gaps_col = "scHelper_cell_type",
+             use_seurat_colours = FALSE, annotation_colours = cols,
+             hclust_rows = TRUE, treeheight_row = 5))
   graphics.off()
 }
 # export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
