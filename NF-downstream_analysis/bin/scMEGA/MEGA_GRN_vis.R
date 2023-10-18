@@ -26,6 +26,7 @@ library(RColorBrewer)
 library(TFBSTools)
 library(JASPAR2020)
 library(BSgenome.Ggallus.UCSC.galGal6)
+library(pheatmap)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -77,6 +78,94 @@ if(opt$verbose) print(opt)
 set.seed(42)
 
 ############################## EDITED FUNCTIONS #######################################
+
+TenxPheatmap <- function(data, metadata, col_order = metadata, custom_order = NULL, custom_order_column = NULL, 
+                          assay = "RNA", slot = "scale.data", selected_genes,
+                          main = '', hide_annotation = NULL, show_rownames = TRUE, hclust_rows = FALSE, hclust_cols = FALSE, gaps_col = NULL,
+                          cell_subset = NULL, treeheight_row = 0, use_seurat_colours = TRUE,  colour_scheme = c("PRGn", "RdYlBu", "Greys"),
+                          col_ann_order = rev(metadata)){
+  
+  if(!is.null(cell_subset)){
+    data <- subset(data, cells = cell_subset)
+  } else {}
+
+  # if there are any character cols in metadata convert to factor
+  data@meta.data[sapply(data@meta.data, is.character)] <- lapply(data@meta.data[sapply(data@meta.data, is.character)], as.factor)
+  
+  # reset levels in seurat_clusters metadata to default numerical order as default
+  if("seurat_clusters" %in% metadata){
+    data@meta.data[,"seurat_clusters"] <-  factor(data@meta.data[,"seurat_clusters"], levels = sort(unique(as.numeric(as.character(data@meta.data[,"seurat_clusters"])))))
+  } else {}
+  
+  # initialise heatmap metadata
+  HM.col <- droplevels(data@meta.data[, metadata, drop=FALSE])
+  
+  # order HM metadata based on col_order variable
+  HM.col <- HM.col[do.call('order', c(HM.col[col_order], list(decreasing=FALSE))), , drop = FALSE]
+  
+  # order HM metadata based on custom order
+  if(!is.null(custom_order)){
+    if(is.null(custom_order_column)){
+      "custom_order column must be specified \n"
+    } else {}
+    if(!setequal(custom_order, unique(HM.col[[custom_order_column]]))){
+      stop("custom_order factors missing from custom_order_column \n\n")
+    } else {}
+    HM.col[[custom_order_column]] <-  factor(HM.col[[custom_order_column]], levels = custom_order)
+    HM.col <- HM.col[order(HM.col[[custom_order_column]]),,drop = FALSE]  
+  }
+  
+  # gaps_col specifies a metadata column which column gaps are calculated from
+  if(!is.null(gaps_col)) {
+    if(class(gaps_col) != "character"){
+      stop("gaps_col must be a metadata column name")
+    } else {
+      gaps_col = cumsum(rle(as.vector(HM.col[[gaps_col]]))[["lengths"]])
+    }
+  } else {
+  }
+  
+  # hide as many annotations in metadata as desired with hide_annotation
+  if(!is.null(hide_annotation)){
+    HM.col[,hide_annotation] <- NULL
+  } else{}
+  
+  if(use_seurat_colours == FALSE){
+    # set colours for metadata
+    ann_colours <- list()
+    for(tic in 1:ncol(HM.col)){
+      ann_colours[[colnames(HM.col[tic])]] <- setNames(colorRampPalette(brewer.pal(9, colour_scheme[tic])[2:9])(length(unique(HM.col[,tic]))),
+                                                       unique(HM.col[,tic]))
+    }
+  } else {
+    # set colours ggplot default colours, as in Seurat::DimPlot
+    ann_colours <- list()
+    for(column in metadata){
+      ann_colours[[column]] <- setNames(ggPlotColours(n = length(levels(data@meta.data[,column]))), levels(data@meta.data[,column]))
+      
+      # change levels of HM col so that heatmap annotations are in the same order as plotted
+      ann_colours[[column]] <- ann_colours[[column]][match(levels(HM.col[[column]]), names(ann_colours[[column]]))]
+    }
+  }
+  
+  # extract data to plot from seurat object
+  new.dat <- t(as.matrix(x = GetAssayData(object = data, assay = assay, slot = slot)[selected_genes, rownames(HM.col), drop = FALSE]))
+  if(!is.null(cell_subset)){
+    cat("rescaling data as cells have been subset \n")
+    new.dat <- t(scale(t(new.dat)))
+  } else {}
+  new.dat <- replace(new.dat, new.dat >= 2, 2)
+  new.dat <- replace(new.dat, new.dat <= -2, -2)
+  
+  print(pheatmap(t(new.dat), color = PurpleAndYellow(),
+                 cluster_rows = hclust_rows, cluster_cols = hclust_cols, show_colnames = F,
+                 annotation_col = HM.col[, rev(col_ann_order), drop = FALSE], fontsize = 22, fontsize_row = 12, gaps_col = gaps_col,
+                 main = main, show_rownames = show_rownames, annotation_colors = ann_colours, treeheight_row = treeheight_row))
+}
+ggPlotColours <- function(n = 6, h = c(0, 360) + 15){
+  if ((diff(h) %% 360) < 1) h[2] <- h[2] - 360/n
+  hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
+}
 
 GetTrajectory_updated <- function (object = NULL, trajectory.name = "Trajectory", assay = NULL, 
                                    slot = "counts", groupEvery = 1, log2Norm = TRUE, scaleTo = 10000, 
@@ -1157,7 +1246,7 @@ for (i in 1:length(factors)){
   # graphics.off()
 
   png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = 10, width = 40, units = 'cm', res = 400)
-  print(DoHeatmap(object = seurat, features = target_gene_direct[[TF]], group.by = "scHelper_cell_type"))
+  print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets, hclust_rows = TRUE))
   graphics.off()
 }
 # export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
