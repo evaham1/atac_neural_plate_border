@@ -1245,7 +1245,9 @@ for (i in 1:length(factors)){
   # print(FeaturePlot(seurat, features = TF, pt.size = 1.5))
   # graphics.off()
 
-  png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = 10, width = 40, units = 'cm', res = 400)
+  height = length(targets)/4
+
+  png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
   print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets, hclust_rows = TRUE))
   graphics.off()
 }
