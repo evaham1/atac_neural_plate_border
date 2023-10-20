@@ -1227,7 +1227,7 @@ for (i in 1:length(factors)){
   }
 
   # heatmap of gene expression for each set of target genes
-  height = length(targets)/4
+  height = length(targets)/5
   png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
   print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets,
              custom_order = order, custom_order_column = "scHelper_cell_type",
