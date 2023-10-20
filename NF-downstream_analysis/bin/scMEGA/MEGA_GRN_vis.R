@@ -658,34 +658,34 @@ df.tfs <- df.tfs[order(df.tfs$time_point), ]
 tfs.timepoint <- df.tfs$time_point
 names(tfs.timepoint) <- df.tfs$tfs
 
-# # plot whole GRN
-# p <- GRNPlot(df.grn,
-#              tfs.timepoint = tfs.timepoint,
-#              show.tf.labels = TRUE,
-#              seed = 42, 
-#              plot.importance = TRUE,
-#              min.importance = 2,
-#              remove.isolated = FALSE)
+# plot whole GRN
+p <- GRNPlot(df.grn,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             seed = 42, 
+             plot.importance = TRUE,
+             min.importance = 2,
+             remove.isolated = FALSE)
 
-# png(paste0(temp_plot_path, 'Network_filtered.png'), height = 30, width = 45, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+png(paste0(temp_plot_path, 'Network_filtered.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# # only plot TFs
-# p <- GRNPlot(df.grn,
-#              tfs.timepoint = tfs.timepoint,
-#              show.tf.labels = TRUE,
-#              plot.importance = TRUE,
-#              genes.use = df.tfs$tfs,
-#              remove.isolated = TRUE)
+# only plot TFs
+p <- GRNPlot(df.grn,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             plot.importance = TRUE,
+             genes.use = df.tfs$tfs,
+             remove.isolated = TRUE)
 
-# png(paste0(temp_plot_path, 'Network_filtered_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+png(paste0(temp_plot_path, 'Network_filtered_TFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# ############################## Top factors of filtered network #######################################
+############################## Top factors of filtered network #######################################
 
-# print("Filtered network analysis...")
+print("Filtered network analysis...")
 
 # ########## EDGES
 
@@ -795,32 +795,32 @@ names(tfs.timepoint) <- df.tfs$tfs
 # # # save network
 # # write_tsv(df.grn.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
-# ########## scMEGA IMPORTANCE
+########## scMEGA IMPORTANCE
 
-# print("Importance analysis...")
+print("Importance analysis...")
 
-# temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
-# dir.create(temp_plot_path_subset, recursive = T)
-# k = 1
+temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
+dir.create(temp_plot_path_subset, recursive = T)
+k = 1
 
-# # plot importance ranking + save the df
-# png(paste0(temp_plot_path_subset, 'Top_importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
-# importance_df <- GRNPlot_updated(df.grn,
-#                                  tfs.timepoint = tfs.timepoint,
-#                                  show.tf.labels = TRUE,
-#                                  seed = 42, 
-#                                  plot.importance = TRUE,
-#                                  min.importance = 2,
-#                                  remove.isolated = FALSE,
-#                                  return.importance = TRUE)
-# graphics.off()
-# importance_df <- arrange(importance_df, by = desc(importance))
-# write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
+# plot importance ranking + save the df
+png(paste0(temp_plot_path_subset, 'Top_importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
+importance_df <- GRNPlot_updated(df.grn,
+                                 tfs.timepoint = tfs.timepoint,
+                                 show.tf.labels = TRUE,
+                                 seed = 42, 
+                                 plot.importance = TRUE,
+                                 min.importance = 2,
+                                 remove.isolated = FALSE,
+                                 return.importance = TRUE)
+graphics.off()
+importance_df <- arrange(importance_df, by = desc(importance))
+write_tsv(importance_df, file = paste0(temp_plot_path_subset, "Importance_df.txt"))
 
-# # extract top 20 factors:
-# factors <- importance_df[1:20, 1]
-# print("Top 20 importance factors:")
-# print(factors)
+# extract top 20 factors:
+factors <- importance_df[1:20, 1]
+print("Top 20 importance factors:")
+print(factors)
 
 # # # Pseudotime plots
 # # for (TF in factors){
@@ -831,16 +831,15 @@ names(tfs.timepoint) <- df.tfs$tfs
 # #   graphics.off()
 # # }
 
-# # plot corr heatmap
-# df.tf.gene.subset <- df.tf.gene %>%
-#   dplyr::filter(tf %in% factors)
-# df.tfs.subset <- df.tfs %>%
-#   dplyr::filter(tfs %in% factors)
-# ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
-
-# png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
-# ht
-# graphics.off()
+# plot corr heatmap
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% factors)
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% factors)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
+png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 10, width = 20, units = 'cm', res = 400)
+ht
+graphics.off()
 
 # # Create target gene heatmap
 # target_genes_df <- extract_target_genes_df(factors, df.grn)
@@ -918,32 +917,32 @@ dir.create(temp_csv_path, recursive = T)
 
 ############################## Plot filtered pos corr GRN #######################################
 
-# print("Pos corr network plotting...")
+print("Pos corr network plotting...")
 
-# # plot whole GRN
-# p <- GRNPlot(df.grn.pos,
-#              tfs.timepoint = tfs.timepoint,
-#              show.tf.labels = TRUE,
-#              seed = 42, 
-#              plot.importance = TRUE,
-#              min.importance = 2,
-#              remove.isolated = FALSE)
+# plot whole GRN
+p <- GRNPlot(df.grn.pos,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             seed = 42, 
+             plot.importance = TRUE,
+             min.importance = 2,
+             remove.isolated = FALSE)
 
-# png(paste0(temp_plot_path, 'Network_filtered_pos_corr.png'), height = 30, width = 45, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+png(paste0(temp_plot_path, 'Network_filtered_pos_corr.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
-# # only plot TFs
-# p <- GRNPlot(df.grn.pos,
-#              tfs.timepoint = tfs.timepoint,
-#              show.tf.labels = TRUE,
-#              plot.importance = TRUE,
-#              genes.use = df.tfs$tfs,
-#              remove.isolated = TRUE)
+# only plot TFs
+p <- GRNPlot(df.grn.pos,
+             tfs.timepoint = tfs.timepoint,
+             show.tf.labels = TRUE,
+             plot.importance = TRUE,
+             genes.use = df.tfs$tfs,
+             remove.isolated = TRUE)
 
-# png(paste0(temp_plot_path, 'Network_filtered_pos_corrTFs.png'), height = 30, width = 45, units = 'cm', res = 400)
-# print(p)
-# graphics.off()
+png(paste0(temp_plot_path, 'Network_filtered_pos_corrTFs.png'), height = 30, width = 45, units = 'cm', res = 400)
+print(p)
+graphics.off()
 
 ############################## Top factors of filtered pos corr network #######################################
 
@@ -973,16 +972,6 @@ graphics.off()
 factors <- edges[1:10, 1]
 print("Top 10 edges factors:")
 print(factors)
-
-# # Pseudotime plots
-# obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn.pos)
-# for (TF in factors){
-#   print(TF)
-#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
-# }
 
 # # plot corr heatmap
 # df.tf.gene.subset <- df.tf.gene %>%
@@ -1063,7 +1052,7 @@ print("Importance analysis...")
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
 dir.create(temp_plot_path_subset, recursive = T)
-k = 19
+k = 20
 
 # plot importance ranking + save the df
 png(paste0(temp_plot_path_subset, 'Importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
@@ -1096,7 +1085,7 @@ barplot(pagerank_df$pagerank, names.arg = pagerank_df$tf, las = 2, cex.names=.5)
 graphics.off()
 
 # extract top 20 factors:
-factors <- importance_df[1:20, 1]
+factors <- importance_df[1:25, 1]
 print("Top 20 importance factors:")
 print(factors)
 
@@ -1105,6 +1094,17 @@ png(paste0(temp_plot_path_subset, 'Factors_expression_heatmap.png'), height = 10
 DoHeatmap(object = seurat, features = factors, group.by = "scHelper_cell_type")
 graphics.off()
 
+# Pseudotime plots of these factors
+obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn.pos)
+for (TF in factors){
+  print(TF)
+  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+  png(paste0(temp_plot_path_subset, 'Factors_pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+  print(p)
+  graphics.off()
+}
+
+# ######## TEMP: Chromvar and footprinting of these factors
 # # download motif database
 # motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
 
@@ -1124,8 +1124,6 @@ graphics.off()
 # ArchR <- addBgdPeaks(ArchR)
 # ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
 # ArchR <- addImputeWeights(ArchR)
-
-# # Plot ridge plot of each TF deviation
 # print("Making chromvar plots...")
 # for (TF in factors){
 #   print(TF)
@@ -1135,7 +1133,7 @@ graphics.off()
 #   # Plot chromvar scores on UMAP
 #   p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
 #                      imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
-#   png(paste0(plot_path, TF, '_chromvar_UMAP_ss8.png'), height = 12, width = 10, units = 'cm', res = 400)
+#   png(paste0(temp_plot_path_subset, 'Factors_chromvar_UMAP_ss8_', TF, '.png'), height = 12, width = 10, units = 'cm', res = 400)
 #   print(p)
 #   graphics.off()
   
@@ -1153,31 +1151,24 @@ graphics.off()
 #   seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "transferred_scHelper_cell_type_broad")
 #   p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
 #                       smoothWindow = 10, baseSize = 16, plot = FALSE)
-#   png(paste0(plot_path, TF, '_TF_footprint_ss8.png'), height = 20, width = 20, units = 'cm', res = 400)
+#   png(paste0(temp_plot_path_subset, 'Factors_footprint_ss8_', TF, '.png'), height = 20, width = 20, units = 'cm', res = 400)
 #   grid::grid.newpage()
 #   grid::grid.draw(p[[1]])
 #   graphics.off()
 # }
+# ########
 
-# # Pseudotime plots
-# for (TF in factors){
-#   print(TF)
-#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-#   png(paste0(temp_plot_path_subset, 'Pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
-# }
+# plot corr heatmap of factors against all target nodes in the network
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr/'), recursive = T)
 
-# plot corr heatmap
 df.tf.gene.subset <- df.tf.gene %>%
   dplyr::filter(tf %in% factors)
 df.tfs.subset <- df.tfs %>%
   dplyr::filter(tfs %in% factors)
 ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = k)
-ht <- draw(ht)
 
-png(paste0(temp_plot_path_subset, 'TF_gene_corr_heatmap.png'), height = 20, width = 20, units = 'cm', res = 400)
-ht
+png(paste0(temp_plot_path_subset, 'Target_gene_corr/TF_gene_corr_heatmap.png'), height = 20, width = 20, units = 'cm', res = 400)
+ht <- draw(ht)
 graphics.off()
 
 # extract target gene clusters
@@ -1185,27 +1176,23 @@ mat.cor <- df.tf.gene.subset %>% as.data.frame() %>%
   select(c(tf, gene, correlation)) %>% 
   tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
   textshape::column_to_rownames("gene")
+# loop through each of these clusters
 target_gene_clusters <- list()
-dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/'), recursive = T)
 for (cluster_name in names(row_order(ht))){
   print(paste0("cluster: ", cluster_name))
   indices <- row_order(ht)[[cluster_name]]
   target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
   print(length(target_gene_clusters[[cluster_name]]))
-  
-  #print expression of these genes
+  #print expression of cluster of genes on featureplot
   seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
-  png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  png(paste0(temp_plot_path_subset, 'Target_gene_corr/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
   print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
   graphics.off()
-  # png(paste0(temp_plot_path_subset, 'Target_gene_corr_clusters_heatmap_', cluster_name, '.png'), height = 10, width = 40, units = 'cm', res = 400)
-  # print(DoHeatmap(object = seurat, features = target_gene_clusters[[cluster_name]], group.by = "scHelper_cell_type"))
-  # graphics.off()
-  
 }
-export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_corr"))
+export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "Target_gene_corr/target_gene_clusters_from_corr"))
 
 # Create target gene heatmap
+dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/'), recursive = T)
 target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
 colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
 hm <- pheatmap::pheatmap(t(target_genes_df),
@@ -1215,64 +1202,33 @@ hm <- pheatmap::pheatmap(t(target_genes_df),
                          fontsize_row = 10,  # Font size for row labels
                          fontsize_col = 0.0001,   # Font size for column labels
                          cutree_cols = k)
-png(paste0(temp_plot_path_subset, 'Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
 print(hm)
 graphics.off()
 
-# # # Extract each cluster of targets
-# # df_row_cluster = data.frame(cluster = cutree(hm$tree_col, k = k))
-# # target_gene_direct_clusters <- list()
-# # for (cluster_name in names(row_order(ht))){
-# #   print(i)
-# #   targets <- rownames(df_row_cluster %>% dplyr::filter(cluster == i))
-# #   target_gene_direct_clusters[[i]] <- targets
-# #   # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-# #   # if (nrow(as.data.frame(go_output)) > 0){
-# #   #   png(paste0(temp_plot_path_subset, 'Target_genes_cluster_', i, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-# #   #   print(plot(barplot(go_output, showCategory = 20)))
-# #   #   graphics.off()
-# #   # }
-
-# #   # print expression of these genes
-# #   seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct_clusters[[i]]), name = "cluster")
-# #   png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_clusters/FeaturePlot_of_gene_cluster_', cluster_name, '.png'), height = 10, width = 15, units = 'cm', res = 400)
-# #   print(FeaturePlot(seurat, features = "cluster1", pt.size = 1.5))
-# #   graphics.off()
-# # }
-# # export_gene_list(target_gene_direct_clusters, publish_dir = paste0(temp_plot_path_subset, "target_gene_clusters_from_direct_interactions"))
-
-
-# Extract each of the TF's target genes
+# Extract each of the TF's target genes and plot their expression on a heatmap
 order <- scHelper_cell_type_order[scHelper_cell_type_order %in% unique(seurat@meta.data$scHelper_cell_type)]
 cols <- scHelper_cell_type_colours[names(scHelper_cell_type_colours) %in% order]
 
 target_gene_direct <- list()
-dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/'), recursive = T)
 for (i in 1:length(factors)){
   print(i)
   TF <- factors[i]
   print(TF)
   targets <- rownames(target_genes_df)[as.logical(target_genes_df[,i])]
   target_gene_direct[[TF]] <- targets
-  # go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
-  # if (nrow(as.data.frame(go_output)) > 0){
-  #   png(paste0(temp_plot_path_subset, 'Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
-  #   print(plot(barplot(go_output, showCategory = 20)))
-  #   graphics.off()
-  # }
 
-  # print expression of these genes
-  # #seurat <- AddModuleScore(object = seurat, features = list(target_gene_direct[[TF]]), name = TF)
-  # seurat@meta.data[[TF]] <-  colMeans(GetAssayData(seurat, assay = 'RNA', slot = 'data')[target_gene_direct[[TF]],])
-  # png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets_average/FeaturePlot_of_gene_targets_of_', TF, '.png'), height = 10, width = 12, units = 'cm', res = 400)
-  # #print(FeaturePlot(seurat, features = paste0(TF, "1"), pt.size = 1.5))
-  # print(FeaturePlot(seurat, features = TF, pt.size = 1.5))
-  # graphics.off()
+  # GO analysis for each set of target genes
+  go_output <- enrichGO(targets, OrgDb = org.Gg.eg.db, keyType = "SYMBOL", ont = "BP")
+  if (nrow(as.data.frame(go_output)) > 0){
+    png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/Target_genes_TF_', TF, '_GO_plot.png'), height = 30, width = 20, units = 'cm', res = 400)
+    print(plot(barplot(go_output, showCategory = 20)))
+    graphics.off()
+  }
 
+  # heatmap of gene expression for each set of target genes
   height = length(targets)/4
-  print(height)
-
-  png(paste0(temp_plot_path_subset, 'Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
+  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
   print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets,
              custom_order = order, custom_order_column = "scHelper_cell_type",
              gaps_col = "scHelper_cell_type",
@@ -1280,33 +1236,92 @@ for (i in 1:length(factors)){
              hclust_rows = TRUE, treeheight_row = 5))
   graphics.off()
 }
-# export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
+export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
 
-# # plot expression of these target genes in a heatmap
-# png(paste0(temp_plot_path_subset, 'Target_gene_'), height = 10, width = 12, units = 'cm', res = 400)
+# subset network
+df.grn.pos.selected <- df.grn %>%
+  dplyr::filter(tf %in% factors) %>%
+  dplyr::filter(gene %in% factors)
+nrow(df.grn.pos.selected) # 15,345 interactions
 
-# target_gene_direct
+# TF network numbers
+df <- data.frame(
+  nSource = length(unique(df.grn.pos.selected$tf)),
+  nTarget = length(unique(df.grn.pos.selected$gene)),
+  nBoth = sum(unique(df.grn.pos.selected$tf) %in% unique(df.grn.pos.selected$gene)),
+  nInteractions = nrow(df.grn.pos.selected),
+  nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
+  nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
+)
+png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
+# save network
+write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
-# # subset network
-# df.grn.pos.selected <- df.grn %>%
-#   dplyr::filter(tf %in% factors) %>%
-#   dplyr::filter(gene %in% factors)
-# nrow(df.grn.pos.selected) # 15,345 interactions
+# plot corr heatmap of factors to test and known placodal factors
+dir.create(paste0(temp_plot_path_subset, 'Selected_factors/'), recursive = T)
 
-# # TF network numbers
-# df <- data.frame(
-#   nSource = length(unique(df.grn.pos.selected$tf)),
-#   nTarget = length(unique(df.grn.pos.selected$gene)),
-#   nBoth = sum(unique(df.grn.pos.selected$tf) %in% unique(df.grn.pos.selected$gene)),
-#   nInteractions = nrow(df.grn.pos.selected),
-#   nPositiveInteractions = length(which(df.grn.pos.selected$correlation > 0)),
-#   nNegativeInteractions = length(which(df.grn.pos.selected$correlation < 0))
-# )
-# png(paste0(temp_plot_path_subset, 'Subset_network_numbers.png'), height = 8, width = 18, units = 'cm', res = 400)
-# grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-#              tableGrob(df, rows=NULL, theme = ttheme_minimal()))
-# graphics.off()
+factors <- c("TFAP2E", "ZEB1", "TEAD3", "TBXT", "NKX2-3", "FOXK2", "EOMES", "TCF3",
+             "TFAP2A", "TFAP2B", "TFAP2C", "GATA2", "GATA3", "DLX5", "DLX6", "SIX1")
 
-# # save network
-# write_tsv(df.grn.pos.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
+df.tf.gene.subset <- df.tf.gene %>%
+  dplyr::filter(tf %in% factors)
+df.tfs.subset <- df.tfs %>%
+  dplyr::filter(tfs %in% factors)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = k)
+
+png(paste0(temp_plot_path_subset, 'Selected_factors/TF_gene_corr_heatmap.png'), height = 20, width = 20, units = 'cm', res = 400)
+ht <- draw(ht)
+graphics.off()
+
+# extract target gene clusters
+mat.cor <- df.tf.gene.subset %>% as.data.frame() %>% 
+  select(c(tf, gene, correlation)) %>% 
+  tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
+  textshape::column_to_rownames("gene")
+# loop through each of these clusters
+target_gene_clusters <- list()
+for (cluster_name in names(row_order(ht))){
+  print(paste0("cluster: ", cluster_name))
+  indices <- row_order(ht)[[cluster_name]]
+  target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
+  print(length(target_gene_clusters[[cluster_name]]))
+  #print expression of cluster of genes on featureplot
+  seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
+  png(paste0(temp_plot_path_subset, 'Selected_factors/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+  print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
+  graphics.off()
+}
+export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "Selected_factors/target_gene_clusters_from_corr"))
+
+# plot target heatmap of selected factors + known factors
+target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
+colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+hm <- pheatmap::pheatmap(t(target_genes_df),
+                         color = c("grey", "purple"),  # Color scheme
+                         cluster_rows = TRUE,  # Do not cluster rows
+                         cluster_cols = TRUE,  # Do not cluster columns
+                         fontsize_row = 10,  # Font size for row labels
+                         fontsize_col = 0.0001,   # Font size for column labels
+                         cutree_cols = k)
+png(paste0(temp_plot_path_subset, 'Selected_factors/Targets_heatmap_plus_known_factors.png'), height = 10, width = 18, units = 'cm', res = 400)
+print(hm)
+graphics.off()
+
+# plot target heatmap of just selected factors
+factors <- c("TFAP2E", "ZEB1", "TEAD3", "TBXT", "NKX2-3", "FOXK2", "EOMES", "TCF3")
+target_genes_df <- extract_target_genes_df(factors, df.grn.pos)
+colnames(target_genes_df) <- paste0(colnames(target_genes_df), " - ", colSums((target_genes_df)))
+hm <- pheatmap::pheatmap(t(target_genes_df),
+                         color = c("grey", "purple"),  # Color scheme
+                         cluster_rows = TRUE,  # Do not cluster rows
+                         cluster_cols = TRUE,  # Do not cluster columns
+                         fontsize_row = 10,  # Font size for row labels
+                         fontsize_col = 0.0001,   # Font size for column labels
+                         cutree_cols = k)
+png(paste0(temp_plot_path_subset, 'Selected_factors/Targets_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+print(hm)
+graphics.off()
