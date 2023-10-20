@@ -1267,6 +1267,8 @@ dir.create(paste0(temp_plot_path_subset, 'Selected_factors/'), recursive = T)
 factors <- c("TFAP2E", "ZEB1", "TEAD3", "TBXT", "NKX2-3", "FOXK2", "EOMES", "TCF3",
              "TFAP2A", "TFAP2B", "TFAP2C", "GATA2", "GATA3", "DLX5", "DLX6", "SIX1")
 
+k = 8
+
 df.tf.gene.subset <- df.tf.gene %>%
   dplyr::filter(tf %in% factors)
 df.tfs.subset <- df.tfs %>%
