@@ -1052,7 +1052,7 @@ print("Importance analysis...")
 
 temp_plot_path_subset = paste0(temp_plot_path, "top_importance/")
 dir.create(temp_plot_path_subset, recursive = T)
-k = 20
+k = 12
 
 # plot importance ranking + save the df
 png(paste0(temp_plot_path_subset, 'Importance_plot.png'), height = 10, width = 120, units = 'cm', res = 400)
@@ -1165,31 +1165,31 @@ df.tf.gene.subset <- df.tf.gene %>%
   dplyr::filter(tf %in% factors)
 df.tfs.subset <- df.tfs %>%
   dplyr::filter(tfs %in% factors)
-ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = k)
+ht <- GRNHeatmap(df.tf.gene.subset, tf.timepoint = df.tfs.subset$time_point, km = 1)
 
 png(paste0(temp_plot_path_subset, 'Target_gene_corr/TF_gene_corr_heatmap.png'), height = 20, width = 20, units = 'cm', res = 400)
 ht <- draw(ht)
 graphics.off()
 
-# extract target gene clusters
-mat.cor <- df.tf.gene.subset %>% as.data.frame() %>% 
-  select(c(tf, gene, correlation)) %>% 
-  tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
-  textshape::column_to_rownames("gene")
-# loop through each of these clusters
-target_gene_clusters <- list()
-for (cluster_name in names(row_order(ht))){
-  print(paste0("cluster: ", cluster_name))
-  indices <- row_order(ht)[[cluster_name]]
-  target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
-  print(length(target_gene_clusters[[cluster_name]]))
-  #print expression of cluster of genes on featureplot
-  seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
-  png(paste0(temp_plot_path_subset, 'Target_gene_corr/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
-  print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
-  graphics.off()
-}
-export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "Target_gene_corr/target_gene_clusters_from_corr"))
+# # extract target gene clusters
+# mat.cor <- df.tf.gene.subset %>% as.data.frame() %>% 
+#   select(c(tf, gene, correlation)) %>% 
+#   tidyr::pivot_wider(names_from = tf, values_from = correlation) %>% 
+#   textshape::column_to_rownames("gene")
+# # loop through each of these clusters
+# target_gene_clusters <- list()
+# for (cluster_name in names(row_order(ht))){
+#   print(paste0("cluster: ", cluster_name))
+#   indices <- row_order(ht)[[cluster_name]]
+#   target_gene_clusters[[cluster_name]] <- rownames(mat.cor)[indices]
+#   print(length(target_gene_clusters[[cluster_name]]))
+#   #print expression of cluster of genes on featureplot
+#   seurat <- AddModuleScore(object = seurat, features = list(target_gene_clusters[[cluster_name]]), name = paste0("cluster", cluster_name))
+#   png(paste0(temp_plot_path_subset, 'Target_gene_corr/FeaturePlot_of_gene_cluster_from_corr_', cluster_name, '.png'), height = 10, width = 12, units = 'cm', res = 400)
+#   print(FeaturePlot(seurat, features = paste0("cluster", cluster_name, "1"), pt.size = 1.5))
+#   graphics.off()
+# }
+# export_gene_list(target_gene_clusters, publish_dir = paste0(temp_plot_path_subset, "Target_gene_corr/target_gene_clusters_from_corr"))
 
 # Create target gene heatmap
 dir.create(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/'), recursive = T)
@@ -1227,13 +1227,13 @@ for (i in 1:length(factors)){
   }
 
   # heatmap of gene expression for each set of target genes
-  height = length(targets)/5
-  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/Target_genes_heatmap_', TF, '.png'), height = height, width = 40, units = 'cm', res = 400)
+  # height = length(targets)/7
+  png(paste0(temp_plot_path_subset, 'Target_gene_direct_targets/Target_genes_heatmap_', TF, '.png'), height = 40, width = 40, units = 'cm', res = 400)
   print(TenxPheatmap(seurat, metadata = "scHelper_cell_type", selected_genes = targets,
              custom_order = order, custom_order_column = "scHelper_cell_type",
              gaps_col = "scHelper_cell_type",
              use_seurat_colours = FALSE, annotation_colours = cols,
-             hclust_rows = TRUE, treeheight_row = 5))
+             hclust_rows = TRUE, treeheight_row = 5, show_rownames = FALSE))
   graphics.off()
 }
 export_gene_list(target_gene_direct, publish_dir = paste0(temp_plot_path_subset, "target_genes_from_direct_interactions"))
