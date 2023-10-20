@@ -1094,15 +1094,15 @@ png(paste0(temp_plot_path_subset, 'Factors_expression_heatmap.png'), height = 10
 DoHeatmap(object = seurat, features = factors, group.by = "scHelper_cell_type")
 graphics.off()
 
-# Pseudotime plots of these factors
-obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn.pos)
-for (TF in factors){
-  print(TF)
-  p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
-  png(paste0(temp_plot_path_subset, 'Factors_pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
-}
+# # Pseudotime plots of these factors
+# obj.traj <- AddTargetAssay_updated(object = obj.traj, df.grn = df.grn.pos)
+# for (TF in factors){
+#   print(TF)
+#   p <- PseudotimePlot_updated(object = obj.traj, tf.use = TF, trajectory.name = "lineage_placodal_probability")
+#   png(paste0(temp_plot_path_subset, 'Factors_pseudotime_plot_', TF, '.png'), height = 8, width = 18, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+# }
 
 # ######## TEMP: Chromvar and footprinting of these factors
 # # download motif database
