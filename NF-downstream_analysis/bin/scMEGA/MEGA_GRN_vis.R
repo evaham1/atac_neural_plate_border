@@ -639,7 +639,8 @@ obj.traj <- readRDS(paste0(data_path, "rds_files/Placodal_traj_obj.RDS"))
 seurat <- readRDS(paste0(data_path, "seurat_label_transfer_minus_HH4.RDS"))
 
 # read in ATAC data object
-ArchR <- loadArchRProject(path = paste0(data_path, "ss8_Save-ArchR"), force = FALSE, showLogo = TRUE)
+# ArchR <- loadArchRProject(path = paste0(data_path, "ss8_Save-ArchR"), force = FALSE, showLogo = TRUE)
+ArchR <- loadArchRProject(path = paste0(data_path, "FullData_Save-ArchR"), force = FALSE, showLogo = TRUE)
 getCellColData(ArchR)
 
 ######################################################################################
@@ -1104,59 +1105,59 @@ graphics.off()
 #   graphics.off()
 # }
 
-# ######## TEMP: Chromvar and footprinting of these factors
-# # download motif database
-# motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
+######## TEMP: Chromvar and footprinting of these factors
+# download motif database
+motifList <- getMatrixSet(x = JASPAR2020, opts = list(collection = "CORE", tax_group = "vertebrates", matrixtype = "PWM"))
 
-# # rename each motif to have TF name
-# name_vector <- c()
-# for (i in 1:length(motifList)){
-#   name <- name(motifList[[i]])
-#   name_vector <- c(name_vector, name)
-# }
-# names(motifList) <- name_vector
+# rename each motif to have TF name
+name_vector <- c()
+for (i in 1:length(motifList)){
+  name <- name(motifList[[i]])
+  name_vector <- c(name_vector, name)
+}
+names(motifList) <- name_vector
 
-# # annotate peaks in ArchR object with these motifs
-# ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, cutOff = 1e-05, force = T)
-# print("Motifs matrix added to ArchR object!")
+# annotate peaks in ArchR object with these motifs
+ArchR <- addMotifAnnotations(ArchR, name = "Motif", motifPWMs = motifList, cutOff = 1e-05, force = T)
+print("Motifs matrix added to ArchR object!")
 
-# # chromvar plots for these factors
-# ArchR <- addBgdPeaks(ArchR)
-# ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
-# ArchR <- addImputeWeights(ArchR)
-# print("Making chromvar plots...")
-# for (TF in factors){
-#   print(TF)
-#   markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
-#   if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
+# chromvar plots for these factors
+ArchR <- addBgdPeaks(ArchR)
+ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
+ArchR <- addImputeWeights(ArchR)
+print("Making chromvar plots...")
+for (TF in factors){
+  print(TF)
+  markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
+  if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
   
-#   # Plot chromvar scores on UMAP
-#   p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
-#                      imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
-#   png(paste0(temp_plot_path_subset, 'Factors_chromvar_UMAP_ss8_', TF, '.png'), height = 12, width = 10, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
+  # Plot chromvar scores on UMAP
+  p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
+                     imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
+  png(paste0(temp_plot_path_subset, 'Factors_chromvar_UMAP_Full_', TF, '.png'), height = 12, width = 10, units = 'cm', res = 400)
+  print(p)
+  graphics.off()
   
-# }
+}
 
-# # set up for footprinting
-# print("setting up for footprinting...")
-# motifPositions <- getPositions(ArchR)
-# ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "transferred_scHelper_cell_type_broad")
+# set up for footprinting
+print("setting up for footprinting...")
+motifPositions <- getPositions(ArchR)
+ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "scHelper_cell_type_broad")
 
-# # Footprinting of these factors
-# print("Footprinting...")
-# for (TF in factors){
-#   print(TF)
-#   seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "transferred_scHelper_cell_type_broad")
-#   p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
-#                       smoothWindow = 10, baseSize = 16, plot = FALSE)
-#   png(paste0(temp_plot_path_subset, 'Factors_footprint_ss8_', TF, '.png'), height = 20, width = 20, units = 'cm', res = 400)
-#   grid::grid.newpage()
-#   grid::grid.draw(p[[1]])
-#   graphics.off()
-# }
-# ########
+# Footprinting of these factors
+print("Footprinting...")
+for (TF in factors){
+  print(TF)
+  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "scHelper_cell_type_broad")
+  p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
+                      smoothWindow = 10, baseSize = 16, plot = FALSE)
+  png(paste0(temp_plot_path_subset, 'Factors_footprint_Full_', TF, '.png'), height = 20, width = 20, units = 'cm', res = 400)
+  grid::grid.newpage()
+  grid::grid.draw(p[[1]])
+  graphics.off()
+}
+########
 
 # plot corr heatmap of factors against all target nodes in the network
 dir.create(paste0(temp_plot_path_subset, 'Target_gene_corr/'), recursive = T)
