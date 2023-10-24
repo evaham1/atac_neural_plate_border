@@ -63,7 +63,8 @@ if(opt$verbose) print(opt)
     csv_path = "./csv_files/"
     ncores = opt$cores
     
-    addArchRThreads(threads = ncores)
+    # addArchRThreads(threads = ncores)
+    addArchRThreads(threads = 1)
     
   } else {
     stop("--runtype must be set to 'nextflow'")
