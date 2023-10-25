@@ -78,7 +78,7 @@ TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "PITX1", "PITX2",
            "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2", "NKX2-3",
            "TEAD1", "TEAD2", "TEAD3", "TEAD4",
            "TCF3", "TCF4", "TCF12", "LEF1",
-           "FOXK1", "FOXK2", "ZEB1", ""
+           "FOXK1", "FOXK2", "ZEB1",
            "ETV1","REL", "KLF6", "THRB", "TBXT", "EOMES")
 
 ############################## Read in ArchR project #######################################
