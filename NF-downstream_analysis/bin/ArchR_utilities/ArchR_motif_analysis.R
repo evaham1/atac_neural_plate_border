@@ -261,8 +261,7 @@ print("ArchR object saved")
 
 ############################## Extract TFs of interest #######################################
 
-features <- getFeatures(ArchR, useMatrix = "MotifMatrix"
-  select = NULL, ignoreCase = TRUE)
+features <- getFeatures(ArchR, useMatrix = "MotifMatrix", select = NULL, ignoreCase = TRUE)
 print(features)
 
 ArchR <- addImputeWeights(ArchR)
