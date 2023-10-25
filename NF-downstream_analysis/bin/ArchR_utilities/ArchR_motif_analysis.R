@@ -66,12 +66,20 @@ if(opt$verbose) print(opt)
 }
 
 
-TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
-           "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2",
-           "EPAS1", "RARB", "HRKB1", "IRX1",
-           "TEAD3", "TEAD4", "TEAD2", "TEAD1",
-            "SNAI2", "SNAI1", "SNAI3", "TCF12",
-            "TCF3", "HMBOX1", "FOXK1", "ETV1","REL", "KLF6", "THRB")
+# TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
+#            "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2",
+#            "EPAS1", "RARB", "HRKB1", "IRX1",
+#            "TEAD3", "TEAD4", "TEAD2", "TEAD1",
+#             "SNAI2", "SNAI1", "SNAI3", "TCF12",
+#             "TCF3", "HMBOX1", "FOXK1", "ETV1","REL", "KLF6", "THRB")
+
+TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "PITX1", "PITX2",
+           "TFAP2A", "TFAP2B", "TFAP2C", "TFAP2E",
+           "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2", "NKX2-3",
+           "TEAD1", "TEAD2", "TEAD3", "TEAD4",
+           "TCF3", "TCF4", "TCF12", "LEF1",
+           "FOXK1", "FOXK2", "ZEB1", ""
+           "ETV1","REL", "KLF6", "THRB", "TBXT", "EOMES")
 
 ############################## Read in ArchR project #######################################
 
@@ -150,128 +158,127 @@ print("ArchR object saved")
 
 ############################## Extract target peaks of key TFs #######################################
 
-# can see where the motif x peak matrix is stored here
-anno <- getPeakAnnotation(ArchR, name = "Motif")
-anno$Matches
+# # can see where the motif x peak matrix is stored here
+# anno <- getPeakAnnotation(ArchR, name = "Motif")
+# anno$Matches
 
-# need to read in this rds file to extract peak annotations with motifs - dont know if this will work in nextflow...
-#motifs_peaks <- readRDS("~/output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR/Annotations/Motif-Matches-In-Peaks.rds")
-motifs_peaks <- readRDS(anno$Matches)
-dim(motifs_peaks) # 268007 peaks x 746 motifs
+# # need to read in this rds file to extract peak annotations with motifs - dont know if this will work in nextflow...
+# #motifs_peaks <- readRDS("~/output/NF-downstream_analysis/Processing/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR/Annotations/Motif-Matches-In-Peaks.rds")
+# motifs_peaks <- readRDS(anno$Matches)
+# dim(motifs_peaks) # 268007 peaks x 746 motifs
 
-# then need to extract the sparse matrix from the ranged experiment object
-motif_matrix <- assays(motifs_peaks)$matches
-rownames(motif_matrix) <- rowData(motifs_peaks)$name
-colnames(motif_matrix) <- colnames(motifs_peaks)
+# # then need to extract the sparse matrix from the ranged experiment object
+# motif_matrix <- assays(motifs_peaks)$matches
+# rownames(motif_matrix) <- rowData(motifs_peaks)$name
+# colnames(motif_matrix) <- colnames(motifs_peaks)
 
-# then can subset the matrix to only include TFs and only peaks with a motif in at least one of these
-subsetted_motif_matrix <- motif_matrix[ , TFs]
-subsetted_motif_matrix <- subsetted_motif_matrix[rowSums(subsetted_motif_matrix[])>0,]
+# # then can subset the matrix to only include TFs and only peaks with a motif in at least one of these
+# subsetted_motif_matrix <- motif_matrix[ , TFs]
+# subsetted_motif_matrix <- subsetted_motif_matrix[rowSums(subsetted_motif_matrix[])>0,]
 
-# now want to extract the list of target peak IDs for each TF
-TF_targets <- list()
-for (TF in colnames(subsetted_motif_matrix)){
-  print(TF)
-  peak_ids <- rownames(subsetted_motif_matrix)[subsetted_motif_matrix[ , TF]]
-  TF_targets[[TF]] <- peak_ids
-}
-length(TF_targets)
+# # now want to extract the list of target peak IDs for each TF
+# TF_targets <- list()
+# for (TF in colnames(subsetted_motif_matrix)){
+#   print(TF)
+#   peak_ids <- rownames(subsetted_motif_matrix)[subsetted_motif_matrix[ , TF]]
+#   TF_targets[[TF]] <- peak_ids
+# }
+# length(TF_targets)
 
-# now write out the targets into a txt file
-for (TF in names(TF_targets)) {
-  print(TF)
-  write(paste0(TF, "; ", paste0(TF_targets[[TF]], collapse = ", ")), 
-          file = paste0(csv_path, "/", "TF_targets.txt"), 
-          append = TRUE)
-}
+# # now write out the targets into a txt file
+# for (TF in names(TF_targets)) {
+#   print(TF)
+#   write(paste0(TF, "; ", paste0(TF_targets[[TF]], collapse = ", ")), 
+#           file = paste0(csv_path, "/", "TF_targets.txt"), 
+#           append = TRUE)
+# }
 
-print("TF peak targets written to file!")
+# print("TF peak targets written to file!")
 
-#############################   MOTIF ANALYSIS PLOTS    #####################################
+# #############################   MOTIF ANALYSIS PLOTS    #####################################
 
-############################## Motifs in differentially accessible peaks 
+# ############################## Motifs in differentially accessible peaks 
 
-plot_path = "./plots/diff_accessible_peaks_motifs/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/diff_accessible_peaks_motifs/"
+# dir.create(plot_path, recursive = T)
 
-# calculate differentially accessible peaks between clusters
-se <- getMarkerFeatures(
-  ArchRProj = ArchR,
-  useMatrix = "PeakMatrix",
-  groupBy = opt$group_by)
-# se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
+# # calculate differentially accessible peaks between clusters
+# se <- getMarkerFeatures(
+#   ArchRProj = ArchR,
+#   useMatrix = "PeakMatrix",
+#   groupBy = opt$group_by)
+# # se <- scHelper::ArchRAddUniqueIdsToSe(se, ArchR, matrix_type = "PeakMatrix")
 
-motif_marker_peaks <- peakAnnoEnrichment(
-  seMarker = se,
-  ArchRProj = ArchR,
-  peakAnnotation = "Motif",
-  cutOff = "FDR <= 0.1 & Log2FC >= 0.5"
-)
-motif_marker_peaks
+# motif_marker_peaks <- peakAnnoEnrichment(
+#   seMarker = se,
+#   ArchRProj = ArchR,
+#   peakAnnotation = "Motif",
+#   cutOff = "FDR <= 0.1 & Log2FC >= 0.5"
+# )
+# motif_marker_peaks
 
-# make dataframe of results
-df <- data.frame(TF = rownames(motif_marker_peaks), mlog10Padj = assay(motif_marker_peaks)[,1])
-df <- df[order(df$mlog10Padj, decreasing = TRUE),]
-df$rank <- seq_len(nrow(df))
+# # make dataframe of results
+# df <- data.frame(TF = rownames(motif_marker_peaks), mlog10Padj = assay(motif_marker_peaks)[,1])
+# df <- df[order(df$mlog10Padj, decreasing = TRUE),]
+# df$rank <- seq_len(nrow(df))
 
-head(df)
+# head(df)
 
- # plot results
-ggUp <- ggplot(df, aes(rank, mlog10Padj, color = mlog10Padj)) + 
-  geom_point(size = 1) +
-  ggrepel::geom_label_repel(
-    data = df[rev(seq_len(30)), ], aes(x = rank, y = mlog10Padj, label = TF), 
-    size = 1.5,
-    nudge_x = 2,
-    color = "black"
-  ) + theme_ArchR() + 
-  ylab("-log10(P-adj) Motif Enrichment") + 
-  xlab("Rank Sorted TFs Enriched") +
-  scale_color_gradientn(colors = paletteContinuous(set = "comet"))
+#  # plot results
+# ggUp <- ggplot(df, aes(rank, mlog10Padj, color = mlog10Padj)) + 
+#   geom_point(size = 1) +
+#   ggrepel::geom_label_repel(
+#     data = df[rev(seq_len(30)), ], aes(x = rank, y = mlog10Padj, label = TF), 
+#     size = 1.5,
+#     nudge_x = 2,
+#     color = "black"
+#   ) + theme_ArchR() + 
+#   ylab("-log10(P-adj) Motif Enrichment") + 
+#   xlab("Rank Sorted TFs Enriched") +
+#   scale_color_gradientn(colors = paletteContinuous(set = "comet"))
 
-png(paste0(plot_path, 'diff_peaks_motif_enrichment_plot.png'), height = 10, width = 10, units = 'cm', res = 400)
-print(ggUp)
-graphics.off()
+# png(paste0(plot_path, 'diff_peaks_motif_enrichment_plot.png'), height = 10, width = 10, units = 'cm', res = 400)
+# print(ggUp)
+# graphics.off()
 
-png(paste0(plot_path, 'diff_peaks_motif_enrichment_plot_bigger.png'), height = 30, width = 30, units = 'cm', res = 400)
-print(ggUp)
-graphics.off()
+# png(paste0(plot_path, 'diff_peaks_motif_enrichment_plot_bigger.png'), height = 30, width = 30, units = 'cm', res = 400)
+# print(ggUp)
+# graphics.off()
 
-# plot as heatmap
-if (label == "ss8"){topn = 10} # 7 was ok so trying higher
-if (label == "ss4"){topn = 10} # 7 was ok so trying higher
-if (label == "HH7"){topn = 10} # 7 was ok so trying higher
-if (label == "HH6"){topn = 10} # 7 was ok so trying higher
-if (label == "HH5"){topn = 1} # 1 was too much!
+# # plot as heatmap
+# if (label == "ss8"){topn = 10} # 7 was ok so trying higher
+# if (label == "ss4"){topn = 10} # 7 was ok so trying higher
+# if (label == "HH7"){topn = 10} # 7 was ok so trying higher
+# if (label == "HH6"){topn = 10} # 7 was ok so trying higher
+# if (label == "HH5"){topn = 1} # 1 was too much!
 
-if (topn > 1){
-  heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
-  png(paste0(plot_path, 'diff_peaks_motif_enrichment_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
-  ComplexHeatmap::draw(heatmapEM, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-  graphics.off()
-}
+# if (topn > 1){
+#   heatmapEM <- plotEnrichHeatmap(motif_marker_peaks, n = topn, transpose = TRUE)
+#   png(paste0(plot_path, 'diff_peaks_motif_enrichment_heatmap.png'), height = 10, width = 18, units = 'cm', res = 400)
+#   ComplexHeatmap::draw(heatmapEM, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+#   graphics.off()
+# }
 
 ############################## Extract TFs of interest #######################################
 
-
 ArchR <- addImputeWeights(ArchR)
 
-# Plot ridge plot of each TF deviation
+# # Plot ridge plot of each TF deviation
 for (TF in TFs){
   print(TF)
   markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
   if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
   
-  p <- plotGroups(ArchR, 
-                  groupBy = opt$group_by, 
-                  colorBy = "MotifMatrix", 
-                  name = markerMotif,
-                  imputeWeights = getImputeWeights(ArchR))
+#   p <- plotGroups(ArchR, 
+#                   groupBy = opt$group_by, 
+#                   colorBy = "MotifMatrix", 
+#                   name = markerMotif,
+#                   imputeWeights = getImputeWeights(ArchR))
 
-  # plot distribution of chromvar deviation score for each cluster
-  png(paste0(plot_path, TF, '_chromvar_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(p)
-  graphics.off()
+#   # plot distribution of chromvar deviation score for each cluster
+#   png(paste0(plot_path, TF, '_chromvar_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
   
   # Plot chromvar scores on UMAP
   p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
@@ -284,31 +291,31 @@ for (TF in TFs){
 
 print("Chromvar plots made!")
 
-#######################################################################################
-#############################   TF FOOTPRINTING    #####################################
-#######################################################################################
+# #######################################################################################
+# #############################   TF FOOTPRINTING    #####################################
+# #######################################################################################
 
-plot_path = "./plots/Footprinting/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/Footprinting/"
+# dir.create(plot_path, recursive = T)
 
-# set up for footprinting
-motifPositions <- getPositions(ArchR)
-ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = opt$group_by)
+# # set up for footprinting
+# motifPositions <- getPositions(ArchR)
+# ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = opt$group_by)
 
-# loop through each TF to do footprinting
-for (TF in TFs){
-  print(paste0("Calculating and plotting footprint for: ", TF))
+# # loop through each TF to do footprinting
+# for (TF in TFs){
+#   print(paste0("Calculating and plotting footprint for: ", TF))
   
-  # compute footprints for TFs of interest
-  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = opt$group_by)
-  seFoot
+#   # compute footprints for TFs of interest
+#   seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = opt$group_by)
+#   seFoot
   
-  ####### Plot TF footprints
-  p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
-                      smoothWindow = 10, baseSize = 16, plot = FALSE)
+#   ####### Plot TF footprints
+#   p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
+#                       smoothWindow = 10, baseSize = 16, plot = FALSE)
   
-  png(paste0(plot_path, TF, '_TF_footprint.png'), height = 20, width = 20, units = 'cm', res = 400)
-  grid::grid.newpage()
-  grid::grid.draw(p[[1]])
-  graphics.off()
-}
+#   png(paste0(plot_path, TF, '_TF_footprint.png'), height = 20, width = 20, units = 'cm', res = 400)
+#   grid::grid.newpage()
+#   grid::grid.draw(p[[1]])
+#   graphics.off()
+# }
