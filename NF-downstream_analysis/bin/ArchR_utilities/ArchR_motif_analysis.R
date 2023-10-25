@@ -261,14 +261,20 @@ print("ArchR object saved")
 
 ############################## Extract TFs of interest #######################################
 
+features <- getFeatures(ArchR, useMatrix = "MotifMatrix"
+  select = NULL, ignoreCase = TRUE)
+print(features)
+
 ArchR <- addImputeWeights(ArchR)
 
 # # Plot ridge plot of each TF deviation
 for (TF in TFs){
   print(TF)
-  markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
-  if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
-  
+  # markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
+  # if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
+
+  markerMotif <- paste0("z:", TF)
+
 #   p <- plotGroups(ArchR, 
 #                   groupBy = opt$group_by, 
 #                   colorBy = "MotifMatrix", 
