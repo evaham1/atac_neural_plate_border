@@ -491,7 +491,7 @@ nrow(df.tfs) # 311
 
 # plot TF activity dynamics across trajectory
 ht <- res$heatmap
-png(paste0(temp_plot_path, 'TFs_all_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Source_nodes_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
 draw(ht)
 graphics.off()
 
@@ -499,6 +499,42 @@ graphics.off()
 if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
   stop("Problem! Not all source nodes are known TFs!")
 }
+
+# plot TF activity dynamics for some example TFs
+factors <- c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "SIX1","GATA2", "HES5")
+trajMM <- GetTrajectory_updated(obj.traj, assay = "chromvar", trajectory.name = trajectory, 
+                                groupEvery = 2, slot = "data", smoothWindow = 7, 
+                                log2Norm = FALSE)
+rownames(trajMM) <- obj.traj@assays[["ATAC"]]@motifs@motif.names
+trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
+                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
+                                 log2Norm = FALSE)
+trajMM <- trajMM[factors, ]
+trajRNA <- trajRNA[factors, ]
+ht <- CorrelationHeatmap_updated(trajectory1 = trajMM, trajectory2 = trajRNA, 
+                                 name1 = "TF activity", name2 = "TF expression", 
+                                 labelTop1 = 50, labelTop2 = 50, labelRows1 = TRUE, labelRows2 = TRUE)
+png(paste0(temp_plot_path, 'Source_nodes_selected_heatmap.png'), height = 10, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+# plot TF activity dynamics for new TFs
+factors <- c("TCF3", "TEAD3", "FOXK2")
+trajMM <- GetTrajectory_updated(obj.traj, assay = "chromvar", trajectory.name = trajectory, 
+                                groupEvery = 2, slot = "data", smoothWindow = 7, 
+                                log2Norm = FALSE)
+rownames(trajMM) <- obj.traj@assays[["ATAC"]]@motifs@motif.names
+trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
+                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
+                                 log2Norm = FALSE)
+trajMM <- trajMM[factors, ]
+trajRNA <- trajRNA[factors, ]
+ht <- CorrelationHeatmap_updated(trajectory1 = trajMM, trajectory2 = trajRNA, 
+                                 name1 = "TF activity", name2 = "TF expression", 
+                                 labelTop1 = 50, labelTop2 = 50, labelRows1 = TRUE, labelRows2 = TRUE)
+png(paste0(temp_plot_path, 'Source_nodes_novel_heatmap.png'), height = 6, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
 
 ############  TARGET NODES
 
@@ -530,7 +566,7 @@ df.p2g <- P2G_filt %>% dplyr::filter(gene %in% unique(c(variable_genes, df.tfs$t
 dim(df.p2g)
 
 # save final target node df
-write.csv(df.p2g, file = paste0(temp_csv_path, "Target_genes_with_matched_enhancers.csv"), row.names = FALSE)
+write.csv(df.p2g, file = paste0(temp_csv_path, "Target_nodes_with_matched_enhancers.csv"), row.names = FALSE)
 
 # plot heatmaps of target nodes and their connected peaks
 trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
@@ -539,19 +575,58 @@ trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2,
 trajATAC <- trajATAC[df.p2g$peak, ]
 trajRNA <- trajRNA[df.p2g$gene, ]
 ht <- CorrelationHeatmap_updated(trajectory1 = trajATAC, trajectory2 = trajRNA, 
-                         name1 = "Chromatin accessibility", name2 = "Gene expression", 
+                         name1 = "Enhancer accessibility", name2 = "Gene expression", 
                          labelTop1 = 50, labelTop2 = 50, labelRows1 = FALSE, labelRows2 = FALSE)
 
-png(paste0(temp_plot_path, 'Genes_peaks_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Target_nodes_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
 draw(ht)
 graphics.off()
 
 ## how many peaks is each target node associated with?
 npeaks <- as.data.frame(table(df.p2g$gene))
-png(paste0(temp_plot_path, 'Target_node_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Target_nodes_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
 print(hist(npeaks$Freq, breaks = 100))
 graphics.off()
 summary(npeaks$Freq)
+
+# plot heatmap of target nodes which are also source nodes
+df.p2g.tfs <- df.p2g %>% dplyr::filter(gene %in% df.tfs$tfs)
+
+trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
+                                 groupEvery = 2, slot = "data", smoothWindow = 7, log2Norm = TRUE)
+trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
+                                  trajectory.name = trajectory, slot = "data", smoothWindow = 7, 
+                                  log2Norm = TRUE)
+trajATAC <- trajATAC[df.p2g.tfs$peak, ]
+trajRNA <- trajRNA[df.p2g.tfs$gene, ]
+ht <- CorrelationHeatmap_updated(trajectory1 = trajATAC, trajectory2 = trajRNA, 
+                                 name1 = "Enhancer accessibility", name2 = "Gene expression", 
+                                 labelTop1 = 50, labelTop2 = 50, labelRows1 = FALSE, labelRows2 = FALSE)
+
+png(paste0(temp_plot_path, 'Target_nodes_source_nodes_heatmap.png'), height = 30, width = 45, units = 'cm', res = 400)
+draw(ht)
+graphics.off()
+
+# for selected genes, plot the heatmap of the enhancers of that single gene
+factors = c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "DLX6", "SIX1", "GATA2", "GATA3". "HES5", 
+            "ZEB1", "TFAP2E", "TCF3", "TEAD3")
+for (TF in factors){
+  print(TF)
+  df.p2g.temp <- df.p2g %>% dplyr::filter(gene %in% TF)
+  trajRNA <- GetTrajectory_updated(obj.traj, assay = "RNA", trajectory.name = trajectory, 
+                                   groupEvery = 2, slot = "data", smoothWindow = 7, log2Norm = TRUE)
+  trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
+                                    trajectory.name = trajectory, slot = "data", smoothWindow = 7, 
+                                    log2Norm = TRUE)
+  trajATAC <- trajATAC[df.p2g.temp$peak, ]
+  trajRNA <- trajRNA[df.p2g.temp$gene, ]
+  ht <- CorrelationHeatmap_updated(trajectory1 = trajATAC, trajectory2 = trajRNA, 
+                                   name1 = "Enhancer accessibility", name2 = "Gene expression", 
+                                   labelTop1 = nrow(df.p2g.temp), labelTop2 = nrow(df.p2g.temp), labelRows1 = TRUE, labelRows2 = TRUE)
+  png(paste0(temp_plot_path, 'Enhancer_heatmap_', TF, '.png'), height = 30, width = 45, units = 'cm', res = 400)
+  draw(ht)
+  graphics.off()
+}
 
 ############  TOTAL NODES NUMBERS
 
