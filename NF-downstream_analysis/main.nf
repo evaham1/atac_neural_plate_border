@@ -395,11 +395,6 @@ workflow A {
             .set {ch_grni_vis} // add p2g csv file
         MEGA_GRN_VIS( ch_grni_vis )
 
-        // in parallel try running GRNi but only with genes in GMs + all TFs
-        // MEGA_GRNI_GMS( ch_grni )
-        // MEGA_GRN_GMS_VIS( MEGA_GRNI_GMS.out )
-        
-
     }
 
 
