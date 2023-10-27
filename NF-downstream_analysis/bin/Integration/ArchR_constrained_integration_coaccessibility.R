@@ -41,17 +41,6 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-    
-    plot_path = "./output/NF-downstream_analysis/ArchR_integration/plots/"
-    rds_path = "./output/NF-downstream_analysis/ArchR_integration/rds_files/"
-    
-    # temp folder with ss8 ATAC and ss8 RNA input
-    data_path = "./output/NF-downstream_analysis/temp_archr_integration_inputs/"
-
-    # already integrated
-    # data_path = "./output/NF-downstream_analysis/ArchR_integration//ss8/1_unconstrained_integration/rds_files/"
-    # data_path = "./output/NF-downstream_analysis/ArchR_integration/HH5/1_unconstrained_integration/rds_files/"
-    
     addArchRThreads(threads = 1) 
     
   } else if (opt$runtype == "nextflow"){
@@ -235,15 +224,15 @@ ArchR <- addGeneIntegrationMatrix(
   useMatrix = "GeneScoreMatrix", matrixName = "GeneIntegrationMatrix",
   reducedDims = "IterativeLSI",
   groupList = groupList,
-  groupRNA = "scHelper_cell_type", nameCell = "predictedCell_Un",
-  nameGroup = "predictedGroup_Un", nameScore = "predictedScore_Un",
+  groupRNA = "scHelper_cell_type", nameCell = "predictedCell",
+  nameGroup = "predictedGroup", nameScore = "predictedScore",
   force = TRUE, addToArrow = TRUE, threads = 1,
   sampleCellsATAC = 85000, sampleCellsRNA = 15000
 )
 print("integration completed")
 
 # use matched RNA cells to add new and old labels to ATAC cells
-extracted_rna_labels <- seurat_data@meta.data[ArchR$predictedCell_Un, c("scHelper_cell_type", "old_labels")]
+extracted_rna_labels <- seurat_data@meta.data[ArchR$predictedCell, c("scHelper_cell_type", "old_labels")]
 ArchR$scHelper_cell_type_new <- extracted_rna_labels[, "scHelper_cell_type"]
 ArchR$scHelper_cell_type <- extracted_rna_labels[, "old_labels"]
 print("scHelper cell type labels added")
@@ -251,7 +240,7 @@ print("scHelper cell type labels added")
 print(head(extracted_rna_labels[, "old_labels"]))
 
 # use matched RNA cells to add rna metadata to ATAC cells
-extracted_rna_metadata <- seurat_data@meta.data[ArchR$predictedCell_Un, c("run", "stage", "seurat_clusters")]
+extracted_rna_metadata <- seurat_data@meta.data[ArchR$predictedCell, c("run", "stage", "seurat_clusters")]
 ArchR$rna_stage <- extracted_rna_metadata[, "stage"]
 ArchR$rna_run <- extracted_rna_metadata[, "run"]
 ArchR$rna_clusters <- extracted_rna_metadata[, "seurat_clusters"]
@@ -279,6 +268,27 @@ ArchR$scHelper_cell_type_broad <- broad$broad
 print("Broad scHelper cell type labels added")
 
 print(head(getCellColData(ArchR)))
+
+#############################################################################################
+################################ QC of Integration ##########################################
+
+print("Making integration QC plots...")
+
+# highlight which RNA cells were used for integration
+umap_rna_used <- DimPlot(seurat_data,
+                    pt.size = 1.2, 
+                    shuffle = TRUE,
+                    cells.highlight = unique(ArchR$predictedCell), cols.highlight = "red", cols = "gray") +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+
+png(paste0(plot_path, 'RNA_cells_used_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
+print(umap_rna_new + umap_rna_old)
+graphics.off()
+
+# distribution of broad labels in RNA and ATAC data
+
 
 #############################################################################################
 ############################## Post-Integration Plots #######################################
@@ -340,13 +350,13 @@ plot_path = "./plots/after_integration/integration_scores/"
 dir.create(plot_path, recursive = T)
 
 png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
+plotEmbedding(ArchR, name = "predictedScore", plotAs = "points", size = 1.8, baseSize = 0, 
               legendSize = 10)
 graphics.off()
 
 png(paste0(plot_path, "Integration_Scores_Vln.png"), width=50, height=20, units = 'cm', res = 200)
 plotGroups(ArchR, groupBy = "clusters", colorBy = "cellColData", 
-  name = "predictedScore_Un", plotAs = "Violin", alpha = 0.4)
+  name = "predictedScore", plotAs = "Violin", alpha = 0.4)
 graphics.off()
 
 print("Post-integration plots made.")
