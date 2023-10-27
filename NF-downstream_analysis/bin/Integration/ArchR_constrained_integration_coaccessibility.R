@@ -496,12 +496,15 @@ dir.create(plot_path, recursive = T)
 
 # set genes of interest
 TFs <- c("SIX1", "EYA2", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
-         "TFAP2A", "TFAP2B", "TFAP2C", 
+         "TFAP2A", "TFAP2B", "TFAP2C", "TFAP2E",
          "PITX1", "PITX2",
          "PAX7", "MSX1", "ETS1", 
          "SOX2", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "SOX3",
-         "NKX6-2", "CSRNP1", "SNAI2", "LMX1B", "ZEB2",
-         "EPAS1", "BMP4", "YEATS4", "HOXB1", "EOMES", "ADMP")
+         "NKX6-2", "CSRNP1", "SNAI2", "LMX1B", "ZEB1", "ZEB2",
+         "EPAS1", "BMP4", "YEATS4", "HOXB1", "EOMES", "ADMP",
+         "TCF3", "TCF4", "LEF1", "TEAD3", "TEAD4", "FOXK1", "FOXK2",
+         "NKX2-3", "NKX2-5", "NKX6-2", "RFX2", "ZIC1", "ZIC3", "TBXT",
+         "NR6A1", "HIC2", "HES1", "HES5", "FOS", "JUND")
 
 ArchR <- addImputeWeights(ArchR)
 
