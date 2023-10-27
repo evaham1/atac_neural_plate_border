@@ -100,12 +100,35 @@ print("Making pre-integration plots...")
 
 #### Prepare RNA labels and colours #######
 
-#### combine contamination and old scHelper_cell_state labels
+#### these labels were recalculated on rna data with contam, save them but wont use them
+seurat_data@meta.data$scHelper_cell_type_new <- seurat_data@meta.data$scHelper_cell_type
+
+#### combine contamination and old scHelper_cell_state labels --> call this scHelper_cell_type
 contam <- seurat_data@meta.data$contamination
 original <- seurat_data@meta.data$scHelper_cell_type_original
 old_labels <- contam
 old_labels[is.na(contam)] <- as.character(original[is.na(contam)])
-seurat_data@meta.data$old_labels <- old_labels
+seurat_data@meta.data$scHelper_cell_type <- old_labels
+
+#### add broad labels to RNA data
+scHelper_cell_types <- data.frame(seurat_data$scHelper_cell_type)
+broad <- scHelper_cell_types %>% mutate(broad = mapvalues(seurat_data.scHelper_cell_type, 
+                                                          from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
+                                                                 'PPR', 'aPPR', 'pPPR',
+                                                                 'eNPB', 'NPB', 'aNPB', 'pNPB',
+                                                                 'NC', 'dNC',
+                                                                 'NNE', 'pEpi',
+                                                                 'EE', 'meso', 'endo', 'BI', 'PGC'),
+                                                          to=c(
+                                                            rep("Neural", 11),
+                                                            rep("Placodal", 3),
+                                                            rep("NPB", 4),
+                                                            rep("NC", 2),
+                                                            rep("Non-neural", 2),
+                                                            rep("Contam", 5)
+                                                          )
+))
+seurat_data$scHelper_cell_type_broad <- broad$broad
 
 ###### stage colours
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
@@ -132,9 +155,9 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                        'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo',
                                        'Neural', 'Placodal', 'Non-neural', 'Contam')
-seurat_data@meta.data$old_labels <- factor(seurat_data@meta.data$old_labels, levels = scHelper_cell_type_order)
-scHelper_new_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$scHelper_cell_type))]
-scHelper_old_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$old_labels))]
+seurat_data@meta.data$scHelper_cell_type <- factor(seurat_data@meta.data$scHelper_cell_type, levels = scHelper_cell_type_order)
+scHelper_new_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$scHelper_cell_type_new))]
+scHelper_old_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@meta.data$scHelper_cell_type))]
 
 ###### UMAPs
 plot_path = "./plots/before_integration/"
@@ -158,18 +181,28 @@ umap_rna_old <- DimPlot(seurat_data, group.by = 'old_labels', label = TRUE,
                  plot.title = element_blank())
 
 png(paste0(plot_path, 'RNA_UMAPs_old_vs_new.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(umap_rna_new + umap_rna_old)
+print(umap_rna_old + umap_rna_new)
+graphics.off()
+
+scHelper_broad_cols <- scHelper_cell_type_colours[seurat_data@meta.data$scHelper_cell_type_broad]
+umap_broad <- DimPlot(seurat_data, group.by = 'scHelper_cell_type_broad', label = TRUE, 
+                        label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+                        label.box = TRUE, repel = TRUE,
+                        pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
+                        cols = scHelper_broad_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+
+png(paste0(plot_path, 'RNA_UMAP_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+print(umap_broad)
 graphics.off()
 
 ############################## UMAPs before integration #######################################
 # UMAPs of RNA and ATAC data, with RNA coloured by cell state and ATAC by clusters
 umap_atac <- plotEmbedding(ArchR, name = "clusters", plotAs = "points", size = 1.8, baseSize = 0, labelSize = 8, legendSize = 0)
 
-png(paste0(plot_path, 'UMAPs_before_integration_new_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
-print(umap_rna_new + umap_atac)
-graphics.off()
-
-png(paste0(plot_path, 'UMAPs_before_integration_old_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
+png(paste0(plot_path, 'UMAPs_before_integration_scHelper_cell_states.png'), height = 20, width = 40, units = 'cm', res = 400)
 print(umap_rna_old + umap_atac)
 graphics.off()
 
@@ -232,9 +265,10 @@ ArchR <- addGeneIntegrationMatrix(
 print("integration completed")
 
 # use matched RNA cells to add new and old labels to ATAC cells
-extracted_rna_labels <- seurat_data@meta.data[ArchR$predictedCell, c("scHelper_cell_type", "old_labels")]
-ArchR$scHelper_cell_type_new <- extracted_rna_labels[, "scHelper_cell_type"]
-ArchR$scHelper_cell_type <- extracted_rna_labels[, "old_labels"]
+extracted_rna_labels <- seurat_data@meta.data[ArchR$predictedCell, c("scHelper_cell_type_new", "scHelper_cell_type", "scHelper_cell_type_broad")]
+ArchR$scHelper_cell_type_new <- extracted_rna_labels[, "scHelper_cell_type_new"]
+ArchR$scHelper_cell_type <- extracted_rna_labels[, "scHelper_cell_type"]
+ArchR$scHelper_cell_type_broad <- extracted_rna_labels[, "scHelper_cell_type_broad"]
 print("scHelper cell type labels added")
 
 print(head(extracted_rna_labels[, "old_labels"]))
@@ -246,33 +280,15 @@ ArchR$rna_run <- extracted_rna_metadata[, "run"]
 ArchR$rna_clusters <- extracted_rna_metadata[, "seurat_clusters"]
 print("RNA metadata added")
 
-# add more general scHelpercelltype labels (ie group together all PPRs, neurals, etc)
-scHelper_cell_types <- data.frame(getCellColData(ArchR, select = "scHelper_cell_type"))
-broad <- scHelper_cell_types %>% mutate(broad = mapvalues(scHelper_cell_type, 
-                           from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB", "eCN", "eN",
-                                  'PPR', 'aPPR', 'pPPR',
-                                  'eNPB', 'NPB', 'aNPB', 'pNPB',
-                                  'NC', 'dNC',
-                                  'NNE', 'pEpi',
-                                  'EE', 'meso', 'endo', 'BI', 'PGC'),
-                           to=c(
-                            rep("Neural", 11),
-                            rep("Placodal", 3),
-                            rep("NPB", 4),
-                            rep("NC", 2),
-                            rep("Non-neural", 2),
-                            rep("Contam", 5)
-                           )
-                           ))
-ArchR$scHelper_cell_type_broad <- broad$broad
-print("Broad scHelper cell type labels added")
-
 print(head(getCellColData(ArchR)))
 
 #############################################################################################
 ################################ QC of Integration ##########################################
 
 print("Making integration QC plots...")
+
+plot_path = "./plots/after_integration/integration_QC/"
+dir.create(plot_path, recursive = T)
 
 # highlight which RNA cells were used for integration
 umap_rna_used <- DimPlot(seurat_data,
@@ -284,11 +300,123 @@ umap_rna_used <- DimPlot(seurat_data,
                  plot.title = element_blank())
 
 png(paste0(plot_path, 'RNA_cells_used_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-print(umap_rna_new + umap_rna_old)
+print(umap_rna_used)
 graphics.off()
 
-# distribution of broad labels in RNA and ATAC data
+#### distribution of broad labels in RNA and ATAC data
 
+# RNA: extract cell state proportions and order and colour them -> plot pie chart
+counts <- as.data.frame(table(seurat_data$scHelper_cell_type))
+counts$Freq <- as.numeric(counts$Freq)
+colnames(counts) <- c("Cell state", "Frequency")
+counts <- counts %>% mutate('Percentage' = round(100*(Frequency/sum(Frequency))))
+
+counts2 <- counts %>% 
+  mutate(csum = rev(cumsum(rev(Frequency))),
+         pos = Frequency/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), Frequency/2, pos))
+
+png(paste0(plot_path, 'RNA_cell_state_distribution_piechart.png'), height = 20, width = 30, units = 'cm', res = 400)
+ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y", direction=-1) +
+  scale_fill_manual(values = scHelper_cell_type_colours) +
+  geom_label_repel(data = counts2,
+                   aes(y = pos, label = `Cell state`),
+                   size = 6, nudge_x = 1, show.legend = FALSE) +
+  theme_void() +
+  theme(text = element_text(size = 30), legend.position = "none")
+graphics.off()
+
+png(paste0(plot_path, 'RNA_cell_state_distribution_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("RNA data", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# RNA: extract cell state proportions and order and colour them -> plot pie chart
+counts <- as.data.frame(table(seurat_data$scHelper_cell_type_broad))
+counts$Freq <- as.numeric(counts$Freq)
+colnames(counts) <- c("Cell state", "Frequency")
+counts <- counts %>% mutate('Percentage' = round(100*(Frequency/sum(Frequency))))
+
+counts2 <- counts %>% 
+  mutate(csum = rev(cumsum(rev(Frequency))),
+         pos = Frequency/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), Frequency/2, pos))
+
+png(paste0(plot_path, 'RNA_cell_state_distribution_broad_piechart.png'), height = 20, width = 30, units = 'cm', res = 400)
+ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y", direction=-1) +
+  scale_fill_manual(values = scHelper_cell_type_colours) +
+  geom_label_repel(data = counts2,
+                   aes(y = pos, label = `Cell state`),
+                   size = 6, nudge_x = 1, show.legend = FALSE) +
+  theme_void() +
+  theme(text = element_text(size = 30), legend.position = "none")
+graphics.off()
+
+png(paste0(plot_path, 'RNA_cell_state_distribution_broad_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("RNA data", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+
+# ATAC: extract cell state proportions and order and colour them -> plot pie chart
+counts <- as.data.frame(table(ArchR$scHelper_cell_type))
+counts$Freq <- as.numeric(counts$Freq)
+colnames(counts) <- c("Cell state", "Frequency")
+counts <- counts %>% mutate('Percentage' = round(100*(Frequency/sum(Frequency))))
+
+counts2 <- counts %>% 
+  mutate(csum = rev(cumsum(rev(Frequency))),
+         pos = Frequency/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), Frequency/2, pos))
+
+png(paste0(plot_path, 'ATAC_cell_state_distribution_piechart.png'), height = 20, width = 30, units = 'cm', res = 400)
+ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y", direction=-1) +
+  scale_fill_manual(values = scHelper_cell_type_colours) +
+  geom_label_repel(data = counts2,
+                   aes(y = pos, label = `Cell state`),
+                   size = 6, nudge_x = 1, show.legend = FALSE) +
+  theme_void() +
+  theme(text = element_text(size = 30), legend.position = "none")
+graphics.off()
+
+png(paste0(plot_path, 'ATAC_cell_state_distribution_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("ATAC data", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# ATAC: extract cell state proportions and order and colour them -> plot pie chart
+counts <- as.data.frame(table(ArchR$scHelper_cell_type_broad))
+counts$Freq <- as.numeric(counts$Freq)
+colnames(counts) <- c("Cell state", "Frequency")
+counts <- counts %>% mutate('Percentage' = round(100*(Frequency/sum(Frequency))))
+
+counts2 <- counts %>% 
+  mutate(csum = rev(cumsum(rev(Frequency))),
+         pos = Frequency/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), Frequency/2, pos))
+
+png(paste0(plot_path, 'ATAC_cell_state_distribution_broad_piechart.png'), height = 20, width = 20, units = 'cm', res = 400)
+ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y", direction=-1) +
+  scale_fill_manual(values = scHelper_cell_type_colours) +
+  geom_label_repel(data = counts2,
+                   aes(y = pos, label = `Cell state`),
+                   size = 6, nudge_x = 1, show.legend = FALSE) +
+  theme_void() +
+  theme(text = element_text(size = 30), legend.position = "none")
+graphics.off()
+
+png(paste0(plot_path, 'ATAC_cell_state_distribution_broad_table.png'), height = 10, width = 10, units = 'cm', res = 400)
+grid.arrange(top=textGrob("ATAC data", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 #############################################################################################
 ############################## Post-Integration Plots #######################################
