@@ -608,7 +608,7 @@ draw(ht)
 graphics.off()
 
 # for selected genes, plot the heatmap of the enhancers of that single gene
-factors = c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "DLX6", "SIX1", "GATA2", "GATA3". "HES5", 
+factors = c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "DLX6", "SIX1", "GATA2", "GATA3", "HES5", 
             "ZEB1", "TFAP2E", "TCF3", "TEAD3")
 for (TF in factors){
   print(TF)
