@@ -485,6 +485,7 @@ res <- SelectTFs_updated(object = obj.traj, trajectory.name = trajectory, return
 # save the selected source nodes
 df.tfs <- res$tfs
 write.csv(df.tfs, file = paste0(temp_csv_path, "TF_correlations_all.csv"), row.names = FALSE)
+write_tsv(df.tfs, file = paste0(temp_csv_path, "TF_correlations_all.txt"))
 
 # how many source nodes are there
 nrow(df.tfs) # 311
@@ -567,6 +568,7 @@ dim(df.p2g)
 
 # save final target node df
 write.csv(df.p2g, file = paste0(temp_csv_path, "Target_nodes_with_matched_enhancers.csv"), row.names = FALSE)
+write_tsv(df.p2g, file = paste0(temp_csv_path, "Target_nodes_with_matched_enhancers.txt"))
 
 # plot heatmaps of target nodes and their connected peaks
 trajATAC <- GetTrajectory_updated(obj.traj, assay = "ATAC", groupEvery = 2, 
@@ -584,10 +586,16 @@ graphics.off()
 
 ## how many peaks is each target node associated with?
 npeaks <- as.data.frame(table(df.p2g$gene))
-png(paste0(temp_plot_path, 'Target_nodes_nPeaks.png'), height = 10, width = 15, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Target_nodes_nPeaks_hist.png'), height = 10, width = 15, units = 'cm', res = 400)
 print(hist(npeaks$Freq, breaks = 100))
 graphics.off()
-summary(npeaks$Freq)
+
+npeaks_summary <- summary(npeaks$Freq) 
+table <- data.frame(Stats = names(npeaks_summary), Value = as.vector(npeaks_summary))
+png(paste0(plot_path_temp, 'Target_nodes_nPeaks_table.png'), height = 30, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Peaks per gene", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(table, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
 
 # plot heatmap of target nodes which are also source nodes
 df.p2g.tfs <- df.p2g %>% dplyr::filter(gene %in% df.tfs$tfs)
