@@ -163,7 +163,7 @@ scHelper_old_cols <- scHelper_cell_type_colours[levels(droplevels(seurat_data@me
 plot_path = "./plots/before_integration/"
 dir.create(plot_path, recursive = T)
 
-umap_rna_new <- DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE, 
+umap_rna_new <- DimPlot(seurat_data, group.by = 'scHelper_cell_type_new', label = TRUE, 
                     label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
                     label.box = TRUE, repel = TRUE,
                     pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
@@ -171,7 +171,7 @@ umap_rna_new <- DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TR
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
                  plot.title = element_blank())
-umap_rna_old <- DimPlot(seurat_data, group.by = 'old_labels', label = TRUE, 
+umap_rna_old <- DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE, 
                     label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
                     label.box = TRUE, repel = TRUE,
                     pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
