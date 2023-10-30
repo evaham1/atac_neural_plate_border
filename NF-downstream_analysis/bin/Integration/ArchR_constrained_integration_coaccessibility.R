@@ -95,6 +95,94 @@ getOutputDirectory(ArchR)
 seurat_data <- readRDS(paste0(data_path, "seurat_label_transfer.RDS"))
 
 ############################################################################################
+############################## Variance plots #######################################
+
+print("Making plots to explore stage variance...")
+
+stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+temp_plot_path = paste0(plot_path, "variance_plots/")
+dir.create(temp_plot_path, recursive = T)
+
+# Plot PCs for RNA data
+for (i in 1:50){
+  pc_oi <- paste0('PC_', i)
+  print(pc_oi)
+  
+  # Subset embeddings for PC of interest
+  pc_embeddings <- seurat_data@reductions$pca@cell.embeddings[,pc_oi]
+  
+  # Prepare plot data
+  plot_data <- data.frame(cell_type = as.character(seurat_data@meta.data[names(pc_embeddings), 'stage']), pc_embeddings = pc_embeddings)
+  
+  # Plot histogram of cell state distributions along PC of interest
+  png(paste0(temp_plot_path, "RNA_", pc_oi, "_stage.png"), width = 11, height = 6, units = 'cm', res = 720)
+  print(
+    ggplot(plot_data, aes(x = pc_embeddings, colour = cell_type, fill = cell_type)) +
+      geom_density(alpha = 0.2) +
+      scale_fill_manual(values = stage_cols) +
+      scale_colour_manual(values = stage_cols) +
+      xlab(sub('_', ' ', pc_oi)) +
+      ylab('Density') +
+      theme_classic() +
+      theme(legend.title=element_blank()) +
+      scale_x_reverse()
+  )
+  graphics.off()
+}
+
+# Extract total variance explained for each PC and plot
+mat <- Seurat::GetAssayData(seurat, assay = "RNA", slot = "scale.data")
+pca <- seurat[["pca"]]
+total_variance = seurat@reductions$pca@misc$total.variance
+eigValues = (pca@stdev)^2  ## EigenValues
+varExplained = (eigValues / total_variance)*100
+totalvarExplained = sum(varExplained)
+data <- data.frame(PC = c(colnames(seurat@reductions$pca@cell.embeddings), "Total"), 
+                   VarianceExplained = c(varExplained, totalvarExplained))
+data <- data %>% mutate(RelativeVarianceExplained = (VarianceExplained / totalvarExplained)*100)
+
+png(paste0(temp_plot_path, 'RNA_PCs_variance_explained.png'), height = 45, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("PCs", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(data, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# Plot SVDs for ATAC data
+for (i in 1:30){
+  svd_oi <- paste0('LSI', i)
+  print(svd_oi)
+  
+  # Subset embeddings for PC of interest
+  embeddings <- ArchR@reducedDims$IterativeLSI@listData$matSVD[,svd_oi]
+  
+  # Prepare plot data
+  plot_data <- as.data.frame(merge(getCellColData(ArchR, select = "stage"), as.data.frame(embeddings), by = "row.names"))
+  
+  # Plot histogram of cell state distributions along PC of interest
+  png(paste0(temp_plot_path, "ATAC_", svd_oi, "_stage.png"), width = 11, height = 6, units = 'cm', res = 720)
+  print(
+    ggplot(plot_data, aes(x = embeddings, colour = stage, fill = stage)) +
+      geom_density(alpha = 0.2) +
+      scale_fill_manual(values = stage_cols) +
+      scale_colour_manual(values = stage_cols) +
+      xlab(sub('_', ' ', svd_oi)) +
+      ylab('Density') +
+      theme_classic() +
+      theme(legend.title=element_blank()) +
+      scale_x_reverse()
+  )
+  graphics.off()
+  
+}
+
+# Extract the d for each SVD component, but maybe shouldnt actually use this
+data <- data.frame(SVD = colnames(ArchR@reducedDims$IterativeLSI@listData$matSVD),
+                   d = ArchR@reducedDims$IterativeLSI@listData$svd[["d"]])
+png(paste0(temp_plot_path, 'ATAC_SVDss_d_value.png'), height = 45, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob("SVDss", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(data, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+############################################################################################
 ############################## Pre-Integration Plots #######################################
 
 print("Making pre-integration plots...")
