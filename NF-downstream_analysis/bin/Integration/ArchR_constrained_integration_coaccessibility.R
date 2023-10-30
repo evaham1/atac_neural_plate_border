@@ -131,13 +131,13 @@ for (i in 1:50){
 }
 
 # Extract total variance explained for each PC and plot
-mat <- Seurat::GetAssayData(seurat, assay = "RNA", slot = "scale.data")
-pca <- seurat[["pca"]]
-total_variance = seurat@reductions$pca@misc$total.variance
+mat <- Seurat::GetAssayData(seurat_data, assay = "RNA", slot = "scale.data")
+pca <- seurat_data[["pca"]]
+total_variance = seurat_data@reductions$pca@misc$total.variance
 eigValues = (pca@stdev)^2  ## EigenValues
 varExplained = (eigValues / total_variance)*100
 totalvarExplained = sum(varExplained)
-data <- data.frame(PC = c(colnames(seurat@reductions$pca@cell.embeddings), "Total"), 
+data <- data.frame(PC = c(colnames(seurat_data@reductions$pca@cell.embeddings), "Total"), 
                    VarianceExplained = c(varExplained, totalvarExplained))
 data <- data %>% mutate(RelativeVarianceExplained = (VarianceExplained / totalvarExplained)*100)
 
