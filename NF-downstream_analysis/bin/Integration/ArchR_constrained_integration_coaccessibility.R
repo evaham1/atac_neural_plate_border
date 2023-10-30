@@ -20,6 +20,7 @@ library(Seurat)
 library(plyr)
 library(gtools)
 library(scHelper)
+library(ggrepel)
 
 ############################## Set up script options #######################################
 
@@ -319,7 +320,7 @@ ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y", direction=-1) +
   scale_fill_manual(values = scHelper_cell_type_colours) +
-  geom_label_repel(data = counts2,
+  ggrepel::geom_label_repel(data = counts2,
                    aes(y = pos, label = `Cell state`),
                    size = 6, nudge_x = 1, show.legend = FALSE) +
   theme_void() +
@@ -347,7 +348,7 @@ ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y", direction=-1) +
   scale_fill_manual(values = scHelper_cell_type_colours) +
-  geom_label_repel(data = counts2,
+  ggrepel::geom_label_repel(data = counts2,
                    aes(y = pos, label = `Cell state`),
                    size = 6, nudge_x = 1, show.legend = FALSE) +
   theme_void() +
@@ -376,7 +377,7 @@ ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y", direction=-1) +
   scale_fill_manual(values = scHelper_cell_type_colours) +
-  geom_label_repel(data = counts2,
+  ggrepel::geom_label_repel(data = counts2,
                    aes(y = pos, label = `Cell state`),
                    size = 6, nudge_x = 1, show.legend = FALSE) +
   theme_void() +
@@ -404,7 +405,7 @@ ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y", direction=-1) +
   scale_fill_manual(values = scHelper_cell_type_colours) +
-  geom_label_repel(data = counts2,
+  ggrepel::geom_label_repel(data = counts2,
                    aes(y = pos, label = `Cell state`),
                    size = 6, nudge_x = 1, show.legend = FALSE) +
   theme_void() +
