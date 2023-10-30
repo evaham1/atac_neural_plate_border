@@ -271,8 +271,6 @@ ArchR$scHelper_cell_type <- extracted_rna_labels[, "scHelper_cell_type"]
 ArchR$scHelper_cell_type_broad <- extracted_rna_labels[, "scHelper_cell_type_broad"]
 print("scHelper cell type labels added")
 
-print(head(extracted_rna_labels[, "old_labels"]))
-
 # use matched RNA cells to add rna metadata to ATAC cells
 extracted_rna_metadata <- seurat_data@meta.data[ArchR$predictedCell, c("run", "stage", "seurat_clusters")]
 ArchR$rna_stage <- extracted_rna_metadata[, "stage"]
