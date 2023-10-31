@@ -48,7 +48,7 @@ if(opt$verbose) print(opt)
     data_path = "./output/NF-downstream_analysis/Processing/ss8/Clustering/rds_files/"
     
     # all the labels I want to transfer:
-    opt$labels <- "clusters,scHelper_cell_type,scHelper_cell_type_broad,predictedCell_Un,predictedScore_Un"
+    opt$labels <- "clusters,scHelper_cell_type,scHelper_cell_type_broad,predictedCell,predictedScore"
     
     addArchRThreads(threads = 1)
     
@@ -207,7 +207,7 @@ graphics.off()
 
 ### Plot integration scores
 png(paste0(plot_path, 'transferred_Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "transferred_predictedScore_Un", plotAs = "points", size = 2.5, baseSize = 0, 
+plotEmbedding(ArchR, name = "transferred_predictedScore", plotAs = "points", size = 2.5, baseSize = 0, 
               legendSize = 10)
 graphics.off()
 
