@@ -180,6 +180,8 @@ def main(args=None):
     # sc.pp.log1p
 
     #####    Visualising metacells
+    print("Visualising metacells..")
+
     plot_path = "./plots/visualise_SEACells/"
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
@@ -192,6 +194,8 @@ def main(args=None):
     SEACells.plot.plot_SEACell_sizes(ad, bins=5, save_as = os.path.join(plot_path, "SEACell_sizes.png"))
 
     #####    Checking quality of metacells
+    print("Checking quality of metacells..")
+
     plot_path = "./plots/QC_SEACells/"
     if not os.path.exists(plot_path):
         os.mkdir(plot_path)
