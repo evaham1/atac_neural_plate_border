@@ -159,6 +159,7 @@ def main(args=None):
     plt.close()
 
     labels,weights = model.get_soft_assignments()
+    labels.head()
 
     #####   Summarise counts by metacells
     print("Summarising counts by metacells..")
