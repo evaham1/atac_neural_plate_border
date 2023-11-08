@@ -74,13 +74,17 @@ workflow CLUSTER_PEAKS_WF {
     // Cluster peaks using Antler package
     CLUSTER_PEAKS( FILTER_PEAKS.out )
 
-    CLUSTER_PEAKS.out.view()
+    // CLUSTER_PEAKS.out.view()
+    // [[sample_id:FullData], [PMs, antler_FullData, antler_HH5, antler_HH6, antler_HH7, antler_ss4, antler_ss8, 0471d6980a2a/plots, rds_files]]
 
     // Run homer motif enrichment on each peak module
     CLUSTER_PEAKS.out
         .concat( ch_fasta )
         .set { ch_homer_input }
-    HOMER_MOTIF_ENRICHMENT( ch_homer_input )
+    
+    ch_homer_input.view()
+
+    // HOMER_MOTIF_ENRICHMENT( ch_homer_input )
 
     emit:
     clustered_peaks = CLUSTER_PEAKS.out
