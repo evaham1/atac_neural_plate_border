@@ -20,7 +20,7 @@ import random
 random.seed(30)
 
 # Some plotting aesthetics
-sns.set_style('ticks')
+sns.set(style='ticks', context='poster')
 matplotlib.rcParams['figure.figsize'] = [6, 6]
 matplotlib.rcParams['figure.dpi'] = 200
 
@@ -192,7 +192,7 @@ def main(args=None):
     SEACells.plot.plot_2D(ad, key='X_umap', colour_metacells=True, save_as = os.path.join(plot_path, "Metacells_on_UMAP_coloured.png"))
 
     # sizes of metacells
-    sns.set(font_scale=3)
+    # sns.set(font_scale=3)
     SEACells.plot.plot_SEACell_sizes(ad, bins=10, figsize=(16, 12), save_as = os.path.join(plot_path, "SEACell_sizes.png"))
 
     #####    Checking quality of metacells
@@ -207,7 +207,7 @@ def main(args=None):
     SEACell_purity.head()
     y = category + "_purity"
     plt.figure(figsize=(5,8))
-    sns.set(font_scale=3)
+    # sns.set(font_scale=3)
     sns.boxplot(data=SEACell_purity, y=y)
     plt.title('Clusters Purity')
     sns.despine()
@@ -220,7 +220,7 @@ def main(args=None):
         SEACell_purity.head()
         y = "scHelper_cell_type_purity"
         plt.figure(figsize=(5,8))
-        sns.set(font_scale=3)
+        # sns.set(font_scale=3)
         sns.boxplot(data=SEACell_purity, y=y)
         plt.title('scHelper_cell_type Purity')
         sns.despine()
@@ -231,7 +231,7 @@ def main(args=None):
     compactness = SEACells.evaluate.compactness(ad, build_kernel_on)
     compactness.head()
     plt.figure(figsize=(5,8))
-    sns.set(font_scale=3)
+    # sns.set(font_scale=3)
     sns.boxplot(data=compactness, y='compactness')
     plt.title('Compactness')
     sns.despine()
@@ -242,7 +242,7 @@ def main(args=None):
     separation = SEACells.evaluate.separation(ad, build_kernel_on, nth_nbr=1)
     separation.head()
     plt.figure(figsize=(5,8))
-    sns.set(font_scale=3)
+    # sns.set(font_scale=3)
     sns.boxplot(data=separation, y='separation')
     plt.title('Separation')
     sns.despine()
