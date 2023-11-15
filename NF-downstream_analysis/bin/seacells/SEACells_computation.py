@@ -193,7 +193,7 @@ def main(args=None):
 
     # sizes of metacells
     sns.set(font_scale=3)
-    SEACells.plot.plot_SEACell_sizes(ad, bins=5, figsize=(8, 8), save_as = os.path.join(plot_path, "SEACell_sizes.png"))
+    SEACells.plot.plot_SEACell_sizes(ad, bins=10, figsize=(16, 12), save_as = os.path.join(plot_path, "SEACell_sizes.png"))
 
     #####    Checking quality of metacells
     print("Checking quality of metacells..")
@@ -206,7 +206,7 @@ def main(args=None):
     SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, category)
     SEACell_purity.head()
     y = category + "_purity"
-    plt.figure(figsize=(8,8))
+    plt.figure(figsize=(5,8))
     sns.set(font_scale=3)
     sns.boxplot(data=SEACell_purity, y=y)
     plt.title('Clusters Purity')
@@ -219,7 +219,7 @@ def main(args=None):
         SEACell_purity = SEACells.evaluate.compute_celltype_purity(ad, "scHelper_cell_type")
         SEACell_purity.head()
         y = "scHelper_cell_type_purity"
-        plt.figure(figsize=(8,8))
+        plt.figure(figsize=(5,8))
         sns.set(font_scale=3)
         sns.boxplot(data=SEACell_purity, y=y)
         plt.title('scHelper_cell_type Purity')
@@ -230,7 +230,7 @@ def main(args=None):
     # compactness
     compactness = SEACells.evaluate.compactness(ad, build_kernel_on)
     compactness.head()
-    plt.figure(figsize=(8,8))
+    plt.figure(figsize=(5,8))
     sns.set(font_scale=3)
     sns.boxplot(data=compactness, y='compactness')
     plt.title('Compactness')
@@ -241,7 +241,7 @@ def main(args=None):
     # separation
     separation = SEACells.evaluate.separation(ad, build_kernel_on, nth_nbr=1)
     separation.head()
-    plt.figure(figsize=(8,8))
+    plt.figure(figsize=(5,8))
     sns.set(font_scale=3)
     sns.boxplot(data=separation, y='separation')
     plt.title('Separation')
