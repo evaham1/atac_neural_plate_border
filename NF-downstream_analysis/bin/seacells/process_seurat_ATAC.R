@@ -148,9 +148,11 @@ seurat <- FindClusters(seurat, resolution = 1.2)
 
 # UMAP of clusters
 png(paste0(plot_path, "clusters_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
-DimPlot(seurat, group.by = 'seurat_clusters', label = TRUE, 
-        label.size = 9, label.box = TRUE, repel = TRUE,
-        pt.size = 10, shuffle = TRUE) +
+DimPlot(seurat_data, group.by = 'seurat_clusters', label = TRUE, 
+        label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 6, 6), 
+        shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
                  plot.title = element_blank())
@@ -159,9 +161,21 @@ graphics.off()
 # Size of clusters
 df <- as.data.frame(table(seurat@meta.data$seurat_clusters))
 colnames(df) <- c("Cluster", "nCells")
-png(paste0(plot_path, 'cluster_metacell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, 'cluster_metacell_counts.png'), height = 20, width = 12, units = 'cm', res = 400)
 grid.arrange(top=textGrob("", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
+# Stage
+png(paste0(plot_path, "stage_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat_data, group.by = 'stage', label = TRUE, 
+        label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 6, 6), 
+        shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 ############################    Save seurat object   #############################
