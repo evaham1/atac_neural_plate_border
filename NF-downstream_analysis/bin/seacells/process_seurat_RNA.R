@@ -238,7 +238,7 @@ graphics.off()
 
 ### There is a run effect - cluster to see how bad it is
 # Cluster using default clustering resolution
-run_data <- FindClusters(run_data, resolution = 1)
+run_data <- FindClusters(run_data, resolution = 1.4)
 
 # Clusters before and after regressing out
 png(paste0(plot_path, "run_clusterst.png"), width=40, height=20, units = 'cm', res = 200)
