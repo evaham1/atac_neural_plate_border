@@ -154,41 +154,41 @@ seurat <- FindClusters(seurat, resolution = 1)
 plot_path = "./plots/investigating_what_to_regress/"
 dir.create(plot_path, recursive = T)
 
-# Scale data and regress
-sex_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("sex"))
+# # Scale data and regress
+# sex_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("sex"))
 
-# PCA + UMAP
-sex_data <- RunPCA(object = sex_data, verbose = FALSE)
-pc_cutoff <- ElbowCutoff(sex_data)
-sex_data <- FindNeighbors(sex_data, dims = 1:pc_cutoff, verbose = FALSE)
-sex_data <- RunUMAP(sex_data, dims = 1:pc_cutoff, verbose = FALSE)
+# # PCA + UMAP
+# sex_data <- RunPCA(object = sex_data, verbose = FALSE)
+# pc_cutoff <- ElbowCutoff(sex_data)
+# sex_data <- FindNeighbors(sex_data, dims = 1:pc_cutoff, verbose = FALSE)
+# sex_data <- RunUMAP(sex_data, dims = 1:pc_cutoff, verbose = FALSE)
 
-# UMAP before and after regressing out
-png(paste0(plot_path, "sex.png"), width=40, height=20, units = 'cm', res = 200)
-print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "sex", pt.size = 6),
-                              FeaturePlot(sex_data, features = "sex", pt.size = 6),
-                              ncol = 2))
-graphics.off()
+# # UMAP before and after regressing out
+# png(paste0(plot_path, "sex.png"), width=40, height=20, units = 'cm', res = 200)
+# print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "sex", pt.size = 6),
+#                               FeaturePlot(sex_data, features = "sex", pt.size = 6),
+#                               ncol = 2))
+# graphics.off()
 
 ### No difference to regress out sex effect - don't do it!
 
 ################### Check if need to regress for percent.mt #################
 
-# Scale data and regress
-mt_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("percent.mt"))
+# # Scale data and regress
+# mt_data <- ScaleData(seurat, features = rownames(seurat), vars.to.regress = c("percent.mt"))
 
-# PCA + UMAP
-mt_data <- RunPCA(object = mt_data, verbose = FALSE)
-pc_cutoff <- ElbowCutoff(mt_data)
-mt_data <- FindNeighbors(mt_data, dims = 1:pc_cutoff, verbose = FALSE)
-mt_data <- RunUMAP(mt_data, dims = 1:pc_cutoff, verbose = FALSE)
+# # PCA + UMAP
+# mt_data <- RunPCA(object = mt_data, verbose = FALSE)
+# pc_cutoff <- ElbowCutoff(mt_data)
+# mt_data <- FindNeighbors(mt_data, dims = 1:pc_cutoff, verbose = FALSE)
+# mt_data <- RunUMAP(mt_data, dims = 1:pc_cutoff, verbose = FALSE)
 
-# UMAP before and after regressing out
-png(paste0(plot_path, "percent.mt.png"), width=40, height=20, units = 'cm', res = 200)
-print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "percent.mt", pt.size = 6),
-                              FeaturePlot(mt_data, features = "percent.mt", pt.size = 6),
-                              ncol = 2))
-graphics.off()
+# # UMAP before and after regressing out
+# png(paste0(plot_path, "percent.mt.png"), width=40, height=20, units = 'cm', res = 200)
+# print(gridExtra::grid.arrange(FeaturePlot(seurat, features = "percent.mt", pt.size = 6),
+#                               FeaturePlot(mt_data, features = "percent.mt", pt.size = 6),
+#                               ncol = 2))
+# graphics.off()
 
 ### No difference to regress out percent.mt - don't do it!
 
@@ -238,7 +238,7 @@ graphics.off()
 
 ### There is a run effect - cluster to see how bad it is
 # Cluster using default clustering resolution
-run_data <- FindClusters(run_data, resolution = 1.4)
+run_data <- FindClusters(run_data, resolution = 1)
 
 # Clusters before and after regressing out
 png(paste0(plot_path, "run_clusterst.png"), width=40, height=20, units = 'cm', res = 200)
@@ -273,8 +273,8 @@ png(paste0(plot_path, "clustree.png"), width=70, height=35, units = 'cm', res = 
 ClustRes(seurat_object = final_seurat, by = 0.2, prefix = "RNA_snn_res.")
 graphics.off()
 
-# Use default clustering resolution (1)
-final_seurat <- FindClusters(final_seurat, resolution = 1)
+# Decide clustering resolution for annotations here!
+final_seurat <- FindClusters(final_seurat, resolution = 1.4)
 
 # Clusters
 png(paste0(plot_path, "clusters_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
