@@ -423,7 +423,7 @@ workflow A {
         ///////     Calculate SEACells      ///////
 
         // Run Metacells on ATAC stages
-        SEACELLS_ATAC_WF( ch_metacell_input, ch_binary_knowledge_matrix )
+        //SEACELLS_ATAC_WF( ch_metacell_input, ch_binary_knowledge_matrix )
              
         //read in RNA data (stages only)
         METADATA_RNA( params.rna_stages_sample_sheet ) // [[sample_id:HH5], [HH5_clustered_data.RDS]]
@@ -436,7 +436,7 @@ workflow A {
         ///////     Integrate SEACells      ///////
 
         // will these different outputs channel in stage by stage??
-        SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed_classified, SEACELLS_ATAC_WF.out.seacell_outputs_named )
+        //SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed_classified, SEACELLS_ATAC_WF.out.seacell_outputs_named )
         // maybe in here add schelper cell type broad labels
 
         ///////     Cluster peaks      ///////

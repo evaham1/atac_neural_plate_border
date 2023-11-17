@@ -1,5 +1,4 @@
-##### Putting the SEACell assignments onto ArchR and checking their purity
-# also adding metadata to the SEACells themselves and exporting this for visualisations of peak modules
+##### Transferring metacell labels onto single RNA cells in seurat object
 
 # load libraries
 library(getopt)
@@ -35,15 +34,7 @@ if(opt$verbose) print(opt)
     cat('No command line arguments provided, paths are set for running interactively in Rstudio server\n')
     
     ncores = 8
-    addArchRThreads(threads = 1) 
-    
-    # for transfer labels archr object
-    data_path = "./output/NF-downstream_analysis/Processing/TransferLabels/3_peak_call/rds_files/"
-    # for metacell assignments
-    data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
-    # output from SEACells - summarised by metacells
-    data_path = "./output/NF-downstream_analysis/Downstream_processing/Peak_clustering/SEACells/4_exported_SEACells_data/rds_files/"
-    label = "summarised_counts_1000.csv"
+    addArchRThreads(threads = 1)
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -52,9 +43,6 @@ if(opt$verbose) print(opt)
     rds_path = "./rds_files/"
     data_path = "./input/"
     ncores = opt$cores
-    label = "AnnData_summarised_by_metacells_peak_counts.csv"
-    
-    addArchRThreads(threads = ncores)
     
   } else {
     stop("--runtype must be set to 'nextflow'")
@@ -144,7 +132,7 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
 ############################## Read in seurat object + Metacell assignments #######################################
 
 label <- unique(sub('_.*', '', list.files(data_path)))
-print(label) 
+print(label)
 
 # read in seurat object
 seurat <- readRDS(paste0(data_path, label, "_clustered_data.RDS"))

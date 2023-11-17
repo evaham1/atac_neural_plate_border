@@ -12,6 +12,8 @@ include {R as PROCESS_METACELLS} from "$moduleDir/../../../modules/local/r/main"
 include {R as CLASSIFY_METACELLS} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/seacells/state_classification.R", checkIfExists: true) )
 // Convert back to Anndata
 include {R as SEURAT_TO_ANNDATA_PROCESSED_RNA} from "$moduleDir/../../../modules/local/r/main"               addParams(script: file("$moduleDir/../../../bin/data_conversion/seurat_to_h5ad.R", checkIfExists: true) )
+// Transfer RNA metacell labels onto full data object to check how well labels match
+include {R as TRANSFER_METACELL_LABELS_RNA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/Transfer_metacell_labels_RNA.R", checkIfExists: true) )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +36,7 @@ workflow SEACELLS_RNA_WF {
     /// /atac_neural_plate_border/NF-downstream_analysis/binary_knowledge_matrix_contam.csv
 
     input.set{ch_seurat}
+    input.set{ch_seurat_2}
 
     //////// Convert Seurat to AnnData /////////
     SEURAT_TO_ANNDATA( input )
@@ -49,7 +52,7 @@ workflow SEACELLS_RNA_WF {
             .concat( ch_seurat )
             .groupTuple( by:0 )
             .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
-            .set {ch_combined}
+            .set { ch_combined }
 
     META_TO_SEURAT_RNA( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
 
@@ -65,6 +68,16 @@ workflow SEACELLS_RNA_WF {
 
     //////// Convert to Anndata /////////
     SEURAT_TO_ANNDATA_PROCESSED_RNA( CLASSIFY_METACELLS.out )
+
+    /// Transfer metacell labels onto single cells and check how they compare ///
+    CLASSIFY_METACELLS.out
+            .concat( ch_seurat_2 )
+            .groupTuple( by:0 )
+            .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
+            .set { ch_combined_2 }
+    TRANSFER_METACELL_LABELS_RNA( ch_combined_2 )
+    
+
 
     emit:
     seacells_anndata = CALCULATE_SEACELLS.out
