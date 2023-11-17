@@ -63,6 +63,27 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+########################       CELL STATE COLOURS    ########################################
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                        'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                        'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                        'aNP', 'FB', 'vFB', 'node', 'streak', 
+                        'PGC', 'BI', 'meso', 'endo')
+
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
+                          "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+                          "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                          "#786D73", "#581845", "#9792A3", "#BBB3CB")
+
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                 'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                 'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                 'vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                 'PGC', 'BI', 'meso', 'endo')
+
+stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
+############################################################################################
+
 #######################################################################################
 ######################    Add SEACells IDs to seurat object   #########################
 #######################################################################################
@@ -90,22 +111,6 @@ print(head(metacell_dictionary))
 # Add seacells metadata to seurat object
 seurat <- AddMetaData(seurat, metacell_dictionary$SEACell, col.name = "SEACell")
 
-# Save seurat object
-dir.create("./rds_files_full/", recursive = T)
-saveRDS(seurat, paste0("./rds_files_full/", "seurat.RDS"), compress = FALSE)
-
-## Plot number of cells and number of genes in original object
-df <- data.frame(dim(seurat))
-rownames(df) <- c("Gene count: ", "Cell count: ")
-png(paste0(plot_path, 'original_cell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Gene count and cell count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(df, theme = ttheme_minimal()))
-graphics.off()
-
-#####################################################################################
-######################    Create summarised seurat object   #########################
-#####################################################################################
-
 ############################## Explore individual seacell purity #######################################
 
 categories <- strsplit(opt$categories, ",")[[1]]
@@ -124,7 +129,7 @@ for (cat in categories) {
   dir.create(plot_path_temp, recursive = T)
   
   # calculate frequencies
-  prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = cat, calc_proportions = TRUE)
+  prop_table <- SEACells_MetacellFrequencies(seurat, input_data_type = "seurat", metacell_slot = "SEACell", category = cat, calc_proportions = TRUE)
   
   # plot the relative proportions of labels in each metacell
   png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
@@ -158,6 +163,94 @@ for (cat in categories) {
   graphics.off()
   
 }
+
+############################## Add seacell celltype assignments based on proportion thresholds #######################################
+
+print("Assigning metacell cell type identities based on thresholds...")
+
+plot_path = "./plots/assigned_metacell_labels/"
+dir.create(plot_path, recursive = T)
+
+prop_table <- SEACells_MetacellFrequencies(seurat, input_data_type = "seurat",
+                                           metacell_slot = "SEACell", category = "scHelper_cell_type", calc_proportions = TRUE)
+
+
+identities <- c()
+
+for(metacell in unique(prop_table$Metacell)) {       # for-loop over metacells
+  
+  table <- prop_table %>% dplyr::filter(Metacell == metacell)
+  identity <- dplyr::filter(table, prop > 0.5)
+  if (nrow(identity) > 0){
+    identity <- as.character(identity$Category)
+  } else {
+    identity <- "MIXED"
+  }
+  identities <- c(identities, identity)
+  
+}
+
+# proportion-based metacell labels
+metacell_idents <- data.frame(unique(prop_table$Metacell), identities)
+colnames(metacell_idents) <- c("SEACell", "scHelper_cell_type_by_proportion")
+metacell_idents$SEACell <- paste0("SEACell-", metacell_idents$SEACell)
+head(metacell_idents)
+
+png(paste0(plot_path, 'assigned_metacell_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(metacell_idents, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# map these labels to single cells
+metacell_identity_dictionary <- merge(metacell_dictionary, metacell_idents, by = "SEACell")
+metacell_identity_dictionary <- metacell_identity_dictionary[match(rownames(seurat@meta.data), metacell_identity_dictionary$index),]
+
+seurat <- AddMetaData(seurat, metacell_identity_dictionary$scHelper_cell_type_by_proportion, col.name = "SEACell_identity")
+
+# plot these labels to compare to original ones
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type))]
+
+# UMAP for original cell state
+png(paste0(plot_path, "scHelper_celltype_umap_original.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type', label = TRUE, 
+        label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+# UMAP for metacell cell states
+png(paste0(plot_path, "scHelper_celltype_umap_metacell.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'SEACell_identity', label = TRUE, 
+        label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+
+############################## Save full seurat object #######################################
+
+# Save seurat object
+dir.create("./rds_files_full/", recursive = T)
+saveRDS(seurat, paste0("./rds_files_full/", "seurat.RDS"), compress = FALSE)
+
+## Plot number of cells and number of genes in original object
+df <- data.frame(dim(seurat))
+rownames(df) <- c("Gene count: ", "Cell count: ")
+png(paste0(plot_path, 'original_cell_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Gene count and cell count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
+
+#####################################################################################
+######################    Create summarised seurat object   #########################
+#####################################################################################
 
 #################### Add up counts across metacells #########################
 
@@ -225,6 +318,13 @@ seacells_seurat_metadata <- temp_metadata_stage
 seacells_seurat_metadata$Metacell <- sub("^", "SEACell-", seacells_seurat_metadata$Metacell)
 seacells_seurat_metadata <- column_to_rownames(seacells_seurat_metadata, var = "Metacell")
 
+head(seacells_seurat_metadata)
+
+#################### Add proportion-calcualte cell type labels to metacells #########################
+
+print("Adding proportion-based cell state labels to metacell metadata...")
+
+seacells_seurat_metadata <- merge(seacells_seurat_metadata, metacell_idents, by.x = 'row.names', by.y = "SEACell")
 head(seacells_seurat_metadata)
 
 #################### Create new seurat object #########################
