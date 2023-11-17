@@ -326,6 +326,7 @@ head(seacells_seurat_metadata)
 print("Adding proportion-based cell state labels to metacell metadata...")
 
 seacells_seurat_metadata <- merge(seacells_seurat_metadata, metacell_idents, by.x = 'row.names', by.y = "SEACell")
+seacells_seurat_metadata <- column_to_rownames(seacells_seurat_metadata, var = "Row.names")
 head(seacells_seurat_metadata)
 
 #################### Create new seurat object #########################
