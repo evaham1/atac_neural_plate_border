@@ -58,7 +58,7 @@ workflow SEACELLS_RNA_WF {
     // extract just the full 
     META_TO_SEURAT_RNA.out
         //.map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]] }
-        .map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()]] }
+        .map{ [it[0], [it[1].findAll{it =~ /rds_files/seurat.RDS}[0].listFiles()]] }
         .set{ metacell_assignments }
     metacell_assignments.view()
     //     [[sample_id:HH5], seacells_seurat.RDS]
@@ -66,6 +66,11 @@ workflow SEACELLS_RNA_WF {
     //     [[sample_id:HH6], seacells_seurat.RDS]
     //     [[sample_id:ss8], seacells_seurat.RDS]
     //     [[sample_id:HH7], seacells_seurat.RDS]
+                // [[sample_id:HH5], [[seacells_seurat.RDS, seurat.RDS]]]
+                // [[sample_id:HH6], [[seacells_seurat.RDS, seurat.RDS]]]
+                // [[sample_id:ss4], [[seacells_seurat.RDS, seurat.RDS]]]
+                // [[sample_id:ss8], [[seacells_seurat.RDS, seurat.RDS]]]
+                // [[sample_id:HH7], [[seacells_seurat.RDS, seurat.RDS]]]
 
     //////// Process metacells Seurat object /////////
     PROCESS_METACELLS( META_TO_SEURAT_RNA.out )
