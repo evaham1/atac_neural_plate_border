@@ -91,7 +91,8 @@ print(head(metacell_dictionary))
 seurat <- AddMetaData(seurat, metacell_dictionary$SEACell, col.name = "SEACell")
 
 # Save seurat object
-saveRDS(seurat, paste0(rds_path, "seurat.RDS"), compress = FALSE)
+dir.create("/rds_files_full/", recursive = T)
+saveRDS(seurat, paste0("/rds_files_full/", "seurat.RDS"), compress = FALSE)
 
 ## Plot number of cells and number of genes in original object
 df <- data.frame(dim(seurat))
@@ -108,6 +109,9 @@ graphics.off()
 ############################## Explore individual seacell purity #######################################
 
 categories <- strsplit(opt$categories, ",")[[1]]
+
+print("All seurat metadata:")
+print(colnames(seurat@meta.data))
 
 ## loop through categories and check each of them for purity in metacells
 for (cat in categories) {

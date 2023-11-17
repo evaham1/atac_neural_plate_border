@@ -57,8 +57,7 @@ workflow SEACELLS_RNA_WF {
 
     // extract just the full 
     META_TO_SEURAT_RNA.out
-        //.map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]] }
-        .map{ [it[0], [it[1].findAll{it =~ /rds_files/seurat.RDS}[0].listFiles()]] }
+        .map{ [it[0], [it[1].findAll{it =~ /rds_files_full/}[0].listFiles()[0]]] }
         .set{ metacell_assignments }
     metacell_assignments.view()
     //     [[sample_id:HH5], seacells_seurat.RDS]
