@@ -54,8 +54,11 @@ workflow SEACELLS_RNA_WF {
             .set { ch_combined }
 
     META_TO_SEURAT_RNA( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
+
+    // extract just the full 
     META_TO_SEURAT_RNA.out
-        .map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]] }
+        //.map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]] }
+        .map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()]] }
         .set{ metacell_assignments }
     // metacell_assignments.view()
     //     [[sample_id:HH5], seacells_seurat.RDS]
