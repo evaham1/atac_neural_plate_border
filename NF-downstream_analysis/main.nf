@@ -413,7 +413,7 @@ workflow A {
         // read in stages objects with consensus peak set
         METADATA_METACELL_INPUT( params.metacell_input_sample_sheet )
         ch_metacell_input = METADATA_METACELL_INPUT.out.metadata 
-        ch_metacell_input.view()
+        //ch_metacell_input.view()
         // [[sample_id:HH5], [FullData/Split_stages/rds_files/HH5_Save-ArchR]]
         // [[sample_id:HH6], [FullData/Split_stages/rds_files/HH6_Save-ArchR]]
         // [[sample_id:HH7], [FullData/Split_stages/rds_files/HH7_Save-ArchR]]
