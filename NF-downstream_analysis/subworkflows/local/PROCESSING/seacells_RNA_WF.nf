@@ -55,7 +55,9 @@ workflow SEACELLS_RNA_WF {
 
     META_TO_SEURAT_RNA( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
     META_TO_SEURAT_RNA.out
+        .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]}
         .set{ metacell_assignments }
+    metacell_assignments.view()
 
     //////// Process metacells Seurat object /////////
     PROCESS_METACELLS( META_TO_SEURAT_RNA.out )
