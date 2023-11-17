@@ -129,7 +129,8 @@ for (cat in categories) {
   dir.create(plot_path_temp, recursive = T)
   
   # calculate frequencies
-  prop_table <- SEACells_MetacellFrequencies(seurat, input_data_type = "seurat", metacell_slot = "SEACell", category = cat, calc_proportions = TRUE)
+  #prop_table <- SEACells_MetacellFrequencies(seurat, input_data_type = "seurat", metacell_slot = "SEACell", category = cat, calc_proportions = TRUE)
+  prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = cat, calc_proportions = TRUE)
   
   # plot the relative proportions of labels in each metacell
   png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
@@ -171,8 +172,8 @@ print("Assigning metacell cell type identities based on thresholds...")
 plot_path = "./plots/assigned_metacell_labels/"
 dir.create(plot_path, recursive = T)
 
-prop_table <- SEACells_MetacellFrequencies(seurat, input_data_type = "seurat",
-                                           metacell_slot = "SEACell", category = "scHelper_cell_type", calc_proportions = TRUE)
+#prop_table <- SEACells_MetacellFrequencies(seurat, input_data_type = "seurat", metacell_slot = "SEACell", category = "scHelper_cell_type", calc_proportions = TRUE)
+prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "scHelper_cell_type", calc_proportions = TRUE)
 
 
 identities <- c()
