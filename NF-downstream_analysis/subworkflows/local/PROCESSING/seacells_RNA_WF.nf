@@ -36,7 +36,6 @@ workflow SEACELLS_RNA_WF {
     /// /atac_neural_plate_border/NF-downstream_analysis/binary_knowledge_matrix_contam.csv
 
     input.set{ch_seurat}
-    input.set{ch_seurat_2}
 
     //////// Convert Seurat to AnnData /////////
     SEURAT_TO_ANNDATA( input )
@@ -55,6 +54,8 @@ workflow SEACELLS_RNA_WF {
             .set { ch_combined }
 
     META_TO_SEURAT_RNA( ch_combined ) // this outputs 2 seurat objects, one full object with metacell assignments added and one summarised seurat
+    META_TO_SEURAT_RNA.out
+        .set{ metacell_assignments }
 
     //////// Process metacells Seurat object /////////
     PROCESS_METACELLS( META_TO_SEURAT_RNA.out )
@@ -71,9 +72,10 @@ workflow SEACELLS_RNA_WF {
 
     /// Transfer metacell labels onto single cells and check how they compare ///
     CLASSIFY_METACELLS.out
-            .concat( ch_seurat_2 )
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( metacell_assignments )
             .groupTuple( by:0 )
-            .map{ meta, data -> [meta, [data[0][0], data[1][0]]]}
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             .set { ch_combined_2 }
     TRANSFER_METACELL_LABELS_RNA( ch_combined_2 )
     
