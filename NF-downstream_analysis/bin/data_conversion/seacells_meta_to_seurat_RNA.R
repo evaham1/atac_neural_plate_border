@@ -91,7 +91,7 @@ print(head(metacell_dictionary))
 seurat <- AddMetaData(seurat, metacell_dictionary$SEACell, col.name = "SEACell")
 
 # Save seurat object
-dir.create("/rds_files_full/", recursive = T)
+dir.create("./rds_files_full/", recursive = T)
 saveRDS(seurat, paste0("/rds_files_full/", "seurat.RDS"), compress = FALSE)
 
 ## Plot number of cells and number of genes in original object
