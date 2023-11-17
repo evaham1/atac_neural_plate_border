@@ -74,24 +74,24 @@ workflow SEACELLS_RNA_WF {
     //////// Process metacells Seurat object /////////
     PROCESS_METACELLS( META_TO_SEURAT_RNA.out )
 
-    // Re-run cell state classification on metacells
-    ch_state_classification = PROCESS_METACELLS.out
-        .combine(ch_BNM)
-        .map{[it[0], it[1] + it[2]]}
-    //ch_state_classification.view()
-    CLASSIFY_METACELLS( ch_state_classification )
+    // // Re-run cell state classification on metacells
+    // ch_state_classification = PROCESS_METACELLS.out
+    //     .combine(ch_BNM)
+    //     .map{[it[0], it[1] + it[2]]}
+    // //ch_state_classification.view()
+    // CLASSIFY_METACELLS( ch_state_classification )
 
-    //////// Convert to Anndata /////////
-    SEURAT_TO_ANNDATA_PROCESSED_RNA( CLASSIFY_METACELLS.out )
+    // //////// Convert to Anndata /////////
+    // SEURAT_TO_ANNDATA_PROCESSED_RNA( CLASSIFY_METACELLS.out )
 
-    /// Transfer metacell labels onto single cells and check how they compare ///
-    CLASSIFY_METACELLS.out
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .concat( metacell_assignments )
-            .groupTuple( by:0 )
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            .set { ch_combined_2 }
-    TRANSFER_METACELL_LABELS_RNA( ch_combined_2 )
+    // /// Transfer metacell labels onto single cells and check how they compare ///
+    // CLASSIFY_METACELLS.out
+    //         .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+    //         .concat( metacell_assignments )
+    //         .groupTuple( by:0 )
+    //         .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+    //         .set { ch_combined_2 }
+    // TRANSFER_METACELL_LABELS_RNA( ch_combined_2 )
     
 
 
@@ -99,7 +99,7 @@ workflow SEACELLS_RNA_WF {
     seacells_anndata = CALCULATE_SEACELLS.out
     seacells_seurat_objects = META_TO_SEURAT_RNA.out
     seacells_seurat_processed = PROCESS_METACELLS.out
-    seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
-    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_RNA.out
+    // seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
+    // seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_RNA.out
 
 }
