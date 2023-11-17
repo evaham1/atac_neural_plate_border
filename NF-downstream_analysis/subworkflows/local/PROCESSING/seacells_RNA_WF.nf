@@ -60,7 +60,7 @@ workflow SEACELLS_RNA_WF {
         //.map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()[0]]] }
         .map{ [it[0], [it[1].findAll{it =~ /rds_files/}[0].listFiles()]] }
         .set{ metacell_assignments }
-    // metacell_assignments.view()
+    metacell_assignments.view()
     //     [[sample_id:HH5], seacells_seurat.RDS]
     //     [[sample_id:ss4], seacells_seurat.RDS]
     //     [[sample_id:HH6], seacells_seurat.RDS]
