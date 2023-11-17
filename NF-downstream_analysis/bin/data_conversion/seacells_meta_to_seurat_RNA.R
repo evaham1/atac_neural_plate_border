@@ -197,14 +197,29 @@ colnames(metacell_idents) <- c("SEACell", "scHelper_cell_type_by_proportion")
 metacell_idents$SEACell <- paste0("SEACell-", metacell_idents$SEACell)
 head(metacell_idents)
 
-png(paste0(plot_path, 'assigned_metacell_idents_table.png'), height = 20, width = 10, units = 'cm', res = 400)
-grid.arrange(tableGrob(metacell_idents, rows=NULL, theme = ttheme_minimal()))
+# count how many mixed metacells there are
+df <- data.frame(c("Not-mixed identity total", "Mixed identity total"),
+                 c(sum(metacell_idents$scHelper_cell_type_by_proportion == "MIXED"), sum(metacell_idents$scHelper_cell_type_by_proportion != "MIXED")))
+colnames(df) <- NULL
+
+png(paste0(plot_path, 'number_of_mixed_metacells_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
 
 # map these labels to single cells
 metacell_identity_dictionary <- merge(metacell_dictionary, metacell_idents, by = "SEACell")
 metacell_identity_dictionary <- metacell_identity_dictionary[match(rownames(seurat@meta.data), metacell_identity_dictionary$index),]
 
+# count how many mixed single cells
+df <- data.frame(c("Not-mixed identity total", "Mixed identity total"),
+                 c(sum(metacell_identity_dictionary$scHelper_cell_type_by_proportion == "MIXED"), sum(metacell_identity_dictionary$scHelper_cell_type_by_proportion != "MIXED")))
+colnames(df) <- NULL
+
+png(paste0(plot_path, 'number_of_mixed_singlecells_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# add metacell metadata to single cells
 seurat <- AddMetaData(seurat, metacell_identity_dictionary$scHelper_cell_type_by_proportion, col.name = "SEACell_identity")
 
 # plot these labels to compare to original ones
