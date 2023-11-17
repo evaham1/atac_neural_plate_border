@@ -208,7 +208,7 @@ metacell_identity_dictionary <- metacell_identity_dictionary[match(rownames(seur
 seurat <- AddMetaData(seurat, metacell_identity_dictionary$scHelper_cell_type_by_proportion, col.name = "SEACell_identity")
 
 # plot these labels to compare to original ones
-scHelper_cols <- scHelper_cell_type_colours[unique(seurat@meta.data$scHelper_cell_type)]
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type))]
 
 # UMAP for original cell state
 png(paste0(plot_path, "scHelper_celltype_umap_original.png"), width=12, height=12, units = 'cm', res = 200)

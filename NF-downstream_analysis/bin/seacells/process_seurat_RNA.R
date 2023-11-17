@@ -357,7 +357,8 @@ QCPlot(final_seurat, plot_quantiles = TRUE, y_elements = c("run", "sex", "percen
 graphics.off()
 
 # Proportion-based cell type assignments
-scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(final_seurat@meta.data$scHelper_cell_type_by_proportion))]
+#scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(final_seurat@meta.data$scHelper_cell_type_by_proportion))]
+scHelper_cols <- scHelper_cell_type_colours[unique(final_seurat@meta.data$scHelper_cell_type_by_proportion)]
 png(paste0(plot_path, "proportion_based_cell_types_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
 DimPlot(final_seurat, group.by = 'scHelper_cell_type_by_proportion', label = TRUE, 
         label.size = ifelse(length(unique(final_seurat$stage)) == 1, 9, 3),
