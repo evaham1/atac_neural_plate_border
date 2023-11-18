@@ -181,8 +181,8 @@ identities <- c()
 for(metacell in unique(prop_table$Metacell)) {       # for-loop over metacells
   
   table <- prop_table %>% dplyr::filter(Metacell == metacell)
-  identity <- dplyr::filter(table, prop > 0.5)
-  if (nrow(identity) > 0){
+  identity <- dplyr::filter(table, prop >= 0.5)
+  if (nrow(identity) == 1){
     identity <- as.character(identity$Category)
   } else {
     identity <- "MIXED"
@@ -205,6 +205,10 @@ colnames(df) <- NULL
 png(paste0(plot_path, 'number_of_mixed_metacells_table.png'), height = 20, width = 10, units = 'cm', res = 400)
 grid.arrange(tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
+
+# print out the prop table of these mixed cells
+mixed_idents <- metacell_idents %>% filter(metacell_idents$scHelper_cell_type_by_proportion == "MIXED")
+print(prop_table %>% filter(Metacell %in% str_sub(mixed_idents[,1], start= 9)))
 
 # map these labels to single cells
 metacell_identity_dictionary <- merge(metacell_dictionary, metacell_idents, by = "SEACell")
