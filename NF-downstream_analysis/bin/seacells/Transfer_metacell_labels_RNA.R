@@ -109,6 +109,26 @@ SEACells_MetacellFrequencies <- function(input_data, input_data_type, metacell_s
   
 }
 
+########################       CELL STATE COLOURS    ########################################
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                        'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                        'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                        'aNP', 'FB', 'vFB', 'node', 'streak', 
+                        'PGC', 'BI', 'meso', 'endo')
+
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
+                          "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
+                          "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                          "#786D73", "#581845", "#9792A3", "#BBB3CB")
+
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                 'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                 'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
+                                 'vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                 'PGC', 'BI', 'meso', 'endo')
+
+stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
+############################################################################################
 
 ############################## Set colours #######################################
 
@@ -187,4 +207,46 @@ colnames(df) <- NULL
 
 png(paste0(plot_path, 'singlecell_label_correspondance.png'), height = 10, width = 30, units = 'cm', res = 400)
 grid.arrange(tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
+# UMAP for singlecell cell states
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(unique(seurat@meta.data$scHelper_cell_type)))]
+
+png(paste0(plot_path, "scHelper_original_umap.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type', label = TRUE, 
+        label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+# UMAP for proportion based identity
+scHelper_cols <- scHelper_cell_type_colours[unique(seurat@meta.data$SEACell_identity)]
+
+png(paste0(plot_path, "metacell_scHelper_proportion_umap_metacell.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'SEACell_identity', label = TRUE, 
+        label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+# UMAP for metacell cell states
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(unique(seurat@meta.data$SEACell_scHelper_cell_type)))]
+
+png(paste0(plot_path, "metacell_scHelper_denovo_umap_metacell.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'SEACell_scHelper_cell_type', label = TRUE, 
+        label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
