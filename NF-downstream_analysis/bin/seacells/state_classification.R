@@ -129,13 +129,15 @@ cell_state_markers <- read.csv(BNM, row.names = 1) %>% select(!c(evidence))
 cell_state_markers <- apply(cell_state_markers, 2, function(x) rownames(cell_state_markers)[x > 0])
 
 cell_states = list(
+  HH4 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN', 
+          'PGC', 'BI', 'meso', 'endo'),
 
   HH5 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN',
-          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
+          'NPB', 'aNPB', 'pNPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo'),
   
   HH6 = c('NNE', 'node', 'streak', 'eN', 'eCN',
-          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
+          'NPB', 'aNPB', 'pNPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo'),
 
   HH7 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
@@ -234,7 +236,7 @@ graphics.off()
 
 df <- as.data.frame(table(seurat_data@meta.data$seurat_clusters))
 colnames(df) <- c("Cluster", "nCells")
-png(paste0(plot_path, 'cluster_counts.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, 'cluster_counts.png'), height = 40, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
