@@ -190,10 +190,10 @@ seurat <- AddMetaData(seurat, metacell_identity_dictionary$scHelper_cell_type, c
 all_labels <- dplyr::select(seurat@meta.data, c("scHelper_cell_type", "SEACell_identity", "SEACell_scHelper_cell_type"))
 
 assesment_proportions_rows <- all_labels %>%
-  filter(scHelper_cell_type != SEACell_identity) %>%
+  filter(scHelper_cell_type == SEACell_identity) %>%
   nrow()
 assesment_denovo_rows <- all_labels %>%
-  filter(scHelper_cell_type != SEACell_scHelper_cell_type) %>%
+  filter(scHelper_cell_type == SEACell_scHelper_cell_type) %>%
   nrow()
 
 # print out final matching labels at a single cell level
