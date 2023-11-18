@@ -3,16 +3,20 @@
 # load libraries
 library(getopt)
 library(optparse)
-library(ArchR)
-library(tidyverse)
-library(ggplot2)
-library(plyr)
+library(parallel)
+library(Seurat)
 library(dplyr)
-library(hexbin)
+library(tibble)
+library(scHelper)
+library(ggplot2)
+library(future)
+library(cowplot)
+library(clustree)
 library(gridExtra)
 library(grid)
-library(parallel)
-library(data.table)
+library(pheatmap)
+library(RColorBrewer)
+library(tidyverse)
 
 ############################## Set up script options #######################################
 # Read in command line opts
