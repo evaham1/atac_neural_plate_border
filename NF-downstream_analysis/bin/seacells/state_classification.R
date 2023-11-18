@@ -209,7 +209,7 @@ print(paste0("Stage: ", stage))
 
 if(length(stage) == 1){
   cell_state_markers = cell_state_markers[[stage]]
-  cluster_res = list(HH5 = 2.4, HH6 = 2.4, HH7 = 2.4, ss4 = 2.8, ss8 = 2.8)[[stage]]
+  cluster_res = list(HH5 = 3.2, HH6 = 3.2, HH7 = 3.2, ss4 = 3.2, ss8 = 3.2)[[stage]]
   metadata = c('scHelper_cell_type')
 } else {
   cell_state_markers = flatten(cell_state_markers)
