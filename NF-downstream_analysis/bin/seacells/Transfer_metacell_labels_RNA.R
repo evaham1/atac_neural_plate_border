@@ -139,8 +139,48 @@ head(seurat@meta.data)
 # read in metacell seurat object
 seurat_metacells <- readRDS(paste0(data_path, "/rds_files/", "Classified_metacells.RDS"))
 seurat_metacells
-head(seurat_metacells)
+head(seurat_metacells@meta.data)
 
-############################## Add Metacell data to seurat object #######################################
+############################## Add Metacell schelper cell type labels to full seurat object #######################################
 
-#
+# extract single cell to metacell dictionary
+metacell_dictionary <- dplyr::select(seurat@meta.data, c("SEACell"))
+metacell_dictionary <- rownames_to_column(metacell_dictionary, var = "Cell_ID")
+
+# extract metacell to schelper cell type dictionary
+metacell_idents <- dplyr::select(seurat_SEACells@meta.data, c("scHelper_cell_type"))
+metacell_idents <- rownames_to_column(metacell_idents, var = "SEACell")
+
+# project the de novo metacell annotations onto single cells
+metacell_identity_dictionary <- merge(metacell_dictionary, metacell_idents, by = "SEACell")
+metacell_identity_dictionary <- metacell_identity_dictionary[match(rownames(seurat@meta.data), metacell_identity_dictionary$Cell_ID),]
+rownames(metacell_identity_dictionary) <- NULL
+metacell_identity_dictionary <- column_to_rownames(metacell_identity_dictionary, var = "Cell_ID")
+
+# add this back to seurat object
+seurat <- AddMetaData(seurat, metacell_identity_dictionary$scHelper_cell_type, col.name = "SEACell_scHelper_cell_type")
+
+############################## Check single cell identity across 3 annotations #######################################
+
+# count matching labels across single cells
+all_labels <- dplyr::select(seurat@meta.data, c("scHelper_cell_type", "SEACell_identity", "SEACell_scHelper_cell_type"))
+
+assesment_proportions_rows <- all_labels %>%
+  filter(duplicated(scHelper_cell_type) & duplicated(SEACell_identity)) %>%
+  nrow()
+assesment_denovo_rows <- all_labels %>%
+  filter(duplicated(scHelper_cell_type) & duplicated(SEACell_scHelper_cell_type)) %>%
+  nrow()
+
+# print out final matching labels at a single cell level
+# count how many mixed single cells
+df <- data.frame(c("Total number of single cells", 
+                   "Number of single cells with correct label - proportion based",
+                   "Number of single cells with correct label - de novo based"),
+                 c(nrow(all_labels), assesment_proportions_rows, assesment_denovo_rows)
+)
+colnames(df) <- NULL
+
+png(paste0(plot_path, 'singlecell_label_correspondance.png'), height = 20, width = 10, units = 'cm', res = 400)
+grid.arrange(tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
