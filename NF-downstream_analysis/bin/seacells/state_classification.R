@@ -128,69 +128,69 @@ print(BNM)
 cell_state_markers <- read.csv(BNM, row.names = 1) %>% select(!c(evidence))
 cell_state_markers <- apply(cell_state_markers, 2, function(x) rownames(cell_state_markers)[x > 0])
 
-# cell_states = list(
-
-#   HH5 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN',
-#           'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
-#           'PGC', 'BI', 'meso', 'endo'),
-  
-#   HH6 = c('NNE', 'node', 'streak', 'eN', 'eCN',
-#           'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
-#           'PGC', 'BI', 'meso', 'endo'),
-
-#   HH7 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
-#           'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
-#           'PGC', 'BI', 'meso', 'endo'),
-
-#   ss4 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
-#           'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
-#           'PGC', 'BI', 'meso', 'endo'),
-
-#   ss8 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
-#           'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
-#           'PGC', 'BI', 'meso', 'endo')
-# )
-
-# simplified cell_states for SEACells:
 cell_states = list(
 
-  HH5 = c('node', 'streak', 
-          'NNE', 'EE', 
-          'eNPB', 'NPB',
-          'eN', 'eCN', 'NP', 'pNP', 'iNP', 'aNP', 
-          'PPR',
+  HH5 = c('NNE', 'node', 'streak', 'EE', 'eNPB', 'eN', 'eCN',
+          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
           'PGC', 'BI', 'meso', 'endo'),
   
-  HH6 = c('node', 'streak', 
-          'NNE',
-          'NPB',
-          'eN', 'eCN','NP', 'pNP', 'iNP', 'aNP', 
-          'PPR',
+  HH6 = c('NNE', 'node', 'streak', 'eN', 'eCN',
+          'NPB', 'NP', 'pNP', 'iNP', 'aNP', 'PPR',
           'PGC', 'BI', 'meso', 'endo'),
 
-  HH7 = c('pEpi', 
-          'NPB', 
-          'NC', 'dNC', 
-          'NP', 'pNP', 'iNP','aNP', 
-          'HB', 'MB', 'FB', 
-          'PPR', 'aPPR', 'pPPR',
+  HH7 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
+          'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo'),
 
-  ss4 = c('pEpi', 
-          'NPB', 
-          'NC', 'dNC',
-          'HB', 'MB', 'FB', 'vFB', 
-          'PPR', 'aPPR', 'pPPR',
+  ss4 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
+          'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo'),
 
-  ss8 = c('pEpi', 
-          'NPB', 
-          'NC', 'dNC', 
-          'NP', 'pNP', 'iNP','aNP', 
-          'HB', 'MB', 'FB', 'vFB', 
-          'PPR',
+  ss8 = c('pEpi', 'NPB', 'aNPB', 'pNPB', 'NC', 'dNC', 'NP', 'pNP', 'iNP',
+          'aNP', 'HB', 'MB', 'FB', 'vFB', 'PPR', 'aPPR', 'pPPR',
           'PGC', 'BI', 'meso', 'endo')
 )
+
+# simplified cell_states for SEACells:
+# cell_states = list(
+
+#   HH5 = c('node', 'streak', 
+#           'NNE', 'EE', 
+#           'eNPB', 'NPB',
+#           'eN', 'eCN', 'NP', 'pNP', 'iNP', 'aNP', 
+#           'PPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+  
+#   HH6 = c('node', 'streak', 
+#           'NNE',
+#           'NPB',
+#           'eN', 'eCN','NP', 'pNP', 'iNP', 'aNP', 
+#           'PPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+
+#   HH7 = c('pEpi', 
+#           'NPB', 
+#           'NC', 'dNC', 
+#           'NP', 'pNP', 'iNP','aNP', 
+#           'HB', 'MB', 'FB', 
+#           'PPR', 'aPPR', 'pPPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+
+#   ss4 = c('pEpi', 
+#           'NPB', 
+#           'NC', 'dNC',
+#           'HB', 'MB', 'FB', 'vFB', 
+#           'PPR', 'aPPR', 'pPPR',
+#           'PGC', 'BI', 'meso', 'endo'),
+
+#   ss8 = c('pEpi', 
+#           'NPB', 
+#           'NC', 'dNC', 
+#           'NP', 'pNP', 'iNP','aNP', 
+#           'HB', 'MB', 'FB', 'vFB', 
+#           'PPR',
+#           'PGC', 'BI', 'meso', 'endo')
+# )
 
 cell_state_markers <- lapply(cell_states, function(x) cell_state_markers[names(cell_state_markers) %in% x])
 print(cell_state_markers)
@@ -221,8 +221,15 @@ print(paste0("Cluster_res: ", cluster_res))
 DefaultAssay(seurat_data) <- "RNA"
 seurat_data <- FindClusters(seurat_data, resolution = cluster_res)
 
-png(paste0(plot_path, "clusters_UMAP.png"), width=40, height=20, units = 'cm', res = 200)
-DimPlot(seurat_data, group.by = "seurat_clusters", pt.size = 6)
+png(paste0(plot_path, "clusters_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat_data, group.by = 'seurat_clusters', label = TRUE, 
+        label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 6, 6), 
+        shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 df <- as.data.frame(table(seurat_data@meta.data$seurat_clusters))
