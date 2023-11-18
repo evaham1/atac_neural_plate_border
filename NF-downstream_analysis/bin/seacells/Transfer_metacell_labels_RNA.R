@@ -148,7 +148,7 @@ metacell_dictionary <- dplyr::select(seurat@meta.data, c("SEACell"))
 metacell_dictionary <- rownames_to_column(metacell_dictionary, var = "Cell_ID")
 
 # extract metacell to schelper cell type dictionary
-metacell_idents <- dplyr::select(seurat_SEACells@meta.data, c("scHelper_cell_type"))
+metacell_idents <- dplyr::select(seurat_metacells@meta.data, c("scHelper_cell_type"))
 metacell_idents <- rownames_to_column(metacell_idents, var = "SEACell")
 
 # project the de novo metacell annotations onto single cells
