@@ -185,6 +185,6 @@ df <- data.frame(c("Total number of single cells",
 )
 colnames(df) <- NULL
 
-png(paste0(plot_path, 'singlecell_label_correspondance.png'), height = 20, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'singlecell_label_correspondance.png'), height = 10, width = 30, units = 'cm', res = 400)
 grid.arrange(tableGrob(df, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
