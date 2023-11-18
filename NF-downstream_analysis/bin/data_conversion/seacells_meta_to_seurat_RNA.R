@@ -174,12 +174,9 @@ dir.create(plot_path, recursive = T)
 
 #prop_table <- SEACells_MetacellFrequencies(seurat, input_data_type = "seurat", metacell_slot = "SEACell", category = "scHelper_cell_type", calc_proportions = TRUE)
 prop_table <- SEACells_MetacellFrequencies(seurat, metacell_slot = "SEACell", category = "scHelper_cell_type", calc_proportions = TRUE)
-
-
 identities <- c()
 
 for(metacell in unique(prop_table$Metacell)) {       # for-loop over metacells
-  
   table <- prop_table %>% dplyr::filter(Metacell == metacell)
   identity <- dplyr::filter(table, prop >= 0.5)
   if (nrow(identity) == 1){
@@ -188,8 +185,11 @@ for(metacell in unique(prop_table$Metacell)) {       # for-loop over metacells
     identity <- "MIXED"
   }
   identities <- c(identities, identity)
-  
 }
+
+# count how many cells are not 100% pure in terms of cell states
+not_pure <- unique(prop_table %>% dplyr::filter(prop != 1) %>% select(Metacell))
+nrow(not_pure)
 
 # proportion-based metacell labels
 metacell_idents <- data.frame(unique(prop_table$Metacell), identities)
@@ -198,8 +198,8 @@ metacell_idents$SEACell <- paste0("SEACell-", metacell_idents$SEACell)
 head(metacell_idents)
 
 # count how many mixed metacells there are
-df <- data.frame(c("Not-mixed identity total", "Mixed identity total"),
-                 c(sum(metacell_idents$scHelper_cell_type_by_proportion == "MIXED"), sum(metacell_idents$scHelper_cell_type_by_proportion != "MIXED")))
+df <- data.frame(c("Total number of metacells", "Number of metacells not 100% pure", "Number of metacells considered Mixed"),
+                 c(nrow(metacell_idents), nrow(not_pure), sum(metacell_idents$scHelper_cell_type_by_proportion == "MIXED")))
 colnames(df) <- NULL
 
 png(paste0(plot_path, 'number_of_mixed_metacells_table.png'), height = 20, width = 10, units = 'cm', res = 400)
