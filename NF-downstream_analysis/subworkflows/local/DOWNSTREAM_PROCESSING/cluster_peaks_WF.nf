@@ -82,7 +82,10 @@ workflow CLUSTER_PEAKS_WF {
         .concat( ch_fasta )
         .set { ch_homer_input }
     
-    ch_homer_input.view()
+    // ch_homer_input.view()
+    // [[sample_id:FullData], [PMs, antler_FullData, antler_HH5, antler_HH6, antler_HH7, antler_ss4, antler_ss8, plots, rds_files]]
+
+    // need to extract just the chr bed files from PMs folder, and then concat each of those (which are calculated on different subsets of data) with fasta
 
     // HOMER_MOTIF_ENRICHMENT( ch_homer_input )
 
