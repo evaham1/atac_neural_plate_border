@@ -85,7 +85,9 @@ names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'stre
                                  'vFB', 'aNP', 'node', 'FB', 'pEpi',
                                  'PGC', 'BI', 'meso', 'endo')
 
-stage_order <- c("HH4", "HH5", "HH6", "HH7", "ss4", "ss8")
+stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
+stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+names(stage_colours) <- stage_order
 ############################################################################################
 
 #####################################################################################
@@ -317,13 +319,14 @@ grid.arrange(top=textGrob("", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
 
-# Stage
+# UMAP of stage
+final_seurat@meta.data$stage <- factor(final_seurat@meta.data$stage, levels = stage_order)
+stage_cols <- stage_colours[levels(droplevels(final_seurat@meta.data$stage))]
+
 png(paste0(plot_path, "stage_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
 DimPlot(final_seurat, group.by = 'stage', label = TRUE, 
-        label.size = ifelse(length(unique(final_seurat$stage)) == 1, 9, 3),
-        label.box = TRUE, repel = TRUE,
-        pt.size = ifelse(length(unique(final_seurat$stage)) == 1, 6, 6), 
-        shuffle = TRUE) +
+        label.size = 9, label.box = TRUE, repel = TRUE,
+        pt.size = 10, cols = stage_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
                  plot.title = element_blank())
