@@ -66,15 +66,15 @@ workflow SEACELLS_ATAC_WF {
     //////// Process metacells Seurat object /////////
     PROCESS_METACELLS( META_TO_SEURAT_ATAC.out )
 
-    // Run cell state classification on metacells
-    ch_state_classification = PROCESS_METACELLS.out
-        .combine(ch_BNM)
-        .map{[it[0], it[1] + it[2]]}
-    //ch_state_classification.view() //[[sample_id:ss4], [plots, rds_files, binary_knowledge_matrix_contam.csv]]
-    CLASSIFY_METACELLS( ch_state_classification )
+    // // Run cell state classification on metacells
+    // ch_state_classification = PROCESS_METACELLS.out
+    //     .combine(ch_BNM)
+    //     .map{[it[0], it[1] + it[2]]}
+    // //ch_state_classification.view() //[[sample_id:ss4], [plots, rds_files, binary_knowledge_matrix_contam.csv]]
+    // CLASSIFY_METACELLS( ch_state_classification )
 
     //////// Convert to Anndata /////////
-    SEURAT_TO_ANNDATA_PROCESSED_ATAC( CLASSIFY_METACELLS.out )
+    SEURAT_TO_ANNDATA_PROCESSED_ATAC( PROCESS_METACELLS.out )
 
     //////// Rename SEACell outputs for downstream peak modules /////////
     RENAME_SEACELL_OUTPUTS( CALCULATE_SEACELLS.out )
@@ -83,7 +83,7 @@ workflow SEACELLS_ATAC_WF {
     seacells_anndata = CALCULATE_SEACELLS.out
     seacells_seurat_objects = META_TO_SEURAT_ATAC.out
     seacells_seurat_processed = PROCESS_METACELLS.out
-    seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
+    //seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
     seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_ATAC.out
     seacell_outputs_named = RENAME_SEACELL_OUTPUTS.out
 

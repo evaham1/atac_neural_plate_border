@@ -436,7 +436,7 @@ workflow A {
         ///////     Integrate SEACells      ///////
 
         // will these different outputs channel in stage by stage??
-        SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed_classified, SEACELLS_ATAC_WF.out.seacell_outputs_named )
+        SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed, SEACELLS_ATAC_WF.out.seacell_outputs_named )
         // maybe in here add schelper cell type broad labels
 
         ///////     Cluster peaks      ///////
