@@ -99,7 +99,7 @@ workflow SEACELLS_RNA_WF {
     seacells_anndata = CALCULATE_SEACELLS.out
     seacells_seurat_objects = META_TO_SEURAT_RNA.out
     seacells_seurat_processed = PROCESS_METACELLS.out
-    // seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
-    // seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_RNA.out
+    seacells_seurat_processed_classified = CLASSIFY_METACELLS.out
+    seacells_anndata_processed_classified = SEURAT_TO_ANNDATA_PROCESSED_RNA.out
 
 }
