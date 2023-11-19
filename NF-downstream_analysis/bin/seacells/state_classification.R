@@ -211,8 +211,8 @@ print(paste0("Stage: ", stage))
 
 if(length(stage) == 1){
   cell_state_markers = cell_state_markers[[stage]]
-  cluster_res = list(HH5 = 2.3, HH6 = 2.1, HH7 = 2.8, ss4 = 3.1, ss8 = 3.15)[[stage]]
-  # cluster res set so same number of clusters as alex used: 10 at HH5, 9 at HH6, 11 at HH7, 12 at ss4 and 10 at ss8
+  cluster_res = list(HH5 = 2.4, HH6 = 2.2, HH7 = 3.1, ss4 = 3.2, ss8 = 3.3)[[stage]]
+  # cluster res set so same number cell states found in sc: 11 at HH5, 10 at HH6, 14 at HH7, 13 at 4ss and 13 at 8ss
   metadata = c('scHelper_cell_type')
 } else {
   cell_state_markers = flatten(cell_state_markers)
