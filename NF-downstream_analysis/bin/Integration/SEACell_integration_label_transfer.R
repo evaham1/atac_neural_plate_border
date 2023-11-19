@@ -351,12 +351,15 @@ graphics.off()
 # Plot transferred cell type labels
 scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_from_integration))]
 
-png(paste0(plot_path, "2_scHelper_cell_type_from_integration_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
-DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = FALSE, 
-        pt.size = 10,
+png(paste0(plot_path, "2_scHelper_cell_type_from_integration_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = TRUE, 
+        label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
         cols = scHelper_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
-  ggplot2::theme(plot.title = element_blank())
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 # Plot k values of transferred labels
