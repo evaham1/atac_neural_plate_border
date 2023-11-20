@@ -593,17 +593,11 @@ TFs <- c("SIX1", "EYA2", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3",
          "NKX2-3", "NKX2-5", "NKX6-2", "RFX2", "ZIC1", "ZIC3", "TBXT",
          "NR6A1", "HIC2", "HES1", "HES5", "FOS", "JUND")
 
-ArchR <- addImputeWeights(ArchR)
+# ArchR <- addImputeWeights(ArchR) # shouldnt really do this for gene counts
 
-# Plot ridge plot of each TF deviation
+# Plot UMAP for expression of each TF
 for (TF in TFs){
   print(TF)
-  
-  # Plot distribution of GeneIntegration values for each cluster
-  png(paste0(plot_path, TF, '_gene_integration_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneIntegrationMatrix") + 
-    theme_ArchR(baseSize = 17, plotMarginCm = 0.5))
-  graphics.off()
   
   # Plot GeneIntegration values on UMAP
   png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
@@ -611,12 +605,6 @@ for (TF in TFs){
                 plotAs = "points", size = 1.8,
                 colorBy = "GeneIntegrationMatrix", continuousSet = "blueYellow") + 
     theme_ArchR(legendTextSize = 17, baseSize = 17, plotMarginCm = 0.5))
-  graphics.off()
-  
-  # Plot distribution of GeneScore values for each cluster
-  png(paste0(plot_path, TF, '_gene_score_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(plotGroups(ArchR, groupBy = "clusters", name = TF, colorBy = "GeneScoreMatrix") + 
-    theme_ArchR(baseSize = 17, plotMarginCm = 0.5))
   graphics.off()
   
   # Plot GeneScore values on UMAP
