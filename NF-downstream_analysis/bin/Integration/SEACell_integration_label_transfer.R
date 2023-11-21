@@ -67,7 +67,8 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped')
+                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
                                 "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
                                 "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
@@ -434,13 +435,13 @@ seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_by_proporti
 seurat <- AddMetaData(seurat, metadata = metadata$broad, col.name = "scHelper_cell_type_broad_by_proportion")
 seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
-head(seurat@meta.data)
-sum(is.na((seurat@meta.data)))
-
 #   Set levels
 seurat@meta.data$scHelper_cell_type_by_proportion <- base::factor(seurat@meta.data$scHelper_cell_type_by_proportion, levels = scHelper_cell_type_order)
 seurat@meta.data$scHelper_cell_type_broad_by_proportion <- base::factor(seurat@meta.data$scHelper_cell_type_broad_by_proportion, levels = scHelper_cell_type_order)
 seurat@meta.data$Mapping_k <- base::factor(seurat@meta.data$Mapping_k, levels = names(k_colors))
+
+head(seurat@meta.data)
+sum(is.na((seurat@meta.data)))
 
 ## save seacells seurat object with new metadata
 saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), compress = FALSE)
