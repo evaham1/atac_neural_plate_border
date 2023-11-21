@@ -336,8 +336,14 @@ full_integration_map <- rbind(filtered_integration_map, unmapped_df)
 
 # check final dataframe includes all SEACell ATAC IDs
 if (length(all_SEACells) == sum(all_SEACells %in% full_integration_map$ATAC)) {
-  print("Final integration map complete!") } else {
-    stop("Final integration map does not include all SEACell ATAC IDs!")
+  print("Final integration map contains all SEACell ATAC IDs!") } else {
+    stop("ERROR: Final integration map does not include all SEACell ATAC IDs!")
+  }
+
+# check final dataframe has no duplicates
+if (sum(duplicated(full_integration_map$ATAC)) == 0) {
+  print("Final integration map has no duplicates!") } else {
+    stop("ERROR: Final integration map has duplicates!")
   }
 
 ############### 1.7) Add stage data to dataframe ##############
@@ -363,20 +369,8 @@ dir.create(plot_path, recursive = T)
 ## add new transferred labels to seurat object
 map1 <- full_integration_map %>% arrange(ATAC)
 colnames(map1)[colnames(map1) == 'scHelper_cell_type_by_proportion'] <- 'scHelper_cell_type_by_proportion'
-row.names(map1) <- NULL  # Clear existing row names
-row.names(map1) <- 1:nrow(map1)  # Set row names to unique numbers
-head(map1)
-rownames(map1)
 map2 <- rownames_to_column(seurat@meta.data, var = "ATAC")
-row.names(map2) <- NULL  # Clear existing row names
-row.names(map2) <- 1:nrow(map2)  # Set row names to unique numbers
-head(map2)
-rownames(map2)
 map <- merge(map1, map2, by = "ATAC", all = TRUE)
-head(map)
-rownames(map)
-row.names(map) <- NULL  # Clear existing row names
-row.names(map) <- 1:nrow(map)  # Set row names to unique numbers
 metadata <- column_to_rownames(map, var = "ATAC")
 head(metadata)
 
