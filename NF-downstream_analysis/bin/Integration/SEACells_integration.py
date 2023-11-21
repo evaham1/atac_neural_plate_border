@@ -141,7 +141,7 @@ def main(args=None):
 
     # check rna object by running UMAP
     plt.figure(figsize=(8,8))
-    sc.pl.umap(rna_ad, color=['scHelper_cell_type'], legend_fontsize=8, palette = cell_type_colors)
+    sc.pl.umap(rna_ad, color=['scHelper_cell_type_by_proportion'], legend_fontsize=8, palette = cell_type_colors)
     plt.savefig(os.path.join(plot_path, "UMAP_RNA.png"))
     plt.close()
 
@@ -223,7 +223,7 @@ def main(args=None):
 
     # UMAP with scHelper_cell_type labelled
     plt.figure(figsize=(8,8))
-    sc.pl.umap(comb_ad, color=['scHelper_cell_type'], legend_fontsize=8, palette = cell_type_colors)
+    sc.pl.umap(comb_ad, color=['scHelper_cell_type_by_proportion'], legend_fontsize=8, palette = cell_type_colors)
     plt.savefig(os.path.join(plot_path, "UMAP_integrated_celltype.png"))
     plt.close()
 
@@ -258,7 +258,7 @@ def main(args=None):
         mapping.to_csv(os.path.join(rds_path, filename))
         
         # Add scHelper_cell_type to mapping
-        cell_types = rna_ad.obs[['scHelper_cell_type']]
+        cell_types = rna_ad.obs[['scHelper_cell_type_by_proportion']]
         cell_types = cell_types.rename_axis("RNA").reset_index()
         cell_types.shape
         
