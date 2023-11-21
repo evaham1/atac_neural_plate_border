@@ -431,6 +431,7 @@ metadata <- metadata %>%
 # add to metadata of seurat object
 seurat <- AddMetaData(seurat, metadata = metadata$RNA, col.name = "Integrated_RNA_SEACell_ID")
 seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_by_proportion, col.name = "scHelper_cell_type_by_proportion")
+seurat <- AddMetaData(seurat, metadata = metadata$broad, col.name = "scHelper_cell_type_broad_by_proportion")
 seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
 head(seurat@meta.data)
