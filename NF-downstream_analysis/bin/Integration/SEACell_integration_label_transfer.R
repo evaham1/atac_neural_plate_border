@@ -189,29 +189,10 @@ dim(combined_integration_map)
 ############### 1.3) Set cut-off K value ##############
 
 # use plots to see when using less stringent k value doesn't add signficiantly more maps
-png(paste0(plot_path, "13_k_values_plot.png"), width = 25, height = 20, units = 'cm', res = 200)
-
-# Set a larger font size for the plot itself
-plot(labelled_cell_count, ylim = c(0, length(all_SEACells) + 2), cex.main = 1.5)
-
-# Set a larger font size for the y-axis label
-ylabel <- "Your Y-axis Label"
-ylabel_line <- length(strsplit(ylabel, "\n")[[1]])
-axis(2, ylim = c(0, length(all_SEACells) + 2), las = 1, cex.axis = 1.5)
-mtext(text = ylabel, side = 2, line = 3, cex = 1.5)
-
-# Set a larger font size for the x-axis label and tick marks
-xlabel <- "Your X-axis Label"
-xlabel_line <- length(strsplit(xlabel, "\n")[[1]])
-axis(1, cex.axis = 1.5)
-mtext(text = xlabel, side = 1, line = 3, cex = 1.5)
-
-# Set a larger font size for the blue horizontal line
+png(paste0(plot_path, "13_k_values_plot.png"), width = 12, height = 12, units = 'cm', res = 200)
+plot(labelled_cell_count, ylim = c(0, length(all_SEACells) + 2), cex.axis = 1.5, cex.lab=2)
 abline(h = length(all_SEACells), col = "blue", cex = 1.5)
-
-# Set a larger font size for the red vertical line
 abline(v = opt$k_cutoff, col = "red", cex = 1.5)
-
 graphics.off()
 
 df <- data.frame(k = c(1:length(labelled_cell_count)),
@@ -345,7 +326,7 @@ saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), comp
 seurat@meta.data$stage <- factor(seurat@meta.data$stage, levels = stage_order)
 stage_cols <- stage_colours[levels(droplevels(seurat@meta.data$stage))]
 
-png(paste0(plot_path, "2_stage_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
+png(paste0(plot_path, "2_stage_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'stage', label = TRUE, 
         label.size = 9, label.box = TRUE, repel = TRUE,
         pt.size = 10,
@@ -362,6 +343,16 @@ png(paste0(plot_path, "2_scHelper_cell_type_from_integration_UMAP.png"), width=1
 DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = TRUE, 
         label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
         label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+png(paste0(plot_path, "2_scHelper_cell_type_from_integration_UMAP_no_label.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = FALSE, 
+        label.box = FALSE,
         pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
         cols = scHelper_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
