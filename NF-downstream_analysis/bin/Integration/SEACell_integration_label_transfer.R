@@ -226,31 +226,81 @@ graphics.off()
 
 ############### 1.4) Deal with single ATAC SEACells mapping to multiple RNA SEACells ##############
 
+print("integration map: ")
+head(cutoff_integration_map)
+
 # identify which ATAC SEACells map to > 1 scHelper cell type, remove these ones (v few)
 # for the rest just remove duplicates as the scHelper_cell_type_by_proportion will be the same even if the RNA SEACell ID is different
 duplicated_ATAC_IDs <- cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)]
 duplicates_map <- combined_integration_map %>% filter(ATAC %in% duplicated_ATAC_IDs) %>%
   arrange(ATAC) %>%
-  group_by(ATAC, scHelper_cell_type_by_proportion) %>% 
-  dplyr::mutate(duplicated_cell_type = n()>1)
+  group_by(ATAC) %>%
+  mutate(duplicated_cell_type = n_distinct(scHelper_cell_type_by_proportion) == 1)
 
-write.csv(duplicates_map, paste0(rds_path, 'Duplicates_map.csv'))
+print("duplicates map: ")
+head(duplicates_map)
 
-SEACells_to_remove <- unique(duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC)
+multi_mapped_SEACells <- unique(duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC)
+print(paste0("Number of ATAC SEACell duplicates that map to more than one cell type: ", length(multi_mapped_SEACells)))
 
-print(paste0("Number of ATAC SEACell duplicates that map to more than one cell type: ", length(SEACells_to_remove)))
-print("Removing these SEACells from mapping!")
+# add broad labels and see how many seacells multimap at this resolution
+mapping <- c(
+  "NP" = "Neural", "aNP" = "Neural", "iNP" = "Neural", "pNP" = "Neural", 
+  "eN" = "Neural", "vFB" = "Non-neural", "FB" = "Non-neural", 
+  "MB" = "Non-neural", "HB" = "Non-neural", "eCN" = "Non-neural", "eN" = "Non-neural",
+  'PPR' = "Placodal", 'aPPR' = "Placodal", 'pPPR' = "Placodal",
+  'eNPB' = "NPB", 'NPB' = "NPB", 'aNPB' = "NPB", 'pNPB' = "NPB",
+  'NC' = "NC", 'dNC' = "NC",
+  'NNE' = "Non-neural", 'pEpi' = "Non-neural",
+  'EE' = "Contam", 'meso' = "Contam", 'endo' = "Contam", 'BI' = "Contam", 'PGC' = "Contam", 'streak' = 'Contam',
+  'MIXED' = 'MIXED'
+)
+duplicates_map_broad <- duplicates_map %>% 
+  mutate(broad = case_when(
+    scHelper_cell_type_by_proportion %in% names(mapping) ~ mapping[scHelper_cell_type_by_proportion],
+    TRUE ~ NA_character_
+  ))
+duplicates_map_broad <- duplicates_map_broad %>%
+  group_by(ATAC) %>%
+  mutate(duplicated_cell_type = n_distinct(broad) == 1)
 
+print("duplicates broad map: ")
+head(duplicates_map_broad)
+
+# 1) resolve duplicates that dont matter as they are to the same cell state
+print("Removing these SEACells from mapping so can resolve duplicates...")
 filtered_integration_map <- cutoff_integration_map %>% 
-  dplyr::filter(!ATAC %in% SEACells_to_remove) %>% 
+  dplyr::filter(!ATAC %in% multi_mapped_SEACells) %>% 
   distinct(ATAC, .keep_all = TRUE)
+
+head(filtered_integration_map)
+
+# 2) some of the multimapped metacells still map to the same broad cell type
+# if they do, replace the normal cell type with the broad one, remove duplicates and append
+print("Adding back into multimapped seacells that map to the same broad cell type:")
+broad_labelling <- duplicates_map_broad %>%
+  filter(duplicated_cell_type = TRUE) %>%
+  mutate(scHelper_cell_type_by_proportion = broad) %>%
+  select(RNA, ATAC, scHelper_cell_type_by_proportion, k)
+filtered_integration_map <- rbind(filtered_integration_map, broad_labelling)
+
+head(filtered_integration_map)
+
+# plot how many seacells are multimapped to different levels
+df <- data.frame(multimapped_SEACells = length(multi_mapped_SEACells),
+                 multimapped_broad_SEACells = length(unique(duplicates_map_broad[which(duplicates_map_broad$duplicated_cell_type == FALSE), ]$ATAC))
+)
+png(paste0(plot_path, 'multimapped_numbers.png'), height = 5, width = 12, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, theme = ttheme_minimal()))
+graphics.off()
 
 # plot how many ATAC SEACell IDs have been removed from this filtering step
 df <- data.frame(before_filter = length(unique(cutoff_integration_map$ATAC)),
                  after_filter = length(unique(filtered_integration_map$ATAC)),
                  nFiltered = length(unique(cutoff_integration_map$ATAC)) - length(unique(filtered_integration_map$ATAC))
 )
-png(paste0(plot_path, '14_duplicate_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, '14_filtering.png'), height = 5, width = 12, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
