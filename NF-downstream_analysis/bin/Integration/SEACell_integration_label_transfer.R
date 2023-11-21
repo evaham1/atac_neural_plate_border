@@ -258,6 +258,7 @@ duplicates_map_broad <- duplicates_map %>%
     TRUE ~ NA_character_
   ))
 duplicates_map_broad <- duplicates_map_broad %>%
+  filter(ATAC %in% multi_mapped_SEACells) %>%
   group_by(ATAC) %>%
   mutate(duplicated_cell_type = n_distinct(broad) == 1)
 
