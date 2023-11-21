@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env Rscript 
 
 print("inputs: 1) csv mapping SEACell IDs to integrate cell type label, 2) csv mapping single cell ATAC IDs to SEACEll IDs, 3) ATAC SEACell seurat object")
 print("script uses csvs to 1) make consensus RNA-ATAC SEACell mapping -> csv, 2) visualise these new SEACell labels on ATAC SEACell seurat object and 3) maps this SEACell map for ATAC onto ATAC single cell data -> csv")
