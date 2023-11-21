@@ -91,6 +91,9 @@ seurat_object <- DietSeurat(seurat_object, counts = TRUE, assays = opt$assay, di
 # remove anything from misc slot as depending on the contents this can cause recursion errors
 seurat_object@misc <- list()
 
+# check whats in seurat metadata
+print(colnames(seurat@meta.data))
+
 # generate cell colours for group_by column
 if(!opt[['group_by']] %in% colnames(seurat_object@meta.data)){
   stop('--group_by missing from seurat@meta.data')
