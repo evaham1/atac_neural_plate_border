@@ -272,6 +272,10 @@ filtered_integration_map <- cutoff_integration_map %>%
   distinct(ATAC, .keep_all = TRUE)
 
 head(filtered_integration_map)
+if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
+  print("Filtered integration map has no duplicates!") } else {
+    stop("ERROR: Filtered integration map has duplicates!")
+  }
 
 # 2) some of the multimapped metacells still map to the same broad cell type
 # if they do, replace the normal cell type with the broad one, remove duplicates and append
@@ -279,10 +283,17 @@ print("Adding back into multimapped seacells that map to the same broad cell typ
 broad_labelling <- duplicates_map_broad %>%
   filter(duplicated_cell_type = TRUE) %>%
   mutate(scHelper_cell_type_by_proportion = broad) %>%
-  select(RNA, ATAC, scHelper_cell_type_by_proportion, k)
+  select(RNA, ATAC, scHelper_cell_type_by_proportion, k) %>% 
+  distinct(ATAC, .keep_all = TRUE)
 filtered_integration_map <- rbind(filtered_integration_map, broad_labelling)
 
 head(filtered_integration_map)
+
+# check dataframe has no duplicates
+if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
+  print("Filtered integration map has no duplicates!") } else {
+    stop("ERROR: Filtered integration map has duplicates!")
+  }
 
 # plot how many seacells are multimapped to different levels
 df <- data.frame(multimapped_SEACells = length(multi_mapped_SEACells),
