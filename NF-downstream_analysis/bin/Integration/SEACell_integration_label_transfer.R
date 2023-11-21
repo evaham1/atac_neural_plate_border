@@ -300,7 +300,7 @@ df <- data.frame(n_multimapped_SEACells = length(multimapped_ATAC_IDs),
                  n_multimapped_cell_type_SEACells = length(multimapped_cell_type_ATAC_IDs),
                  n_multimapped_cell_type_broad_SEACells = length(multimapped_broad_cell_type_ATAC_IDs)
 )
-png(paste0(plot_path, 'multimapped_numbers.png'), height = 5, width = 12, units = 'cm', res = 400)
+png(paste0(plot_path, 'multimapped_numbers.png'), height = 5, width = 30, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
@@ -342,7 +342,7 @@ df <- as.data.frame(table(filtered_integration_map$scHelper_cell_type_by_proport
 colnames(df) <- c("Identity", "Frequency")
 png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped_to_each_cell_state.png'), height = 15, width = 15, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(table, theme = ttheme_minimal()))
+             tableGrob(df, theme = ttheme_minimal()))
 graphics.off()
 
 ############### 1.6) Add rows with 'NA' for ATAC SEACell IDs which are not mapped ##############
