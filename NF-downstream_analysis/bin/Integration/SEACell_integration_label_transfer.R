@@ -273,8 +273,8 @@ filtered_integration_map <- cutoff_integration_map %>%
   dplyr::distinct(ATAC, .keep_all = TRUE)
 
 if (length(unique(filtered_integration_map$ATAC)) ==  length(unique(cutoff_integration_map$ATAC)) - length(multimapped_cell_type_ATAC_IDs)){
-  print("Length of filtered df incorrect!") } else {
-    stop("ERROR: Length of filtered df correct!")
+  print("Length of filtered df correct!") } else {
+    stop("ERROR: Length of filtered df is incorrect!")
   }
 
 if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
@@ -289,9 +289,13 @@ broad_labelling <- duplicates_map_broad %>%
   dplyr::select(RNA, ATAC, scHelper_cell_type_by_proportion, k) %>% 
   dplyr::distinct(ATAC, .keep_all = TRUE)
 length(unique(broad_labelling$ATAC))
-filtered_integration_map <- rbind(filtered_integration_map, broad_labelling)
+filtered_integration_map <- base::rbind(filtered_integration_map, broad_labelling)
 
-# check dataframe has no duplicates
+if (length(unique(filtered_integration_map$ATAC)) ==  length(unique(cutoff_integration_map$ATAC)) - length(multimapped_broad_cell_type_ATAC_IDs)){
+  print("Length of filtered df correct!") } else {
+    stop("ERROR: Length of filtered df is incorrect!")
+  }
+
 if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
   print("Filtered integration map has no duplicates!") } else {
     stop("ERROR: Filtered integration map has duplicates!")
