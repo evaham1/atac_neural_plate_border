@@ -226,28 +226,26 @@ graphics.off()
 
 ############### 1.4) Deal with single ATAC SEACells mapping to multiple RNA SEACells ##############
 
-write.csv(cutoff_integration_map, paste0(rds_path, 'cutoff_integration_map.csv'))
-write.csv(combined_integration_map, paste0(rds_path, 'combined_integration_map.csv'))
+# initial number of ATAC seacells that are mapped
+print(paste0("Number of ATAC SEACells that have been mapped: ", length(unique(cutoff_integration_map$ATAC))))
 
-# identify which ATAC SEACells map to > 1 scHelper cell type, remove these ones (v few)
-# for the rest just remove duplicates as the scHelper_cell_type_by_proportion will be the same even if the RNA SEACell ID is different
-duplicated_ATAC_IDs <- cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)]
-duplicates_map <- combined_integration_map %>% filter(ATAC %in% duplicated_ATAC_IDs) %>%
+# which ATAC metacells map to more than one RNA metacell = multimapped_ATAC_IDs
+multimapped_ATAC_IDs <- unique(cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)])
+duplicates_map <- cutoff_integration_map %>% filter(ATAC %in% multimapped_ATAC_IDs) %>%
   arrange(ATAC) %>%
   group_by(ATAC) %>%
   mutate(duplicated_cell_type = n_distinct(scHelper_cell_type_by_proportion) == 1)
+print(paste0("Number of ATAC SEACells that map to more than one RNA metacell: ", length(multimapped_ATAC_IDs)))
 
-print("duplicates map: ")
-head(duplicates_map)
+# which ATAC metacells map to more than one RNA metacell cell type = multimapped_cell_type_ATAC_IDs
+multimapped_cell_type_ATAC_IDs <- unique(duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC)
+print(paste0("Number of ATAC SEACells that map to more than one cell type: ", length(multimapped_cell_type_ATAC_IDs)))
 
-multi_mapped_SEACells <- unique(duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC)
-print(paste0("Number of ATAC SEACell duplicates that map to more than one cell type: ", length(multi_mapped_SEACells)))
-
-# add broad labels and see how many seacells multimap at this resolution
+# which ATAC metacells map to more than one BROAD RNA metacell cell type = multimapped_broad_cell_type_ATAC_IDs
 mapping <- c(
   "NP" = "Neural", "aNP" = "Neural", "iNP" = "Neural", "pNP" = "Neural", 
-  "eN" = "Neural", "vFB" = "Non-neural", "FB" = "Non-neural", 
-  "MB" = "Non-neural", "HB" = "Non-neural", "eCN" = "Non-neural", "eN" = "Non-neural",
+  "eN" = "Neural", "vFB" = "Neural", "FB" = "Neural", 
+  "MB" = "Neural", "HB" = "Neural", "eCN" = "Neural", "eN" = "Neural",
   'PPR' = "Placodal", 'aPPR' = "Placodal", 'pPPR' = "Placodal",
   'eNPB' = "NPB", 'NPB' = "NPB", 'aNPB' = "NPB", 'pNPB' = "NPB",
   'NC' = "NC", 'dNC' = "NC",
@@ -259,38 +257,37 @@ duplicates_map_broad <- duplicates_map %>%
   mutate(broad = case_when(
     scHelper_cell_type_by_proportion %in% names(mapping) ~ mapping[scHelper_cell_type_by_proportion],
     TRUE ~ NA_character_
-  ))
-duplicates_map_broad <- duplicates_map_broad %>%
-  filter(ATAC %in% multi_mapped_SEACells) %>%
+  )) %>%
+  filter(ATAC %in% multimapped_cell_type_ATAC_IDs) %>%
   group_by(ATAC) %>%
   mutate(duplicated_cell_type = n_distinct(broad) == 1)
 
-print("duplicates broad map: ")
-head(duplicates_map_broad)
+multimapped_broad_cell_type_ATAC_IDs <- unique(duplicates_map_broad[which(duplicates_map_broad$duplicated_cell_type == FALSE), ]$ATAC)
+print(paste0("Number of ATAC SEACells that map to more than one BROAD cell type: ", length(multimapped_broad_cell_type_ATAC_IDs)))
 
-# 1) resolve duplicates that dont matter as they are to the same cell state
-print("Removing these SEACells from mapping so can resolve duplicates...")
+# 1) resolve multimaps that dont matter as they are different RNA metacells but to the same cell state
 filtered_integration_map <- cutoff_integration_map %>% 
-  dplyr::filter(!ATAC %in% multi_mapped_SEACells) %>% 
+  dplyr::filter(!ATAC %in% multimapped_cell_type_ATAC_IDs) %>% 
   distinct(ATAC, .keep_all = TRUE)
 
-head(filtered_integration_map)
+if (length(unique(filtered_integration_map$ATAC)) ==  length(unique(cutoff_integration_map$ATAC)) - length(multimapped_cell_type_ATAC_IDs)){
+  print("Length of filtered df incorrect!") } else {
+    stop("ERROR: Length of filtered df correct!")
+  }
+
 if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
   print("Filtered integration map has no duplicates!") } else {
     stop("ERROR: Filtered integration map has duplicates!")
   }
 
-# 2) some of the multimapped metacells still map to the same broad cell type
-# if they do, replace the normal cell type with the broad one, remove duplicates and append
-print("Adding back into multimapped seacells that map to the same broad cell type:")
+# 2) add in the multimaps which map to the same BROAD cell type
 broad_labelling <- duplicates_map_broad %>%
-  filter(duplicated_cell_type = TRUE) %>%
+  filter(duplicated_cell_type == TRUE) %>%
   mutate(scHelper_cell_type_by_proportion = broad) %>%
   select(RNA, ATAC, scHelper_cell_type_by_proportion, k) %>% 
   distinct(ATAC, .keep_all = TRUE)
+length(unique(broad_labelling$ATAC))
 filtered_integration_map <- rbind(filtered_integration_map, broad_labelling)
-
-head(filtered_integration_map)
 
 # check dataframe has no duplicates
 if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
@@ -298,9 +295,10 @@ if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
     stop("ERROR: Filtered integration map has duplicates!")
   }
 
-# plot how many seacells are multimapped to different levels
-df <- data.frame(multimapped_SEACells = length(multi_mapped_SEACells),
-                 multimapped_broad_SEACells = length(unique(duplicates_map_broad[which(duplicates_map_broad$duplicated_cell_type == FALSE), ]$ATAC))
+# plot how many seacells are multimapped to different levels
+df <- data.frame(n_multimapped_SEACells = length(multimapped_ATAC_IDs),
+                 n_multimapped_cell_type_SEACells = length(multimapped_cell_type_ATAC_IDs),
+                 n_multimapped_cell_type_broad_SEACells = length(multimapped_broad_cell_type_ATAC_IDs)
 )
 png(paste0(plot_path, 'multimapped_numbers.png'), height = 5, width = 12, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
@@ -335,6 +333,14 @@ graphics.off()
 table <- as.data.frame(table(filtered_integration_map$k))
 colnames(table) <- c("k value", "How many SEACells mapped")
 png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped_from_each_k.png'), height = 15, width = 15, units = 'cm', res = 400)
+grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(table, theme = ttheme_minimal()))
+graphics.off()
+
+# Plot how many of each cell type there is
+df <- as.data.frame(table(filtered_integration_map$scHelper_cell_type_by_proportion))
+colnames(df) <- c("Identity", "Frequency")
+png(paste0(plot_path, '15_Filtered_how_many_metacells_mapped_to_each_cell_state.png'), height = 15, width = 15, units = 'cm', res = 400)
 grid.arrange(top=textGrob(" ", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, theme = ttheme_minimal()))
 graphics.off()
