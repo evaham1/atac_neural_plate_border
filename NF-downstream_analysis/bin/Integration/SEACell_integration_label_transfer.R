@@ -291,6 +291,10 @@ broad_labelling <- duplicates_map_broad %>%
 length(unique(broad_labelling$ATAC))
 filtered_integration_map <- base::rbind(filtered_integration_map, broad_labelling)
 
+print(length(unique(cutoff_integration_map$ATAC)))
+print(length(unique(cutoff_integration_map$ATAC)) - length(multimapped_broad_cell_type_ATAC_IDs))
+print(length(unique(filtered_integration_map$ATAC)))
+
 if (length(unique(filtered_integration_map$ATAC)) ==  length(unique(cutoff_integration_map$ATAC)) - length(multimapped_broad_cell_type_ATAC_IDs)){
   print("Length of filtered df correct!") } else {
     stop("ERROR: Length of filtered df is incorrect!")
