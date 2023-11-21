@@ -92,7 +92,7 @@ seurat_object <- DietSeurat(seurat_object, counts = TRUE, assays = opt$assay, di
 seurat_object@misc <- list()
 
 # check whats in seurat metadata
-print(colnames(seurat@meta.data))
+print(colnames(seurat_object@meta.data))
 
 # generate cell colours for group_by column
 if(!opt[['group_by']] %in% colnames(seurat_object@meta.data)){
