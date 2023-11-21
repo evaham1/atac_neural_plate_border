@@ -152,7 +152,7 @@ def main(args=None):
 
     # check atac object by running UMAP
     plt.figure(figsize=(8,8))
-    sc.pl.umap(atac_ad, color=['scHelper_cell_type'], legend_fontsize=8, palette = cell_type_colors)
+    sc.pl.umap(atac_ad, color=['seurat_clusters'], legend_fontsize=8, palette = cell_type_colors)
     plt.savefig(os.path.join(plot_path, "UMAP_ATAC.png"))
     plt.close()
 
