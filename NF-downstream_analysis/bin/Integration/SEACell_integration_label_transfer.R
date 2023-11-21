@@ -363,11 +363,13 @@ dir.create(plot_path, recursive = T)
 ## add new transferred labels to seurat object
 map1 <- full_integration_map %>% arrange(ATAC)
 colnames(map1)[colnames(map1) == 'scHelper_cell_type_by_proportion'] <- 'scHelper_cell_type_by_proportion'
+row.names(map1) <- NULL  # Clear existing row names
+row.names(map1) <- 1:nrow(map1)  # Set row names to unique numbers
 head(map1)
 map2 <- rownames_to_column(seurat@meta.data, var = "ATAC")
-head(map2)
+row.names(map2) <- NULL  # Clear existing row names
+row.names(map2) <- 1:nrow(map2)  # Set row names to unique numbers
 map <- merge(map1, map2, by = "ATAC", all = TRUE)
-head(map)
 metadata <- column_to_rownames(map, var = "ATAC")
 head(metadata)
 
