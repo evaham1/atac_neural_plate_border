@@ -219,11 +219,11 @@ graphics.off()
 ############### 1.4) Deal with single ATAC SEACells mapping to multiple RNA SEACells ##############
 
 # identify which ATAC SEACells map to > 1 scHelper cell type, remove these ones (v few)
-# for the rest just remove duplicates as the scHelper_cell_type will be the same even if the RNA SEACell ID is different
+# for the rest just remove duplicates as the scHelper_cell_type_by_proportion will be the same even if the RNA SEACell ID is different
 duplicated_ATAC_IDs <- cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)]
 duplicates_map <- combined_integration_map %>% filter(ATAC %in% duplicated_ATAC_IDs) %>%
   arrange(ATAC) %>%
-  group_by(ATAC, scHelper_cell_type) %>% 
+  group_by(ATAC, scHelper_cell_type_by_proportion) %>% 
   dplyr::mutate(duplicated_cell_type = n()>1)
 SEACells_to_remove <- unique(duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC)
 
@@ -271,7 +271,7 @@ graphics.off()
 ## Add ATAC IDs to df which are NOT mapped
 unmapped_df <- data.frame (RNA  = rep("Unmapped", length(unmapped_SEACells)),
                            ATAC = unmapped_SEACells,
-                           scHelper_cell_type  = rep("Unmapped", length(unmapped_SEACells)),
+                           scHelper_cell_type_by_proportion  = rep("Unmapped", length(unmapped_SEACells)),
                            k  = rep("Unmapped", length(unmapped_SEACells))
 )
 full_integration_map <- rbind(filtered_integration_map, unmapped_df)
@@ -303,18 +303,18 @@ dir.create(plot_path, recursive = T)
 
 ## add new transferred labels to seurat object
 map1 <- full_integration_map %>% arrange(ATAC)
-colnames(map1)[colnames(map1) == 'scHelper_cell_type'] <- 'scHelper_cell_type_integration'
+colnames(map1)[colnames(map1) == 'scHelper_cell_type_by_proportion'] <- 'scHelper_cell_type_by_proportion'
 map2 <- rownames_to_column(seurat@meta.data, var = "ATAC")
 map <- merge(map1, map2, by = "ATAC", all = TRUE)
 metadata <- column_to_rownames(map, var = "ATAC")
 head(metadata)
 
 seurat <- AddMetaData(seurat, metadata = metadata$RNA, col.name = "Integrated_RNA_SEACell_ID")
-seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_integration, col.name = "scHelper_cell_type_from_integration")
+seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_by_proportion, col.name = "scHelper_cell_type_by_proportion")
 seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
 #   Set levels
-seurat@meta.data$scHelper_cell_type_from_integration <- factor(seurat@meta.data$scHelper_cell_type_from_integration, levels = scHelper_cell_type_order)
+seurat@meta.data$scHelper_cell_type_by_proportion <- factor(seurat@meta.data$scHelper_cell_type_by_proportion, levels = scHelper_cell_type_order)
 seurat@meta.data$Mapping_k <- factor(seurat@meta.data$Mapping_k, levels = names(k_colors))
 
 ## save seacells seurat object with new metadata
@@ -337,10 +337,10 @@ DimPlot(seurat, group.by = 'stage', label = TRUE,
 graphics.off()
 
 # Plot transferred cell type labels
-scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_from_integration))]
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_by_proportion))]
 
-png(paste0(plot_path, "2_scHelper_cell_type_from_integration_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
-DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = TRUE, 
+png(paste0(plot_path, "2_scHelper_cell_type_by_proportion_from_integration_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type_by_proportion', label = TRUE, 
         label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
         label.box = TRUE, repel = TRUE,
         pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
@@ -350,8 +350,8 @@ DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = TRUE,
                  plot.title = element_blank())
 graphics.off()
 
-png(paste0(plot_path, "2_scHelper_cell_type_from_integration_UMAP_no_label.png"), width=12, height=12, units = 'cm', res = 200)
-DimPlot(seurat, group.by = 'scHelper_cell_type_from_integration', label = FALSE, 
+png(paste0(plot_path, "2_scHelper_cell_type_by_proportion_from_integration_UMAP_no_label.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type_by_proportion', label = FALSE, 
         label.box = FALSE,
         pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
         cols = scHelper_cols, shuffle = TRUE) +
@@ -376,7 +376,7 @@ graphics.off()
 #############################################################################################################################
 
 df_new <- merge(SEACell_map, filtered_integration_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
-single_cell_integrated_map <- df_new %>% select(c("SEACell", "index", "RNA", "scHelper_cell_type"))
+single_cell_integrated_map <- df_new %>% select(c("SEACell", "index", "RNA", "scHelper_cell_type_by_proportion"))
 
 head(single_cell_integrated_map)
 
