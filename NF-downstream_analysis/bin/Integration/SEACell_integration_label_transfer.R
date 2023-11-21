@@ -233,10 +233,10 @@ print(paste0("Number of ATAC SEACells that have been mapped: ", length(unique(cu
 
 # which ATAC metacells map to more than one RNA metacell = multimapped_ATAC_IDs
 multimapped_ATAC_IDs <- unique(cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)])
-duplicates_map <- cutoff_integration_map %>% filter(ATAC %in% multimapped_ATAC_IDs) %>%
-  arrange(ATAC) %>%
-  group_by(ATAC) %>%
-  mutate(duplicated_cell_type = n_distinct(scHelper_cell_type_by_proportion) == 1)
+duplicates_map <- cutoff_integration_map %>% dplyr::filter(ATAC %in% multimapped_ATAC_IDs) %>%
+  dplyr::arrange(ATAC) %>%
+  dplyr::group_by(ATAC) %>%
+  dplyr::mutate(duplicated_cell_type = n_distinct(scHelper_cell_type_by_proportion) == 1)
 print(paste0("Number of ATAC SEACells that map to more than one RNA metacell: ", length(multimapped_ATAC_IDs)))
 
 # which ATAC metacells map to more than one RNA metacell cell type = multimapped_cell_type_ATAC_IDs
@@ -256,13 +256,13 @@ mapping <- c(
   'MIXED' = 'MIXED'
 )
 duplicates_map_broad <- duplicates_map %>% 
-  mutate(broad = case_when(
+  dplyr::mutate(broad = case_when(
     scHelper_cell_type_by_proportion %in% names(mapping) ~ mapping[scHelper_cell_type_by_proportion],
     TRUE ~ NA_character_
   )) %>%
-  filter(ATAC %in% multimapped_cell_type_ATAC_IDs) %>%
-  group_by(ATAC) %>%
-  mutate(duplicated_cell_type = n_distinct(broad) == 1)
+  dplyr::filter(ATAC %in% multimapped_cell_type_ATAC_IDs) %>%
+  dplyr::group_by(ATAC) %>%
+  dplyr::mutate(duplicated_cell_type = n_distinct(broad) == 1)
 
 multimapped_broad_cell_type_ATAC_IDs <- unique(duplicates_map_broad[which(duplicates_map_broad$duplicated_cell_type == FALSE), ]$ATAC)
 print(paste0("Number of ATAC SEACells that map to more than one BROAD cell type: ", length(multimapped_broad_cell_type_ATAC_IDs)))
@@ -270,7 +270,7 @@ print(paste0("Number of ATAC SEACells that map to more than one BROAD cell type:
 # 1) resolve multimaps that dont matter as they are different RNA metacells but to the same cell state
 filtered_integration_map <- cutoff_integration_map %>% 
   dplyr::filter(!ATAC %in% multimapped_cell_type_ATAC_IDs) %>% 
-  distinct(ATAC, .keep_all = TRUE)
+  dplyr::distinct(ATAC, .keep_all = TRUE)
 
 if (length(unique(filtered_integration_map$ATAC)) ==  length(unique(cutoff_integration_map$ATAC)) - length(multimapped_cell_type_ATAC_IDs)){
   print("Length of filtered df incorrect!") } else {
@@ -284,10 +284,10 @@ if (sum(duplicated(filtered_integration_map$ATAC)) == 0) {
 
 # 2) add in the multimaps which map to the same BROAD cell type
 broad_labelling <- duplicates_map_broad %>%
-  filter(duplicated_cell_type == TRUE) %>%
-  mutate(scHelper_cell_type_by_proportion = broad) %>%
-  select(RNA, ATAC, scHelper_cell_type_by_proportion, k) %>% 
-  distinct(ATAC, .keep_all = TRUE)
+  dplyr::filter(duplicated_cell_type == TRUE) %>%
+  dplyr::mutate(scHelper_cell_type_by_proportion = broad) %>%
+  dplyr::select(RNA, ATAC, scHelper_cell_type_by_proportion, k) %>% 
+  dplyr::distinct(ATAC, .keep_all = TRUE)
 length(unique(broad_labelling$ATAC))
 filtered_integration_map <- rbind(filtered_integration_map, broad_labelling)
 
