@@ -128,7 +128,8 @@ def main(args=None):
                       'PGC': '#786D73', 
                       'BI': '#581845', 
                       'meso': '#9792A3', 
-                      'endo': '#BBB3CB'
+                      'endo': '#BBB3CB',
+                      'MIXED': '#7C8483'
                       }
 
     ####################    Load data   ####################

@@ -67,18 +67,18 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo', 'Unmapped')
+                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped')
 
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
                                 "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
                                 "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB", "#EAEAEA")
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB", "#7C8483", "#EAEAEA")
 
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
                                        'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo', 'Unmapped')
+                                       'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped')
 
 ###### STAGE COLOURS ####################
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
