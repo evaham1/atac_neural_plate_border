@@ -228,15 +228,13 @@ graphics.off()
 
 # identify which ATAC SEACells map to > 1 scHelper cell type, remove these ones (v few)
 # for the rest just remove duplicates as the scHelper_cell_type_by_proportion will be the same even if the RNA SEACell ID is different
-print(head(cutoff_integration_map))
-
 duplicated_ATAC_IDs <- cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)]
 duplicates_map <- combined_integration_map %>% filter(ATAC %in% duplicated_ATAC_IDs) %>%
   arrange(ATAC) %>%
   group_by(ATAC, scHelper_cell_type_by_proportion) %>% 
   dplyr::mutate(duplicated_cell_type = n()>1)
 
-print(head(duplicates_map))
+write.csv(duplicates_map, paste0(rds_path, 'Duplicates_map.csv'))
 
 SEACells_to_remove <- unique(duplicates_map[which(duplicates_map$duplicated_cell_type == FALSE), ]$ATAC)
 
