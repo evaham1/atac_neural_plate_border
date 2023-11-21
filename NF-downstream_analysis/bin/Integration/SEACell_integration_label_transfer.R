@@ -68,17 +68,20 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
                               'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped')
-
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB", "#7C8483", "#EAEAEA")
-
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                "#A5718D", "#3F918C", "#ed5e5f", "#9792A3",
+                                "#7C8483", "#EAEAEA")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped')
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo',
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam',
+                                       'MIXED', 'Unmapped')
 
 ###### STAGE COLOURS ####################
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
@@ -404,13 +407,38 @@ map2 <- tibble::rownames_to_column(seurat@meta.data, var = "ATAC")
 map <- base::merge(map1, map2, by = "ATAC", all = TRUE)
 metadata <- tibble::column_to_rownames(map, var = "ATAC")
 head(metadata)
+print(sum(is.na(metadata)))
 
+# add broad cell state labels
+mapping <- c(
+  "NP" = "Neural", "aNP" = "Neural", "iNP" = "Neural", "pNP" = "Neural", 
+  "eN" = "Neural", "vFB" = "Neural", "FB" = "Neural", 
+  "MB" = "Neural", "HB" = "Neural", "eCN" = "Neural", "eN" = "Neural",
+  'PPR' = "Placodal", 'aPPR' = "Placodal", 'pPPR' = "Placodal",
+  'eNPB' = "NPB", 'NPB' = "NPB", 'aNPB' = "NPB", 'pNPB' = "NPB",
+  'NC' = "NC", 'dNC' = "NC",
+  'NNE' = "Non-neural", 'pEpi' = "Non-neural",
+  'EE' = "Contam", 'meso' = "Contam", 'endo' = "Contam", 'BI' = "Contam", 'PGC' = "Contam", 'streak' = 'Contam',
+  'MIXED' = 'MIXED', 'Unmapped' = 'Unmapped',
+  'Neural' = 'Neural', 'Placodal' = 'Placodal', 'NC' = 'NC', 'NPB' = 'NPB', 'Contam' = 'Contam'
+)
+metadata <- metadata %>% 
+  dplyr::mutate(broad = case_when(
+    scHelper_cell_type_by_proportion %in% names(mapping) ~ mapping[scHelper_cell_type_by_proportion],
+    TRUE ~ NA_character_
+  ))
+
+# add to metadata of seurat object
 seurat <- AddMetaData(seurat, metadata = metadata$RNA, col.name = "Integrated_RNA_SEACell_ID")
 seurat <- AddMetaData(seurat, metadata = metadata$scHelper_cell_type_by_proportion, col.name = "scHelper_cell_type_by_proportion")
 seurat <- AddMetaData(seurat, metadata = metadata$k, col.name = "Mapping_k")
 
+head(seurat@meta.data)
+sum(is.na((seurat@meta.data)))
+
 #   Set levels
 seurat@meta.data$scHelper_cell_type_by_proportion <- factor(seurat@meta.data$scHelper_cell_type_by_proportion, levels = scHelper_cell_type_order)
+seurat@meta.data$scHelper_cell_type_broad_by_proportion <- factor(seurat@meta.data$scHelper_cell_type_broad_by_proportion, levels = scHelper_cell_type_order)
 seurat@meta.data$Mapping_k <- factor(seurat@meta.data$Mapping_k, levels = names(k_colors))
 
 ## save seacells seurat object with new metadata
@@ -448,6 +476,30 @@ graphics.off()
 
 png(paste0(plot_path, "2_scHelper_cell_type_by_proportion_from_integration_UMAP_no_label.png"), width=12, height=12, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'scHelper_cell_type_by_proportion', label = FALSE, 
+        label.box = FALSE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+# Plot transferred broad cell type labels
+scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_broad_by_proportion))]
+
+png(paste0(plot_path, "2_scHelper_cell_type_broad_by_proportion_from_integration_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type_broad_by_proportion', label = TRUE, 
+        label.size = ifelse(length(unique(seurat$stage)) == 1, 9, 3),
+        label.box = TRUE, repel = TRUE,
+        pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
+        cols = scHelper_cols, shuffle = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
+graphics.off()
+
+png(paste0(plot_path, "2_scHelper_cell_type_broad_by_proportion_from_integration_UMAP_no_label.png"), width=12, height=12, units = 'cm', res = 200)
+DimPlot(seurat, group.by = 'scHelper_cell_type_broad_by_proportion', label = FALSE, 
         label.box = FALSE,
         pt.size = ifelse(length(unique(seurat$stage)) == 1, 6, 6), 
         cols = scHelper_cols, shuffle = TRUE) +
