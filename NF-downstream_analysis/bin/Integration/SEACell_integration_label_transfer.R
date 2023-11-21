@@ -226,9 +226,6 @@ graphics.off()
 
 ############### 1.4) Deal with single ATAC SEACells mapping to multiple RNA SEACells ##############
 
-print("integration map: ")
-head(cutoff_integration_map)
-
 # identify which ATAC SEACells map to > 1 scHelper cell type, remove these ones (v few)
 # for the rest just remove duplicates as the scHelper_cell_type_by_proportion will be the same even if the RNA SEACell ID is different
 duplicated_ATAC_IDs <- cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)]
@@ -348,7 +345,7 @@ if (length(all_SEACells) == sum(all_SEACells %in% full_integration_map$ATAC)) {
 ## Detect stage from cell metadata + add to df + use to name file
 stage <- substr(SEACell_map$index[1], 8, 10)
 print(paste0("Stage detected: ", stage))
-full_integration_map %>% mutate(Stage = stage)
+full_integration_map <- full_integration_map %>% mutate(Stage = stage)
 
 ############### 1.8) Save processed integration map ##############
 
@@ -359,14 +356,18 @@ write.csv(full_integration_map, paste0(rds_path, stage, '_SEACells_integration_m
 #####################            2) Visualise integration result on ATAC SEACell seurat           ##########################
 #############################################################################################################################
 
+print("Visualising label transfer results...")
 plot_path = "./plots/seurat_visualise/"
 dir.create(plot_path, recursive = T)
 
 ## add new transferred labels to seurat object
 map1 <- full_integration_map %>% arrange(ATAC)
 colnames(map1)[colnames(map1) == 'scHelper_cell_type_by_proportion'] <- 'scHelper_cell_type_by_proportion'
+head(map1)
 map2 <- rownames_to_column(seurat@meta.data, var = "ATAC")
+head(map2)
 map <- merge(map1, map2, by = "ATAC", all = TRUE)
+head(map)
 metadata <- column_to_rownames(map, var = "ATAC")
 head(metadata)
 
