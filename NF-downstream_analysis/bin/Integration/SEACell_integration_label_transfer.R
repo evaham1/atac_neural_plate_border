@@ -89,7 +89,7 @@ names(stage_colours) <- stage_order
 # k_colors <- c("#f21111", "#ef3e2a", "#ea573f", "#e56a54", "#de7c69", "#d58c7f", "#c99b94", "#bbaaab", "a8b8c1", "#EAEAEA")
 # names(k_colors) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "Unmapped")
 
-k_colors <- c("#f21111", "#f63535", "#f95959", "#fd7d7d", "#ffa1a1", "#ffc5c5", "#ffdadad", "#ffe0e0", "ffe5e5", , "ffebec", "fff0f0", "fff5f5", "#EAEAEA")
+k_colors <- c("#f21111", "#f63535", "#f95959", "#fd7d7d", "#ffa1a1", "#ffc5c5", "#ffdadad", "#ffe0e0", "ffe5e5", "ffebec", "fff0f0", "fff5f5", "#EAEAEA")
 names(k_colors) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", , "10", "11", "12", "Unmapped")
 
 ############################## Read data #######################################
