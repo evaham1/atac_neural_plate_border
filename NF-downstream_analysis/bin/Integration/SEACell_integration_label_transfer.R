@@ -363,7 +363,7 @@ unmapped_df <- data.frame (RNA  = rep("Unmapped", length(unmapped_SEACells)),
                            scHelper_cell_type_by_proportion  = rep("Unmapped", length(unmapped_SEACells)),
                            k  = rep("Unmapped", length(unmapped_SEACells))
 )
-full_integration_map <- rbind(filtered_integration_map, unmapped_df)
+full_integration_map <- base::rbind(filtered_integration_map, unmapped_df)
 
 # check final dataframe includes all SEACell ATAC IDs
 if (length(all_SEACells) == sum(all_SEACells %in% full_integration_map$ATAC)) {
@@ -380,9 +380,9 @@ if (sum(duplicated(full_integration_map$ATAC)) == 0) {
 ############### 1.7) Add stage data to dataframe ##############
 
 ## Detect stage from cell metadata + add to df + use to name file
-stage <- substr(SEACell_map$index[1], 8, 10)
+stage <- base::substr(SEACell_map$index[1], 8, 10)
 print(paste0("Stage detected: ", stage))
-full_integration_map <- full_integration_map %>% mutate(Stage = stage)
+full_integration_map <- full_integration_map %>% dplyr::mutate(Stage = stage)
 
 ############### 1.8) Save processed integration map ##############
 
@@ -398,11 +398,11 @@ plot_path = "./plots/seurat_visualise/"
 dir.create(plot_path, recursive = T)
 
 ## add new transferred labels to seurat object
-map1 <- full_integration_map %>% arrange(ATAC)
+map1 <- full_integration_map %>% dplyr::arrange(ATAC)
 colnames(map1)[colnames(map1) == 'scHelper_cell_type_by_proportion'] <- 'scHelper_cell_type_by_proportion'
-map2 <- rownames_to_column(seurat@meta.data, var = "ATAC")
-map <- merge(map1, map2, by = "ATAC", all = TRUE)
-metadata <- column_to_rownames(map, var = "ATAC")
+map2 <- tibble::rownames_to_column(seurat@meta.data, var = "ATAC")
+map <- base::merge(map1, map2, by = "ATAC", all = TRUE)
+metadata <- tibble::column_to_rownames(map, var = "ATAC")
 head(metadata)
 
 seurat <- AddMetaData(seurat, metadata = metadata$RNA, col.name = "Integrated_RNA_SEACell_ID")
@@ -471,8 +471,8 @@ graphics.off()
 #########################            3) Generate ATAC SEACell to ATAC single cell map           #############################
 #############################################################################################################################
 
-df_new <- merge(SEACell_map, filtered_integration_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
-single_cell_integrated_map <- df_new %>% select(c("SEACell", "index", "RNA", "scHelper_cell_type_by_proportion"))
+df_new <- base::merge(SEACell_map, filtered_integration_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
+single_cell_integrated_map <- df_new %>% dplyr::select(c("SEACell", "index", "RNA", "scHelper_cell_type_by_proportion"))
 
 head(single_cell_integrated_map)
 
