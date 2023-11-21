@@ -246,7 +246,7 @@ def main(args=None):
         # Constructs a mapping between RNA and ATAC SEACells if they are mutually in each other's k-nearest neighbours
 
     # Loop through different k values to run mapping
-    for i in range(1,10,1):
+    for i in range(1,20,1):
         print(i)
         
         # Run mapping with this k value
