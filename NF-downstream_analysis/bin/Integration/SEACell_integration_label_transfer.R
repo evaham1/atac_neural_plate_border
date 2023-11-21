@@ -226,6 +226,9 @@ graphics.off()
 
 ############### 1.4) Deal with single ATAC SEACells mapping to multiple RNA SEACells ##############
 
+write.csv(cutoff_integration_map, paste0(rds_path, 'cutoff_integration_map.csv'))
+write.csv(combined_integration_map, paste0(rds_path, 'combined_integration_map.csv'))
+
 # identify which ATAC SEACells map to > 1 scHelper cell type, remove these ones (v few)
 # for the rest just remove duplicates as the scHelper_cell_type_by_proportion will be the same even if the RNA SEACell ID is different
 duplicated_ATAC_IDs <- cutoff_integration_map$ATAC[duplicated(cutoff_integration_map$ATAC)]
