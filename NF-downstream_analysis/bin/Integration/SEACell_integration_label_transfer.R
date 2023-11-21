@@ -370,6 +370,8 @@ map2 <- rownames_to_column(seurat@meta.data, var = "ATAC")
 row.names(map2) <- NULL  # Clear existing row names
 row.names(map2) <- 1:nrow(map2)  # Set row names to unique numbers
 map <- merge(map1, map2, by = "ATAC", all = TRUE)
+row.names(map) <- NULL  # Clear existing row names
+row.names(map) <- 1:nrow(map)  # Set row names to unique numbers
 metadata <- column_to_rownames(map, var = "ATAC")
 head(metadata)
 
