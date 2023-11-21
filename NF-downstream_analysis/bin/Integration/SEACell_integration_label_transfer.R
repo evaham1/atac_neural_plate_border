@@ -226,6 +226,8 @@ graphics.off()
 
 ############### 1.4) Deal with single ATAC SEACells mapping to multiple RNA SEACells ##############
 
+write.csv(cutoff_integration_map, "cutoff_integration_map.csv")
+
 # initial number of ATAC seacells that are mapped
 print(paste0("Number of ATAC SEACells that have been mapped: ", length(unique(cutoff_integration_map$ATAC))))
 
