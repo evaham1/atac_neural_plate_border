@@ -189,9 +189,14 @@ dim(combined_integration_map)
 ############### 1.3) Set cut-off K value ##############
 
 # use plots to see when using less stringent k value doesn't add signficiantly more maps
+# png(paste0(plot_path, "13_k_values_plot.png"), width = 12, height = 12, units = 'cm', res = 200)
+# plot(labelled_cell_count, ylim = c(0, length(all_SEACells) + 2), cex.axis = 1.5, cex.lab=2)
+# abline(h = length(all_SEACells), col = "blue", cex = 1.5)
+# abline(v = opt$k_cutoff, col = "red", cex = 1.5)
+# graphics.off()
+
 png(paste0(plot_path, "13_k_values_plot.png"), width = 12, height = 12, units = 'cm', res = 200)
-plot(labelled_cell_count, ylim = c(0, length(all_SEACells) + 2), cex.axis = 1.5, cex.lab=2)
-abline(h = length(all_SEACells), col = "blue", cex = 1.5)
+plot(labelled_cell_count, cex.axis = 1.5, cex.lab=2)
 abline(v = opt$k_cutoff, col = "red", cex = 1.5)
 graphics.off()
 
