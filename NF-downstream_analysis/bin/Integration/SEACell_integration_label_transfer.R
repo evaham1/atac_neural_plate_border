@@ -438,9 +438,9 @@ head(seurat@meta.data)
 sum(is.na((seurat@meta.data)))
 
 #   Set levels
-seurat@meta.data$scHelper_cell_type_by_proportion <- factor(seurat@meta.data$scHelper_cell_type_by_proportion, levels = scHelper_cell_type_order)
-seurat@meta.data$scHelper_cell_type_broad_by_proportion <- factor(seurat@meta.data$scHelper_cell_type_broad_by_proportion, levels = scHelper_cell_type_order)
-seurat@meta.data$Mapping_k <- factor(seurat@meta.data$Mapping_k, levels = names(k_colors))
+seurat@meta.data$scHelper_cell_type_by_proportion <- base::factor(seurat@meta.data$scHelper_cell_type_by_proportion, levels = scHelper_cell_type_order)
+seurat@meta.data$scHelper_cell_type_broad_by_proportion <- base::factor(seurat@meta.data$scHelper_cell_type_broad_by_proportion, levels = scHelper_cell_type_order)
+seurat@meta.data$Mapping_k <- base::factor(seurat@meta.data$Mapping_k, levels = names(k_colors))
 
 ## save seacells seurat object with new metadata
 saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), compress = FALSE)
@@ -448,8 +448,8 @@ saveRDS(seurat, paste0(rds_path, stage, "_seacells_seurat_integrated.RDS"), comp
 ## plot new metadata on SEACell UMAPs
 
 # Plot stage
-seurat@meta.data$stage <- factor(seurat@meta.data$stage, levels = stage_order)
-stage_cols <- stage_colours[levels(droplevels(seurat@meta.data$stage))]
+seurat@meta.data$stage <- base::factor(seurat@meta.data$stage, levels = stage_order)
+stage_cols <- stage_colours[base::levels(base::droplevels(seurat@meta.data$stage))]
 
 png(paste0(plot_path, "2_stage_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'stage', label = TRUE, 
@@ -462,7 +462,7 @@ DimPlot(seurat, group.by = 'stage', label = TRUE,
 graphics.off()
 
 # Plot transferred cell type labels
-scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_by_proportion))]
+scHelper_cols <- scHelper_cell_type_colours[base::levels(base::droplevels(seurat@meta.data$scHelper_cell_type_by_proportion))]
 
 png(paste0(plot_path, "2_scHelper_cell_type_by_proportion_from_integration_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'scHelper_cell_type_by_proportion', label = TRUE, 
@@ -486,7 +486,7 @@ DimPlot(seurat, group.by = 'scHelper_cell_type_by_proportion', label = FALSE,
 graphics.off()
 
 # Plot transferred broad cell type labels
-scHelper_cols <- scHelper_cell_type_colours[levels(droplevels(seurat@meta.data$scHelper_cell_type_broad_by_proportion))]
+scHelper_cols <- scHelper_cell_type_colours[base::levels(base::droplevels(seurat@meta.data$scHelper_cell_type_broad_by_proportion))]
 
 png(paste0(plot_path, "2_scHelper_cell_type_broad_by_proportion_from_integration_UMAP.png"), width=12, height=12, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'scHelper_cell_type_broad_by_proportion', label = TRUE, 
@@ -510,7 +510,7 @@ DimPlot(seurat, group.by = 'scHelper_cell_type_broad_by_proportion', label = FAL
 graphics.off()
 
 # Plot k values of transferred labels
-k_cols <- k_colors[levels(droplevels(seurat@meta.data$Mapping_k))]
+k_cols <- k_colors[base::levels(base::droplevels(seurat@meta.data$Mapping_k))]
 
 png(paste0(plot_path, "2_mapping_k_UMAP.png"), width=25, height=20, units = 'cm', res = 200)
 DimPlot(seurat, group.by = 'Mapping_k', label = FALSE, 
