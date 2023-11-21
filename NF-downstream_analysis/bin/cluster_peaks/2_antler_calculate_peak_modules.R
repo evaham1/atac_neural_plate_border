@@ -105,22 +105,26 @@ ExportAntlerModules <- function (antler_object, publish_dir, names_list = "unbia
 }
 
 ########################       CELL STATE COLOURS    ########################################
-scHelper_cell_type_order <- c('node', 'streak', 'PGC', 'BI', 'meso', 'endo',
-                              'EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
-                              'aNP', 'FB', 'vFB', 'Unmapped')
-
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB", "#EAEAEA")
-
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                "#A5718D", "#3F918C", "#ed5e5f", "#9792A3",
+                                "#7C8483", "#EAEAEA")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo', 'Unmapped')
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo',
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam',
+                                       'MIXED', 'Unmapped')
 ########################       STAGE COLOURS     ###########################################
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
@@ -407,14 +411,14 @@ if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEAC
 } else {stop("ERROR: PM peaks are not found in the filtered peak matrix!")}
 
 # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
-order <- scHelper_cell_type_order[scHelper_cell_type_order %in% metadata$scHelper_cell_type]
+order <- scHelper_cell_type_order[scHelper_cell_type_order %in% metadata$scHelper_cell_type_by_proportion]
 scHelper_cell_type_colours <- scHelper_cell_type_colours[order]
 
 ########  Plot all peak modules ordered by stage and then by cell type ########
 
 # Prepare plot data - ordering by stage and then within that by scHelper_cell_type with custom order
 plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, metadata, 
-                                     col_order = c('stage', 'scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
+                                     col_order = c('stage', 'scHelper_cell_type'), custom_order_column = "scHelper_cell_type_by_proportion", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
                                      log_path = NULL, scale_data = TRUE)
@@ -438,12 +442,12 @@ seacell_filtered_metadata <- metadata %>% filter(!scHelper_cell_type %in% c("Unm
 seacell_filtered_normalised_matrix <- filtered_normalised_matrix[rownames(seacell_filtered_metadata), ]
 
 # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
-order <- scHelper_cell_type_order[scHelper_cell_type_order %in% seacell_filtered_metadata$scHelper_cell_type]
+order <- scHelper_cell_type_order[scHelper_cell_type_order %in% seacell_filtered_metadata$scHelper_cell_type_by_proportion]
 scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
 
 # Prepare plot data - ordering by scHelper cell type and then by hclust
 plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_filtered_metadata, col_order = c('stage', 'scHelper_cell_type'),
-                                   custom_order_column = "scHelper_cell_type", custom_order = order,
+                                   custom_order_column = "scHelper_cell_type_by_proportion", custom_order = order,
                                    hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                    peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
                                    log_path = NULL, scale_data = TRUE)
@@ -494,14 +498,14 @@ for (i in seq(1:length(stage_order))){
   
   # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
   stage_metadata <- metadata %>% filter(stage == temp_stage)
-  order <- scHelper_cell_type_order[scHelper_cell_type_order %in% stage_metadata$scHelper_cell_type]
+  order <- scHelper_cell_type_order[scHelper_cell_type_order %in% stage_metadata$scHelper_cell_type_by_proportion]
   scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
   
   ########  Plot all peak modules ordered cell type, within each cell type hclust ########
   
   # Prepare plot data - ordering by scHelper cell type and then by hclust
   plot_data <- PrepPeakModuleHeatmap(filtered_normalised_matrix, stage_metadata, 
-                                     col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
+                                     col_order = c('scHelper_cell_type_by_proportion'), custom_order_column = "scHelper_cell_type_by_proportion", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
                                      log_path = NULL, scale_data = TRUE)
@@ -545,12 +549,12 @@ for (i in seq(1:length(stage_order))){
   seacell_filtered_normalised_matrix <- filtered_normalised_matrix[rownames(seacell_filtered_metadata), ]
   
   # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
-  order <- scHelper_cell_type_order[scHelper_cell_type_order %in% seacell_filtered_metadata$scHelper_cell_type]
+  order <- scHelper_cell_type_order[scHelper_cell_type_order %in% seacell_filtered_metadata$scHelper_cell_type_by_proportion]
   scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
   
   # Prepare plot data - ordering by scHelper cell type and then by hclust
   plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_filtered_metadata, 
-                                     col_order = c('scHelper_cell_type'), custom_order_column = "scHelper_cell_type", custom_order = order, 
+                                     col_order = c('scHelper_cell_type_by_proportion'), custom_order_column = "scHelper_cell_type_by_proportion", custom_order = order, 
                                      hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
                                      peak_modules = antler_data$gene_modules$lists$unbiasedPMs$content, peak_row_annotation = TRUE,
                                      log_path = NULL, scale_data = TRUE)
