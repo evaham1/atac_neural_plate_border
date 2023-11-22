@@ -128,16 +128,22 @@ scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
                               'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo')
-scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", "#53A651", "#6D8470",
-                                "#87638F", "#A5548D", "#C96555", "#ED761C", "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30",
-                                "#CC9F2C", "#AD6428", "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
-                                "#786D73", "#581845", "#9792A3", "#BBB3CB")
+                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                "#A5718D", "#3F918C", "#ed5e5f", "#9792A3",
+                                "#7C8483", "#EAEAEA")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
-                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 'MB', 
-                                       'vFB', 'aNP', 'node', 'FB', 'pEpi',
-                                       'PGC', 'BI', 'meso', 'endo')
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo',
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam',
+                                       'MIXED', 'Unmapped')
 
 ############################## Read in ArchR TL project + Metacell assignments #######################################
 
@@ -179,25 +185,16 @@ ArchR <- addCellColData(ArchRProj = ArchR, data = paste0(SEACells_metadata$SEACe
                         cells = SEACells_metadata$index, name = "SEACell_ID", force = TRUE)
 
 # add closest RNA SEACell ID to ArchR object
-ArchR <- addCellColData(ArchRProj = ArchR, data = paste0(SEACells_metadata$RNA, "-", label),
+ArchR <- addCellColData(ArchRProj = ArchR, data = paste0(SEACells_metadata$Integrated_RNA_SEACell_ID, "-", label),
                         cells = SEACells_metadata$index, name = "RNA_SEACell_ID", force = TRUE)
 
 # add SEACell integrated labels to ArchR object
-ArchR <- addCellColData(ArchRProj = ArchR, data = SEACells_metadata$scHelper_cell_type,
+ArchR <- addCellColData(ArchRProj = ArchR, data = SEACells_metadata$scHelper_cell_type_by_proportion,
                         cells = SEACells_metadata$index, name = "SEACell_scHelper_cell_type", force = TRUE)
 
-
-### maybe add this to integration script???
-# # add more general scHelpercelltype labels (ie group together all PPRs, neurals, etc)
-# scHelper_cell_types <- data.frame(getCellColData(ArchR, select = "scHelper_cell_type"))
-# broad <- scHelper_cell_types %>%
-#   mutate(broad = mapvalues(scHelper_cell_type, 
-#                            from=c("NP", "aNP", "iNP", "pNP", "eN", "vFB", "FB", "MB", "HB",
-#                                   'PPR', 'aPPR', 'pPPR',
-#                                   'eNPB', 'NPB', 'aNPB', 'pNPB',
-#                                   'NC', 'dNC'),
-#                            to=c(rep("Neural", 9), rep("Placodal", 3), rep("NPB", 4), rep("NC", 2))))
-# ArchR <- addCellColData(ArchRProj = ArchR, data = broad$broad, cells = rownames(getCellColData(ArchR)), name = "scHelper_cell_type_broad")
+# add broad SEACell integrated labels to ArchR object
+ArchR <- addCellColData(ArchRProj = ArchR, data = SEACells_metadata$scHelper_cell_type_broad_by_proportion,
+                        cells = SEACells_metadata$index, name = "SEACell_scHelper_cell_type_broad", force = TRUE)
 
 print("Cell metadata added to ArchR object!")
 print(getCellColData(ArchR))
@@ -220,7 +217,7 @@ p1 <- plotEmbedding(ArchR,
                     baseSize = 0, labelSize = 0, legendSize = 0, 
                     pal = scHelper_cell_type_colours, randomize = TRUE)
 p2 <- plotEmbedding(ArchR, 
-                    name = "scHelper_cell_type_old",
+                    name = "transferred_scHelper_cell_type",
                     plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
                     pal = scHelper_cell_type_colours, randomize = TRUE)
@@ -229,50 +226,65 @@ png(paste0(plot_path, "scHelper_cell_state_UMAPs.png"), width=60, height=40, uni
 ggAlignPlots(p1, p2, type = "h")
 graphics.off()
 
+p1 <- plotEmbedding(ArchR, 
+                    name = "SEACell_scHelper_cell_type_broad",
+                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0, 
+                    pal = scHelper_cell_type_colours, randomize = TRUE)
+p2 <- plotEmbedding(ArchR, 
+                    name = "transferred_scHelper_cell_type_broad",
+                    plotAs = "points", size = ifelse(length(unique(ArchR$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0,
+                    pal = scHelper_cell_type_colours, randomize = TRUE)
+
+png(paste0(plot_path, "scHelper_cell_state_broad_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+ggAlignPlots(p1, p2, type = "h")
+graphics.off()
+
 ############################## Explore SEACell purity #######################################
 
-categories <- strsplit(opt$categories, ",")[[1]]
+# categories <- strsplit(opt$categories, ",")[[1]]
 
-## loop through categories and check each of them for purity in metacells
-for (cat in categories) {
+# ## loop through categories and check each of them for purity in metacells
+# for (cat in categories) {
   
-  print(paste0("Checking purity of ", cat))
-  if (!(cat %in% colnames(getCellColData(ArchR)))){
-    stop("Category not in ArchR cell col data!")}
+#   print(paste0("Checking purity of ", cat))
+#   if (!(cat %in% colnames(getCellColData(ArchR)))){
+#     stop("Category not in ArchR cell col data!")}
   
-  plot_path_temp = paste0(plot_path, cat, "/")
-  dir.create(plot_path_temp, recursive = T)
+#   plot_path_temp = paste0(plot_path, cat, "/")
+#   dir.create(plot_path_temp, recursive = T)
   
-  # calculate proportions
-  prop_table <- SEACells_MetacellFrequencies(input_data = ArchR, input_data_type = "ArchR", metacell_slot = "SEACell_ID", category = cat, calc_proportions = TRUE)
+#   # calculate proportions
+#   prop_table <- SEACells_MetacellFrequencies(input_data = ArchR, input_data_type = "ArchR", metacell_slot = "SEACell_ID", category = cat, calc_proportions = TRUE)
   
-  # plot the relative proportions of labels in each metacell
-  png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
-  hist(prop_table$prop)
-  graphics.off()
+#   # plot the relative proportions of labels in each metacell
+#   png(paste0(plot_path_temp, "Hist_all_proportions.png"), width=25, height=20, units = 'cm', res = 200)
+#   hist(prop_table$prop)
+#   graphics.off()
   
-  # plot the max relative proportions of labels in each metacell
-  max_prop_table <- prop_table %>% group_by(Metacell) %>% dplyr::summarise(prop = max(prop))
-  png(paste0(plot_path_temp, "Hist_max_proportions_per_metacell.png"), width=25, height=20, units = 'cm', res = 200)
-  hist(max_prop_table$prop)
-  graphics.off()
+#   # plot the max relative proportions of labels in each metacell
+#   max_prop_table <- prop_table %>% group_by(Metacell) %>% dplyr::summarise(prop = max(prop))
+#   png(paste0(plot_path_temp, "Hist_max_proportions_per_metacell.png"), width=25, height=20, units = 'cm', res = 200)
+#   hist(max_prop_table$prop)
+#   graphics.off()
   
-  ## how many metacells have > 50% of their cells from same label
-  png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
-  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.5)
-  graphics.off()
+#   ## how many metacells have > 50% of their cells from same label
+#   png(paste0(plot_path_temp, "Pie_prop_over_0.5.png"), width=25, height=20, units = 'cm', res = 200)
+#   SEACells_PiechartProportionThreshold(prop_table, threshold = 0.5)
+#   graphics.off()
   
-  ## how many metacells have > 75% of their cells from same label
-  png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
-  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.75)
-  graphics.off()
+#   ## how many metacells have > 75% of their cells from same label
+#   png(paste0(plot_path_temp, "Pie_prop_over_0.75.png"), width=25, height=20, units = 'cm', res = 200)
+#   SEACells_PiechartProportionThreshold(prop_table, threshold = 0.75)
+#   graphics.off()
   
-  ## how many metacells have > 90% of their cells from same label
-  png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
-  SEACells_PiechartProportionThreshold(prop_table, threshold = 0.9)
-  graphics.off()
+#   ## how many metacells have > 90% of their cells from same label
+#   png(paste0(plot_path_temp, "Pie_prop_over_0.9.png"), width=25, height=20, units = 'cm', res = 200)
+#   SEACells_PiechartProportionThreshold(prop_table, threshold = 0.9)
+#   graphics.off()
   
-}
+# }
 
 
 ############################## Save ArchR with new obs #######################################
