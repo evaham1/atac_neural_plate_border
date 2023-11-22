@@ -435,6 +435,10 @@ png(paste0(temp_plot_path, 'All_peak_modules.png'), width = 60, height = 80, res
 plot
 graphics.off()
 
+png(paste0(temp_plot_path, 'All_peak_modules_shorter.png'), width = 60, height = 40, res = 400, units = 'cm')
+plot
+graphics.off()
+
 ########  Plot all peak modules ordered celltypes on cells which are mapped and not contam ########
 
 # subset matrix to only include SEACells that mapped and not contam
@@ -460,7 +464,11 @@ plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FAL
                 top_annotation = CreateStageAnnotation(plot_data, stage_colours),
                 col = PurpleAndYellow())
 
-png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type.png.png'), width = 60, height = 130, res = 400, units = 'cm')
+png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type.png'), width = 60, height = 130, res = 400, units = 'cm')
+print(plot)
+graphics.off()
+
+png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type_shorter.png'), width = 60, height = 40, res = 400, units = 'cm')
 print(plot)
 graphics.off()
 
@@ -521,6 +529,10 @@ for (i in seq(1:length(stage_order))){
   png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype.png'), width = 60, height = 130, res = 400, units = 'cm')
   print(plot)
   graphics.off()
+
+  png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype_shorter.png'), width = 60, height = 40, res = 400, units = 'cm')
+  print(plot)
+  graphics.off()
   
   ########  Plot all peak modules ordered hclust ########
   # 
@@ -567,11 +579,13 @@ for (i in seq(1:length(stage_order))){
                   top_annotation = CreateStageAnnotation(plot_data, stage_colours[i]), 
                   col = PurpleAndYellow())
   
-  png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type.png.png'), width = 60, height = 130, res = 400, units = 'cm')
+  png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type.png'), width = 60, height = 130, res = 400, units = 'cm')
   print(plot)
   graphics.off()
-  
-  
+
+  png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type_shorter.png'), width = 60, height = 40, res = 400, units = 'cm')
+  print(plot)
+  graphics.off()
   
   ## Finished plots
   print(paste0(temp_stage, " peak modules plotted!"))
