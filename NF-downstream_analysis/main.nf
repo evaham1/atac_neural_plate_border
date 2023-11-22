@@ -483,6 +483,8 @@ workflow A {
         ch_singlecell_processed
             .filter{ meta, data -> meta.sample_id == 'FullData'}
             .set { ch_fulldata }
+        // ch_fulldata.view()
+        // [[sample_id:FullData], [FullData_Save-ArchR]]
 
         METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
@@ -516,17 +518,19 @@ workflow A {
 
         // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
         TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
+        // TRANSFER_METACELL_LABELS.out.view()
+            // [[sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files]]
+            // [[sample_id:HH6], [ArchRLogs, Rplots.pdf, plots, rds_files]]
+            // [[sample_id:HH7], [ArchRLogs, Rplots.pdf, plots, rds_files]]
+            // [[sample_id:ss4], [ArchRLogs, Rplots.pdf, plots, rds_files]]
+            // [[sample_id:ss8], [ArchRLogs, Rplots.pdf, plots, rds_files]]
 
         // run script to transfer these labels from the ArchR stage objects to the full data object so everybody has the same labels
-        TRANSFER_METACELL_LABELS.out.view()
-
-        ch_fulldata.view()
-
         TRANSFER_METACELL_LABELS.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .collect()
-            .combine(ch_fulldata)
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .flatMap().collect()
+            // .combine(ch_fulldata)
+            // .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             .view()
             .set { ch_transfer_metacell_IDs_to_full }
         TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
