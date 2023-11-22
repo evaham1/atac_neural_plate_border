@@ -124,7 +124,126 @@ ArchR_full <- addCellColData(ArchRProj = ArchR_full,
                         cells = all_cell_ids, 
                         name = "SEACell_ID",
                         force = TRUE)
-print(table(ArchR_full$SEACell_ID))
+
+##############
+print("Transferring RNA_SEACell_ID...")
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_group_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  stage <- unique(ArchR$stage)
+
+  group_ids <- ArchR$RNA_SEACell_ID
+  print(length(group_ids))
+  all_group_ids <- c(all_group_ids, group_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage cluster ids: ", length(all_group_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_full <- addCellColData(ArchRProj = ArchR_full, 
+                        data = all_group_ids,
+                        cells = all_cell_ids, 
+                        name = "RNA_SEACell_ID",
+                        force = TRUE)
+
+##############
+print("Transferring SEACell_scHelper_cell_type...")
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_group_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  stage <- unique(ArchR$stage)
+
+  group_ids <- ArchR$SEACell_scHelper_cell_type
+  print(length(group_ids))
+  all_group_ids <- c(all_group_ids, group_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage cluster ids: ", length(all_group_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_full <- addCellColData(ArchRProj = ArchR_full, 
+                        data = all_group_ids,
+                        cells = all_cell_ids, 
+                        name = "SEACell_scHelper_cell_type",
+                        force = TRUE)
+
+##############
+print("Transferring SEACell_scHelper_cell_type_broad...")
+
+# extract cell IDs from each of the stages datasets
+all_cell_ids <- c()
+all_group_ids <- c()
+for (i in 1:5) {
+  stage <- substr(sub('.*\\/', '', stages_data[i]), 1, 3)
+  print(paste0("Iteration: ", i, ", Stage: ", stage))
+  
+  ArchR <- loadArchRProject(path = stages_data[i], force = TRUE, showLogo = FALSE)
+  
+  cell_ids <- ArchR$cellNames
+  print(paste0("length of cell_ids in ", stage, ": ", length(cell_ids)))
+  all_cell_ids <- c(all_cell_ids, cell_ids)
+  
+  stage <- unique(ArchR$stage)
+
+  group_ids <- ArchR$SEACell_scHelper_cell_type_broad
+  print(length(group_ids))
+  all_group_ids <- c(all_group_ids, group_ids)
+  
+}
+print(paste0("Length of all stage cell ids: ", length(all_cell_ids)))
+print(paste0("Length of all stage cluster ids: ", length(all_group_ids)))
+
+# check that the stage cell ids are all found in the fulldata object
+intersect_cell_id_length <- sum(all_cell_ids %in% rownames(ArchR_full@cellColData))
+print(paste0("Total number of stage cell ids found in full data: ", intersect_cell_id_length))
+if (intersect_cell_id_length != length(all_cell_ids)){
+  stop("Error! Not all stage cell ids match with cell ids in Full data")
+}
+
+# add the stage_clusters to the full dataset
+ArchR_full <- addCellColData(ArchRProj = ArchR_full, 
+                        data = all_group_ids,
+                        cells = all_cell_ids, 
+                        name = "SEACell_scHelper_cell_type_broad",
+                        force = TRUE)
 
 
 # ################## Transfer cluster info from stages onto full data #######################################
@@ -363,92 +482,75 @@ print(table(ArchR_full$SEACell_ID))
 ############################## Save data #######################################
 
 # save transfer_labels data
-saveArchRProject(ArchRProj = ArchR_filtered, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
+saveArchRProject(ArchRProj = ArchR_full, outputDirectory = paste0(rds_path, "TransferLabels_Save-ArchR"), load = FALSE)
 
 #####################################################################################
 ############################## Visualisations #######################################
 
-### Plot cell counts before and after subsetting per stage
-unfiltered <- table(ArchR$stage)
-filtered <- table(ArchR_filtered$stage)
-cell_counts <- as_tibble(rbind(unfiltered, filtered))
-cell_counts <- cbind(cell_counts, Total = rowSums(cell_counts))
-
-png(paste0(plot_path, 'cell_counts_table_stages.png'), height = 10, width = 20, units = 'cm', res = 400)
-grid.arrange(top=textGrob("Remaining Cell Count", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
-             tableGrob(cell_counts, rows=NULL, theme = ttheme_minimal()))
-graphics.off()
 
 #### Stage colours
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 names(stage_colours) <- stage_order
 
-### Plot stages and stage clusters
-p1 <- plotEmbedding(ArchR_filtered, 
-                    name = "stage",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0, 
-                    pal = stage_colours, randomize = TRUE)
-p2 <- plotEmbedding(ArchR_filtered, 
-                    name = "stage_clusters",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    randomize = TRUE)
-
-png(paste0(plot_path, "cluster_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
-ggAlignPlots(p1, p2, type = "h")
-graphics.off()
-
-###### schelper cell type colours
+###### schelper cell type colours ~ 29 cell states
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
                                 "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
                                 "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
                                 "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
                                 "#786D73", "#581845", "#9792A3", "#BBB3CB",
-                                "#A5718D", "#3F918C", "#ed5e5f", "9792A3")
+                                "#A5718D", "#3F918C", "#ed5e5f", "#9792A3",
+                                "#7C8483", "#EAEAEA")
 names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
                                        'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
                                        'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
                                        'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
                                        'PGC', 'BI', 'meso', 'endo',
-                                       'Neural', 'Placodal', 'Non-neural', 'Contam')
-cols <- scHelper_cell_type_colours[as.character(unique(ArchR_filtered$scHelper_cell_type))]
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam',
+                                       'MIXED', 'Unmapped')
 
-### Plot scHelper_cell_type and stage
-p1 <- plotEmbedding(ArchR_filtered,
-                    name = "scHelper_cell_type",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    pal = cols, randomize = TRUE)
-p2 <- plotEmbedding(ArchR_filtered,
-                    name = "stage",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    randomize = TRUE, pal = stage_colours)
+p1 <- plotEmbedding(ArchR_full, 
+                    name = "SEACell_ID",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0, 
+                    randomize = TRUE)
+png(paste0(plot_path, "SEACell_IDs_UMAPs.png"), width=60, height=100, units = 'cm', res = 200)
+print(p1)
+graphics.off()
 
-png(paste0(plot_path, "scHelper_cell_type_cell_type_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+
+p1 <- plotEmbedding(ArchR_full, 
+                    name = "SEACell_scHelper_cell_type",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0, 
+                    pal = scHelper_cell_type_colours, randomize = TRUE)
+p2 <- plotEmbedding(ArchR_full, 
+                    name = "transferred_scHelper_cell_type",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0,
+                    pal = scHelper_cell_type_colours, randomize = TRUE)
+
+png(paste0(plot_path, "scHelper_cell_state_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
 graphics.off()
 
-### Plot broad scHelper_cell_type and stage
-p1 <- plotEmbedding(ArchR_filtered,
-                    name = "scHelper_cell_type_broad",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
+p1 <- plotEmbedding(ArchR_full, 
+                    name = "SEACell_scHelper_cell_type_broad",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
+                    baseSize = 0, labelSize = 0, legendSize = 0, 
+                    pal = scHelper_cell_type_colours, randomize = TRUE)
+p2 <- plotEmbedding(ArchR_full, 
+                    name = "transferred_scHelper_cell_type_broad",
+                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
                     baseSize = 0, labelSize = 0, legendSize = 0,
-                    randomize = TRUE, pal = cols)
-p2 <- plotEmbedding(ArchR_filtered,
-                    name = "stage",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_filtered$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    pal = stage_colours, randomize = TRUE)
+                    pal = scHelper_cell_type_colours, randomize = TRUE)
 
-png(paste0(plot_path, "scHelper_cell_type_broad_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
+png(paste0(plot_path, "scHelper_cell_state_broad_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
 ggAlignPlots(p1, p2, type = "h")
-graphics.off()
-
-### Plot integration scores
-png(paste0(plot_path, 'Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR_filtered, name = "predictedScore_Un", plotAs = "points", size = 1.8, baseSize = 0, 
-              legendSize = 10)
 graphics.off()
