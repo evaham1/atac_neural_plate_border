@@ -105,12 +105,14 @@ ExportAntlerModules <- function (antler_object, publish_dir, names_list = "unbia
 }
 
 ########################       CELL STATE COLOURS    ########################################
-scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
-                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'Non-neural',
+                              'PPR', 'aPPR', 'pPPR', 'Placodal',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB',
+                              'NC', 'dNC',
                               'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
-                              'aNP', 'FB', 'vFB', 'node', 'streak', 
-                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped',
-                              'Neural', 'Placodal', 'Non-neural', 'Contam')
+                              'aNP', 'FB', 'vFB', 'Neural',
+                              'node', 'streak', 'PGC', 'BI', 'meso', 'endo', 'Contam',
+                              'MIXED', 'Unmapped')
 scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
                                 "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
                                 "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
@@ -442,7 +444,7 @@ graphics.off()
 ########  Plot all peak modules ordered celltypes on cells which are mapped and not contam ########
 
 # subset matrix to only include SEACells that mapped and not contam
-seacell_filtered_metadata <- metadata %>% filter(!scHelper_cell_type_by_proportion %in% c("Unmapped", "streak", "meso", "endo", "BI", "Contam", "MIXED"))
+seacell_filtered_metadata <- metadata %>% filter(!scHelper_cell_type_by_proportion %in% c("Unmapped", "streak", "meso", "endo", "BI", "pEpi", "Contam", "MIXED"))
 seacell_filtered_normalised_matrix <- filtered_normalised_matrix[rownames(seacell_filtered_metadata), ]
 
 # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
@@ -557,7 +559,7 @@ for (i in seq(1:length(stage_order))){
   ########  Plot all peak modules ordered celltypes on cells which are mapped and not contam ########
   
   # subset matrix to only include SEACells that mapped and not contam
-  seacell_filtered_metadata <- stage_metadata %>% filter(!scHelper_cell_type_by_proportion %in% c("Unmapped", "streak", "meso", "endo", "BI", "Contam", "MIXED"))
+  seacell_filtered_metadata <- stage_metadata %>% filter(!scHelper_cell_type_by_proportion %in% c("Unmapped", "streak", "meso", "endo", "BI", "pEpi", "Contam", "MIXED"))
   seacell_filtered_normalised_matrix <- filtered_normalised_matrix[rownames(seacell_filtered_metadata), ]
   
   # prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
