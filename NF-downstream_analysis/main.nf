@@ -464,15 +464,12 @@ workflow A {
 
     if(!skip_multiview_processing){
 
-        // METADATA_PEAKCALL_PROCESSED( params.peakcall_processed_sample_sheet ) // single cell data with consensus peaks called
-        // ch_peakcall_processed = METADATA_PEAKCALL_PROCESSED.out.metadata 
-
-        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with individual peaks called
+        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with consensus peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata
 
-        // METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
-        // ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
-        // ch_metadata_csvs.view()
+        METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
+        ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
+        ch_metadata_csvs.view()
         // [[sample_id:HH5], [HH5/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH5_cell_metadata.csv]]
         // [[sample_id:HH6], [HH6/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH6_cell_metadata.csv]]
         // [[sample_id:HH7], [HH7/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/HH7_cell_metadata.csv]]
@@ -480,30 +477,30 @@ workflow A {
         // [[sample_id:ss8], [ss8/SEACELLS_ATAC_WF/2_SEACells_computed_renamed/csv_files/ss8_cell_metadata.csv]]
 
 
-        ///////     Transfer SEACells labels onto single cells      ///////
-        // and check how they correspond with other single cell labels - script made 'ArchR_seacell_purity'
-        // run peak calling and diff peak analysis to see how this compares to cluster-level analysis (just rerun ARCHR_STAGE_DIFF_PEAKS_WF)
+        /////     Transfer SEACells labels onto single cells      ///////
+        //and check how they correspond with other single cell labels - script made 'ArchR_seacell_purity'
+        //run peak calling and diff peak analysis to see how this compares to cluster-level analysis (just rerun ARCHR_STAGE_DIFF_PEAKS_WF)
 
-        // // combine ArchR objects and metacell csvs
-        // ch_singlecell_processed
-        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-        //     .concat( ch_metadata_csvs )
-        //     .groupTuple( by:0 )
-        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-        //     //.view()
-        //     .set {ch_transfer_metacell_IDs}
-        // // [[sample_id:HH5], [/HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR, /HH5/Integrated_SEACells_label_transfer/rds_files/HH5_ATAC_singlecell_integration_map.csv]]
-        // // [[sample_id:HH6], [/HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR, /HH6/Integrated_SEACells_label_transfer/rds_files/HH6_ATAC_singlecell_integration_map.csv]]
-        // // [[sample_id:HH7], [/HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR, /HH7/Integrated_SEACells_label_transfer/rds_files/HH7_ATAC_singlecell_integration_map.csv]]
-        // // [[sample_id:ss4], [/ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR, /ss4/Integrated_SEACells_label_transfer/rds_files/ss4_ATAC_singlecell_integration_map.csv]]
-        // // [[sample_id:ss8], [/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR, /ss8/Integrated_SEACells_label_transfer/rds_files/ss8_ATAC_singlecell_integration_map.csv]]
+        // combine ArchR objects and metacell csvs
+        ch_singlecell_processed
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( ch_metadata_csvs )
+            .groupTuple( by:0 )
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            //.view()
+            .set {ch_transfer_metacell_IDs}
+        // [[sample_id:HH5], [/HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR, /HH5/Integrated_SEACells_label_transfer/rds_files/HH5_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:HH6], [/HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR, /HH6/Integrated_SEACells_label_transfer/rds_files/HH6_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:HH7], [/HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR, /HH7/Integrated_SEACells_label_transfer/rds_files/HH7_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:ss4], [/ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR, /ss4/Integrated_SEACells_label_transfer/rds_files/ss4_ATAC_singlecell_integration_map.csv]]
+        // [[sample_id:ss8], [/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR, /ss8/Integrated_SEACells_label_transfer/rds_files/ss8_ATAC_singlecell_integration_map.csv]]
                 
-        // // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
-        // TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
+        // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
+        TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
 
-        // // call peaks on the metacell integrated labels and visualise their differential accessibility (to comporate to cluster analysis)
-        // //PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
-        // PLOT_DIFF_PEAKS_METACELLS( PEAK_CALL_METACELLS.out )
+        // call peaks on the metacell integrated labels and visualise their differential accessibility (to comporate to cluster analysis)
+        //PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
+        PLOT_DIFF_PEAKS_METACELLS( PEAK_CALL_METACELLS.out )
 
 
         // Take peaks from PMs and run them through Alex's pipeline??
