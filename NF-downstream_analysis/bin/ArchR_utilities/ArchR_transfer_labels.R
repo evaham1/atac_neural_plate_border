@@ -70,7 +70,7 @@ if(opt$verbose) print(opt)
 files <- list.files(data_path, full.names = TRUE)
 print(paste0("All input files: ", files))
 
-cat workingf4 8  <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
+stages_data  <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
 print(paste0("Stages data: ", stages_data))
 
 full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
@@ -102,7 +102,7 @@ for (i in 1:5) {
   all_cell_ids <- c(all_cell_ids, cell_ids)
   
   stage <- unique(ArchR$stage)
-  
+
   group_ids <- ArchR$SEACell_ID
   print(length(group_ids))
   all_group_ids <- c(all_group_ids, group_ids)
