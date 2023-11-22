@@ -527,7 +527,7 @@ workflow A {
 
         // run script to transfer these labels from the ArchR stage objects to the full data object so everybody has the same labels
         TRANSFER_METACELL_LABELS.out
-            .map { row -> [row[1].findAll { it =~ ".*rds_files" }.listFiles()] }
+            .map{it[1].findAll{it =~ /rds_files/}[0].listFiles()}
             .flatMap().collect()
             .combine(ch_fulldata)
             // .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
