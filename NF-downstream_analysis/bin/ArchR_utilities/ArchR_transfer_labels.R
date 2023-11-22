@@ -524,33 +524,20 @@ png(paste0(plot_path, "SEACell_IDs_UMAPs.png"), width=60, height=100, units = 'c
 print(p1)
 graphics.off()
 
-
-p1 <- plotEmbedding(ArchR_full, 
-                    name = "SEACell_scHelper_cell_type",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0, 
-                    pal = scHelper_cell_type_colours, randomize = TRUE)
-p2 <- plotEmbedding(ArchR_full, 
-                    name = "transferred_scHelper_cell_type",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    pal = scHelper_cell_type_colours, randomize = TRUE)
-
-png(paste0(plot_path, "scHelper_cell_state_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
-ggAlignPlots(p1, p2, type = "h")
+png(paste0(plot_path, "SEACell_scHelper_cell_type.png"), width=30, height=40, units = 'cm', res = 200)
+plotEmbedding(ArchR,
+              name = "SEACell_scHelper_cell_type", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE,
+              pal = scHelper_cell_type_colours)
 graphics.off()
 
-p1 <- plotEmbedding(ArchR_full, 
-                    name = "SEACell_scHelper_cell_type_broad",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0, 
-                    pal = scHelper_cell_type_colours, randomize = TRUE)
-p2 <- plotEmbedding(ArchR_full, 
-                    name = "transferred_scHelper_cell_type_broad",
-                    plotAs = "points", size = ifelse(length(unique(ArchR_full$stage)) == 1, 1.8, 1),
-                    baseSize = 0, labelSize = 0, legendSize = 0,
-                    pal = scHelper_cell_type_colours, randomize = TRUE)
-
-png(paste0(plot_path, "scHelper_cell_state_broad_UMAPs.png"), width=60, height=40, units = 'cm', res = 200)
-ggAlignPlots(p1, p2, type = "h")
+png(paste0(plot_path, "SEACell_scHelper_cell_type_broad.png"), width=30, height=40, units = 'cm', res = 200)
+plotEmbedding(ArchR,
+              name = "SEACell_scHelper_cell_type_broad", pal = cols,
+              plotAs = "points", size = 2.5,
+              baseSize = 0, labelSize = 0, legendSize = 0,
+              randomize = TRUE,
+              pal = scHelper_cell_type_colours)
 graphics.off()
