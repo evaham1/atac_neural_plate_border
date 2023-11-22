@@ -467,7 +467,13 @@ workflow A {
 
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with consensus peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata
-        ch_singlecell_processed.view()
+        // ch_singlecell_processed.view()
+            // [[sample_id:HH5], [HH5/Transfer_labels_and_peaks/rds_files/HH5_Save-ArchR]]
+            // [[sample_id:HH6], [HH6/Transfer_labels_and_peaks/rds_files/HH6_Save-ArchR]]
+            // [[sample_id:HH7], [HH7/Transfer_labels_and_peaks/rds_files/HH7_Save-ArchR]]
+            // [[sample_id:ss4], [ss4/Transfer_labels_and_peaks/rds_files/ss4_Save-ArchR]]
+            // [[sample_id:ss8], [ss8/Transfer_labels_and_peaks/rds_files/ss8_Save-ArchR]]
+            // [[sample_id:FullData], [FullData/Single_cell_integration/rds_files/FullData_Save-ArchR]]
 
         METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
@@ -486,18 +492,15 @@ workflow A {
 
         // combine ArchR objects and metacell csvs
         ch_singlecell_processed
+            .filter{ meta, data -> meta.sample_id != 'FullData'}
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .concat( ch_metadata_csvs )
             .groupTuple( by:0 )
-            // .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             .view()
             .set {ch_transfer_metacell_IDs}
-        // [[sample_id:HH5], [/HH5/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH5_Save-ArchR, /HH5/Integrated_SEACells_label_transfer/rds_files/HH5_ATAC_singlecell_integration_map.csv]]
-        // [[sample_id:HH6], [/HH6/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH6_Save-ArchR, /HH6/Integrated_SEACells_label_transfer/rds_files/HH6_ATAC_singlecell_integration_map.csv]]
-        // [[sample_id:HH7], [/HH7/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/HH7_Save-ArchR, /HH7/Integrated_SEACells_label_transfer/rds_files/HH7_ATAC_singlecell_integration_map.csv]]
-        // [[sample_id:ss4], [/ss4/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss4_Save-ArchR, /ss4/Integrated_SEACells_label_transfer/rds_files/ss4_ATAC_singlecell_integration_map.csv]]
-        // [[sample_id:ss8], [/ss8/ARCHR_INTEGRATING_WF/Single_cell_integration_cluster_identification/rds_files/ss8_Save-ArchR, /ss8/Integrated_SEACells_label_transfer/rds_files/ss8_ATAC_singlecell_integration_map.csv]]
-                
+
+
         // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
         TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
 
