@@ -323,8 +323,7 @@ print("Peak modules calculated for full data!")
 print("Calculating peak modules for each stage...")
 
 number_of_PMs_calculated <- c(length(antler_data$gene_modules$lists$unbiasedPMs$content))
-# corr_t_range <- c(0.3, 0.25, 0.4, 0.35, 0.4) # have adjusted these so you get between 10-25 PMs per stage
-corr_t_range <- c(0.4, 0.4, 0.4, 0.6, 0.6)
+corr_t_range <- c(0.3, 0.4, 0.6, 0.6, 0.6) # have adjusted these so you get between 10-25 PMs per stage
 
 for (i in seq(1:length(stage_order))){
   
@@ -533,7 +532,7 @@ for (i in seq(1:length(stage_order))){
   print(plot)
   graphics.off()
 
-  png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype_shorter.png'), width = 60, height = 40, res = 400, units = 'cm')
+  png(paste0(temp_plot_path, 'All_peak_modules_ordered_by_celltype_shorter.png'), width = 20, height = 30, res = 400, units = 'cm')
   print(plot)
   graphics.off()
   
@@ -586,7 +585,7 @@ for (i in seq(1:length(stage_order))){
   print(plot)
   graphics.off()
 
-  png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type_shorter.png'), width = 60, height = 40, res = 400, units = 'cm')
+  png(paste0(temp_plot_path, 'All_peak_modules_mapped_not_contam_SEACells_ordered_by_cell_type_shorter.png'), width = 20, height = 30, res = 400, units = 'cm')
   print(plot)
   graphics.off()
   
