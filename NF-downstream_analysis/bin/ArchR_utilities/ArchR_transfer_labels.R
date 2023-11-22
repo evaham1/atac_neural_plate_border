@@ -535,7 +535,7 @@ graphics.off()
 
 png(paste0(plot_path, "SEACell_scHelper_cell_type_broad.png"), width=30, height=40, units = 'cm', res = 200)
 plotEmbedding(ArchR,
-              name = "SEACell_scHelper_cell_type_broad", pal = cols,
+              name = "SEACell_scHelper_cell_type_broad",
               plotAs = "points", size = 2.5,
               baseSize = 0, labelSize = 0, legendSize = 0,
               randomize = TRUE,
