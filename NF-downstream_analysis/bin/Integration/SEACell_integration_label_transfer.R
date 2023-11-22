@@ -525,7 +525,11 @@ graphics.off()
 #########################            3) Generate ATAC SEACell to ATAC single cell map           #############################
 #############################################################################################################################
 
-df_new <- base::merge(SEACell_map, filtered_integration_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
+print("Projecting metacell labels back to single cells...")
+
+head(full_integration_map)
+df_new <- base::merge(SEACell_map, full_integration_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
+head(df_new)
 single_cell_integrated_map <- df_new %>% dplyr::select(c("SEACell", "index", "RNA", "scHelper_cell_type_by_proportion", "scHelper_cell_type_broad_by_proportion", "Mapping_k"))
 
 head(single_cell_integrated_map)
