@@ -501,7 +501,7 @@ workflow A {
 
         // call peaks on the metacell integrated labels and visualise their differential accessibility (to comporate to cluster analysis)
         //PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
-        PLOT_DIFF_PEAKS_METACELLS( PEAK_CALL_METACELLS.out )
+        PLOT_DIFF_PEAKS_METACELLS( TRANSFER_METACELL_LABELS.out )
 
 
         // Take peaks from PMs and run them through Alex's pipeline??
