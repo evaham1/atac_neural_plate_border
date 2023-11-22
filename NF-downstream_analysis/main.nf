@@ -527,13 +527,13 @@ workflow A {
 
         // run script to transfer these labels from the ArchR stage objects to the full data object so everybody has the same labels
         TRANSFER_METACELL_LABELS.out
-            .map { row -> [row[1].findAll { it =~ ".*rds_files" }] }
+            .map { row -> [row[1].findAll { it =~ ".*rds_files" }.listFiles()] }
             .flatMap().collect()
             .combine(ch_fulldata)
             // .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
             .view()
             .set { ch_transfer_metacell_IDs_to_full }
-        TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
+        //TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
 
         // visualise differential accessibility of peaks between metacells (to comporate to cluster analysis)
         //PLOT_DIFF_PEAKS_METACELLS( TRANSFER_METACELL_LABELS.out )
