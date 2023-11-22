@@ -84,10 +84,15 @@ include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCES
 // DOWNSTREAM PROCESSING WORKFLOWS ~ MULTIVIEW
 include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
 
+// transfer labels from metacell to stage and full data single cell objects
+include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
+include {R as TRANSFER_METACELL_LABELS_TO_FULLDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ATAC_transfer_labels.R", checkIfExists: true) )
+
+// plot differential peaks at a metacell level
+include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_diff_peaks.R", checkIfExists: true) )
+
 include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
-include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
-include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_diff_peaks.R", checkIfExists: true) )
 
 
 // 
@@ -475,6 +480,10 @@ workflow A {
             // [[sample_id:ss8], [ss8/Transfer_labels_and_peaks/rds_files/ss8_Save-ArchR]]
             // [[sample_id:FullData], [FullData/Single_cell_integration/rds_files/FullData_Save-ArchR]]
 
+        ch_singlecell_processed
+            .filter{ meta, data -> meta.sample_id == 'FullData'}
+            .set { ch_fulldata }
+
         METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
         // ch_metadata_csvs.view()
@@ -508,9 +517,18 @@ workflow A {
         // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
         TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
 
-        // call peaks on the metacell integrated labels and visualise their differential accessibility (to comporate to cluster analysis)
-        //PEAK_CALL_METACELLS( TRANSFER_METACELL_LABELS.out )
-        PLOT_DIFF_PEAKS_METACELLS( TRANSFER_METACELL_LABELS.out )
+        // run script to transfer these labels from the ArchR stage objects to the full data object so everybody has the same labels
+        TRANSFER_METACELL_LABELS.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .collect()
+            .combine(ch_fulldata)
+            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+            .view()
+            .set { ch_transfer_metacell_IDs_to_full }
+        TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
+
+        // visualise differential accessibility of peaks between metacells (to comporate to cluster analysis)
+        //PLOT_DIFF_PEAKS_METACELLS( TRANSFER_METACELL_LABELS.out )
 
 
         // Take peaks from PMs and run them through Alex's pipeline??
