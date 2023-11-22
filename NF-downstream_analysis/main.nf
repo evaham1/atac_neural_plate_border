@@ -537,7 +537,7 @@ workflow A {
             .set { ch_transfer_metacell_IDs_to_full }
         //TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
 
-        [HH6_Save-ArchR, HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, [sample_id:FullData], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/rds_files/FullData_Save-ArchR]]
+        //[HH6_Save-ArchR, HH5_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, [sample_id:FullData], [/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/rds_files/FullData_Save-ArchR]]
 
         // visualise differential accessibility of peaks between metacells (to comporate to cluster analysis)
         //PLOT_DIFF_PEAKS_METACELLS( TRANSFER_METACELL_LABELS.out )
