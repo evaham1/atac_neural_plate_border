@@ -86,7 +86,7 @@ include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local
 
 // transfer labels from metacell to stage and full data single cell objects
 include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
-include {R as TRANSFER_METACELL_LABELS_TO_FULLDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ATAC_transfer_labels.R", checkIfExists: true) )
+include {R as TRANSFER_METACELL_LABELS_TO_FULLDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
 
 // plot differential peaks at a metacell level
 include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_diff_peaks.R", checkIfExists: true) )
