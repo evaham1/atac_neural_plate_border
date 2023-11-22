@@ -20,7 +20,7 @@ nextflow.enable.dsl = 2
 // METADATA WORKFLOWS FOR CHANNEL SWITCHES
 
 // include { METADATA as METADATA_PEAKCALL_PROCESSED } from "$baseDir/subworkflows/local/metadata"
-// include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
+
 // include { METADATA as METADATA_MEGA_INPUT } from "$baseDir/subworkflows/local/metadata"
 
 
@@ -81,12 +81,14 @@ include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCES
 // include {R as MAKE_TXDB} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/gtf_to_txdb.R", checkIfExists: true) )
 // include {EXTRACT_EXONS} from "$baseDir/modules/local/extract_exons/main"
 
-// // DOWNSTREAM PROCESSING WORKFLOWS ~ MULTIVIEW
+// DOWNSTREAM PROCESSING WORKFLOWS ~ MULTIVIEW
+include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
+
 include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
-// include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
-// include {R as TRANSFER_CONSENSUS_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks.R", checkIfExists: true) )
-// include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
+include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
+include {R as TRANSFER_CONSENSUS_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_peaks.R", checkIfExists: true) )
+include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/diff_peaks/diff_peaks_plots.R", checkIfExists: true) )
 
 
 // 
