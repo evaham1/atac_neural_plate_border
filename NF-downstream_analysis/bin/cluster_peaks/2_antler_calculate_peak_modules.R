@@ -323,7 +323,8 @@ print("Peak modules calculated for full data!")
 print("Calculating peak modules for each stage...")
 
 number_of_PMs_calculated <- c(length(antler_data$gene_modules$lists$unbiasedPMs$content))
-corr_t_range <- c(0.3, 0.25, 0.4, 0.35, 0.4) # have adjusted these so you get between 10-25 PMs per stage
+# corr_t_range <- c(0.3, 0.25, 0.4, 0.35, 0.4) # have adjusted these so you get between 10-25 PMs per stage
+corr_t_range <- c(0.4, 0.4, 0.4, 0.6, 0.6)
 
 for (i in seq(1:length(stage_order))){
   
