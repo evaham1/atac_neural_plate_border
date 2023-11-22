@@ -518,6 +518,10 @@ workflow A {
         TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
 
         // run script to transfer these labels from the ArchR stage objects to the full data object so everybody has the same labels
+        TRANSFER_METACELL_LABELS.out.view()
+
+        ch_fulldata.view()
+
         TRANSFER_METACELL_LABELS.out
             .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
             .collect()
