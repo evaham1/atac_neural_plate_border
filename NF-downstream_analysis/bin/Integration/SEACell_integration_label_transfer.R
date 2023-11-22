@@ -530,15 +530,17 @@ print("Projecting metacell labels back to single cells...")
 # extract metacell map from seurat object
 print("Metacell map: ")
 metacell_map <- tibble::rownames_to_column(seurat@meta.data, var = "ATAC")
+print(head(metacell_map))
 
 # project back onto single cells
 print("Single cell map: ")
 singlecell_map <- base::merge(SEACell_map, metacell_map, by.x = "SEACell", by.y = "ATAC", all.x = TRUE)
-head(singlecell_map)
+print(head(singlecell_map))
 
 # select which columns want to keep
+print("Single cell map with columns selected:")
 singlecell_map <- singlecell_map %>% dplyr::select(c("SEACell", "index", "Integrated_RNA_SEACell_ID", "scHelper_cell_type_by_proportion", "scHelper_cell_type_broad_by_proportion", "Mapping_k"))
-head(singlecell_map)
+print(head(singlecell_map))
 
 # save
-write.csv(single_cell_integrated_map, paste0(rds_path, stage, '_ATAC_singlecell_integration_map.csv'))
+write.csv(singlecell_map, paste0(rds_path, stage, '_ATAC_singlecell_integration_map.csv'))
