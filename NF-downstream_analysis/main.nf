@@ -548,7 +548,7 @@ workflow A {
         ///////     Visualisations on final data      ///////
         // Motif analysis
 
-        //MOTIF_ANALYSIS( ch_singlecell_processed )
+        MOTIF_ANALYSIS( ch_fulldata )
 
 
     }
