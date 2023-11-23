@@ -93,7 +93,7 @@ include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"   
 
 include {R as MOTIF_ANALYSIS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_motif_analysis.R", checkIfExists: true) )
 
-include {R as PLOT_ENHANCERS_CLUSTERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_genome_browser.R", checkIfExists: true) )
+include {R as PLOT_ENHANCERS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_genome_browser.R", checkIfExists: true) )
 
 
 
@@ -553,7 +553,7 @@ workflow A {
 
         MOTIF_ANALYSIS( TRANSFER_METACELL_LABELS_TO_FULLDATA.out )
 
-        PLOT_ENHANCERS_CLUSTERS( TRANSFER_METACELL_LABELS.out )
+        PLOT_ENHANCERS( TRANSFER_METACELL_LABELS.out )
 
 
     }
