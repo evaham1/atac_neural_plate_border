@@ -259,49 +259,72 @@ print("ArchR object saved")
 #   graphics.off()
 # }
 
-############################## Extract TFs of interest #######################################
+############################## Plot Gene Integration values of TFs of interest #######################################
 
-features <- getFeatures(ArchR, useMatrix = "MotifMatrix", select = NULL, ignoreCase = TRUE)
-print(features)
-
-ArchR <- addImputeWeights(ArchR)
-
-# # Plot ridge plot of each TF deviation
 for (TF in TFs){
   print(TF)
-  # markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
-  # if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
-
-  markerMotif <- paste0("z:", TF)
-
-#   p <- plotGroups(ArchR, 
-#                   groupBy = opt$group_by, 
-#                   colorBy = "MotifMatrix", 
-#                   name = markerMotif,
-#                   imputeWeights = getImputeWeights(ArchR))
-
-#   # plot distribution of chromvar deviation score for each cluster
-#   png(paste0(plot_path, TF, '_chromvar_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
-#   print(p)
-#   graphics.off()
   
-  # Plot chromvar scores on UMAP
-  p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
-                     imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
-  png(paste0(plot_path, TF, '_chromvar_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
-  print(p)
+  # Plot GeneIntegration values on UMAP
+  png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
+  print(plotEmbedding(ArchR, name = TF,
+                plotAs = "points", size = 1.8,
+                colorBy = "GeneIntegrationMatrix", continuousSet = "blueYellow") + 
+    theme_ArchR(legendTextSize = 17, baseSize = 17, plotMarginCm = 0.5))
   graphics.off()
   
 }
 
-print("Chromvar plots made!")
 
-# #######################################################################################
-# #############################   TF FOOTPRINTING    #####################################
-# #######################################################################################
+############################## Extract TFs of interest #######################################
 
-# plot_path = "./plots/Footprinting/"
-# dir.create(plot_path, recursive = T)
+# features <- getFeatures(ArchR, useMatrix = "MotifMatrix", select = NULL, ignoreCase = TRUE)
+# print(features)
+
+# ArchR <- addImputeWeights(ArchR)
+
+# # # Plot ridge plot of each TF deviation
+# for (TF in TFs){
+#   print(TF)
+#   # markerMotif <- getFeatures(ArchR, select = TF, useMatrix = "MotifMatrix")
+#   # if(length(markerMotif) == 0){stop("Motif of that TF not found!")}
+
+#   markerMotif <- paste0("z:", TF)
+
+# #   p <- plotGroups(ArchR, 
+# #                   groupBy = opt$group_by, 
+# #                   colorBy = "MotifMatrix", 
+# #                   name = markerMotif,
+# #                   imputeWeights = getImputeWeights(ArchR))
+
+# #   # plot distribution of chromvar deviation score for each cluster
+# #   png(paste0(plot_path, TF, '_chromvar_ridge_plot.png'), height = 12, width = 10, units = 'cm', res = 400)
+# #   print(p)
+# #   graphics.off()
+  
+#   # Plot chromvar scores on UMAP
+#   p <- plotEmbedding(ArchR, colorBy = "MotifMatrix", name = markerMotif, embedding = "UMAP", 
+#                      imputeWeights = getImputeWeights(ArchR), plotAs = "points", size = 1.8,)
+#   png(paste0(plot_path, TF, '_chromvar_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
+#   print(p)
+#   graphics.off()
+  
+# }
+
+# print("Chromvar plots made!")
+
+#######################################################################################
+#############################   TF FOOTPRINTING    #####################################
+#######################################################################################
+
+TFs <- c("SIX1", "DLX5", "DLX6", "GATA2", "GATA3",
+           "TFAP2A", "TFAP2B", "TFAP2C", "TFAP2E",
+           "PAX7", "MSX1", "SOX2", "SOX10",
+           "TEAD3",
+           "TCF3",
+           "FOXK2", "ZEB1")
+
+plot_path = "./plots/Footprinting/"
+dir.create(plot_path, recursive = T)
 
 # # set up for footprinting
 # motifPositions <- getPositions(ArchR)
@@ -324,3 +347,47 @@ print("Chromvar plots made!")
 #   grid::grid.draw(p[[1]])
 #   graphics.off()
 # }
+
+# set up for footprinting
+motifPositions <- getPositions(ArchR)
+ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "stage")
+
+# loop through each TF to do footprinting
+for (TF in TFs){
+  print(paste0("Calculating and plotting footprint for: ", TF))
+  
+  # compute footprints for TFs of interest
+  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "stage")
+  seFoot
+  
+  ####### Plot TF footprints
+  p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
+                      smoothWindow = 10, baseSize = 16, plot = FALSE)
+  
+  png(paste0(plot_path, TF, '_TF_footprint_stage.png'), height = 20, width = 20, units = 'cm', res = 400)
+  grid::grid.newpage()
+  grid::grid.draw(p[[1]])
+  graphics.off()
+}
+
+# set up for footprinting
+motifPositions <- getPositions(ArchR)
+ArchR <- addGroupCoverages(ArchRProj = ArchR, groupBy = "SEACell_scHelper_cell_type_broad")
+
+# loop through each TF to do footprinting
+for (TF in TFs){
+  print(paste0("Calculating and plotting footprint for: ", TF))
+  
+  # compute footprints for TFs of interest
+  seFoot <- getFootprints(ArchR, positions = motifPositions[TF], groupBy = "SEACell_scHelper_cell_type_broad")
+  seFoot
+  
+  ####### Plot TF footprints
+  p <- plotFootprints(seFoot, names = TF, normMethod = "Subtract", plotName = "Footprints-Subtract-Bias",
+                      smoothWindow = 10, baseSize = 16, plot = FALSE)
+  
+  png(paste0(plot_path, TF, '_TF_footprint_SEACell_scHelper_cell_type_broad.png'), height = 20, width = 20, units = 'cm', res = 400)
+  grid::grid.newpage()
+  grid::grid.draw(p[[1]])
+  graphics.off()
+}
