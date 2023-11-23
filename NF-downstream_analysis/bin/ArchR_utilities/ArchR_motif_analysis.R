@@ -149,10 +149,10 @@ print("Motifs matrix added to ArchR object!")
 
 # print("Chromvar scores calculated!")
 
-############################## Save object #######################################
-paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
-saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
-print("ArchR object saved")
+# ############################## Save object #######################################
+# paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
+# saveArchRProject(ArchRProj = ArchR, outputDirectory = paste0(rds_path, label, "_Save-ArchR"), load = FALSE)
+# print("ArchR object saved")
 
 ## this object doesnt seem like it can be used for footprinting...
 
@@ -262,6 +262,12 @@ print("ArchR object saved")
 ############################## Plot Gene Integration values of TFs of interest #######################################
 
 print("plotting gene integration counts...")
+
+png(paste0(plot_path, 'TEST_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
+plotEmbedding(ArchR, name = "SIX1",
+                plotAs = "points", size = 1.8,
+                colorBy = "GeneIntegrationMatrix", continuousSet = "blueYellow")
+graphics.off()
 
 plot_path = "./plots/GeneIntegrationCounts/"
 dir.create(plot_path, recursive = T)
