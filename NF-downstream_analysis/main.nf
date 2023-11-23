@@ -551,7 +551,7 @@ workflow A {
         ///////     Visualisations on final data      ///////
         // Motif analysis
 
-        MOTIF_ANALYSIS( TRANSFER_METACELL_LABELS_TO_FULLDATA.out )
+        //MOTIF_ANALYSIS( TRANSFER_METACELL_LABELS_TO_FULLDATA.out )
 
         PLOT_ENHANCERS( TRANSFER_METACELL_LABELS.out )
 
