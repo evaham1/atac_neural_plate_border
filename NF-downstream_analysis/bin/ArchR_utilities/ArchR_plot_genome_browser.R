@@ -12,7 +12,7 @@ library(plyr)
 library(dplyr)
 library(GenomicFeatures)
 library(parallel)
-library(scHelper)
+# library(scHelper)
 
 ############################## Set up script options #######################################
 # Read in command line opts
