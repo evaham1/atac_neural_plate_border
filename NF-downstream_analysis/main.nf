@@ -548,7 +548,7 @@ workflow A {
         ///////     Visualisations on final data      ///////
         // Motif analysis
 
-        MOTIF_ANALYSIS( ch_fulldata )
+        MOTIF_ANALYSIS( TRANSFER_METACELL_LABELS_TO_FULLDATA.out )
 
 
     }
