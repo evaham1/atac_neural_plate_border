@@ -128,26 +128,26 @@ print("Motifs matrix added to ArchR object!")
 
 ############################## Run ChromVar #######################################
 
-plot_path = "./plots/ChromVar/"
-dir.create(plot_path, recursive = T)
+# plot_path = "./plots/ChromVar/"
+# dir.create(plot_path, recursive = T)
 
-# background peaks used to compute motif deviations
-ArchR <- addBgdPeaks(ArchR)
+# # background peaks used to compute motif deviations
+# ArchR <- addBgdPeaks(ArchR)
 
-# compute per-cell deviations across all motif annotations
-ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
+# # compute per-cell deviations across all motif annotations
+# ArchR <- addDeviationsMatrix(ArchR, peakAnnotation = "Motif", force = TRUE)
 
-# save results as df
-df <- getVarDeviations(ArchR, name = "MotifMatrix", plot = FALSE)
-write.csv(df, file = paste0(csv_path, "Chromvar_df.csv"), row.names = FALSE)
+# # save results as df
+# df <- getVarDeviations(ArchR, name = "MotifMatrix", plot = FALSE)
+# write.csv(df, file = paste0(csv_path, "Chromvar_df.csv"), row.names = FALSE)
 
-# plot results
-plotVarDev <- getVarDeviations(ArchR, name = "MotifMatrix", plot = TRUE)
-png(paste0(plot_path, 'ChromVar_results.png'), height = 15, width = 15, units = 'cm', res = 400)
-plotVarDev
-graphics.off()
+# # plot results
+# plotVarDev <- getVarDeviations(ArchR, name = "MotifMatrix", plot = TRUE)
+# png(paste0(plot_path, 'ChromVar_results.png'), height = 15, width = 15, units = 'cm', res = 400)
+# plotVarDev
+# graphics.off()
 
-print("Chromvar scores calculated!")
+# print("Chromvar scores calculated!")
 
 ############################## Save object #######################################
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
@@ -261,6 +261,11 @@ print("ArchR object saved")
 
 ############################## Plot Gene Integration values of TFs of interest #######################################
 
+print("plotting gene integration counts...")
+
+plot_path = "./plots/GeneIntegrationCounts/"
+dir.create(plot_path, recursive = T)
+
 for (TF in TFs){
   print(TF)
   
@@ -315,6 +320,8 @@ for (TF in TFs){
 #######################################################################################
 #############################   TF FOOTPRINTING    #####################################
 #######################################################################################
+
+print("Running footprinting...")
 
 TFs <- c("SIX1", "DLX5", "DLX6", "GATA2", "GATA3",
            "TFAP2A", "TFAP2B", "TFAP2C", "TFAP2E",
