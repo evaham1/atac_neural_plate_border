@@ -151,47 +151,61 @@ colnames(getCellColData(ArchR))
 plot_path = "./plots/known_enhancers/"
 dir.create(plot_path, recursive = T)
 
-# set genes of interest
-genes <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
-           "PAX7", "MSX1", "CSRNP1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5",
-           "LMX1B", "ZEB2", "SOX21", "NKX6-2")
-
-
 # make list of known enhancers organised by genes
-SIX1_enhancers_df <- data.frame(
-  chr = c("chr5", "chr5", "chr5", "chr5"),
-  start = c(54587474, 54589267, 54590423, 54596822),
-  end = c(54587537, 54589478, 54590562, 54597223)
+AXUD1_enhancers_df <- data.frame(
+  chr = c("chr2"),
+  start = c(5263169),
+  end = c(5263696)
 )
-SOX2_enhancers_df <- data.frame(
-  chr = c("chr9", "chr9", "chr9", "chr9", "chr9", "chr9"),
-  start = c(17013525, 17029120, 17041213, 17003823, 17018130, 16883843),
-  end = c(17013822, 17029653, 17041793, 17004302, 17018498, 16885306)
+CHAMP1_enhancers_df <- data.frame(
+  chr = c("chr1"),
+  start = c(137543885),
+  end = c(137545827)
 )
-SOX10_enhancers_df <- data.frame(
-  chr = c("chr1", "chr1", "chr1", "chr1", "chr1", "chr1"),
-  start = c(51032535, 51036237, 51046546, 51048966, 51051673, 51065028),
-  end = c(51035291, 51038859, 51049401, 51050564, 51054928, 51068292)
+DACT2_enhancers_df <- data.frame(
+  chr = c("chr3"),
+  start = c(42085878),
+  end = c(42087663)
+)
+DRAXIN_enhancers_df <- data.frame(
+  chr = c("chr21"),
+  start = c(5765452),
+  end = c(5767088)
+)
+EPHA4_enhancers_df <- data.frame(
+  chr = c("chr9"),
+  start = c(7800500),
+  end = c(7802007)
 )
 ETS1_enhancers_df <- data.frame(
-  chr = c("chr24", "chr24", "chr24", "chr24", "chr24", "chr24"),
-  start = c(267288, 385057, 397366, 495221, 1213638, 1717736),
-  end = c(269227, 386795, 399331, 497158, 1215537, 1719643)
-)
-FOXI3_enhancers_df <- data.frame(
-  chr = c("chr4", "chr4", "chr4", "chr4", "chr4"),
-  start = c(85595131, 85594801, 85595131, 85593696, 86017750),
-  end = c(85596131, 85596939, 85595778, 85597534, 86019361)
+  chr = c("chr24", "chr24", "chr24", "chr24"),
+  start = c(385057, 397366, 1213638, 1717736),
+  end = c(386795, 399331, 1215537, 1719643)
 )
 FOXD3_enhancers_df <- data.frame(
   chr = c("chr8", "chr8", "chr8", "chr8", "chr8", "chr8", "chr8", "chr8"),
   start = c(27926327, 27934827, 27979648, 28017350, 28087080, 28106380, 28139635, 28399561),
   end = c(27928266, 27936786, 27981550, 28019278, 28088418, 28108358, 28141548, 28401557)
 )
+FOXI1_enhancers_df <- data.frame(
+  chr = c("chr13", "chr13", "chr13"),
+  start = c(5077007, 5378232, 5531347),
+  end = c(5078794, 5380149, 5533263)
+)
+FOXI3_enhancers_df <- data.frame(
+  chr = c("chr4"),
+  start = c(86017750),
+  end = c(86019361)
+)
+GLI2_enhancers_df <- data.frame(
+  chr = c("chr7"),
+  start = c(26022718),
+  end = c(26024968)
+)
 LMX1A_enhancers_df <- data.frame(
-  chr = c("chr8", "chr8"),
-  start = c(5172341, 5570901),
-  end = c(5173737, 5572297)
+  chr = c("chr8"),
+  start = c(5570901),
+  end = c(5572297)
 )
 LMX1B_enhancers_df <- data.frame(
   chr = c("chr17"),
@@ -199,36 +213,120 @@ LMX1B_enhancers_df <- data.frame(
   end = c(10472156)
 )
 MSX1_enhancers_df <- data.frame(
-  chr = c("chr4", "chr4", "chr4", "chr4", "chr4", "chr4"),
-  start = c(78295854, 78663629, 78711612, 78728706, 78895539, 79799413),
-  end = c(78297772, 78665953, 78713525, 78730951, 78897524, 79801348)
+  chr = c("chr4", "chr4", "chr4", "chr4"),
+  start = c(78295854, 78663629, 78711612, 79799413),
+  end = c(78297772, 78665953, 78713525, 79801348)
+)
+OTX2_enhancers_df <- data.frame(
+  chr = c("chr5"),
+  start = c(56120990),
+  end = c(56122619)
 )
 PAX2_enhancers_df <- data.frame(
-  chr = c("chr6", "chr6", "chr6", "chr6"),
-  start = c(17836767, 17850104, 18094913, 18079378),
-  end = c(17837601, 17850840, 18095104, 18079989)
+  chr = c("chr6"),
+  start = c(17836767),
+  end = c(17837601)
 )
 PAX7_enhancers_df <- data.frame(
   chr = c("chr21", "chr21", "chr21", "chr21"),
   start = c(3826990, 4238685, 4523315, 4767796),
   end = c(3828981, 4240684, 4525246, 4769743)
 )
+STED2_enhancers_df <- data.frame(
+  chr = c("chr2"),
+  start = c(3958727),
+  end = c(3961289)
+)
+SIX1_enhancers_df <- data.frame(
+  chr = c("chr5", "chr5", "chr5", "chr5"),
+  start = c(54587474, 54589267, 54590423, 54596822),
+  end = c(54587537, 54589478, 54590562, 54597223)
+)
+SIX3_enhancers_df <- data.frame(
+  chr = c("chr3"),
+  start = c(25787500),
+  end = c(25789339)
+)
+SOX10_enhancers_df <- data.frame(
+  chr = c("chr1"),
+  start = c(51065028),
+  end = c(51068292)
+)
+SOX13_enhancers_df <- data.frame(
+  chr = c("chr26", "chr26"),
+  start = c(1699737, 2397615),
+  end = c(1700419, 2399582)
+)
+SOX2_enhancers_df <- data.frame(
+  chr = c("chr9", "chr9", "chr9", "chr9", "chr9", "chr9"),
+  start = c(17029120, 17041213, 16883843),
+  end = c(17029653, 17041793, 16885306)
+)
+SOX8_enhancers_df <- data.frame(
+  chr = c("chr14"),
+  start = c(6235716),
+  end = c(6237441)
+)
+SOX9_enhancers_df <- data.frame(
+  chr = c("chr18"),
+  start = c(8486733),
+  end = c(8488450)
+)
+SP5_enhancers_df <- data.frame(
+  chr = c("chr7"),
+  start = c(18346322),
+  end = c(18347947)
+)
 TFAP2A_enhancers_df <- data.frame(
   chr = c("chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2"),
-  start = c(63311515, 63057851, 63310862, 63365989, 63389615, 63453876, 63522766, 63714903, 63772784, 63870453, 63878567, 64233006, 64421924),
-  end = c(63312508, 63059773, 63312573, 63367907, 63391605, 63455810, 63524480, 63716810, 63774778, 63871022, 63880501, 64234932, 64423822)
+  start = c(63311515, 63057851, 63365989, 63389615, 63453876, 63714903, 63772784, 63878567, 64233006, 64421924),
+  end = c(63312508, 63059773, 63367907, 63391605, 63455810, 63716810, 63774778, 63880501, 64234932, 64423822)
 )
 TFAP2B_enhancers_df <- data.frame(
   chr = c("chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3"),
-  start = c(107523019, 107735860, 107849673, 107872557, 107894338, 107927002, 108021169, 108046754, 108072186, 108223899),
-  end = c(107524948, 107737597, 107851588, 107874552, 107896273, 107928971, 108021490, 108048735, 108074077, 108225829)
+  start = c(, 107735860, 107872557, 107894338, 107927002, 108072186),
+  end = c(, 107737597, 107874552, 107896273, 107928971, 108074077)
+)
+ZBTB16_enhancers_df <- data.frame(
+  chr = c("chr24"),
+  start = c(4557929),
+  end = c(4558406)
+)
+ZIC1_enhancers_df <- data.frame(
+  chr = c("chr9"),
+  start = c(12146874),
+  end = c(12148841)
+)
+ZIC2_enhancers_df <- data.frame(
+  chr = c("chr1"),
+  start = c(145830051),
+  end = c(145831958)
+)
+ZNF385C_enhancers_df <- data.frame(
+  chr = c("chr27"),
+  start = c(7610684),
+  end = c(7611071)
 )
 
 enhancers_df_list <- list(
-  SIX1_enhancers_df, SOX2_enhancers_df, SOX10_enhancers_df, ETS1_enhancers_df, FOXI3_enhancers_df, FOXD3_enhancers_df,
-  LMX1A_enhancers_df, LMX1B_enhancers_df, MSX1_enhancers_df, PAX2_enhancers_df, PAX7_enhancers_df, TFAP2A_enhancers_df, TFAP2B_enhancers_df
+  AXUD1_enhancers_df, CHAMP1_enhancers_df, DACT2_enhancers_df, DRAXIN_enhancers_df, EPHA4_enhancers_df,
+  ETS1_enhancers_df, FOXD3_enhancers_df, FOXI1_enhancers_df, FOXI3_enhancers_df,
+  GLI2_enhancers_df, LMX1A_enhancers_df, LMX1B_enhancers_df, MSX1_enhancers_df,
+  OTX2_enhancers_df, PAX2_enhancers_df, PAX7_enhancers_df, SETD2_enhancers_df,
+  SIX1_enhancers_df, SIX3_enhancers_df, 
+  SOX10_enhancers_df, SOX13_enhancers_df, SOX2_enhancers_df, SOX8_enhancers_df, SOX9_enhancers_df,
+  SP5_enhancers_df, TFAP2A_enhancers_df, TFAP2B_enhancers_df,
+  ZBTB16_enhancers_df, ZIC1_enhancers_df, ZIC2_enhancers_df, ZNF385C_enhancers_df
 )
-names(enhancers_df_list) <- c("SIX1", "SOX2", "SOX10", "ETS1", "FOXI3", "FOXD3", "LMX1A", "LMX1B", "MSX1", "PAX2", "PAX7", "TFAP2A", "TFAP2B")
+names(enhancers_df_list) <- c("AXUD1", "CHAMP1", "DACT2", "DRAXIN", "EPHA4", 
+    "ETS1", "FOXD3", "FOXI1", "FOXI3", 
+    "GLI2", "LMX1A", "LMX1B", "MSX1",
+    "OTX2", "PAX2", "PAX7", "SETD2",
+    "SIX1", "SIX3",
+    "SOX10", "SOX13", "SOX2", "SOX8", "SOX9",
+    "SP5", "TFAP2A", "TFAP2B", 
+    "ZBTB16", "ZIC1", "ZIC2", "ZNF385C"
+    )
 
 ################################################################################################################
 ############################## Plot tracks for single cell labels broad ########################################
