@@ -2,7 +2,7 @@
 #SBATCH --job-name=NF-hichip_fetchngs
 #SBATCH -t 6:00:00
 #SBATCH --mail-type=ALL,ARRAY_TASKS
-#SBATCH --mail-user=thierya@crick.ac.uk
+#SBATCH --mail-user=hamrude@crick.ac.uk
 
 export TERM=xterm
 
@@ -23,6 +23,5 @@ nextflow run nf-core/fetchngs \
     -c ./conf/crick_params.config \
     --input ./data/SRR_Acc_List.txt \
     --outdir ../output/NF-hichip_fetchngs \
-    --nf_core_pipeline rnaseq \
     --email hamrude@crick.ac.uk \
     -resume
