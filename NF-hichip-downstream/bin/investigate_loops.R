@@ -100,7 +100,7 @@ dim(promoters_bins)
 # read in HiCDCPlus output
 print("HiCDCPlus output:")
 # interactions <- data.table::fread(paste0(data_path, "rds_files/NF_HiChip_r1_HiCDC_output_filtered.txt"))
-interactions <- data.table::fread(paste0(data_path, "Consensus_interactions.txt"))
+interactions <- data.table::fread(paste0(data_path, "rds_files/", "Consensus_interactions.txt"))
 #interactions <- data.table::fread(paste0(data_path, "Consensus_interactions_stringent.txt"))
 interactions <- interactions[,-1]
 head(interactions)
