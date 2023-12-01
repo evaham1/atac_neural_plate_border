@@ -906,6 +906,39 @@ graphics.off()
 # # save network
 # write_tsv(df.grn.selected, file = paste0(temp_plot_path_subset, "GRN_subset.txt"))
 
+# ### plot the distribution of stages across the placodal trajectory
+# trajectory_df <- data.frame(
+#   traj = obj.traj$lineage_placodal_probability,
+#   stage = obj.traj$stage
+# )
+
+# table(trajectory_df$stage)
+# summary(trajectory_df$traj)
+
+# df_HH5 <- trajectory_df %>% dplyr::filter(stage == "HH5")
+# hist(df_HH5$traj)
+
+# df_HH6 <- trajectory_df %>% dplyr::filter(stage == "HH6")
+# hist(df_HH6$traj)
+
+# df_HH7 <- trajectory_df %>% dplyr::filter(stage == "HH7")
+# hist(df_HH7$traj)
+
+# df_ss4 <- trajectory_df %>% dplyr::filter(stage == "ss4")
+# hist(df_ss4$traj)
+
+# df_ss8 <- trajectory_df %>% dplyr::filter(stage == "ss8")
+# hist(df_ss8$traj, breaks = 100)
+
+# stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+# ggplot(trajectory_df, aes(x = traj, fill = stage)) + 
+#   geom_histogram(binwidth=5) + 
+#   facet_grid(stage ~ .) +
+#   theme_minimal() +
+#   scale_fill_manual(values = stage_cols) +
+#   guides(fill = guide_legend(title = "Annotation")) +
+#   theme(text = element_text(size = 25))
+
 
 ######################################################################################
 ##############################    POS CORR GRN     ###################################
