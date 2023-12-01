@@ -284,7 +284,7 @@ epiblast_peaks <- c(
 )
 
 # Peaks associated with known enhancers (loaded with Rshiny global script)
-enhancer_peaks <- lit_enhancer_peaks
+# enhancer_peaks <- lit_enhancer_peaks
 
 ##############  Look at which interactions include PPR genes    ###########################################
 
@@ -396,28 +396,28 @@ extract_features_from_bins <- function(output_bins, peak_bin_dictionary, promote
 
 ####### Running through processes from peaks to genes:
 ## for enhancer peaks
-lit_enhancer_peaks_bed <- read.csv("./output/NF-hichip-downstream/enhancers_peaks_intersect/literature_enhancers_bins_intersected.bed", sep = "\t", header = F)
-six1_peaks <- lit_enhancer_peaks_bed[lit_enhancer_peaks_bed$V11 %in% c("Six1"),]
-six1_peaks <- lit_enhancer_peaks_bed[lit_enhancer_peaks_bed$V11 %in% c("Six1"),]
-colnames(lit_enhancer_peaks_bed)
+# lit_enhancer_peaks_bed <- read.csv("./output/NF-hichip-downstream/enhancers_peaks_intersect/literature_enhancers_bins_intersected.bed", sep = "\t", header = F)
+# six1_peaks <- lit_enhancer_peaks_bed[lit_enhancer_peaks_bed$V11 %in% c("Six1"),]
+# six1_peaks <- lit_enhancer_peaks_bed[lit_enhancer_peaks_bed$V11 %in% c("Six1"),]
+# colnames(lit_enhancer_peaks_bed)
 
-barchart(lit_enhancer_peaks_bed$V14)
+# barchart(lit_enhancer_peaks_bed$V14)
 
-lit_enhancer_peaks <- six1_peaks$V4
+# lit_enhancer_peaks <- six1_peaks$V4
 
-# 1) Extract input_bins from PPR peaks
-input_bins <- extract_bins_from_features(features=lit_enhancer_peaks, feature_type="peak_ID", bin_dictionary=peaks_bins)
-length(unique(lit_enhancer_peaks))
-nrow(input_bins)
+# # 1) Extract input_bins from PPR peaks
+# input_bins <- extract_bins_from_features(features=lit_enhancer_peaks, feature_type="peak_ID", bin_dictionary=peaks_bins)
+# length(unique(lit_enhancer_peaks))
+# nrow(input_bins)
 
-# 2) See which output_bins are interacting with these input_bins
-output_bins <- extract_interacting_bins(input_bins = input_bins, input_feature_type = "peak", interactions = filtered_interactions)
+# # 2) See which output_bins are interacting with these input_bins
+# output_bins <- extract_interacting_bins(input_bins = input_bins, input_feature_type = "peak", interactions = filtered_interactions)
 
-# 3) See which features are in these output_bins
-output_features <- extract_features_from_bins(output_bins, peak_bin_dictionary = peaks_bins, promoter_bin_dictionary = promoters_bins)
+# # 3) See which features are in these output_bins
+# output_features <- extract_features_from_bins(output_bins, peak_bin_dictionary = peaks_bins, promoter_bin_dictionary = promoters_bins)
 
-# 4) Investigate if interacting genes correspond with enhancer annotations
-enhancer_interactions <- output_features %>% select(anchor_I_peak_ID.x, anchor_I_gene_name, anchor_J_peak_ID.x, anchor_J_gene_name)
+# # 4) Investigate if interacting genes correspond with enhancer annotations
+# enhancer_interactions <- output_features %>% select(anchor_I_peak_ID.x, anchor_I_gene_name, anchor_J_peak_ID.x, anchor_J_gene_name)
 
 
 ####### Running through processes from peaks to genes:
