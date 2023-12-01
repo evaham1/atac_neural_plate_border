@@ -108,6 +108,8 @@ paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 print("ArchR donor object info: ")
 print(ArchR_donor)
 getPeakSet(ArchR_donor)
+peakset <- getPeakSet(ArchR_donor)
+print(paste0("Number of peaks to transfer: ", length(peakset$name)))
 getAvailableMatrices(ArchR_donor)
 
 # how cells are grouped for pseudobulk replicates + peak calling
@@ -253,6 +255,22 @@ peakset_granges <- getPeakSet(ArchR_donor)
 # add the peak set to the target ArchR object and calculate the matrix
 ArchR <- addPeakSet(ArchR, peakset_granges, force = TRUE)
 ArchR <- addPeakMatrix(ArchR, force = TRUE)
+
+# print out new peakset
+peakset_granges_new <- getPeakSet(ArchR)
+print(head(peakset_granges_new))
+
+# check all peaks have transferred correctly
+old_peaks <- peakset_granges$name
+new_peaks <- peakset_granges_new$name
+
+if (length(old_peaks) == length(new_peaks)){
+  print("peak numbers match!")} else{
+    stop("ERROR: peak numbers dont match!")}
+
+if (length(old_peaks) == length(intersect(old_peaks, new_peaks))){
+  print("peak IDs match!")} else{
+    stop("ERROR: peak IDs dont match!")}
 
 #################################################################################
 ############################## Save ArchR project ###############################
