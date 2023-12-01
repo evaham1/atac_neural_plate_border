@@ -238,76 +238,76 @@ venn.diagram(
 print("Venn diagrams of interactions in WE and NF samples saved!")
 
 ######################   Extract interactions from NF samples   ######################################
-# adjust to extract: interactions present in at least 1 or 2 or 4 replicates
+# adjust to extract: interactions present in at least 1 or 2 or 3 replicates
 # also extract union of interactions (ie interactions present in at least 1 replicate)
 
-# # all interaction = present in at 1 replicate
-# r1 <- hidc_filtered_outputs[[1]]$interaction_ID
-# r2 <- hidc_filtered_outputs[[2]]$interaction_ID
-# r3 <- hidc_filtered_outputs[[3]]$interaction_ID
+# all interaction = present in at 1 replicate
+r1 <- hidc_filtered_outputs[[1]]$interaction_ID
+r2 <- hidc_filtered_outputs[[2]]$interaction_ID
+r3 <- hidc_filtered_outputs[[3]]$interaction_ID
 
-# ##### these are interactions that appear in at least 1 replicate (union)
-# common_interactions <- unique(c(r1, r2, r3))
-# print("Number of interactions in at least 1 sample:")
-# length(common_interactions)
+##### these are interactions that appear in at least 1 replicate (union)
+common_interactions <- unique(c(r1, r2, r3))
+print("Number of interactions in at least 1 sample:")
+length(common_interactions)
 
-# # extract table of these interactions (p vals not important but chrom start end useful)
-# r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
-# remaining_interactions <- common_interactions[!common_interactions %in% r1]
-# length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
-# r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
-# nrow(r2_subset) == length(remaining_interactions)
-# r3_subset <- hidc_filtered_outputs[[3]] %>% filter(interaction_ID %in% remaining_interactions)
-# nrow(r2_subset) == length(remaining_interactions)
+# extract table of these interactions (p vals not important but chrom start end useful)
+r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
+remaining_interactions <- common_interactions[!common_interactions %in% r1]
+length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
+r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
+nrow(r2_subset) == length(remaining_interactions)
+r3_subset <- hidc_filtered_outputs[[3]] %>% filter(interaction_ID %in% remaining_interactions)
+nrow(r2_subset) == length(remaining_interactions)
 
-# common_interactions_table <- rbind(r1_subset, r2_subset)
-# nrow(common_interactions_table) == length(common_interactions)
+common_interactions_table <- rbind(r1_subset, r2_subset)
+nrow(common_interactions_table) == length(common_interactions)
 
-# # save common interactions table
-# write.csv(common_interactions_table, file = paste0(rds_path, 'Union_interactions.txt'))
+# save common interactions table
+write.csv(common_interactions_table, file = paste0(rds_path, 'Union_interactions.txt'))
 
-# # consistent interaction = present in at least 2 of the 3 replicates
-# r1 <- hidc_filtered_outputs[[1]]$interaction_ID
-# r2 <- hidc_filtered_outputs[[2]]$interaction_ID
-# r3 <- hidc_filtered_outputs[[3]]$interaction_ID
+####### consistent interaction = present in at least 2 of the 3 replicates
+r1 <- hidc_filtered_outputs[[1]]$interaction_ID
+r2 <- hidc_filtered_outputs[[2]]$interaction_ID
+r3 <- hidc_filtered_outputs[[3]]$interaction_ID
 
-# ##### these are interactions that appear in AT LEAST 2 out of the 3 samples
-# common_interactions <- unique(c(intersect(r1, r2), intersect(r1, r3), intersect(r2, r3)))
-# print("Number of interactions in at least 2 of 3 samples:")
-# length(common_interactions)
+##### these are interactions that appear in AT LEAST 2 out of the 3 samples
+common_interactions <- unique(c(intersect(r1, r2), intersect(r1, r3), intersect(r2, r3)))
+print("Number of interactions in at least 2 of 3 samples:")
+length(common_interactions)
 
-# # extract table of these interactions (p vals not important but chrom start end useful)
-# r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
-# remaining_interactions <- common_interactions[!common_interactions %in% r1]
-# length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
-# r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
-# nrow(r2_subset) == length(remaining_interactions)
+# extract table of these interactions (p vals not important but chrom start end useful)
+r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
+remaining_interactions <- common_interactions[!common_interactions %in% r1]
+length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
+r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
+nrow(r2_subset) == length(remaining_interactions)
 
-# common_interactions_table <- rbind(r1_subset, r2_subset)
-# nrow(common_interactions_table) == length(common_interactions)
+common_interactions_table <- rbind(r1_subset, r2_subset)
+nrow(common_interactions_table) == length(common_interactions)
 
-# # save common interactions table
-# write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions.txt'))
+# save common interactions table
+write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions.txt'))
 
-# ##### these are interactions that appear in ALL 3 samples
-# common_interactions <- Reduce(intersect, list(r1, r2, r3))
-# print("Number of interactions in all 3 samples:")
-# length(common_interactions)
+################## these are interactions that appear in ALL 3 samples
+common_interactions <- Reduce(intersect, list(r1, r2, r3))
+print("Number of interactions in all 3 samples:")
+length(common_interactions)
 
-# # extract table of these interactions (p vals not important but chrom start end useful)
-# r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
-# remaining_interactions <- common_interactions[!common_interactions %in% r1]
-# length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
-# r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
-# nrow(r2_subset) == length(remaining_interactions)
+# extract table of these interactions (p vals not important but chrom start end useful)
+r1_subset <- hidc_filtered_outputs[[1]] %>% filter(interaction_ID %in% common_interactions)
+remaining_interactions <- common_interactions[!common_interactions %in% r1]
+length(remaining_interactions) == length(common_interactions) - sum(common_interactions %in% r1)
+r2_subset <- hidc_filtered_outputs[[2]] %>% filter(interaction_ID %in% remaining_interactions)
+nrow(r2_subset) == length(remaining_interactions)
 
-# common_interactions_table <- rbind(r1_subset, r2_subset)
-# nrow(common_interactions_table) == length(common_interactions)
+common_interactions_table <- rbind(r1_subset, r2_subset)
+nrow(common_interactions_table) == length(common_interactions)
 
-# # save common interactions table
-# write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions_stringent.txt'))
+# save common interactions table
+write.csv(common_interactions_table, file = paste0(rds_path, 'Consensus_interactions_stringent.txt'))
 
-# print("Tables of common interactions saved!")
+print("Tables of common interactions saved!")
 
 # ############################################################################################################
 # ################################## Find differential loops #################################################
