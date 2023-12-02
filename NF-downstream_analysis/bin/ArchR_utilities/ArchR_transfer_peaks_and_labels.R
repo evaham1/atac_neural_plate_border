@@ -94,7 +94,7 @@ ArchR <- loadArchRProject(path = paste0(data_path, label, "_Save-ArchR"), force 
 paste0("Memory Size = ", round(object.size(ArchR) / 10^6, 3), " MB")
 
 # see what is in the ArchR object already
-print("ArchR object info: ")
+print("ArchR recipient object info: ")
 print(ArchR)
 getPeakSet(ArchR)
 getAvailableMatrices(ArchR)
@@ -111,6 +111,8 @@ getPeakSet(ArchR_donor)
 peakset <- getPeakSet(ArchR_donor)
 print(paste0("Number of peaks to transfer: ", length(peakset$name)))
 getAvailableMatrices(ArchR_donor)
+print("Labels that can be transferred: ")
+colnames(getCellColData(ArchR_donor))
 
 # how cells are grouped for pseudobulk replicates + peak calling
 print(paste0("Cells grouped by: ", opt$group_by))
