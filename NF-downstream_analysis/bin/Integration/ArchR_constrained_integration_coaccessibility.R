@@ -581,6 +581,8 @@ print("Post-integration plots made.")
 plot_path = "./plots/plots_of_key_TFs/"
 dir.create(plot_path, recursive = T)
 
+ArchR <- addImputeWeights(ArchR, seed = 1)
+
 # set genes of interest
 TFs <- c("SIX1", "EYA2", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", 
          "TFAP2A", "TFAP2B", "TFAP2C", "TFAP2E",
@@ -603,7 +605,8 @@ for (TF in TFs){
   png(paste0(plot_path, TF, '_gene_integration_UMAP.png'), height = 12, width = 10, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = TF,
                 plotAs = "points", size = 1.8,
-                colorBy = "GeneIntegrationMatrix", continuousSet = "blueYellow") + 
+                colorBy = "GeneIntegrationMatrix", continuousSet = "blueYellow",
+                imputeWeights = NULL) + 
     theme_ArchR(legendTextSize = 17, baseSize = 17, plotMarginCm = 0.5))
   graphics.off()
   
@@ -611,7 +614,8 @@ for (TF in TFs){
   png(paste0(plot_path, TF, '_gene_score_UMAP.png'), height = 12, width = 14, units = 'cm', res = 400)
   print(plotEmbedding(ArchR, name = TF,
                 plotAs = "points", size = 1.8,
-                colorBy = "GeneScoreMatrix", continuousSet = "horizon") + 
+                colorBy = "GeneScoreMatrix", continuousSet = "horizon",
+                imputeWeights = getImputeWeights(ArchR)) + 
     theme_ArchR(legendTextSize = 12, baseSize = 16, plotMarginCm = 0.5))
   graphics.off()
   
