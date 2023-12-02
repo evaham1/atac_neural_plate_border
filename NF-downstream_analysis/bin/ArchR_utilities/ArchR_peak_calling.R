@@ -88,9 +88,9 @@ if(opt$verbose) print(opt)
   dir.create(csv_path, recursive = T)
 }
 
-############################## Read in ArchR project #######################################
-
 set.seed(42)
+
+############################## Read in ArchR project #######################################
 
 # If files are not in rds_files subdirectory look in input dir
 label <- unique(sub('_.*', '', list.files(data_path)))

@@ -65,6 +65,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 ############################## Read in ArchR projects #######################################
 # Read in all data
 files <- list.files(data_path, full.names = TRUE)

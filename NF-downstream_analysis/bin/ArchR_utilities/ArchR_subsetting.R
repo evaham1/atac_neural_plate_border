@@ -85,6 +85,7 @@ if(is.null(opt$meta_col1)){
 if(is.null(opt$groups1)){
   stop("groups1 parameter must be provided. See script usage (--help)")}
 
+set.seed(42)
 
 ############################## Function to subset ArchR project #######################################
 ArchR_Subset <- function(ArchR_object, meta_col1, meta_col2, groups1, groups2, invert1, invert2, invert = FALSE){

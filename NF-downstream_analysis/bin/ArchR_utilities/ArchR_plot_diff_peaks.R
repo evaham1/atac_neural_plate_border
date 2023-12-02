@@ -73,6 +73,8 @@ if(opt$verbose) print(opt)
   dir.create(plot_path, recursive = T)
 }
 
+set.seed(42)
+
 ############################### FUNCTIONS ####################################
 
 ### Function to Log2normalise matrix (must be run before subsetting!)
@@ -340,7 +342,6 @@ graphics.off()
 colnames(df)[4] <- "-LogFDR"
 
 # subsample df to mix up the order of points
-set.seed(42)
 rows <- sample(nrow(df))
 df <- df[rows, ]
 

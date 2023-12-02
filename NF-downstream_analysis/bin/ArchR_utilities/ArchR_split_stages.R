@@ -50,6 +50,8 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 ############################## Read in ArchR project #######################################
 # If files are not in rds_files subdirectory look in input dir
 label <- unique(sub('_.*', '', list.files(data_path)))

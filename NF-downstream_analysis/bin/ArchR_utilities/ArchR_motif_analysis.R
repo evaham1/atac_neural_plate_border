@@ -65,6 +65,8 @@ if(opt$verbose) print(opt)
   dir.create(csv_path, recursive = T)
 }
 
+set.seed(42)
+
 
 # TFs <- c("SIX1", "IRF6", "DLX5", "DLX6", "GATA2", "GATA3", "TFAP2A", "TFAP2B", "TFAP2C", "PITX1", "PITX2",
 #            "PAX7", "MSX1", "ETS1", "SOX9", "SOX8", "SOX10", "SOX5", "SOX21", "NKX6-2",

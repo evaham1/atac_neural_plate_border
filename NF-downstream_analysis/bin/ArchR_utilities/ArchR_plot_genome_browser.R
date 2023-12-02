@@ -60,6 +60,8 @@ if(opt$verbose) print(opt)
   
 }
 
+set.seed(42)
+
 ########################       CELL STATE COLOURS    ########################################
 scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                               'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',

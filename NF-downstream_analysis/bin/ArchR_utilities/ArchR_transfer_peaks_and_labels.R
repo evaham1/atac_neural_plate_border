@@ -71,6 +71,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 ###### FUNCTIONS TO UPDATE IN SCHELPER:
 ArchRCellCountsHeatmap <- function (ArchR = ArchR, group1 = "scHelper_cell_type", group2 = "clusters") 
 {

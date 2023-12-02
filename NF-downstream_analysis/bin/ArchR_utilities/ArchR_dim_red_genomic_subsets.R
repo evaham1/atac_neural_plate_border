@@ -60,6 +60,8 @@ opt = getopt(spec)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 ############################## Read in ArchR project  #######################################
 
 # Retrieve object label
