@@ -390,6 +390,18 @@ png(paste0(plot_path, 'RNA_cells_used_UMAP.png'), height = 20, width = 20, units
 print(umap_rna_used)
 graphics.off()
 
+# count how many RNA cells used for integration
+df <- data.frame(
+  RNA_counts = length(Cells(seurat_data)),
+  ATAC_counts = length(ArchR$cellNames),
+  Transferred_RNA_counts = length(unique(ArchR$predictedCell))
+)
+
+png(paste0(plot_path, 'RNA_cell_counts_used.png'), height = 10, width = 20, units = 'cm', res = 400)
+grid.arrange(top=textGrob("Cell counts", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
+             tableGrob(df, rows=NULL, theme = ttheme_minimal()))
+graphics.off()
+
 #### distribution of broad labels in RNA and ATAC data
 
 # RNA: extract cell state proportions and order and colour them -> plot pie chart
@@ -415,7 +427,7 @@ ggplot(counts2, aes(x = "" , y = Frequency, fill = fct_inorder(`Cell state`))) +
   theme(text = element_text(size = 30), legend.position = "none")
 graphics.off()
 
-png(paste0(plot_path, 'RNA_cell_state_distribution_table.png'), height = 20, width = 10, units = 'cm', res = 400)
+png(paste0(plot_path, 'RNA_cell_state_distribution_table.png'), height = 50, width = 10, units = 'cm', res = 400)
 grid.arrange(top=textGrob("RNA data", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(counts, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
