@@ -253,17 +253,17 @@ plot_path = "./plots/before_integration/"
 dir.create(plot_path, recursive = T)
 
 umap_rna_new <- DimPlot(seurat_data, group.by = 'scHelper_cell_type_new', label = TRUE, 
-                    label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+                    label.size = 9,
                     label.box = TRUE, repel = TRUE,
-                    pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
+                    pt.size = 1.2, 
                     cols = scHelper_new_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
                  plot.title = element_blank())
 umap_rna_old <- DimPlot(seurat_data, group.by = 'scHelper_cell_type', label = TRUE, 
-                    label.size = ifelse(length(unique(seurat_data$stage)) == 1, 9, 3),
+                    label.size = 9,
                     label.box = TRUE, repel = TRUE,
-                    pt.size = ifelse(length(unique(seurat_data$stage)) == 1, 1.2, 1), 
+                    pt.size = 1.2, 
                     cols = scHelper_old_cols, shuffle = TRUE) +
   ggplot2::theme_void() +
   ggplot2::theme(legend.position = "none", 
