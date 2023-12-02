@@ -186,33 +186,44 @@ cols_broad <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_
 png(paste0(plot_path, "transferred_clusters.png"), width=30, height=40, units = 'cm', res = 200)
 plotEmbedding(ArchR,
               name = "transferred_clusters",
-              plotAs = "points", size = 2.5,
+              plotAs = "points", size = 3,
               baseSize = 0, labelSize = 0, legendSize = 0,
-              randomize = TRUE)
+              randomize = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(plot.title = element_blank())
 graphics.off()
 
 ### Plot scHelper_cell_type
 png(paste0(plot_path, "transferred_scHelper_cell_type_cell_type.png"), width=30, height=40, units = 'cm', res = 200)
 plotEmbedding(ArchR,
               name = "transferred_scHelper_cell_type", pal = cols,
-              plotAs = "points", size = 2.5,
+              plotAs = "points", size = 3,
               baseSize = 0, labelSize = 0, legendSize = 0,
-              randomize = TRUE)
+              randomize = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 ### Plot scHelper_cell_type broad
 png(paste0(plot_path, "transferred_scHelper_cell_type_cell_type_broad.png"), width=30, height=40, units = 'cm', res = 200)
 plotEmbedding(ArchR,
               name = "transferred_scHelper_cell_type_broad", pal = cols_broad,
-              plotAs = "points", size = 2.5,
+              plotAs = "points", size = 3,
               baseSize = 0, labelSize = 0, legendSize = 0,
-              randomize = TRUE)
+              randomize = TRUE) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 ### Plot integration scores
 png(paste0(plot_path, 'transferred_Integration_Scores_UMAP.png'), height = 20, width = 20, units = 'cm', res = 400)
-plotEmbedding(ArchR, name = "transferred_predictedScore", plotAs = "points", size = 2.5, baseSize = 0, 
-              legendSize = 10)
+plotEmbedding(ArchR, name = "transferred_predictedScore", plotAs = "points", size = 3, baseSize = 0, 
+              legendSize = 10) +
+  ggplot2::theme_void() +
+  ggplot2::theme(legend.position = "none", 
+                 plot.title = element_blank())
 graphics.off()
 
 ##################### Distribution of labels across clusters ##################################
