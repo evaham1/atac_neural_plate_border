@@ -72,18 +72,18 @@ RNA_obj <- readRDS(paste0(data_path, "seurat_label_transfer_latent_time.RDS"))
 
 # extract metadata from RNA object
 RNA_metadata <- FetchData(RNA_obj, vars = c("latent_time", "lineage_NC_probability", "lineage_neural_probability", "lineage_placodal_probability"))
-RNA_metadata <- rownames_to_column(RNA_metadata, var = "predictedCell_Un")
+RNA_metadata <- rownames_to_column(RNA_metadata, var = "predictedCell")
 head(RNA_metadata)
 dim(RNA_metadata) # 17992     5
 
 # extract the matched RNA cell IDs from the ATAC object
-ATAC_metadata <- getCellColData(ArchR, select = "predictedCell_Un")
+ATAC_metadata <- getCellColData(ArchR, select = "predictedCell")
 ATAC_metadata <- rownames_to_column(as.data.frame(ATAC_metadata), var = "ATAC_Cell_ID")
 head(ATAC_metadata)
 dim(ATAC_metadata) # 86217     2
 
 # match the two dataframes using the matched RNA cell IDs
-merged_metadata <- merge(ATAC_metadata, RNA_metadata, by = "predictedCell_Un", all.x = TRUE)
+merged_metadata <- merge(ATAC_metadata, RNA_metadata, by = "predictedCell", all.x = TRUE)
 head(merged_metadata)
 dim(merged_metadata) # 86217     6
 
