@@ -234,7 +234,7 @@ workflow A {
         INTEGRATE( ch_integrate )
 
         // Run motif analysis on full data
-        MOTIF_FULL( INTEGRATE.out )
+        //MOTIF_FULL( INTEGRATE.out )
 
         ////    Process stage data   ////
         // Extract just the stage data objects
