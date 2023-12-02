@@ -90,6 +90,8 @@ if(opt$verbose) print(opt)
 
 ############################## Read in ArchR project #######################################
 
+set.seed(42)
+
 # If files are not in rds_files subdirectory look in input dir
 label <- unique(sub('_.*', '', list.files(data_path)))
 print(paste0("Label: ", label))
