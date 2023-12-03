@@ -63,6 +63,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 ########################       CELL STATE COLOURS    ########################################
 scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
                         'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',

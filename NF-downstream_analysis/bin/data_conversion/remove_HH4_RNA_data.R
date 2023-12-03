@@ -53,6 +53,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 ############################## Load data #######################################
 
 # input can be named anything but needs to be only one input file

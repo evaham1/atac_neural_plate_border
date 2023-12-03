@@ -63,6 +63,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 # ## function to aggregate matrix from seurat object and summarise by cell groupings
 # SEACells_SummariseSeuratData <- function(seurat, data_slot = "counts", category = "SEACell"){
   

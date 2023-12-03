@@ -54,6 +54,7 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
 
 ############################## Read in .csv files #######################################
 input_files <- list.files(path = data_path, pattern = "*.csv", full.names = TRUE)

@@ -53,6 +53,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 
 #################### R script to extract peak counts from ArchR object #########################
 # https://github.com/dpeerlab/SEACells/blob/main/notebooks/ArchR/ArchR-preprocessing-nfr-peaks.R

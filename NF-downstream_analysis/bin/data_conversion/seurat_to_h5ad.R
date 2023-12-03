@@ -62,6 +62,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 ############################## Read in data #######################################
 
 # If there is only one object in data_path use this, if there is more than one need 'input' arg to define which one to use

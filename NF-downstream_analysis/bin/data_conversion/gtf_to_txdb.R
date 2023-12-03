@@ -53,6 +53,8 @@ if(opt$verbose) print(opt)
   dir.create(rds_path, recursive = T)
 }
 
+set.seed(42)
+
 
 #################### R script to take gtf and turn into txdb #########################
 
