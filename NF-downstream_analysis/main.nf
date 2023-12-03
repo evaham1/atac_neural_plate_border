@@ -233,9 +233,6 @@ workflow A {
         // Integrate RNA and ATAC data full data
         INTEGRATE( ch_integrate )
 
-        // Run motif analysis on full data
-        //MOTIF_FULL( INTEGRATE.out )
-
         ////    Process stage data   ////
         // Extract just the stage data objects
         ch_upstream_processed
@@ -267,9 +264,6 @@ workflow A {
             //.view() //[[sample_id:ss8], [ss8_Save-ArchR, FullData_Save-ArchR]]
             .set{ch_transfer}
         TRANSFER_LABELS_AND_PEAKS(ch_transfer)
-
-        // // Run motif analysis on stages data
-        // MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
 
         //    Extra processing with full data  ////
         
@@ -325,11 +319,7 @@ workflow A {
             .map { row -> [row[0], [row[1][0], row[2]]]}
             //.view() //[[sample_id:HH7], [rds_files, csv_files]]
             .set{ch_stages_coaccessibility}
-        //PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
         
-        // Motif analysis plots grouped by clusters
-        // just needs the archr objects
-        // PLOT_MOTIF_CLUSTERS( MOTIF_STAGES.out )
         
 
 
@@ -554,6 +544,18 @@ workflow A {
         //MOTIF_ANALYSIS( TRANSFER_METACELL_LABELS_TO_FULLDATA.out )
 
         PLOT_ENHANCERS( TRANSFER_METACELL_LABELS.out )
+
+        //PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
+        
+        // Motif analysis plots grouped by clusters
+        // just needs the archr objects
+        // PLOT_MOTIF_CLUSTERS( MOTIF_STAGES.out )
+
+                // Run motif analysis on full data
+        //MOTIF_FULL( INTEGRATE.out )
+
+                // // Run motif analysis on stages data
+        // MOTIF_STAGES( TRANSFER_LABELS_AND_PEAKS.out )
 
 
     }

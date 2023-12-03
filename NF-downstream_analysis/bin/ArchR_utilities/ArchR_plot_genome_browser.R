@@ -150,9 +150,6 @@ colnames(getCellColData(ArchR))
 ###########################################################################################
 ############################## Set up enhancers df ########################################
 
-plot_path = "./plots/known_enhancers/"
-dir.create(plot_path, recursive = T)
-
 # make list of known enhancers organised by genes
 AXUD1_enhancers_df <- data.frame(
   chr = c("chr2"),
@@ -234,7 +231,7 @@ PAX7_enhancers_df <- data.frame(
   start = c(3826990, 4238685, 4523315, 4767796),
   end = c(3828981, 4240684, 4525246, 4769743)
 )
-STED2_enhancers_df <- data.frame(
+SETD2_enhancers_df <- data.frame(
   chr = c("chr2"),
   start = c(3958727),
   end = c(3961289)
@@ -260,7 +257,7 @@ SOX13_enhancers_df <- data.frame(
   end = c(1700419, 2399582)
 )
 SOX2_enhancers_df <- data.frame(
-  chr = c("chr9", "chr9", "chr9", "chr9", "chr9", "chr9"),
+  chr = c("chr9", "chr9", "chr9"),
   start = c(17029120, 17041213, 16883843),
   end = c(17029653, 17041793, 16885306)
 )
@@ -280,14 +277,14 @@ SP5_enhancers_df <- data.frame(
   end = c(18347947)
 )
 TFAP2A_enhancers_df <- data.frame(
-  chr = c("chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2"),
+  chr = c("chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2", "chr2"),
   start = c(63311515, 63057851, 63365989, 63389615, 63453876, 63714903, 63772784, 63878567, 64233006, 64421924),
   end = c(63312508, 63059773, 63367907, 63391605, 63455810, 63716810, 63774778, 63880501, 64234932, 64423822)
 )
 TFAP2B_enhancers_df <- data.frame(
-  chr = c("chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3", "chr3"),
-  start = c(, 107735860, 107872557, 107894338, 107927002, 108072186),
-  end = c(, 107737597, 107874552, 107896273, 107928971, 108074077)
+  chr = c("chr3", "chr3", "chr3", "chr3", "chr3"),
+  start = c(107735860, 107872557, 107894338, 107927002, 108072186),
+  end = c(107737597, 107874552, 107896273, 107928971, 108074077)
 )
 ZBTB16_enhancers_df <- data.frame(
   chr = c("chr24"),
@@ -333,7 +330,8 @@ names(enhancers_df_list) <- c("AXUD1", "CHAMP1", "DACT2", "DRAXIN", "EPHA4",
 ################################################################################################################
 ############################## Plot tracks for single cell labels broad ########################################
 
-plot_path = "./plots/single_cell_labels_broad/"
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/Lit_enhancers_genome_browser_plots/plots/single_cell_labels_broad/"
+#plot_path = "./plots/single_cell_labels_broad/"
 dir.create(plot_path, recursive = T)
 
 pal <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_type_broad)]
@@ -361,6 +359,7 @@ for (gene in names(enhancers_df_list)){
 ################################################################################################################
 ############################## Plot tracks for single cell labels ########################################
 
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/Lit_enhancers_genome_browser_plots/plots/single_cell_labels/"
 plot_path = "./plots/single_cell_labels/"
 dir.create(plot_path, recursive = T)
 
@@ -388,6 +387,7 @@ for (gene in names(enhancers_df_list)){
 
 ################################################################################################################
 ############################## Plot tracks for metacell cell labels ########################################
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/Lit_enhancers_genome_browser_plots/plots/SEACell_scHelper_cell_type/"
 
 plot_path = "./plots/SEACell_scHelper_cell_type/"
 dir.create(plot_path, recursive = T)
@@ -419,6 +419,8 @@ for (gene in names(enhancers_df_list)){
 ############################## Plot tracks for metacell cell labels broad ########################################
 
 plot_path = "./plots/SEACell_scHelper_cell_type_broad/"
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/Lit_enhancers_genome_browser_plots/plots/SEACell_scHelper_cell_type_broad/"
+
 dir.create(plot_path, recursive = T)
 
 pal <- scHelper_cell_type_colours[unique(ArchR$SEACell_scHelper_cell_type_broad)]
@@ -442,3 +444,130 @@ for (gene in names(enhancers_df_list)){
   }
   
 }
+
+####################################################################################
+################# New enhancers to test ############################################
+
+PPR_enhancers_df <- data.frame(
+  chr = c("chr2", "chr2", "chr9", "chr4", "chr1", "chr2"),
+  start = c(10216477, 11936117, 16689582, 69910791, 88390937, 149406064),
+  end = c(10216977, 11936617, 16690082, 69911291, 88391437, 149406564)
+)
+
+NC_enhancers_df <- data.frame(
+  chr = c("chr1", "chr2", "chr8", "chr1", "chr4"),
+  start = c(4741943, 42661874, 7216956, 61674271, 39407032),
+  end = c(4742443, 42662374, 7217456, 61674771, 39407532)
+)
+
+
+enhancers_df_list <- list(PPR_enhancers_df, NC_enhancers_df)
+names(enhancers_df_list) <- c("PPR", "NC")
+
+
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/New_enhancers/plots/single_cell_labels_broad/"
+#plot_path = "./plots/single_cell_labels_broad/"
+dir.create(plot_path, recursive = T)
+
+pal <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_type_broad)]
+
+# loop through genes and then loop through enhancers within each gene
+for (gene in names(enhancers_df_list)){
+  enhancers_df <- enhancers_df_list[[gene]]
+  
+  for (row in 1:nrow(enhancers_df)){
+    enhancer <- enhancers_df[row,]
+    print(enhancer)
+    
+    p <- ArchR_genome_browser_plot(ArchR, enhancer, group_by = "transferred_scHelper_cell_type_broad", 
+                                   pal, extend_by = 5000, show_peaks = FALSE)
+    
+    # plot
+    grid::grid.newpage()
+    png(paste0(plot_path, gene, '_enhancer_', row, '_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p)
+    graphics.off()
+  }
+  
+}
+
+
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/New_enhancers/plots/single_cell_labels/"
+dir.create(plot_path, recursive = T)
+
+pal <- scHelper_cell_type_colours[unique(ArchR$transferred_scHelper_cell_type)]
+
+# loop through genes and then loop through enhancers within each gene
+for (gene in names(enhancers_df_list)){
+  enhancers_df <- enhancers_df_list[[gene]]
+  
+  for (row in 1:nrow(enhancers_df)){
+    enhancer <- enhancers_df[row,]
+    print(enhancer)
+    
+    p <- ArchR_genome_browser_plot(ArchR, enhancer, group_by = "transferred_scHelper_cell_type", 
+                                   pal, extend_by = 5000, show_peaks = FALSE)
+    
+    # plot
+    grid::grid.newpage()
+    png(paste0(plot_path, gene, '_enhancer_', row, '_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p)
+    graphics.off()
+  }
+  
+}
+
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/New_enhancers/plots/SEACell_scHelper_cell_type/"
+dir.create(plot_path, recursive = T)
+
+pal <- scHelper_cell_type_colours[unique(ArchR$SEACell_scHelper_cell_type)]
+
+# loop through genes and then loop through enhancers within each gene
+for (gene in names(enhancers_df_list)){
+  enhancers_df <- enhancers_df_list[[gene]]
+  
+  for (row in 1:nrow(enhancers_df)){
+    enhancer <- enhancers_df[row,]
+    print(enhancer)
+    
+    p <- ArchR_genome_browser_plot(ArchR, enhancer, group_by = "SEACell_scHelper_cell_type", 
+                                   pal, extend_by = 5000, show_peaks = FALSE)
+    
+    # plot
+    grid::grid.newpage()
+    png(paste0(plot_path, gene, '_enhancer_', row, '_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p)
+    graphics.off()
+  }
+  
+}
+
+plot_path = "./output/NF-downstream_analysis/Processing/ss8/New_enhancers/plots/SEACell_scHelper_cell_type_broad/"
+
+dir.create(plot_path, recursive = T)
+
+pal <- scHelper_cell_type_colours[unique(ArchR$SEACell_scHelper_cell_type_broad)]
+
+# loop through genes and then loop through enhancers within each gene
+for (gene in names(enhancers_df_list)){
+  enhancers_df <- enhancers_df_list[[gene]]
+  
+  for (row in 1:nrow(enhancers_df)){
+    enhancer <- enhancers_df[row,]
+    print(enhancer)
+    
+    p <- ArchR_genome_browser_plot(ArchR, enhancer, group_by = "SEACell_scHelper_cell_type_broad", 
+                                   pal, extend_by = 5000, show_peaks = FALSE)
+    
+    # plot
+    grid::grid.newpage()
+    png(paste0(plot_path, gene, '_enhancer_', row, '_browser_plot.png'), height = 15, width = 18, units = 'cm', res = 400)
+    grid::grid.draw(p)
+    graphics.off()
+  }
+  
+}
+
+
+
+

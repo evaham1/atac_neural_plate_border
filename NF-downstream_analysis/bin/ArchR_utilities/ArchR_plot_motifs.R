@@ -35,7 +35,7 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/Motif_analysis/rds_files/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Metacell_to_singlecell/rds_files/"
     plot_path = "./output/NF-downstream_analysis/Processing/ss8/motif_analysis/plots/"
     
     addArchRThreads(threads = 1) 
@@ -84,7 +84,7 @@ if (length(label) == 0){
 # see what is in the ArchR object already
 print("ArchR object info: ")
 print(ArchR)
-getPeakSet(ArchR)
+# getPeakSet(ArchR)
 getAvailableMatrices(ArchR)
 
 

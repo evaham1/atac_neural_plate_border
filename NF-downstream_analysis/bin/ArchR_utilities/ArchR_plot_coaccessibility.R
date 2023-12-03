@@ -35,14 +35,14 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # ArchR object with no coaccessibility data
-    data_path = "./output/NF-downstream_analysis/Processing/ss8/Transfer_labels_and_peaks/"
+    data_path = "./output/NF-downstream_analysis/Processing/ss8/Metacell_ID_purity/rds_files/"
     # co-accessibility csv and RDS files
     data_path = "./output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/"
     # # ArchR object with coaccessibility data
     # data_path = "./output/NF-downstream_analysis/Processing/FullData/Single_cell_integration/"
     
-    rds_path = "./output/NF-downstream_analysis/Processing/ss8/Coaccessibility/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/Processing/ss8/Coaccessibility/plots/"
+    # rds_path = "./output/NF-downstream_analysis/Processing/ss8/Coaccessibility/rds_files/"
+    # plot_path = "./output/NF-downstream_analysis/Processing/ss8/Coaccessibility/plots/"
     
     addArchRThreads(threads = 1) 
     
@@ -72,6 +72,27 @@ if(opt$verbose) print(opt)
 
 set.seed(42)
 
+########################       CELL STATE COLOURS    ########################################
+scHelper_cell_type_order <- c('EE', 'NNE', 'pEpi', 'PPR', 'aPPR', 'pPPR',
+                              'eNPB', 'NPB', 'aNPB', 'pNPB','NC', 'dNC',
+                              'eN', 'eCN', 'NP', 'pNP', 'HB', 'iNP', 'MB', 
+                              'aNP', 'FB', 'vFB', 'node', 'streak', 
+                              'PGC', 'BI', 'meso', 'endo', 'MIXED', 'Unmapped',
+                              'Neural', 'Placodal', 'Non-neural', 'Contam')
+scHelper_cell_type_colours <- c("#ed5e5f", "#A73C52", "#6B5F88", "#3780B3", "#3F918C", "#47A266", 
+                                "#53A651", "#6D8470", "#87638F", "#A5548D", "#C96555", "#ED761C", 
+                                "#FF9508", "#FFC11A", "#FFEE2C", "#EBDA30", "#CC9F2C", "#AD6428", 
+                                "#BB614F", "#D77083", "#F37FB8", "#DA88B3", "#B990A6", "#b3b3b3",
+                                "#786D73", "#581845", "#9792A3", "#BBB3CB",
+                                "#A5718D", "#3F918C", "#ed5e5f", "#9792A3",
+                                "#7C8483", "#EAEAEA")
+names(scHelper_cell_type_colours) <- c('NNE', 'HB', 'eNPB', 'PPR', 'aPPR', 'streak',
+                                       'pPPR', 'NPB', 'aNPB', 'pNPB','eCN', 'dNC',
+                                       'eN', 'NC', 'NP', 'pNP', 'EE', 'iNP', 
+                                       'MB','vFB', 'aNP', 'node', 'FB', 'pEpi',
+                                       'PGC', 'BI', 'meso', 'endo',
+                                       'Neural', 'Placodal', 'Non-neural', 'Contam',
+                                       'MIXED', 'Unmapped')
 
 ############################## FUNCTIONS #######################################
 
@@ -121,7 +142,7 @@ ArchR_ExtractLoopsToPlot <- function(gene, gene_locations, interacting_peaks, in
 # Can select how to group cells for browser using group_by
 # will automatically zoom out so all interactions are seen and centre plot on the gene, can extend further using extend_by
 
-ArchR_PlotInteractions <- function(ArchR_obj, gene, gene_locations, interactions_granges, extend_by = 500, max_dist = Inf, group_by = "clusters", highlight_granges = NULL, return_plot = TRUE){
+ArchR_PlotInteractions <- function(ArchR_obj, gene, gene_locations, interactions_granges, extend_by = 500, max_dist = Inf, group_by = "clusters", highlight_granges = NULL, return_plot = TRUE, pal = pal){
   
   # extract gene TSS coord
   gene_coord <- as.numeric(ArchR_ExtractTss(gene_locations, gene)[2])
@@ -146,6 +167,7 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, gene_locations, interactions
       upstream = distance,
       downstream = distance,
       loops = interactions_granges,
+      pal = pal,
       title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
     )
   } else {
@@ -157,6 +179,7 @@ ArchR_PlotInteractions <- function(ArchR_obj, gene, gene_locations, interactions
       downstream = distance,
       loops = interactions_granges,
       highlight = highlight_granges,
+      pal = pal,
       title = paste0(gene, "locus - ", length(interactions_granges), " interactions found - distance around: ", distance, "bp")
     )
   }
@@ -294,15 +317,21 @@ names(enhancers_df_list) <- c("SIX1", "SOX2", "SOX10", "ETS1", "FOXI3", "FOXD3",
 # init list of interacting peaks
 peaks <- list()
 
+# filter p2g dataframe in the same way did for GRNi
+P2G_filt <- p2g_df %>% dplyr::filter(FDR < 0.01)
+
+# set colour scheme
+
+pal <- scHelper_cell_type_colours[unique(getCellColData(ArchR, select = opt$group_by)[,1])]
+
 # loop through genes and make plots (+ with enhancers highlighted if have that data)
 for (gene in genes){
   
   print(gene)
   
   # extract interactions to gene of interest above a correlation cut off
-  interactions <- p2g_df %>% 
-    filter(gene_name %in% gene) %>%
-    filter(Correlation > 0.5)
+  interactions <- P2G_filt %>% 
+    filter(gene_name %in% gene)
   print(paste0(nrow(interactions), " interactions found"))
   
   # extract the peak IDs that interact with that gene - from the csv file
@@ -323,7 +352,8 @@ for (gene in genes){
     p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
                                 interactions_granges = extracted_loops, return_plot = TRUE,
                                 group_by = opt$group_by,
-                                extend_by = 500, max_dist = Inf)
+                                extend_by = 500, max_dist = Inf,
+                                pal = pal)
     
     
     grid::grid.newpage()
@@ -333,24 +363,24 @@ for (gene in genes){
     grid::grid.draw(p[[1]])
     graphics.off()
     
-    # overlay known enhancers - not working atm 
-          # Error in ArchR::plotBrowserTrack(ArchRProj = ArchR_obj, groupBy = group_by,  : 
-          # unused argument (highlight = highlight_granges)
-          # Calls: ArchR_PlotInteractions
-          # Execution halted
-    # if (gene %in% names(enhancers_df_list)){
-    #   enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
-    #   grid::grid.newpage()
-    #   p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
-    #                               interactions_granges = extracted_loops, 
-    #                               return_plot = TRUE,
-    #                               extend_by = 500, max_dist = Inf, 
-    #                               highlight_granges = enhancers_granges,
-    #                               group_by = opt$group_by)
-    #   png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
-    #   grid::grid.draw(p[[1]])
-    #   graphics.off()
-    # }
+    #overlay known enhancers - not working atm
+    #Error in ArchR::plotBrowserTrack(ArchRProj = ArchR_obj, groupBy = group_by,  :
+    #unused argument (highlight = highlight_granges)
+    #Calls: ArchR_PlotInteractions
+    #Execution halted
+    if (gene %in% names(enhancers_df_list)){
+      enhancers_granges <- makeGRangesFromDataFrame(enhancers_df_list[[gene]])
+      grid::grid.newpage()
+      p <- ArchR_PlotInteractions(ArchR, gene = gene, gene_locations = gene_locations,
+                                  interactions_granges = extracted_loops,
+                                  return_plot = TRUE,
+                                  extend_by = 500, max_dist = Inf,
+                                  highlight_granges = enhancers_granges,
+                                  group_by = opt$group_by, pal = pal)
+      png(paste0(plot_path, gene, '_interactions_browser_plot_enhancers.png'), height = 15, width = 18, units = 'cm', res = 400)
+      grid::grid.draw(p[[1]])
+      graphics.off()
+    }
     
   }
   
