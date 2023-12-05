@@ -79,12 +79,13 @@ workflow CLUSTER_PEAKS_WF {
 
     // Run homer motif enrichment on each peak module
     CLUSTER_PEAKS.out
-        .map{it[1].findAll{it =~ /PMs/}[0].listFiles()}
-        .concat( ch_fasta )
+        .map{it[1].findAll{it =~ /PMs/}.findAll{it =~ /FullData/}.listFiles()}
+        //.concat( ch_fasta )
         .set { ch_homer_input }
     
     ch_homer_input.view()
-    // [[sample_id:FullData], [PMs, antler_FullData, antler_HH5, antler_HH6, antler_HH7, antler_ss4, antler_ss8, plots, rds_files]]
+    // [FullData, HH5, HH6, HH7, ss8, ss4]
+
 
     // need to extract just the chr bed files from PMs folder, and then concat each of those (which are calculated on different subsets of data) with fasta
 
