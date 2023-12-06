@@ -82,14 +82,14 @@ workflow {
     //     .set{ ch_peak_lit_enhancers }
     // INTERSECT_PEAKS_ENHANCERS( ch_peak_lit_enhancers )
 
-    //////////  Sample-generic bins generation and annotation  //////////
+    ////////  Sample-generic bins generation and annotation  //////////
 
-    // // Extract promoters of genes from gtf and turn into bed file
-    // ch_gtf
-    //     .combine( ch_index )
-    //     //.view() // [/nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf, /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/Gallus_gallus.GRCg6a.dna.toplevel.fa.fai]
-    //     .set{ ch_extract_bins }
-    // EXTRACT_PROMOTERS( ch_extract_bins )
+    // Extract promoters of genes from gtf and turn into bed file
+    ch_gtf
+        .combine( ch_index )
+        //.view() // [/nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/tag_chroms.gtf, /nemo/lab/briscoej/working/hamrude/raw_data/genomes/galgal6/Gallus_gallus.GRCg6a.dna.toplevel.fa.fai]
+        .set{ ch_extract_bins }
+    EXTRACT_PROMOTERS( ch_extract_bins )
 
     // Generate bins
     GENERATE_BINS ( ch_dummy )
