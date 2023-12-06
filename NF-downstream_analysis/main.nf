@@ -543,7 +543,7 @@ workflow A {
 
         //MOTIF_ANALYSIS( TRANSFER_METACELL_LABELS_TO_FULLDATA.out )
 
-        PLOT_ENHANCERS( TRANSFER_METACELL_LABELS.out )
+        //PLOT_ENHANCERS( TRANSFER_METACELL_LABELS.out )
 
         //PLOT_COACCESSIBILITY_CLUSTERS( ch_stages_coaccessibility )
         
