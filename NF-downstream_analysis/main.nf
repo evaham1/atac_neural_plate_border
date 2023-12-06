@@ -518,17 +518,17 @@ workflow A {
             // [[sample_id:ss4], [ArchRLogs, Rplots.pdf, plots, rds_files]]
             // [[sample_id:ss8], [ArchRLogs, Rplots.pdf, plots, rds_files]]
 
-        // run script to transfer these labels from the ArchR stage objects to the full data object so everybody has the same labels
-        TRANSFER_METACELL_LABELS.out
-            .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
-            .collect()
-            // .view() //[[HH5_Save-ArchR], [HH6_Save-ArchR], [HH7_Save-ArchR], [ss4_Save-ArchR], [ss8_Save-ArchR]]
-            .combine(ch_fulldata)
-            //.view() //[[HH5_Save-ArchR], [HH6_Save-ArchR], [HH7_Save-ArchR], [ss4_Save-ArchR], [ss8_Save-ArchR], [sample_id:FullData], [FullData_Save-ArchR]]
-            .map{ [ it[5], [ it[0][0], it[1][0], it[2][0], it[3][0], it[4][0], it[6][0] ] ] }
-            //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, FullData_Save-ArchR]]
-            .set { ch_transfer_metacell_IDs_to_full }
-        TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
+        // // run script to transfer these labels from the ArchR stage objects to the full data object so everybody has the same labels
+        // TRANSFER_METACELL_LABELS.out
+        //     .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
+        //     .collect()
+        //     // .view() //[[HH5_Save-ArchR], [HH6_Save-ArchR], [HH7_Save-ArchR], [ss4_Save-ArchR], [ss8_Save-ArchR]]
+        //     .combine(ch_fulldata)
+        //     //.view() //[[HH5_Save-ArchR], [HH6_Save-ArchR], [HH7_Save-ArchR], [ss4_Save-ArchR], [ss8_Save-ArchR], [sample_id:FullData], [FullData_Save-ArchR]]
+        //     .map{ [ it[5], [ it[0][0], it[1][0], it[2][0], it[3][0], it[4][0], it[6][0] ] ] }
+        //     //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, FullData_Save-ArchR]]
+        //     .set { ch_transfer_metacell_IDs_to_full }
+        // TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
 
 
 
