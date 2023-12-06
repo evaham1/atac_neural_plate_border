@@ -387,8 +387,13 @@ graphics.off()
 
 png(paste0(plot_path, "log10_median_distance_vs_counts.png"), width=40, height=20, units = 'cm', res = 200)
 ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
-  geom_line() +
-  geom_point()
+  geom_line(size = 1.5) +
+  geom_point(size = 3) +
+  labs(
+      x = "Log10(Distance)",
+      y = "Log10(Counts)"
+    )   +
+  theme_minimal(base_size = 25)
 graphics.off()
 
 #### Check significance values
@@ -414,7 +419,7 @@ hist(frag_sizes, breaks = 100)
 graphics.off()
 
 png(paste0(plot_path, "hist_log10_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-hist(log10(frag_sizes), breaks = 100)
+hist(log10(frag_sizes), breaks = 100, cex.lab = 10)
 graphics.off()
 
 png(paste0(plot_path, "boxplot_log10_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
