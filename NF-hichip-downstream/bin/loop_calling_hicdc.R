@@ -393,7 +393,7 @@ ggplot(median_data, aes(x=log10(distance), y=log10(counts))) +
       x = "Log10(Distance)",
       y = "Log10(Counts)"
     )   +
-  theme_minimal(base_size = 25)
+  theme_minimal(base_size = 35)
 graphics.off()
 
 #### Check significance values
@@ -419,7 +419,9 @@ hist(frag_sizes, breaks = 100)
 graphics.off()
 
 png(paste0(plot_path, "hist_log10_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
-hist(log10(frag_sizes), breaks = 100, cex.lab = 10)
+hist(log10(frag_sizes), breaks = 100, cex.lab = 10,
+     xlim = c(0,5), ylim = c(0,15000000),
+     xlab = "log10(frag size)", ylab = "Frequency", cex.lab = 2, cex.axis = 2.5)
 graphics.off()
 
 png(paste0(plot_path, "boxplot_log10_frag_sizes.png"), width=40, height=20, units = 'cm', res = 200)
