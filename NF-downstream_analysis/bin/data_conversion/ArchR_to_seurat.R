@@ -200,7 +200,7 @@ saveRDS(gene_df, paste0(rds_path, "gene_score_matrix.RDS"), compress = FALSE)
 print("Extracting ArchR cell pairings...")
 
 # extract cell ids of paired ATAC and RNA cells from the ArchR single cell integration
-archr_cell_pairings <- as.data.frame(getCellColData(ArchR, select = c("predictedCell_Un", "predictedScore_Un")))
+archr_cell_pairings <- as.data.frame(getCellColData(ArchR, select = c("predictedCell", "predictedScore")))
 archr_cell_pairings <- rownames_to_column(archr_cell_pairings)
 # optionally filter here based on score?
 archr_cell_pairings <- archr_cell_pairings[,-3]
