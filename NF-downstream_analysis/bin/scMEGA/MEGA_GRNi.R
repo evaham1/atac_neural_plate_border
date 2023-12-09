@@ -592,7 +592,7 @@ graphics.off()
 
 npeaks_summary <- summary(npeaks$Freq) 
 table <- data.frame(Stats = names(npeaks_summary), Value = as.vector(npeaks_summary))
-png(paste0(plot_path_temp, 'Target_nodes_nPeaks_table.png'), height = 30, width = 20, units = 'cm', res = 400)
+png(paste0(temp_plot_path, 'Target_nodes_nPeaks_table.png'), height = 30, width = 20, units = 'cm', res = 400)
 grid.arrange(top=textGrob("Peaks per gene", gp=gpar(fontsize=12, fontface = "bold"), hjust = 0.5, vjust = 3),
              tableGrob(table, rows=NULL, theme = ttheme_minimal()))
 graphics.off()
