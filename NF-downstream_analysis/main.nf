@@ -392,7 +392,7 @@ workflow A {
             .map{[it[0], it[1] + it[2] + it[3]]}
             .view()
             .set {ch_grni_vis} // add p2g csv file
-        //MEGA_GRN_VIS( ch_grni_vis )
+        MEGA_GRN_VIS( ch_grni_vis )
 
     }
 
