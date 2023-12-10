@@ -416,6 +416,8 @@ P2G <- read_csv(paste0(data_path, "Peak_to_gene_linkage_df_250000_distance.csv")
 
 ############################## Create trajectories from lineage probabilities #######################################
 
+print("creating trajectories...")
+
 head(obj.pair@meta.data)
 
 # then need them to be between 0 and 100 - check for placodal
@@ -551,8 +553,8 @@ head(P2G)
 dim(P2G)
 
 # filter peak-enhancer interactions based on FDR
-summary(P2G$FDR)
-hist(P2G$FDR, breaks = 100)
+# summary(P2G$FDR)
+# hist(P2G$FDR, breaks = 100)
 P2G_filt <- P2G %>% dplyr::filter(FDR < 0.01)
 dim(P2G_filt)
 
@@ -670,7 +672,7 @@ png(paste0(temp_plot_path, 'Motif_hits_per_TF.png'), height = 8, width = 10, uni
 hist(n_hits_per_TF, breaks = 100)
 graphics.off()
 summary(n_hits_per_TF)
-print(n_hits_per_TF[order(n_hits_per_TF)])
+#print(n_hits_per_TF[order(n_hits_per_TF)])
 
 # distribution of peaks by TF
 n_hits_per_peak <- rowSums(motif.matching)
@@ -764,6 +766,7 @@ df.grn <- df.grn %>%
   mutate(abscorr = abs(correlation))
 
 # save full network (but shouldn't really use this)
+print("Saving full GRN...")
 write_tsv(df.grn, file = paste0(temp_csv_path, "GRN_initial.txt"))
 
 ############################## Filter full GRN #######################################
@@ -850,10 +853,13 @@ print(hist(subset$n_peaks, breaks = 100))
 graphics.off()
 
 # save filtered network
+print("Saving filtered GRN...")
 write_tsv(df.grn, file = paste0(temp_csv_path, "GRN_filtered.txt"))
 
 ############################## Subset GRN to only include positive TFs and all target nodes they interact with #######################################
 # only keep source nodes with overall positive correlate with target nodes
+
+print("Subsetting GRN to only include positive TFs and their target nodes...")
 
 temp_plot_path = "./plots/placodal_lineage/filtered_network_pos_corr/"
 dir.create(temp_plot_path, recursive = T)
@@ -931,10 +937,13 @@ ht
 graphics.off()
 
 # save network
+print("Saving pos corr GRN...")
 write_tsv(df.grn.pos, file = paste0(temp_csv_path, "GRN_filtered_pos_corr.txt"))
 
 ############################## Subset filtered GRN to only include TFs #######################################
 # only keep nodes which are known TFs (they might not regulate any other nodes in this network)
+
+print("Subsetting network to only include TFs...")
 
 temp_plot_path = "./plots/placodal_lineage/filtered_network_TFs/"
 dir.create(temp_plot_path, recursive = T)
@@ -958,6 +967,7 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
 graphics.off()
 
 # save network
+print("Saving filtered GRN TFs subset...")
 write_tsv(df.grn.TFs, file = paste0(temp_csv_path, "GRN_filtered_TFs.txt"))
 
 ############################## Subset positive corr GRN to only include TFs #######################################
@@ -985,6 +995,7 @@ grid.arrange(top=textGrob("Network numbers", gp=gpar(fontsize=12, fontface = "bo
 graphics.off()
 
 # save network
+print("Saving pos corr GRN TFs subset...")
 write_tsv(df.grn.pos.TFs, file = paste0(temp_csv_path, "GRN_filtered_pos_corr_TFs.txt"))
 
 ############################## Make node metadata table to import into Cytoscape #######################################
