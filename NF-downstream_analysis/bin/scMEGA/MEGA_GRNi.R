@@ -504,7 +504,7 @@ if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
 }
 
 # plot TF activity dynamics for some example TFs
-factors <- c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "SIX1", "GATA2", "HES5", "SOX2", "SOX10")
+factors <- c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "SIX1", "GATA2", "HES5", "SOX2")
 trajMM <- GetTrajectory_updated(obj.traj, assay = "chromvar", trajectory.name = trajectory, 
                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
                                 log2Norm = FALSE)
