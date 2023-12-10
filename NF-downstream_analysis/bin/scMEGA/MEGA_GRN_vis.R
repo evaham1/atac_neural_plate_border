@@ -625,7 +625,7 @@ temp_data_path = paste0(data_path, "./csv_files/placodal_lineage/")
 
 # read in csvs
 df.tfs <- read.csv(paste0(temp_data_path, "TF_correlations_all.csv"))
-df.p2g <- read.csv(paste0(temp_data_path, "Target_genes_with_matched_enhancers.csv"))
+df.p2g <- read.csv(paste0(temp_data_path, "Target_nodes_with_matched_enhancers.csv"))
 df.tf.gene <- read.csv(paste0(temp_data_path, "TF_to_gene_correlations.csv"))
 
 # read in networks
