@@ -504,7 +504,7 @@ if (sum(df.tfs$tfs %in% TF_names) != length(df.tfs$tfs)){
 }
 
 # plot TF activity dynamics for some example TFs
-factors <- c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "SIX1","GATA2", "HES5")
+factors <- c("TFAP2A", "TFAP2B", "TFAP2C", "DLX5", "SIX1", "GATA2", "HES5", "SOX2", "SOX10")
 trajMM <- GetTrajectory_updated(obj.traj, assay = "chromvar", trajectory.name = trajectory, 
                                 groupEvery = 2, slot = "data", smoothWindow = 7, 
                                 log2Norm = FALSE)
@@ -680,12 +680,6 @@ png(paste0(temp_plot_path, 'Motif_hits_per_peak.png'), height = 8, width = 10, u
 hist(n_hits_per_peak, breaks = 100)
 graphics.off()
 summary(n_hits_per_peak)
-
-getmode <- function(v) {
-  uniqv <- unique(v)
-  uniqv[which.max(tabulate(match(v, uniqv)))]
-}
-print(paste0("mode: ", getmode(n_hits_per_peak)))
 
 ############################## Building quantiative GRN #######################################
 # by using correlation between accessibility of selected TF targets and expression of selected genes over trajectory
