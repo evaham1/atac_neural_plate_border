@@ -157,6 +157,13 @@ Channel
     .value(params.atac_latent_time)
     .set{ch_atac_latent_time}
 
+// set channel to ATAC metacell metadata (combined for all metacells)
+Channel
+    .value(params.metacell_metadata)
+    .set{ch_metacell_metadata}
+
+
+
 //
 // WORKFLOW: Run main nf-core/downstream analysis pipeline
 //
@@ -537,6 +544,22 @@ workflow A {
         TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
 
 
+        /////     Make Peak Module Dynamic Plots (GAMs)      ///////
+        // Take the metadata from transferring metacell IDs onto full data ATAC object with transferred latent time to assign average latent time values to metacells
+        // Then use this metacell metadata to create GAM plots for peak modules using scaled normalised accessibility values
+
+        // take metacell from ArchR object with latent time single cells mapped to metacells
+        // ... and combine with full metacell metadata
+        TRANSFER_METACELL_LABELS_TO_FULLDATA.out
+            .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
+            .combine(ch_metacell_metadata)
+            .view()
+            .set { ch_transfer_latent_time_metacells  }
+
+        
+
+
+        /////     Other stuff      ///////
 
         // visualise differential accessibility of peaks between metacells (to comporate to cluster analysis)
         //PLOT_DIFF_PEAKS_METACELLS( TRANSFER_METACELL_LABELS.out )
