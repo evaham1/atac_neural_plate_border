@@ -48,6 +48,8 @@ include { METADATA as METADATA_RNA_LATENT_TIME } from "$baseDir/subworkflows/loc
 include {R as TRANSFER_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 include {R as TRANSFER_LATENT_TIME_MINUS_CONTAM} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time.R", checkIfExists: true) )
 
+include {R as SEACELLS_MAP_LATENT_TIME} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time_to_metacells.R", checkIfExists: true) )
+
 include {R as PLOT_DIFF_PEAKS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_diff_peaks.R", checkIfExists: true) )
 include {R as PLOT_DIM_RED_GENOMIC_SUBSETS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_dim_red_genomic_subsets.R", checkIfExists: true) )
 
@@ -434,9 +436,19 @@ workflow A {
 
         ///////     Integrate SEACells      ///////
 
-        // will these different outputs channel in stage by stage??
+        // integrate the ATAC and RNA metacells
         SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed, SEACELLS_ATAC_WF.out.seacell_outputs_named )
-        // maybe in here add schelper cell type broad labels
+        
+        // Take the single cell ATAC object which has the transferred latent time values and use that to map average latent time values onto the integrated ATAC metacells
+        SEACELLS_INTEGRATING_WF.out.processed_integration_output
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( TRANSFER_LATENT_TIME_MINUS_CONTAM )
+            .groupTuple( by:0 )
+            .view()
+            //.map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
+            .set {ch_seacells_latent_time_input} //[[sample_id:FullData], [plots, rds_files]]
+        SEACELLS_MAP_LATENT_TIME( ch_seacells_latent_time_input )
 
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING_WF.out.processed_integration_output, ch_fasta )
