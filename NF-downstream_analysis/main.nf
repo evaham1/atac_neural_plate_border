@@ -471,7 +471,7 @@ workflow A {
 
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with consensus peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata
-        // ch_singlecell_processed.view()
+        ch_singlecell_processed.view()
             // [[sample_id:HH5], [HH5/Transfer_labels_and_peaks/rds_files/HH5_Save-ArchR]]
             // [[sample_id:HH6], [HH6/Transfer_labels_and_peaks/rds_files/HH6_Save-ArchR]]
             // [[sample_id:HH7], [HH7/Transfer_labels_and_peaks/rds_files/HH7_Save-ArchR]]
@@ -488,11 +488,11 @@ workflow A {
         METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
         // ch_metadata_csvs.view()
-        //     [[sample_id:HH5], [HH5/SEACELLS_INTEGRATING_WF/Integrated_SHH5_ATAC_singlecell_integration_map.csv]]
-        //     [[sample_id:HH6], [HH6/SEACELLS_INTEGRATING_WF/Integrated_SHH6_ATAC_singlecell_integration_map.csv]]
-        //     [[sample_id:HH7], [HH7/SEACELLS_INTEGRATING_WF/Integrated_SHH7_ATAC_singlecell_integration_map.csv]]
-        //     [[sample_id:ss4], [ss4/SEACELLS_INTEGRATING_WF/Integrated_Sss4_ATAC_singlecell_integration_map.csv]]
-        //     [[sample_id:ss8], [ss8/SEACELLS_INTEGRATING_WF/Integrated_Sss8_ATAC_singlecell_integration_map.csv]]
+        //     [[sample_id:HH5], [HH5/SEACELLS_INTEGRATING_WF/Integrated_HH5_ATAC_singlecell_integration_map.csv]]
+        //     [[sample_id:HH6], [HH6/SEACELLS_INTEGRATING_WF/Integrated_HH6_ATAC_singlecell_integration_map.csv]]
+        //     [[sample_id:HH7], [HH7/SEACELLS_INTEGRATING_WF/Integrated_HH7_ATAC_singlecell_integration_map.csv]]
+        //     [[sample_id:ss4], [ss4/SEACELLS_INTEGRATING_WF/Integrated_ss4_ATAC_singlecell_integration_map.csv]]
+        //     [[sample_id:ss8], [ss8/SEACELLS_INTEGRATING_WF/Integrated_ss8_ATAC_singlecell_integration_map.csv]]
 
 
         /////     Transfer SEACells labels onto single cells      ///////
