@@ -91,6 +91,9 @@ include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"    
 include {R as TRANSFER_METACELL_LABELS_TO_FULLDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
 include {R as TRANSFER_AVG_LATENT_TIME_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time_avgs_to_metacells.R", checkIfExists: true) )
 
+// plot dynamics of PMs
+include {R as PLOT_PM_GAMS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/Plot_PM_dynamics_metacells.R", checkIfExists: true) )
+
 
 
 
@@ -167,6 +170,15 @@ Channel
     .value(params.metacell_metadata)
     .set{ch_metacell_metadata}
 
+// set channel to normalised metacell peak accessibility matrix
+Channel
+    .value(params.normalised_metacell_peak_matrix)
+    .set{ch_normalised_metacell_peak_matrix}
+
+// set channel to antler data from fulldata
+Channel
+    .value(params.fulldata_antler)
+    .set{ch_fulldata_antler}
 
 
 //
@@ -550,11 +562,8 @@ workflow A {
 
 
         /////     Make Peak Module Dynamic Plots (GAMs)      ///////
+        
         // Take the metadata from transferring metacell IDs onto full data ATAC object with transferred latent time to assign average latent time values to metacells
-        // Then use this metacell metadata to create GAM plots for peak modules using scaled normalised accessibility values
-
-        // take metacell from ArchR object with latent time single cells mapped to metacells
-        // ... and combine with full metacell metadata
         TRANSFER_METACELL_LABELS_TO_FULLDATA.out
             .combine(ch_metacell_metadata)
             .map{[it[0], it[1] + it[2]]}
@@ -563,6 +572,16 @@ workflow A {
 
         TRANSFER_AVG_LATENT_TIME_METACELLS( ch_transfer_latent_time_metacells )
 
+        // Then use this metacell metadata to create GAM plots for peak modules using scaled normalised accessibility values
+        // need: combined metacell metadata with latent time, normalised/scaled count matrix, peak modules
+        TRANSFER_AVG_LATENT_TIME_METACELLS.out
+            .combine(ch_normalised_metacell_peak_matrix)
+            .combine(ch_fulldata_antler)
+            .map{ [it[0], it[1] + it[2]] }
+            .view()
+            .set{ch_plot_gams_input }
+
+        PLOT_PM_GAMS( ch_plot_gams_input )
 
         /////     Other stuff      ///////
 
