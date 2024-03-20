@@ -555,17 +555,10 @@ workflow A {
 
         // take metacell from ArchR object with latent time single cells mapped to metacells
         // ... and combine with full metacell metadata
-        // TRANSFER_METACELL_LABELS_TO_FULLDATA.out
-        //     .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles().it[0] }
-        //     .combine(ch_metacell_metadata)
-        //     .map { row -> [[sample_id:'FullData'], row] }
-        //     .view() //[TransferLabels_Save-ArchR, Combined_SEACell_integrated_metadata.csv]
-        //     .set { ch_transfer_latent_time_metacells  }
-
         TRANSFER_METACELL_LABELS_TO_FULLDATA.out
             .combine(ch_metacell_metadata)
             .map{[it[0], it[1] + it[2]]}
-            .view()
+            //.view() // [[sample_id:FullData], [ArchRLogs, Rplots.pdf, plots, rds_files, Combined_SEACell_integrated_metadata.csv]]
             .set{ ch_transfer_latent_time_metacells }
 
         TRANSFER_AVG_LATENT_TIME_METACELLS( ch_transfer_latent_time_metacells )

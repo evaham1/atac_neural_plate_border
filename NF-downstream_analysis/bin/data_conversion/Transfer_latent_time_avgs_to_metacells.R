@@ -83,3 +83,22 @@ rownames(metadata) <- gsub('-', '_', rownames(metadata))
 print(head(metadata))
 
 print("Data read in!")
+
+
+############################## Add latent time and lineage probs to metacells #######################################
+
+# extract data
+single_cell_map <- as.data.frame(ArchR@cellColData) %>% dplyr::select(c("rna_latent_time", "rna_lineage_neural_probability", 
+                                                         "rna_lineage_NC_probability", "rna_lineage_placodal_probability",
+                                                         "in_rna_lineage", "SEACell_ID"))
+
+# summarise by averaging the latent time and lineage probabilities, and calculate the percentage of single cells in metacell that are in a lineage
+metacells_latent_time <- single_cell_map %>%
+  dplyr::group_by(SEACell_ID) %>%
+  dplyr::summarise(across(c("rna_latent_time", "rna_lineage_neural_probability", "rna_lineage_NC_probability", "rna_lineage_placodal_probability"), mean), 
+            across(c("in_rna_lineage"), ~mean(. == TRUE) * 100, .names = "percentage_{.col}"))
+        
+head(metacells_latent_time)
+
+# Write out unaltered SEACell metadata
+write.csv(metadata, paste0(rds_path, "Combined_SEACell_integrated_metadata_latent_time.csv"), col.names = TRUE)
