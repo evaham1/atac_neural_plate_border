@@ -438,17 +438,6 @@ workflow A {
 
         // integrate the ATAC and RNA metacells
         SEACELLS_INTEGRATING_WF( SEACELLS_RNA_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_anndata_processed_classified, SEACELLS_ATAC_WF.out.seacells_seurat_processed, SEACELLS_ATAC_WF.out.seacell_outputs_named )
-        
-        // Take the single cell ATAC object which has the transferred latent time values and use that to map average latent time values onto the integrated ATAC metacells
-        SEACELLS_INTEGRATING_WF.out.processed_integration_output
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .concat( TRANSFER_LATENT_TIME_MINUS_CONTAM )
-            .groupTuple( by:0 )
-            .view()
-            //.map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
-            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
-            .set {ch_seacells_latent_time_input} //[[sample_id:FullData], [plots, rds_files]]
-        SEACELLS_MAP_LATENT_TIME( ch_seacells_latent_time_input )
 
         ///////     Cluster peaks      ///////
         CLUSTER_PEAKS_WF( SEACELLS_ATAC_WF.out.seacell_outputs_named, SEACELLS_INTEGRATING_WF.out.processed_integration_output, ch_fasta )
@@ -475,24 +464,36 @@ workflow A {
 
     if(!skip_multiview_processing){
 
-        METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with consensus peaks called
-        ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata
-        // ch_singlecell_processed.view()
-            // [[sample_id:HH5], [HH5/Transfer_labels_and_peaks/rds_files/HH5_Save-ArchR]]
-            // [[sample_id:HH6], [HH6/Transfer_labels_and_peaks/rds_files/HH6_Save-ArchR]]
-            // [[sample_id:HH7], [HH7/Transfer_labels_and_peaks/rds_files/HH7_Save-ArchR]]
-            // [[sample_id:ss4], [ss4/Transfer_labels_and_peaks/rds_files/ss4_Save-ArchR]]
-            // [[sample_id:ss8], [ss8/Transfer_labels_and_peaks/rds_files/ss8_Save-ArchR]]
-            // [[sample_id:FullData], [FullData/Single_cell_integration/rds_files/FullData_Save-ArchR]]
+        // Take the single cell ATAC object which has the transferred latent time values and use that to map average latent time values onto the integrated ATAC metacells
+        SEACELLS_INTEGRATING_WF.out.processed_integration_output
+            .view()
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .concat( TRANSFER_LATENT_TIME_MINUS_CONTAM )
+            .groupTuple( by:0 )
+            .view()
+            //.map{ [ it[0], [ it[1][0][0], it[1][1] ] ] }
+            //.view() //[[sample_id:FullData], [rds_files, seurat_label_transfer_minus_HH4.RDS]]
+            .set {ch_seacells_latent_time_input} //[[sample_id:FullData], [plots, rds_files]]
+        SEACELLS_MAP_LATENT_TIME( ch_seacells_latent_time_input )
 
-        ch_singlecell_processed
-            .filter{ meta, data -> meta.sample_id == 'FullData'}
-            .set { ch_fulldata }
-        // ch_fulldata.view()
-        // [[sample_id:FullData], [FullData_Save-ArchR]]
+        // METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with consensus peaks called
+        // ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata
+        // // ch_singlecell_processed.view()
+        //     // [[sample_id:HH5], [HH5/Transfer_labels_and_peaks/rds_files/HH5_Save-ArchR]]
+        //     // [[sample_id:HH6], [HH6/Transfer_labels_and_peaks/rds_files/HH6_Save-ArchR]]
+        //     // [[sample_id:HH7], [HH7/Transfer_labels_and_peaks/rds_files/HH7_Save-ArchR]]
+        //     // [[sample_id:ss4], [ss4/Transfer_labels_and_peaks/rds_files/ss4_Save-ArchR]]
+        //     // [[sample_id:ss8], [ss8/Transfer_labels_and_peaks/rds_files/ss8_Save-ArchR]]
+        //     // [[sample_id:FullData], [FullData/Single_cell_integration/rds_files/FullData_Save-ArchR]]
 
-        METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
-        ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
+        // ch_singlecell_processed
+        //     .filter{ meta, data -> meta.sample_id == 'FullData'}
+        //     .set { ch_fulldata }
+        // // ch_fulldata.view()
+        // // [[sample_id:FullData], [FullData_Save-ArchR]]
+
+        // METADATA_METACELL_CSVS( params.metacell_csvs_sample_sheet ) // csv files with metacell IDs
+        // ch_metadata_csvs = METADATA_METACELL_CSVS.out.metadata
         // ch_metadata_csvs.view()
             // [[sample_id:HH5], [HH5/SEACELLS_INTEGRATING_WF/Integrated_SHH5_ATAC_singlecell_integration_map.csv]]
             // [[sample_id:HH6], [HH6/SEACELLS_INTEGRATING_WF/Integrated_SHH6_ATAC_singlecell_integration_map.csv]]
@@ -505,24 +506,24 @@ workflow A {
         //and check how they correspond with other single cell labels - script made 'ArchR_seacell_purity'
         //run peak calling and diff peak analysis to see how this compares to cluster-level analysis (just rerun ARCHR_STAGE_DIFF_PEAKS_WF)
 
-        // combine ArchR objects and metacell csvs
-        ch_singlecell_processed
-            .filter{ meta, data -> meta.sample_id != 'FullData'}
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .concat( ch_metadata_csvs )
-            .groupTuple( by:0 )
-            .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
-            //.view()
-            .set {ch_transfer_metacell_IDs}
-                    // [[sample_id:HH5], [HH5_Save-ArchR, HH5_ATAC_singlecell_integration_map.csv]]
-                    // [[sample_id:HH6], [HH6_Save-ArchR, HH6_ATAC_singlecell_integration_map.csv]]
-                    // [[sample_id:HH7], [HH7_Save-ArchR, HH7_ATAC_singlecell_integration_map.csv]]
-                    // [[sample_id:ss4], [ss4_Save-ArchR, ss4_ATAC_singlecell_integration_map.csv]]
-                    // [[sample_id:ss8], [ss8_Save-ArchR, ss8_ATAC_singlecell_integration_map.csv]]
+        // // combine ArchR objects and metacell csvs
+        // ch_singlecell_processed
+        //     .filter{ meta, data -> meta.sample_id != 'FullData'}
+        //     .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+        //     .concat( ch_metadata_csvs )
+        //     .groupTuple( by:0 )
+        //     .map{ [ it[0], [ it[1][0][0], it[1][1][0] ] ] }
+        //     //.view()
+        //     .set {ch_transfer_metacell_IDs}
+        //             // [[sample_id:HH5], [HH5_Save-ArchR, HH5_ATAC_singlecell_integration_map.csv]]
+        //             // [[sample_id:HH6], [HH6_Save-ArchR, HH6_ATAC_singlecell_integration_map.csv]]
+        //             // [[sample_id:HH7], [HH7_Save-ArchR, HH7_ATAC_singlecell_integration_map.csv]]
+        //             // [[sample_id:ss4], [ss4_Save-ArchR, ss4_ATAC_singlecell_integration_map.csv]]
+        //             // [[sample_id:ss8], [ss8_Save-ArchR, ss8_ATAC_singlecell_integration_map.csv]]
 
 
-        // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
-        TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
+        // // run script to transfer metacell IDs to single cells on each ArchR stage object - script made 'ArchR_seacell_purity'
+        // TRANSFER_METACELL_LABELS( ch_transfer_metacell_IDs )
         // TRANSFER_METACELL_LABELS.out.view()
             // [[sample_id:HH5], [ArchRLogs, Rplots.pdf, plots, rds_files]]
             // [[sample_id:HH6], [ArchRLogs, Rplots.pdf, plots, rds_files]]
