@@ -89,6 +89,11 @@ include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local
 // transfer labels from metacell to stage and full data single cell objects
 include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
 include {R as TRANSFER_METACELL_LABELS_TO_FULLDATA} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_transfer_labels.R", checkIfExists: true) )
+include {R as TRANSFER_AVG_LATENT_TIME_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/data_conversion/Transfer_latent_time_avgs_to_metacells.R", checkIfExists: true) )
+
+
+
+
 
 // plot differential peaks at a metacell level
 include {R as PLOT_DIFF_PEAKS_METACELLS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/ArchR_utilities/ArchR_plot_diff_peaks.R", checkIfExists: true) )
@@ -552,13 +557,13 @@ workflow A {
         // ... and combine with full metacell metadata
         TRANSFER_METACELL_LABELS_TO_FULLDATA.out
             .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
-            .map[0]
+            .map[it[0]]
             .view()
             .combine(ch_metacell_metadata)
             .view() //[[TransferLabels_Save-ArchR], Combined_SEACell_integrated_metadata.csv]
             .set { ch_transfer_latent_time_metacells  }
 
-
+        TRANSFER_AVG_LATENT_TIME_METACELLS( ch_transfer_latent_time_metacells )
 
 
         /////     Other stuff      ///////
