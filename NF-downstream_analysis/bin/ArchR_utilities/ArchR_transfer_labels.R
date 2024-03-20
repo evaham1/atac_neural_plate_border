@@ -20,7 +20,8 @@ library(parallel)
 option_list <- list(
   make_option(c("-r", "--runtype"), action = "store", type = "character", help = "Specify whether running through through 'nextflow' in order to switch paths"),
   make_option(c("-c", "--cores"), action = "store", type = "integer", help = "Number of CPUs"),
-  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = FALSE)
+  make_option(c("-t", "--target_name"), action = "store", type = "character", help = "File name of the ArchR full data object on which to transfer labels", default = "FullData"),
+  make_option(c("", "--verbose"), action = "store", type = "logical", help = "Verbose", default = TRUE)
 )
 
 opt_parser = OptionParser(option_list = option_list)
@@ -72,10 +73,10 @@ set.seed(42)
 files <- list.files(data_path, full.names = TRUE)
 print(paste0("All input files: ", files))
 
-stages_data  <- grep("FullData", files, invert = T, value = TRUE) # source data from which labels are extracted
+stages_data  <- grep(opt$target_name, files, invert = T, value = TRUE) # source data from which labels are extracted
 print(paste0("Stages data: ", stages_data))
 
-full_data <- grep("FullData", files, invert = F, value = TRUE) # destination data where labels will be transfered onto
+full_data <- grep(opt$target_name, files, invert = F, value = TRUE) # destination data where labels will be transfered onto
 
 print(paste0("Destination data: ", full_data))
 ArchR_full <- loadArchRProject(path = full_data, force = FALSE, showLogo = TRUE)

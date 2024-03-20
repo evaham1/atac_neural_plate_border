@@ -471,13 +471,13 @@ workflow A {
 
         METADATA_SINGLECELL_PROCESSED( params.singlecell_processed_sample_sheet ) // single cell data with consensus peaks called
         ch_singlecell_processed = METADATA_SINGLECELL_PROCESSED.out.metadata
-        ch_singlecell_processed.view()
+        //ch_singlecell_processed.view()
             // [[sample_id:HH5], [HH5/Transfer_labels_and_peaks/rds_files/HH5_Save-ArchR]]
             // [[sample_id:HH6], [HH6/Transfer_labels_and_peaks/rds_files/HH6_Save-ArchR]]
             // [[sample_id:HH7], [HH7/Transfer_labels_and_peaks/rds_files/HH7_Save-ArchR]]
             // [[sample_id:ss4], [ss4/Transfer_labels_and_peaks/rds_files/ss4_Save-ArchR]]
             // [[sample_id:ss8], [ss8/Transfer_labels_and_peaks/rds_files/ss8_Save-ArchR]]
-            // [[sample_id:FullData], [FullData/Single_cell_integration/rds_files/FullData_Save-ArchR]]
+            // [[sample_id:FullData], [FullData/Transfer_latent_time/rds_files/TransferLabel_Save-ArchR]]
 
         ch_singlecell_processed
             .filter{ meta, data -> meta.sample_id == 'FullData'}
