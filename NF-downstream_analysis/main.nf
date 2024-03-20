@@ -552,11 +552,13 @@ workflow A {
         // ... and combine with full metacell metadata
         TRANSFER_METACELL_LABELS_TO_FULLDATA.out
             .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
-            .combine(ch_metacell_metadata)
+            .map[0]
             .view()
+            .combine(ch_metacell_metadata)
+            .view() //[[TransferLabels_Save-ArchR], Combined_SEACell_integrated_metadata.csv]
             .set { ch_transfer_latent_time_metacells  }
 
-        
+
 
 
         /////     Other stuff      ///////
