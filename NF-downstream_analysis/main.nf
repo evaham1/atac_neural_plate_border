@@ -578,7 +578,7 @@ workflow A {
             .combine(ch_normalised_metacell_peak_matrix)
             .combine(ch_fulldata_antler)
             .map{ [it[0], it[1] + it[2] + it[3]] }
-            .view() //[[sample_id:FullData], [plots, rds_files, Filtered_normalised_summarised_counts.csv]]
+            //.view() [[sample_id:FullData], [plots, rds_files, Filtered_normalised_summarised_counts.csv, antler.RDS]]
             .set{ch_plot_gams_input }
 
         PLOT_PM_GAMS( ch_plot_gams_input )
