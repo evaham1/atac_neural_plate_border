@@ -77,7 +77,7 @@ metadata <- metadata %>% mutate(stage = substrRight(rownames(metadata), 3))
 metadata <- metadata[,-1]
 
 # make metacell IDs a column so can merge with more metadata
-metdata$SEACell_ID <- row.names(metadata)
+metadata$SEACell_ID <- row.names(metadata)
 row.names(metadata) <- NULL
 
 # Check metadata
