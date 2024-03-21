@@ -162,8 +162,8 @@ print("Antler data read in!")
 
 
 #### check cell ids in metadata and accessibility data match
-if (nrow(filtered_normalised_matrix) == nrow(metadata) &
-    nrow(metadata) == sum(rownames(filtered_normalised_matrix) %in% rownames(metadata))){
+if (nrow(SEACells_normalised_summarised_numeric) == nrow(metadata) &
+    nrow(metadata) == sum(rownames(SEACells_normalised_summarised_numeric) %in% rownames(metadata))){
   print("Metacell IDs match") } else {stop("Problem! Metacell IDs of accessibility data and metacell data dont match!!")}
 
 
