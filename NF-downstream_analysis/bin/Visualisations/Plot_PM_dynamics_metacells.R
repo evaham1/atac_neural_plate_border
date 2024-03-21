@@ -36,7 +36,7 @@ if(opt$verbose) print(opt)
     # data paths for the different inputs
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/" # normalised count matrix
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/FullData/" # the full data peal modules
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/Metacell_metadata_latent_time/rds_files/" # latent time on metacells metadata 
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Metacell_metadata_latent_time/" # latent time on metacells metadata 
     # output paths:
     rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/rds_files/"
     plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/plots/"
@@ -249,3 +249,45 @@ ggplot(latent_times, aes(x = rna_latent_time, fill = stage)) +
 graphics.off()
 
 
+########################################################################################################
+#                                 Plot more heatmaps of subsets of PMs                       #
+########################################################################################################
+
+# filter out the temporal PMs PM5, PM8 and PM9
+PMs_to_plot <- subset(antler_data$gene_modules$lists$unbiasedPMs$content, 
+                      !(names(antler_data$gene_modules$lists$unbiasedPMs$content) %in% c("FullData_PM5", "FullData_PM8", "FullData_PM9")))
+
+# subset matrix to only include peaks that are in PMs
+peaks <- unique(unlist(PMs_to_plot))
+print("Number of peaks in Full Data PMs:")
+length(peaks)
+if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEACells_normalised_summarised)])) ){
+  filtered_normalised_matrix <- SEACells_normalised_summarised[, as.vector(peaks)]
+} else {stop("ERROR: PM peaks are not found in the filtered peak matrix!")}
+
+# filter out unmapped and contaminating cell states
+seacell_filtered_metadata <- metadata %>% filter(!scHelper_cell_type_by_proportion %in% c("Unmapped", "streak", "meso", "endo", "BI", "pEpi", "Contam", "MIXED"))
+seacell_filtered_normalised_matrix <- filtered_normalised_matrix[rownames(seacell_filtered_metadata), ]
+
+# prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
+order <- scHelper_cell_type_order[scHelper_cell_type_order %in% seacell_filtered_metadata$scHelper_cell_type_by_proportion]
+scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
+
+# Prepare plot data - ordering by scHelper cell type and then by hclust
+plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_filtered_metadata, col_order = c('stage', 'scHelper_cell_type_by_proportion'),
+                                   custom_order_column = "scHelper_cell_type_by_proportion", custom_order = order,
+                                   hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
+                                   peak_modules = PMs_to_plot, peak_row_annotation = TRUE,
+                                   log_path = NULL, scale_data = TRUE)
+
+# Plot heatmap
+plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
+                show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
+                row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
+                bottom_annotation = CreateCellTypeAnnotation(plot_data, scHelper_cell_type_cols),
+                top_annotation = CreateStageAnnotation(plot_data, stage_colours),
+                col = PurpleAndYellow())
+
+png(paste0(plot_path, 'All_peak_modules_not_temporal_mapped_not_contam_SEACells_ordered_by_cell_type.png'), width = 60, height = 40, res = 400, units = 'cm')
+print(plot)
+graphics.off()
