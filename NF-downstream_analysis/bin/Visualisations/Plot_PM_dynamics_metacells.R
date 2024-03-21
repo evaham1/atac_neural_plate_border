@@ -46,7 +46,7 @@ if(opt$verbose) print(opt)
     
     plot_path = "./plots/"
     rds_path = "./rds_files/"
-    data_path = "./input/rds_files/"
+    data_path = "./input/"
     ncores = opt$cores
     
     
@@ -95,7 +95,7 @@ lineage_colours = c('placodal' = '#3F918C', 'NC' = '#DE4D00', 'neural' = '#8000F
 
 ########## COMBINED SEACELL METADATA ############# - with average latent time and lineage probabilities 
 
-metadata <- read.csv(paste0(data_path, "Combined_SEACell_integrated_metadata_latent_time.csv"), row.names = 'SEACell_ID')
+metadata <- read.csv(paste0(data_path, "rds_files/Combined_SEACell_integrated_metadata_latent_time.csv"), row.names = 'SEACell_ID')
 
 # Add stage to metadata using SEACell IDs
 substrRight <- function(x, n){
