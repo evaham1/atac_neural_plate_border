@@ -33,17 +33,13 @@ if(opt$verbose) print(opt)
     
     ncores = 8
     
-    # interactive local paths
-    #data_path = "./local_test_data/peak_count_matrix_to_cluster/"
-    #plot_path = "./local_test_data/clustered_peaks/plots"
-    #rds_path = "./clustered_peaks/rds_files"
-    
-    # # interactive NEMO paths
-    # data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/"
-    # # output paths:
-    # rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/"
-    # plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/plots/"
-    # PMs_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/PMs/"
+    # data paths for the different inputs
+    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/" # normalised count matrix
+    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/FullData/" # the full data peal modules
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Metacell_metadata_latent_time/rds_files/" # latent time on metacells metadata 
+    # output paths:
+    rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -61,7 +57,6 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
-  dir.create(PMs_path, recursive = T)
 }
 
 ########################       CELL STATE COLOURS    ########################################
@@ -92,7 +87,7 @@ stage_colours = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 stage_order <- c("HH5", "HH6", "HH7", "ss4", "ss8")
 names(stage_colours) <- stage_order
 ############################################################################################
-
+lineage_colours = c('placodal' = '#3F918C', 'NC' = '#DE4D00', 'neural' = '#8000FF')
 
 ########################################################################################################
 #                                 Read in data and clean up                               #
@@ -100,9 +95,7 @@ names(stage_colours) <- stage_order
 
 ########## COMBINED SEACELL METADATA ############# - with average latent time and lineage probabilities 
 
-print("Reading in SEACell metadata...")
-
-metadata <- read.csv(paste0(data_path, "Combined_SEACell_integrated_metadata.csv"), row.names = 'ATAC')
+metadata <- read.csv(paste0(data_path, "Combined_SEACell_integrated_metadata_latent_time.csv"), row.names = 'SEACell_ID')
 
 # Add stage to metadata using SEACell IDs
 substrRight <- function(x, n){
@@ -160,7 +153,19 @@ print("Normalised data read in!")
 
 
 ########## PEAK MODULES ############# 
+antler_data <- readRDS(paste0(data_path, 'antler.RDS'))
 
+pms <- antler_data$gene_modules$lists$unbiasedPMs$content
+names(pms)
+
+print("Antler data read in!")
+
+
+#### check cell ids in metadata and accessibility data match
+if (nrow(filtered_normalised_matrix) == nrow(metadata) &
+    nrow(metadata) == sum(rownames(filtered_normalised_matrix) %in% rownames(metadata))){
+  print("Metacell IDs match") } else {stop("Problem! Metacell IDs of accessibility data and metacell data dont match!!")}
+}
 
 
 ########################################################################################################
@@ -173,55 +178,43 @@ print("Normalised data read in!")
 
 # # Iteratively get expression data for each gene module and bind to tidy dataframe
 # plot_data <- data.frame()
-# for(module in names(gms)){
-#   temp <- GetAssayData(seurat_data, assay = 'RNA', slot = 'scale.data')
-#   temp <- temp[1:10, 1:10]
+for(module in names(pms)){
+  print(module)
   
-#   seurat_data <- AddMetaData(seurat_data, metadata = runif(nrow(seurat_data@meta.data)), col.name = "latent_time")
-#   seurat_data <- AddMetaData(seurat_data, metadata = runif(nrow(seurat_data@meta.data)), col.name = "lineage_NC_probability")
-#   seurat_data <- AddMetaData(seurat_data, metadata = runif(nrow(seurat_data@meta.data)), col.name = "lineage_neural_probability")
-#   seurat_data <- AddMetaData(seurat_data, metadata = runif(nrow(seurat_data@meta.data)), col.name = "lineage_placodal_probability")
+  # select peaks from that peak module
+  peaks <- unique(unlist(pms[[module]]))
+  print(paste0("Number of peaks in PMs:", length(peaks)))
   
-#   temp <- merge(t(temp), seurat_data@meta.data[,c('latent_time', 'lineage_NC_probability', 'lineage_neural_probability', 'lineage_placodal_probability'), drop=FALSE], by=0)
-#   plot_data <- temp %>%
-#     column_to_rownames('Row.names') %>%
-#     pivot_longer(!c(latent_time, lineage_NC_probability, lineage_neural_probability, lineage_placodal_probability)) %>%
-#     dplyr::rename(scaled_expression = value) %>%
-#     dplyr::rename(gene = name) %>%
-#     pivot_longer(cols = !c(latent_time, gene, scaled_expression)) %>%
-#     # dplyr::mutate(module = module) %>%
-#     dplyr::rename(lineage_probability = value) %>%
-#     dplyr::rename(lineage = name) %>%
-#     dplyr::group_by(lineage) %>%
-#     dplyr::mutate(lineage = unlist(strsplit(lineage, '_'))[2]) %>%
-#     bind_rows(plot_data) %>%
-#     ungroup()
-# }
+  # subset accessibility matrix for peaks in that peak module
+  if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEACells_normalised_summarised)])) ){
+    filtered_normalised_matrix <- SEACells_normalised_summarised[, as.vector(peaks)]
+  } else {stop("ERROR: PM peaks are not found in the filtered peak matrix!")}
 
-## final plot data should look like this, and be way more rows than cells originally
-plot_data
-# A tibble: 65,220 × 5
-   latent_time gene               scaled_expression lineage  lineage_probability
-         <dbl> <chr>                          <dbl> <chr>                  <dbl>
- 1       0.368 ENSGALG00000054818             0     NC                     0.166
- 2       0.368 ENSGALG00000054818             0     neural                 0.838
- 3       0.368 ENSGALG00000054818             0     placodal               0.865
- 4       0.368 ENSGALG00000053455            -0.113 NC                     0.166
- 5       0.368 ENSGALG00000053455            -0.113 neural                 0.838
- 6       0.368 ENSGALG00000053455            -0.113 placodal               0.865
- 7       0.368 ENSGALG00000045540            -0.175 NC                     0.166
- 8       0.368 ENSGALG00000045540            -0.175 neural                 0.838
- 9       0.368 ENSGALG00000045540            -0.175 placodal               0.865
-10       0.368 ENSGALG00000051297            -0.294 NC                     0.166
-# ℹ 65,210 more rows
-# ℹ Use `print(n = ...)` to see more rows
+  # prep plotting data
+  temp <- merge(filtered_normalised_matrix, metadata[,c('rna_latent_time', 'rna_lineage_NC_probability', 'rna_lineage_neural_probability', 'rna_lineage_placodal_probability'), drop=FALSE], by=0)
+  plot_data <- temp %>%
+    column_to_rownames('Row.names') %>%
+    pivot_longer(!c(rna_latent_time, rna_lineage_NC_probability, rna_lineage_neural_probability, rna_lineage_placodal_probability)) %>%
+    dplyr::rename(scaled_accessibility = value) %>%
+    dplyr::rename(peak = name) %>%
+    pivot_longer(cols = !c(rna_latent_time, peak, scaled_accessibility)) %>%
+    dplyr::rename(lineage_probability = value) %>%
+    dplyr::rename(lineage = name) %>%
+    dplyr::group_by(lineage) %>%
+    dplyr::mutate(lineage = unlist(strsplit(lineage, '_'))[3]) %>%
+    dplyr::bind_rows() %>%
+    dplyr::ungroup()
 
-### then plotting is something like this:
-
-  plot = ggplot(filter(plot_data), aes(x = latent_time, y = scaled_expression)) +
-    geom_smooth(method="gam", se=FALSE, mapping = aes(weight = lineage_probability, linetype = lineage, group=lineage)) +
-    xlab("Latent time") + ylab("Scaled expression") +
-    # facet_wrap(~lineage, dir = 'v') +
-    theme_classic()
+  # make gam plot
+  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
+    geom_smooth(method="gam", se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
+    xlab("Latent time") + ylab("Scaled accessibility") +
+    theme_classic() +
+    scale_colour_manual(values=lineage_colours)
   
+  # print and save plot
+  png(paste0(plot_path, module, '.png'), width = 18, height = 12, res = 200, units = 'cm')
   print(plot)
+  graphics.off()
+  
+}
