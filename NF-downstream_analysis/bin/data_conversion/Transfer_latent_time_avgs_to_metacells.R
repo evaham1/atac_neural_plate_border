@@ -100,5 +100,8 @@ metacells_latent_time <- single_cell_map %>%
         
 head(metacells_latent_time)
 
+# add that to exisiting metacell metadata
+new_metadata <- merge(metadata, metacells_latent_time, by.x = "Row.names", by.y = "SEACell_ID")
+
 # Write out unaltered SEACell metadata
-write.csv(metacells_latent_time, paste0(rds_path, "Combined_SEACell_integrated_metadata_latent_time.csv"), col.names = TRUE)
+write.csv(new_metadata, paste0(rds_path, "Combined_SEACell_integrated_metadata_latent_time.csv"), col.names = TRUE)
