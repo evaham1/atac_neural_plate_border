@@ -165,7 +165,6 @@ print("Antler data read in!")
 if (nrow(filtered_normalised_matrix) == nrow(metadata) &
     nrow(metadata) == sum(rownames(filtered_normalised_matrix) %in% rownames(metadata))){
   print("Metacell IDs match") } else {stop("Problem! Metacell IDs of accessibility data and metacell data dont match!!")}
-}
 
 
 ########################################################################################################
@@ -218,3 +217,35 @@ for(module in names(pms)){
   graphics.off()
   
 }
+
+
+########################################################################################################
+#                                 Plot distribution of stages across latent time                       #
+########################################################################################################
+
+latent_times <- metadata %>%
+  dplyr::select(c("rna_latent_time", "stage"))
+# HH5_latent_times <- latent_times %>%
+#   dplyr::filter(stage == "HH5")
+# HH6_latent_times <- latent_times %>%
+#   dplyr::filter(stage == "HH6")
+# HH7_latent_times <- latent_times %>%
+#   dplyr::filter(stage == "HH7")
+# ss4_latent_times <- latent_times %>%
+#   dplyr::filter(stage == "ss4")
+# ss8_latent_times <- latent_times %>%
+#   dplyr::filter(stage == "ss8")
+
+stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
+
+png(paste0(plot_path, 'Stage_distribution_across_latent_time.png'), width = 25, height = 18, res = 200, units = 'cm')
+ggplot(latent_times, aes(x = rna_latent_time, fill = stage)) +
+  geom_histogram(binwidth=0.01) +
+  facet_grid(stage ~ .) +
+  theme_minimal() +
+  scale_fill_manual(values = stage_cols) +
+  guides(fill = guide_legend(title = "Annotation")) +
+  theme(text = element_text(size = 25))
+graphics.off()
+
+
