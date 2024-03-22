@@ -182,7 +182,7 @@ for(module in names(pms)){
   
   # select peaks from that peak module
   peaks <- unique(unlist(pms[[module]]))
-  print(paste0("Number of peaks in PMs:", length(peaks)))
+  print(paste0("Number of peaks in PMs ", length(peaks)))
   
   # subset accessibility matrix for peaks in that peak module
   if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEACells_normalised_summarised)])) ){
@@ -206,13 +206,61 @@ for(module in names(pms)){
 
   # make gam plot
   plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
-    geom_smooth(method="gam", se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
+    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 5), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
     xlab("Latent time") + ylab("Scaled accessibility") +
     theme_classic() +
     scale_colour_manual(values=lineage_colours)
   
   # print and save plot
-  png(paste0(plot_path, module, '.png'), width = 18, height = 12, res = 200, units = 'cm')
+  png(paste0(plot_path, module, '_k5.png'), width = 18, height = 12, res = 200, units = 'cm')
+  print(plot)
+  graphics.off()
+  
+  # make gam plot
+  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
+    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 4), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
+    xlab("Latent time") + ylab("Scaled accessibility") +
+    theme_classic() +
+    scale_colour_manual(values=lineage_colours)
+  
+  # print and save plot
+  png(paste0(plot_path, module, '_k4.png'), width = 18, height = 12, res = 200, units = 'cm')
+  print(plot)
+  graphics.off()
+  
+  # make gam plot
+  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
+    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 3), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
+    xlab("Latent time") + ylab("Scaled accessibility") +
+    theme_classic() +
+    scale_colour_manual(values=lineage_colours)
+  
+  # print and save plot
+  png(paste0(plot_path, module, '_k3.png'), width = 18, height = 12, res = 200, units = 'cm')
+  print(plot)
+  graphics.off()
+  
+  # make gam plot
+  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
+    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 2), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
+    xlab("Latent time") + ylab("Scaled accessibility") +
+    theme_classic() +
+    scale_colour_manual(values=lineage_colours)
+  
+  # print and save plot
+  png(paste0(plot_path, module, '_k2.png'), width = 18, height = 12, res = 200, units = 'cm')
+  print(plot)
+  graphics.off()
+  
+  # make gam plot
+  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
+    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 1), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
+    xlab("Latent time") + ylab("Scaled accessibility") +
+    theme_classic() +
+    scale_colour_manual(values=lineage_colours)
+  
+  # print and save plot
+  png(paste0(plot_path, module, '_k1.png'), width = 18, height = 12, res = 200, units = 'cm')
   print(plot)
   graphics.off()
   
@@ -239,16 +287,18 @@ latent_times <- metadata %>%
 stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 
 plot <- ggplot(latent_times, aes(x = rna_latent_time, fill = stage)) +
-  geom_histogram(binwidth=0.01) +
-  facet_grid(stage ~ .) +
-  theme_minimal() +
+  geom_density(alpha = 0.7, color = NA) + 
   scale_fill_manual(values = stage_cols) +
-  guides(fill = guide_legend(title = "Annotation")) +
-  theme(text = element_text(size = 25))
+  theme_minimal() +
+  xlab("Latent time") + ylab("Metacell Density") +
+  theme(legend.position = "none") +
+  theme(text = element_text(size = 18))
 
-png(paste0(plot_path, 'Stage_distribution_across_latent_time.png'), width = 25, height = 18, res = 400, units = 'cm')
+png(paste0(plot_path, 'Stage_distribution_across_latent_time.png'), width = 18, height = 12, res = 400, units = 'cm')
 print(plot)
 graphics.off()
+
+
 
 ########################################################################################################
 #                                 Plot more heatmaps of subsets of PMs                       #
