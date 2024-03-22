@@ -85,6 +85,7 @@ include { CLUSTER_PEAKS_WF } from "$baseDir/subworkflows/local/DOWNSTREAM_PROCES
 
 // DOWNSTREAM PROCESSING WORKFLOWS ~ MULTIVIEW
 include { METADATA as METADATA_METACELL_CSVS } from "$baseDir/subworkflows/local/metadata"
+include { METADATA as METADATA_METACELL_OBJS } from "$baseDir/subworkflows/local/metadata"
 
 // transfer labels from metacell to stage and full data single cell objects
 include {R as TRANSFER_METACELL_LABELS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/seacells/ATAC_seacell_purity.R", checkIfExists: true) )
