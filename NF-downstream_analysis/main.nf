@@ -93,9 +93,7 @@ include {R as TRANSFER_AVG_LATENT_TIME_METACELLS} from "$baseDir/modules/local/r
 
 // plot dynamics of PMs
 include {R as PLOT_PM_GAMS} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/Plot_PM_dynamics_metacells.R", checkIfExists: true) )
-
-
-
+include {R as PLOT_PM_FEATURE} from "$baseDir/modules/local/r/main"               addParams(script: file("$baseDir/bin/Visualisations/Plot_PM_coexpression.R", checkIfExists: true) )
 
 
 // plot differential peaks at a metacell level
@@ -582,6 +580,21 @@ workflow A {
             .set{ch_plot_gams_input }
 
         PLOT_PM_GAMS( ch_plot_gams_input )
+
+        // Read in the ATAC metacell seurat objects and combine with the avg PM scores calculated above
+        // to make averager PM feature plots and co-accessibility plots
+
+        METADATA_METACELL_OBJS( params.metacell_objs_sample_sheet ) // csv files with metacell IDs
+        ch_metadata_objs = METADATA_METACELL_OBJS.out.metadata
+
+        PLOT_PM_GAMS.out
+            .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
+            .combine( ch_metadata_objs )
+            .map{ [it[1], it[0] + it[2]]}
+            .view()
+            .set{ ch_plot_features_input }
+
+        PLOT_PM_FEATURE( ch_plot_features_input )
 
         /////     Other stuff      ///////
 

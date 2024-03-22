@@ -92,201 +92,82 @@ lineage_colours = c('placodal' = '#3F918C', 'NC' = '#DE4D00', 'neural' = '#8000F
 #                                 Read in data and clean up                               #
 ########################################################################################################
 
-########## COMBINED SEACELL METADATA ############# - with average latent time and lineage probabilities 
-
-metadata <- read.csv(paste0(data_path, "rds_files/Combined_SEACell_integrated_metadata_latent_time.csv"), row.names = 'SEACell_ID')
-
-# Add stage to metadata using SEACell IDs
-substrRight <- function(x, n){
-  sapply(x, function(xx)
-    substr(xx, (nchar(xx)-n+1), nchar(xx))
-  )
-}
-metadata <- metadata %>% mutate(stage = substrRight(rownames(metadata), 3))
-metadata <- metadata[,-1]
-
-# Change cell names to match matrix
-rownames(metadata) <- gsub('-', '_', rownames(metadata))
-
-# Check metadata
-print(head(metadata))
-
-print("Metadata read in!")
-
-########## NORMALISED COUNTS MATRIX ############# - are these scaled?
-
-print("Reading in normalised count data...")
-
-# read in SEACells data
-SEACells_normalised_summarised <- fread(paste0(data_path, "Filtered_normalised_summarised_counts.csv"), header = TRUE)
-print("Normalised data read in!")
-
-# Extract SEACell IDs from first column
-SEACells_IDs <- SEACells_normalised_summarised$V1
-length(SEACells_IDs)
-
-# Check for duplicates
-table(duplicated(SEACells_IDs))
-
-# Clean up df
-SEACells_normalised_summarised <- SEACells_normalised_summarised[,-1]
-
-# Turn into numeric matrix for downstream processing
-SEACells_normalised_summarised_numeric <- as.matrix(sapply(SEACells_normalised_summarised, as.numeric))
-
-# Add SEACell IDs as rownames
-rownames(SEACells_normalised_summarised_numeric) <- SEACells_IDs
-
-# change cell names for Antler
-rownames(SEACells_normalised_summarised_numeric) <- gsub('-', '_', rownames(SEACells_normalised_summarised_numeric))
-
-# Check resulting matrix
-print(dim(SEACells_normalised_summarised_numeric))
-print("Preview of summarised count df:")
-print(SEACells_normalised_summarised_numeric[1:4, 1:4])
-
-# Overwrite cleaned data
-SEACells_normalised_summarised <- SEACells_normalised_summarised_numeric
-
-print("Normalised data read in!")
+########## PEAK MODULE AVERAGE SCORES DF #############
+PM_avg_scores <- read_csv("output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/rds_files/PM_avg_scores.csv")
+PM_avg_scores <- column_to_rownames(PM_avg_scores, "SEACell_ID")
 
 
-########## PEAK MODULES ############# 
-antler_data <- readRDS(paste0(data_path, 'antler.RDS'))
+########## ATAC METACELL SEURAT OBJECTS ############# 
+# want to read them all in??
 
-pms <- antler_data$gene_modules$lists$unbiasedPMs$content
-names(pms)
+seurat_data <- readRDS("./output/NF-downstream_analysis/Processing/ss4/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/ss4_seacells_seurat_integrated.RDS")
 
-print("Antler data read in!")
+seurat_data
 
-
-#### check cell ids in metadata and accessibility data match
-if (nrow(SEACells_normalised_summarised_numeric) == nrow(metadata) &
-    nrow(metadata) == sum(rownames(SEACells_normalised_summarised_numeric) %in% rownames(metadata))){
-  print("Metacell IDs match") } else {stop("Problem! Metacell IDs of accessibility data and metacell data dont match!!")}
-
+######### SEACell metadata so can make feature plots on latent time etc?
 
 ########################################################################################################
-#                                 Plot GAMs                               #
+#                                 Add PMs as features to seurat object                               #
 ########################################################################################################
 
-#### !!! edit the below code which was alex's to use for seurat RNA, instead for matrix directly ATAC
+## split up the PM df by stage
+split_df <- split(PM_avg_scores, substring(rownames(PM_avg_scores), nchar(rownames(PM_avg_scores)) - 3))
+names(split_df) <- substr(names(split_df), 2, 4)
 
-# DefaultAssay(seurat_data) <- "RNA"
+## detect which stage is the seurat object and extract the correct df
+df <- split_df[[unique(seurat_data@meta.data$stage)]]
+head(df)
 
-# # Iteratively get expression data for each gene module and bind to tidy dataframe
-# plot_data <- data.frame()
-for(module in names(pms)){
-  print(module)
+## reorder df so the metacells are in the same order as they appear in the seurat metadata
+df <- rownames_to_column(df, "SEACell_ID")
+df <- df %>%
+  mutate(SEACell_ID = gsub("_", "-", SEACell_ID)) %>%
+  mutate(SEACell_ID = substr(SEACell_ID, 1, nchar(SEACell_ID) - 4))
+df <- df %>% arrange(SEACell_ID)
+head(df)
+
+## check that the seacells match and are in the same order
+if (sum(rownames(seurat_data@meta.data) == df$SEACell_ID) == nrow(seurat_data@meta.data)){
+  "SEACell IDs match!"
+} else {stop("ERROR! SEACell IDs dont match!")}
+
+## add each average PM score as metadata
+df <- df[,-1]
+for (module in colnames(df)){
+  seurat_data@meta.data[[module]] <- df[[module]]
   
-  # select peaks from that peak module
-  peaks <- unique(unlist(pms[[module]]))
-  print(paste0("Number of peaks in PMs:", length(peaks)))
-  
-  # subset accessibility matrix for peaks in that peak module
-  if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEACells_normalised_summarised)])) ){
-    filtered_normalised_matrix <- SEACells_normalised_summarised[, as.vector(peaks)]
-  } else {stop("ERROR: PM peaks are not found in the filtered peak matrix!")}
-
-  # prep plotting data
-  temp <- merge(filtered_normalised_matrix, metadata[,c('rna_latent_time', 'rna_lineage_NC_probability', 'rna_lineage_neural_probability', 'rna_lineage_placodal_probability'), drop=FALSE], by=0)
-  plot_data <- temp %>%
-    column_to_rownames('Row.names') %>%
-    pivot_longer(!c(rna_latent_time, rna_lineage_NC_probability, rna_lineage_neural_probability, rna_lineage_placodal_probability)) %>%
-    dplyr::rename(scaled_accessibility = value) %>%
-    dplyr::rename(peak = name) %>%
-    pivot_longer(cols = !c(rna_latent_time, peak, scaled_accessibility)) %>%
-    dplyr::rename(lineage_probability = value) %>%
-    dplyr::rename(lineage = name) %>%
-    dplyr::group_by(lineage) %>%
-    dplyr::mutate(lineage = unlist(strsplit(lineage, '_'))[3]) %>%
-    dplyr::bind_rows() %>%
-    dplyr::ungroup()
-
-  # make gam plot
-  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
-    geom_smooth(method="gam", se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
-    xlab("Latent time") + ylab("Scaled accessibility") +
-    theme_classic() +
-    scale_colour_manual(values=lineage_colours)
-  
-  # print and save plot
-  png(paste0(plot_path, module, '.png'), width = 18, height = 12, res = 200, units = 'cm')
-  print(plot)
+  # feature plot of that PM
+  png(paste0(plot_path, module, '_feature_plot.png'), width = 15, height = 15, units='cm', res=200)
+  print(
+    FeaturePlot(seurat_data, features = module, pt.size = 1.4) +
+      theme_void() +
+      theme(plot.title = element_blank(),
+            legend.text = element_text(size=16),
+            legend.key.size = unit(1, 'cm'))
+  ) 
   graphics.off()
-  
 }
 
 
+
 ########################################################################################################
-#                                 Plot distribution of stages across latent time                       #
+#                                 Plot co-accessibility of PMs                       #
 ########################################################################################################
 
-latent_times <- metadata %>%
-  dplyr::select(c("rna_latent_time", "stage"))
-# HH5_latent_times <- latent_times %>%
-#   dplyr::filter(stage == "HH5")
-# HH6_latent_times <- latent_times %>%
-#   dplyr::filter(stage == "HH6")
-# HH7_latent_times <- latent_times %>%
-#   dplyr::filter(stage == "HH7")
-# ss4_latent_times <- latent_times %>%
-#   dplyr::filter(stage == "ss4")
-# ss8_latent_times <- latent_times %>%
-#   dplyr::filter(stage == "ss8")
 
-stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 
-png(paste0(plot_path, 'Stage_distribution_across_latent_time.png'), width = 25, height = 18, res = 200, units = 'cm')
-ggplot(latent_times, aes(x = rna_latent_time, fill = stage)) +
-  geom_histogram(binwidth=0.01) +
-  facet_grid(stage ~ .) +
-  theme_minimal() +
-  scale_fill_manual(values = stage_cols) +
-  guides(fill = guide_legend(title = "Annotation")) +
-  theme(text = element_text(size = 25))
-graphics.off()
+
 
 
 ########################################################################################################
-#                                 Plot more heatmaps of subsets of PMs                       #
+#                                 Plot latent time on SEACells UMAPs                       #
 ########################################################################################################
 
-# filter out the temporal PMs PM5, PM8 and PM9
-PMs_to_plot <- subset(antler_data$gene_modules$lists$unbiasedPMs$content, 
-                      !(names(antler_data$gene_modules$lists$unbiasedPMs$content) %in% c("FullData_PM5", "FullData_PM8", "FullData_PM9")))
 
-# subset matrix to only include peaks that are in PMs
-peaks <- unique(unlist(PMs_to_plot))
-print("Number of peaks in Full Data PMs:")
-length(peaks)
-if ( length(as.vector(peaks)) == length(as.vector(peaks[peaks %in% colnames(SEACells_normalised_summarised)])) ){
-  filtered_normalised_matrix <- SEACells_normalised_summarised[, as.vector(peaks)]
-} else {stop("ERROR: PM peaks are not found in the filtered peak matrix!")}
 
-# filter out unmapped and contaminating cell states
-seacell_filtered_metadata <- metadata %>% filter(!scHelper_cell_type_by_proportion %in% c("Unmapped", "streak", "meso", "endo", "BI", "pEpi", "Contam", "MIXED"))
-seacell_filtered_normalised_matrix <- filtered_normalised_matrix[rownames(seacell_filtered_metadata), ]
 
-# prepare scHelper_cell_type order and colors so by subsetting based on what is in the matrix
-order <- scHelper_cell_type_order[scHelper_cell_type_order %in% seacell_filtered_metadata$scHelper_cell_type_by_proportion]
-scHelper_cell_type_cols <- scHelper_cell_type_colours[order]
 
-# Prepare plot data - ordering by scHelper cell type and then by hclust
-plot_data <- PrepPeakModuleHeatmap(seacell_filtered_normalised_matrix, seacell_filtered_metadata, col_order = c('stage', 'scHelper_cell_type_by_proportion'),
-                                   custom_order_column = "scHelper_cell_type_by_proportion", custom_order = order,
-                                   hclust_SEACells = TRUE, hclust_SEACells_within_groups = TRUE,
-                                   peak_modules = PMs_to_plot, peak_row_annotation = TRUE,
-                                   log_path = NULL, scale_data = TRUE)
 
-# Plot heatmap
-plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FALSE,
-                show_column_names = FALSE, column_title = NULL, show_row_names = FALSE, row_title_gp = gpar(fontsize = 10), row_title_rot = 90,
-                row_split = plot_data$row_ann$`Peak Modules`, column_split = plot_data$col_ann$stage,
-                bottom_annotation = CreateCellTypeAnnotation(plot_data, scHelper_cell_type_cols),
-                top_annotation = CreateStageAnnotation(plot_data, stage_colours),
-                col = PurpleAndYellow())
 
-png(paste0(plot_path, 'All_peak_modules_not_temporal_mapped_not_contam_SEACells_ordered_by_cell_type.png'), width = 60, height = 40, res = 400, units = 'cm')
-print(plot)
-graphics.off()
+
+
