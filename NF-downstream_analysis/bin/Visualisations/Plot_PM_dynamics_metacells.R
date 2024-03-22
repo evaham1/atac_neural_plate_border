@@ -306,8 +306,8 @@ graphics.off()
 module_scores <- data.frame(matrix(nrow = 2156, ncol = 0))
 rownames(module_scores) <- rownames(SEACells_normalised_summarised)
 
-for(module in names(PMs)){
-  module_mat <- SEACells_normalised_summarised[, as.vector(unique(unlist(PMs[[module]])))]
+for(module in names(pms)){
+  module_mat <- SEACells_normalised_summarised[, as.vector(unique(unlist(pms[[module]])))]
   module_scores <- module_scores %>% mutate(!!module := rowMeans(module_mat))
 }
 
