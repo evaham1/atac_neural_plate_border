@@ -203,64 +203,17 @@ for(module in names(pms)){
     dplyr::mutate(lineage = unlist(strsplit(lineage, '_'))[3]) %>%
     dplyr::bind_rows() %>%
     dplyr::ungroup()
-
-  # make gam plot
-  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
-    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 5), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
-    xlab("Latent time") + ylab("Scaled accessibility") +
-    theme_classic() +
-    scale_colour_manual(values=lineage_colours)
-  
-  # print and save plot
-  png(paste0(plot_path, module, '_k5.png'), width = 18, height = 12, res = 200, units = 'cm')
-  print(plot)
-  graphics.off()
   
   # make gam plot
   plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
-    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 4), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
+    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 7), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
     xlab("Latent time") + ylab("Scaled accessibility") +
     theme_classic() +
-    scale_colour_manual(values=lineage_colours)
+    scale_colour_manual(values=lineage_colours) +
+    ggtitle(module)
   
   # print and save plot
-  png(paste0(plot_path, module, '_k4.png'), width = 18, height = 12, res = 200, units = 'cm')
-  print(plot)
-  graphics.off()
-  
-  # make gam plot
-  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
-    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 3), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
-    xlab("Latent time") + ylab("Scaled accessibility") +
-    theme_classic() +
-    scale_colour_manual(values=lineage_colours)
-  
-  # print and save plot
-  png(paste0(plot_path, module, '_k3.png'), width = 18, height = 12, res = 200, units = 'cm')
-  print(plot)
-  graphics.off()
-  
-  # make gam plot
-  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
-    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 2), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
-    xlab("Latent time") + ylab("Scaled accessibility") +
-    theme_classic() +
-    scale_colour_manual(values=lineage_colours)
-  
-  # print and save plot
-  png(paste0(plot_path, module, '_k2.png'), width = 18, height = 12, res = 200, units = 'cm')
-  print(plot)
-  graphics.off()
-  
-  # make gam plot
-  plot = ggplot(plot_data, aes(x = rna_latent_time, y = scaled_accessibility)) +
-    geom_smooth(method="gam", formula = y ~ s(x, bs = "cr", k = 1), se=FALSE, mapping = aes(weight = lineage_probability, color = lineage, group=lineage)) +
-    xlab("Latent time") + ylab("Scaled accessibility") +
-    theme_classic() +
-    scale_colour_manual(values=lineage_colours)
-  
-  # print and save plot
-  png(paste0(plot_path, module, '_k1.png'), width = 18, height = 12, res = 200, units = 'cm')
+  png(paste0(plot_path, module, '_k7.png'), width = 18, height = 12, res = 200, units = 'cm')
   print(plot)
   graphics.off()
   
