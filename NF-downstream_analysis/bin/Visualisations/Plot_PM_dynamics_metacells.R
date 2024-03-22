@@ -114,6 +114,8 @@ print(head(metadata))
 
 print("Metadata read in!")
 
+write.csv(paste0(rds_path, "Combined_SEACell_integrated_metadata_latent_time.csv"))
+
 ########## NORMALISED COUNTS MATRIX ############# - are these scaled?
 
 print("Reading in normalised count data...")
@@ -295,3 +297,20 @@ plot <- Heatmap(plot_data$plot_data, cluster_columns = FALSE, cluster_rows = FAL
 png(paste0(plot_path, 'All_peak_modules_not_temporal_mapped_not_contam_SEACells_ordered_by_cell_type.png'), width = 60, height = 40, res = 400, units = 'cm')
 print(plot)
 graphics.off()
+
+########################################################################################################
+#                                 Add PMs as features to seurat object                               #
+########################################################################################################
+
+## for each peak module, calculate the average scaled accessibility score per metacell
+module_scores <- data.frame(matrix(nrow = 2156, ncol = 0))
+rownames(module_scores) <- rownames(SEACells_normalised_summarised)
+
+for(module in names(PMs)){
+  module_mat <- SEACells_normalised_summarised[, as.vector(unique(unlist(PMs[[module]])))]
+  module_scores <- module_scores %>% mutate(!!module := rowMeans(module_mat))
+}
+
+module_scores <- tibble::rownames_to_column(module_scores, var = "SEACell_ID")
+
+write_csv(module_scores, paste0(rds_path, "PM_avg_scores.csv"))
