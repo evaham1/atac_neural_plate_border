@@ -238,16 +238,17 @@ latent_times <- metadata %>%
 
 stage_cols = c("#8DA0CB", "#66C2A5", "#A6D854", "#FFD92F", "#FC8D62")
 
-png(paste0(plot_path, 'Stage_distribution_across_latent_time.png'), width = 25, height = 18, res = 200, units = 'cm')
-ggplot(latent_times, aes(x = rna_latent_time, fill = stage)) +
+plot <- ggplot(latent_times, aes(x = rna_latent_time, fill = stage)) +
   geom_histogram(binwidth=0.01) +
   facet_grid(stage ~ .) +
   theme_minimal() +
   scale_fill_manual(values = stage_cols) +
   guides(fill = guide_legend(title = "Annotation")) +
   theme(text = element_text(size = 25))
-graphics.off()
 
+png(paste0(plot_path, 'Stage_distribution_across_latent_time.png'), width = 25, height = 18, res = 400, units = 'cm')
+print(plot)
+graphics.off()
 
 ########################################################################################################
 #                                 Plot more heatmaps of subsets of PMs                       #
