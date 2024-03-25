@@ -599,6 +599,13 @@ workflow A {
             .map{ it[1].findAll{it =~ /rds_files/} }
             //.view() //[/rds_files]
             .combine( ch_metadata_objs )
+            //.view()
+                // [rds_files, [sample_id:HH5], [HH5_seacells_seurat_integrated.RDS]]
+                // [rds_files, [sample_id:HH6], [HH6_seacells_seurat_integrated.RDS]]
+                // [rds_files, [sample_id:HH7], [HH7_seacells_seurat_integrated.RDS]]
+                // [rds_files, [sample_id:ss4], [ss4_seacells_seurat_integrated.RDS]]
+                // [rds_files, [sample_id:ss8], [ss8_seacells_seurat_integrated.RDS]]
+            .map{ [ it[1], it[0] + it[2] ]}
             .view()
 
 
