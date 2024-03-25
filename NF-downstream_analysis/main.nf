@@ -597,7 +597,7 @@ workflow A {
 
         PLOT_PM_GAMS.out
             //.view() // [[sample_id:FullData], [plots, rds_files]]
-            .map{ it[1].findAll{it =~ /rds_files/}.listFiles() }
+            .map{ it[1].findAll{it =~ /rds_files/} }
             .view()
 
 
