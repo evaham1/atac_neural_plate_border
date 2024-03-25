@@ -591,7 +591,7 @@ workflow A {
         PLOT_PM_GAMS.out
             .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
             .combine( ch_metadata_objs )
-            .map{ [ it[1][0], it[0][0] + it[2][0] ]}
+            .map{ [ it[1], it[0][0] + it[2][0] ]}
             .set{ ch_plot_features_input }
 
         ch_plot_features_input.view()
