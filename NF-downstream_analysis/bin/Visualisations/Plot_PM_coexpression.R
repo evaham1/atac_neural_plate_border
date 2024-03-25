@@ -93,16 +93,14 @@ lineage_colours = c('placodal' = '#3F918C', 'NC' = '#DE4D00', 'neural' = '#8000F
 ########################################################################################################
 
 ########## PEAK MODULE AVERAGE SCORES DF #############
-PM_avg_scores <- read_csv("output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/rds_files/PM_avg_scores.csv")
+PM_avg_scores <- read_csv(paste0(data_path, "PM_avg_scores.csv"))
 PM_avg_scores <- column_to_rownames(PM_avg_scores, "SEACell_ID")
 
+########## ATAC METACELL SEURAT OBJECT ############# 
 
-########## ATAC METACELL SEURAT OBJECTS ############# 
-# want to read them all in??
-
-seurat_data <- readRDS("./output/NF-downstream_analysis/Processing/ss4/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/ss4_seacells_seurat_integrated.RDS")
-
-seurat_data
+label <- setdiff(sub('_.*', '', list.files(data_path)), "seacells_seurat_integrated.RDS")
+print(label)
+seurat <- readRDS(paste0(data_path, label, "_seacells_seurat_integrated.RDS"))
 
 ######### SEACell metadata so can make feature plots on latent time etc?
 
