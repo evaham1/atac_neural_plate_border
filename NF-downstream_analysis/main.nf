@@ -591,7 +591,7 @@ workflow A {
         PLOT_PM_GAMS.out
             .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
             .combine( ch_metadata_objs )
-            .map{ [it[1], it[0] + it[2]]}
+            .map{ [ it[1][0], it[0][0] + it[2][0] ]}
             .set{ ch_plot_features_input }
 
         ch_plot_features_input.view()
@@ -600,6 +600,15 @@ workflow A {
         // [[sample_id:HH7], [PM_avg_scores.csv, HH7_seacells_seurat_integrated.RDS]]
         // [[sample_id:ss4], [PM_avg_scores.csv, ss4_seacells_seurat_integrated.RDS]]
         // [[sample_id:ss8], [PM_avg_scores.csv, ss8_seacells_seurat_integrated.RDS]]
+
+// [[sample_id:HH5], [PM_avg_scores.csv, HH5_seacells_seurat_integrated.RDS]]
+// [[sample_id:HH6], [PM_avg_scores.csv, HH6_seacells_seurat_integrated.RDS]]
+// [[sample_id:HH7], [PM_avg_scores.csv, HH7_seacells_seurat_integrated.RDS]]
+// [[sample_id:ss4], [PM_avg_scores.csv, ss4_seacells_seurat_integrated.RDS]]
+// [[sample_id:ss8], [PM_avg_scores.csv, ss8_seacells_seurat_integrated.RDS]]
+
+//  Not a valid path value type: [Ljava.lang.Object; ([rds_files/PM_avg_scores.csv, HH6_seacells_seurat_integrated.RDS])
+
 
         PLOT_PM_FEATURE( ch_plot_features_input )
 
