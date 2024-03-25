@@ -607,41 +607,14 @@ workflow A {
                 // [rds_files, [sample_id:ss8], [ss8_seacells_seurat_integrated.RDS]]
             .map{ [ it[1], [it[0]] + it[2] ]}
             .view()
-            // [[sample_id:HH5], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, HH5_seacells_seurat_integrated.RDS]]
-            // [[sample_id:HH6], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, HH6_seacells_seurat_integrated.RDS]]
-            // [[sample_id:HH7], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, HH7_seacells_seurat_integrated.RDS]]
-            // [[sample_id:ss4], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, ss4_seacells_seurat_integrated.RDS]]
-            // [[sample_id:ss8], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, ss8_seacells_seurat_integrated.RDS]]
+                // [ [sample_id:HH5], [rds_files, HH5_seacells_seurat_integrated.RDS] ]
+                // [ [sample_id:HH6], [rds_files, HH6_seacells_seurat_integrated.RDS] ]
+                // [ [sample_id:HH7], [rds_files, HH7_seacells_seurat_integrated.RDS] ]
+                // [ [sample_id:ss4], [rds_files, ss4_seacells_seurat_integrated.RDS] ]
+                // [ [sample_id:ss8], [rds_files, ss8_seacells_seurat_integrated.RDS] ]
+            .set{ ch_plot_features_input }
 
-
-            // .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
-            // .combine( ch_metadata_objs )
-            // .map{ [ it[1], it[0][0] + it[2][0] ]}
-            // .set{ ch_plot_features_input }
-
-        //ch_plot_features_input.view()
-        // [[sample_id:HH5], [PM_avg_scores.csv, HH5_seacells_seurat_integrated.RDS]]
-        // [[sample_id:HH6], [PM_avg_scores.csv, HH6_seacells_seurat_integrated.RDS]]
-        // [[sample_id:HH7], [PM_avg_scores.csv, HH7_seacells_seurat_integrated.RDS]]
-        // [[sample_id:ss4], [PM_avg_scores.csv, ss4_seacells_seurat_integrated.RDS]]
-        // [[sample_id:ss8], [PM_avg_scores.csv, ss8_seacells_seurat_integrated.RDS]]
-
-// [[sample_id:HH5], [PM_avg_scores.csv, HH5_seacells_seurat_integrated.RDS]]
-// [[sample_id:HH6], [PM_avg_scores.csv, HH6_seacells_seurat_integrated.RDS]]
-// [[sample_id:HH7], [PM_avg_scores.csv, HH7_seacells_seurat_integrated.RDS]]
-// [[sample_id:ss4], [PM_avg_scores.csv, ss4_seacells_seurat_integrated.RDS]]
-// [[sample_id:ss8], [PM_avg_scores.csv, ss8_seacells_seurat_integrated.RDS]]
-
-// [null, HH5_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csvHH6_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csvHH7_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csvss4_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csvss8_seacells_seurat_integrated.RDS]
-
-// //  Not a valid path value type: [Ljava.lang.Object; ([rds_files/PM_avg_scores.csv, HH6_seacells_seurat_integrated.RDS])
-
-
-//         PLOT_PM_FEATURE( ch_plot_features_input )
+        PLOT_PM_FEATURE( ch_plot_features_input )
 
         /////     Other stuff      ///////
 
