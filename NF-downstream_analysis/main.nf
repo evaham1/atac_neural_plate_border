@@ -587,8 +587,7 @@ workflow A {
 
         METADATA_METACELL_OBJS( params.metacell_objs_sample_sheet ) // csv files with metacell IDs
         ch_metadata_objs = METADATA_METACELL_OBJS.out.metadata
-
-        ch_metadata_objs.view()
+        //ch_metadata_objs.view()
             // [[sample_id:HH5], [HH5_seacells_seurat_integrated.RDS]]
             // [[sample_id:HH6], [HH6_seacells_seurat_integrated.RDS]]
             // [[sample_id:HH7], [HH7_seacells_seurat_integrated.RDS]]
@@ -598,6 +597,8 @@ workflow A {
         PLOT_PM_GAMS.out
             //.view() // [[sample_id:FullData], [plots, rds_files]]
             .map{ it[1].findAll{it =~ /rds_files/} }
+            //.view() //[/rds_files]
+            .combine( ch_metadata_objs )
             .view()
 
 
