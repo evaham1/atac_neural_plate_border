@@ -605,8 +605,13 @@ workflow A {
                 // [rds_files, [sample_id:HH7], [HH7_seacells_seurat_integrated.RDS]]
                 // [rds_files, [sample_id:ss4], [ss4_seacells_seurat_integrated.RDS]]
                 // [rds_files, [sample_id:ss8], [ss8_seacells_seurat_integrated.RDS]]
-            .map{ [ it[1], it[0] + it[2] ]}
+            .map{ [ it[1], [it[0]] + it[2] ]}
             .view()
+            // [[sample_id:HH5], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, HH5_seacells_seurat_integrated.RDS]]
+            // [[sample_id:HH6], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, HH6_seacells_seurat_integrated.RDS]]
+            // [[sample_id:HH7], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, HH7_seacells_seurat_integrated.RDS]]
+            // [[sample_id:ss4], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, ss4_seacells_seurat_integrated.RDS]]
+            // [[sample_id:ss8], [flask, scratch, briscoej, hamrude, atac_neural_plate_border, NF-downstream_analysis, work, 97, 3400607895a6c642e36272ade24668, rds_files, ss8_seacells_seurat_integrated.RDS]]
 
 
             // .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
