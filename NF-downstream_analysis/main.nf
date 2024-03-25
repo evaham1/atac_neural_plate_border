@@ -589,9 +589,17 @@ workflow A {
         ch_metadata_objs = METADATA_METACELL_OBJS.out.metadata
 
         ch_metadata_objs.view()
+            // [[sample_id:HH5], [HH5_seacells_seurat_integrated.RDS]]
+            // [[sample_id:HH6], [HH6_seacells_seurat_integrated.RDS]]
+            // [[sample_id:HH7], [HH7_seacells_seurat_integrated.RDS]]
+            // [[sample_id:ss4], [ss4_seacells_seurat_integrated.RDS]]
+            // [[sample_id:ss8], [ss8_seacells_seurat_integrated.RDS]]
 
         PLOT_PM_GAMS.out
+            //.view() // [[sample_id:FullData], [plots, rds_files]]
+            .map{ it[1].findAll{it =~ /rds_files/}.listFiles() }
             .view()
+
 
             // .map{ it[1].findAll{it =~ /rds_files/}[0].listFiles() }
             // .combine( ch_metadata_objs )
@@ -612,10 +620,10 @@ workflow A {
 // [[sample_id:ss8], [PM_avg_scores.csv, ss8_seacells_seurat_integrated.RDS]]
 
 // [null, HH5_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csv/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH6/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/HH6_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csv/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH7/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/HH7_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csv/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss4/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/ss4_seacells_seurat_integrated.RDS]
-// [null, PM_avg_scores.csv/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss8/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/ss8_seacells_seurat_integrated.RDS]
+// [null, PM_avg_scores.csvHH6_seacells_seurat_integrated.RDS]
+// [null, PM_avg_scores.csvHH7_seacells_seurat_integrated.RDS]
+// [null, PM_avg_scores.csvss4_seacells_seurat_integrated.RDS]
+// [null, PM_avg_scores.csvss8_seacells_seurat_integrated.RDS]
 
 // //  Not a valid path value type: [Ljava.lang.Object; ([rds_files/PM_avg_scores.csv, HH6_seacells_seurat_integrated.RDS])
 
