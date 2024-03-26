@@ -93,16 +93,22 @@ lineage_colours = c('placodal' = '#3F918C', 'NC' = '#DE4D00', 'neural' = '#8000F
 ########################################################################################################
 
 ########## PEAK MODULE AVERAGE SCORES DF #############
-PM_avg_scores <- read_csv(paste0(data_path, "PM_avg_scores.csv"))
+PM_avg_scores <- read_csv(paste0(data_path, "rds_files/PM_avg_scores.csv"))
 PM_avg_scores <- column_to_rownames(PM_avg_scores, "SEACell_ID")
+print("PM average scores: ")
+print(head(PM_avg_scores))
+
+######### SEACell METADATA #############
+metadata <- read_csv(paste0(data_path, "rds_files/Combined_SEACell_integrated_metadata_latent_time.csv"))
+print("SEACell metadata:")
+print(head(metadata))
 
 ########## ATAC METACELL SEURAT OBJECT ############# 
-
 label <- setdiff(sub('_.*', '', list.files(data_path)), "seacells_seurat_integrated.RDS")
 print(label)
 seurat <- readRDS(paste0(data_path, label, "_seacells_seurat_integrated.RDS"))
 
-######### SEACell metadata so can make feature plots on latent time etc?
+print("Data read in!")
 
 ########################################################################################################
 #                                 Add PMs as features to seurat object                               #

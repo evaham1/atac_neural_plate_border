@@ -114,7 +114,7 @@ print(head(metadata))
 
 print("Metadata read in!")
 
-write.csv(paste0(rds_path, "Combined_SEACell_integrated_metadata_latent_time.csv"))
+write_csv(metadata, paste0(rds_path, "Combined_SEACell_integrated_metadata_latent_time.csv"))
 
 ########## NORMALISED COUNTS MATRIX ############# - are these scaled?
 
