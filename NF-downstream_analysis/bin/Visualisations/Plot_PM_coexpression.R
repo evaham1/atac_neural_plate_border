@@ -186,8 +186,10 @@ print("Data read in!")
 
 print("Adding latent time and lineage probs to seurat object...")
 
-print(head(metadata$rna_latent_time))
-seurat@meta.data[[rna_latent_time]] <- df[[module]]
+# print(head(metadata$rna_latent_time))
+# seurat@meta.data[[rna_latent_time]] <- df[[module]]
+
+## this is wrong need to fix
 
 ########################################################################################################
 #                                 Add PMs as features to seurat object                               #
