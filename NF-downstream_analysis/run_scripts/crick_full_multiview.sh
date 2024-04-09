@@ -13,7 +13,7 @@ export NXF_WORK=work/
 ## LOAD REQUIRED MODULES
 ml purge
 ml Nextflow/21.10.6
-ml Singularity/3.4.2
+ml Singularity/3.6.4
 ml Graphviz
 
 ##nextflow run ./main.nf -dump-hashes \
