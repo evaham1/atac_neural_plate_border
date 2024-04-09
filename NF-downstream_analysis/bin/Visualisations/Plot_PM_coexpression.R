@@ -35,10 +35,10 @@ if(opt$verbose) print(opt)
     # data paths for the different inputs
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/" # normalised count matrix
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/FullData/" # the full data peal modules
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/Metacell_metadata_latent_time/" # latent time on metacells metadata 
+    data_path = "./output/NF-downstream_analysis/Processing/ss" # latent time on metacells metadata 
     # output paths:
-    rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/plots/"
+    rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/5_PM_FeaturePlots/FullData/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/5_PM_FeaturePlots/FullData/plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -105,6 +105,7 @@ print(head(metadata))
 
 ########## ATAC METACELL SEURAT OBJECT ############# 
 label <- setdiff(sub('_.*', '', list.files(data_path)), "seacells_seurat_integrated.RDS")
+label <- label[label != 'rds']
 print(label)
 seurat <- readRDS(paste0(data_path, label, "_seacells_seurat_integrated.RDS"))
 
