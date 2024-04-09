@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("Calculate average peak module accessibility across metacells and plots featureplots on UMAPs and co-accessibility plots")
+print("Plots PM feature and co-accessibility plots")
 
 ############################## Load libraries #######################################
 library(optparse)
@@ -12,6 +12,7 @@ library(RColorBrewer)
 library(scHelper)
 library(data.table)
 library(Seurat)
+library(patchwork)
 
 ############################## Set up script options #######################################
 # Read in command line opts
@@ -33,12 +34,12 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # data paths for the different inputs
-    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/1_peak_filtering/rds_files/" # normalised count matrix
-    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/2_peak_clustering/rds_files/FullData/" # the full data peal modules
-    data_path = "./output/NF-downstream_analysis/Processing/ss" # latent time on metacells metadata 
+    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/" # SEACells metadata + PM averages
+    data_path = "./output/NF-downstream_analysis/Processing/FullData/Metacell_metadata_latent_time/" # temp metadata
+    data_path = "./output/NF-downstream_analysis/Processing/ss4/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/" # latent time on metacells metadata 
     # output paths:
-    rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/5_PM_FeaturePlots/FullData/rds_files/"
-    plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/5_PM_FeaturePlots/FullData/plots/"
+    rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/5_PM_FeaturePlots/ss4/rds_files/"
+    plot_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/5_PM_FeaturePlots/ss4/plots/"
     
   } else if (opt$runtype == "nextflow"){
     cat('pipeline running through Nextflow\n')
@@ -56,6 +57,74 @@ if(opt$verbose) print(opt)
   cat(paste0("script ran with ", ncores, " cores\n")) 
   dir.create(plot_path, recursive = T)
   dir.create(rds_path, recursive = T)
+}
+
+
+########################       FUNCTIONS    ########################################
+
+## adapted from Alex's coexpression UMAP plot
+plot_umap_pm_coaccessibility <- function(seurat_object, PM_avgs, pm_1, pm_2, col.threshold = 0, two.colors = c("red", "blue"), negative.color = 'gray80', limit = 0, 
+                                         highlight_cell_size = 1, module_names = c('Gene module 1', 'Gene module 2'), show_legend = TRUE,
+                                         axes_label_size = 12, axes_title_size = 10, axes_tick_size = 0.15){
+  
+  # set params
+  start = 1
+  end = 100
+  width = end - start
+  
+  # extract PM average scores and scale them
+  pm_1_scaled <- (PM_avgs[,pm_1] - min(PM_avgs[,pm_1]))/(max(PM_avgs[,pm_1]) - min(PM_avgs[,pm_1])) * width + start
+  pm_2_scaled <- (PM_avgs[,pm_2] - min(PM_avgs[,pm_2]))/(max(PM_avgs[,pm_2]) - min(PM_avgs[,pm_2])) * width + start
+  
+  # extract colour matrix
+  dat <- data.frame(pm_1_scaled, pm_2_scaled, row.names = rownames(PM_avgs))
+  dat <-  round(dat, 0)
+  col_mat = Seurat:::BlendMatrix(n = 100, col.threshold = col.threshold, two.colors =  two.colors, negative.color = negative.color)
+  col_mat <- as.data.frame.table(col_mat, responseName = "value") %>% mutate_if(is.factor, as.integer)
+  col_mat[!(col_mat$Var1 > limit*100 & col_mat$Var2 > limit*100), 'value'] <- negative.color
+  colnames(col_mat) <- c('a', 'b', 'mix')
+  
+  # assign colours to cells
+  cell_cols <- unlist(apply(dat, 1, function(x){filter(col_mat, a == x[[1]] & b == x[[2]])[[3]]}))
+  col_mat[,1:2] <- col_mat[,1:2]/100
+  key_plot <- ggplot(col_mat %>% filter(mix != !!negative.color), aes(x = a, y = b)) +
+    xlab(module_names[1]) +
+    ylab(module_names[2]) +
+    geom_tile(aes(fill = mix)) +
+    scale_fill_identity() +
+    scale_x_continuous(breaks = c(limit, 1), expand = c(0.01, 0.01)) +
+    scale_y_continuous(breaks = c(limit, 1), expand = c(0.01, 0.01)) +
+    theme(legend.position = "none",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.title.x = element_text(size = axes_title_size),
+          axis.text.x = element_text(size = axes_label_size),
+          axis.title.y = element_text(size = axes_title_size),
+          axis.text.y = element_text(size = axes_label_size),
+          axis.ticks.length=unit(axes_tick_size,"cm"))
+  
+  plot_data <- as.data.frame(seurat_object[["umap"]]@cell.embeddings)
+  
+  # add cell colours to plot_data
+  plot_data <- merge(plot_data, as.data.frame(cell_cols), by=0) %>% column_to_rownames('Row.names')
+  
+  umap_plot <- ggplot(plot_data, aes(x = UMAP_1, y = UMAP_2, colour = cell_cols)) +
+    geom_point(colour = negative.color, size = 2) +
+    geom_point(data = plot_data %>% filter(cell_cols != negative.color), size = highlight_cell_size) +
+    scale_colour_manual(values=plot_data %>% filter(cell_cols != negative.color) %>% dplyr::pull(cell_cols))+
+    theme_void() +
+    NoLegend()
+  
+  if (show_legend == FALSE){
+    print(umap_plot)
+  } else {
+    layout <- '
+    BA
+    B#
+    '
+    wrap_plots(A = key_plot, B = umap_plot, design = layout, widths = c(4,1), heights = c(1,3))
+  }
 }
 
 ########################       CELL STATE COLOURS    ########################################
@@ -112,15 +181,29 @@ seurat <- readRDS(paste0(data_path, label, "_seacells_seurat_integrated.RDS"))
 print("Data read in!")
 
 ########################################################################################################
+#                         Add latent time + lineage probs to seurat object                             #
+########################################################################################################
+
+print("Adding latent time and lineage probs to seurat object...")
+
+print(head(metadata$rna_latent_time))
+seurat@meta.data[[rna_latent_time]] <- df[[module]]
+
+########################################################################################################
 #                                 Add PMs as features to seurat object                               #
 ########################################################################################################
+
+print("Adding average PM accessibility to seurat object...")
+
+plot_path = "./plots/feature_plots/"
+dir.create(plot_path, recursive = T)
 
 ## split up the PM df by stage
 split_df <- split(PM_avg_scores, substring(rownames(PM_avg_scores), nchar(rownames(PM_avg_scores)) - 3))
 names(split_df) <- substr(names(split_df), 2, 4)
 
 ## detect which stage is the seurat object and extract the correct df
-df <- split_df[[unique(seurat_data@meta.data$stage)]]
+df <- split_df[[unique(seurat@meta.data$stage)]]
 head(df)
 
 ## reorder df so the metacells are in the same order as they appear in the seurat metadata
@@ -132,19 +215,19 @@ df <- df %>% arrange(SEACell_ID)
 head(df)
 
 ## check that the seacells match and are in the same order
-if (sum(rownames(seurat_data@meta.data) == df$SEACell_ID) == nrow(seurat_data@meta.data)){
+if (sum(rownames(seurat@meta.data) == df$SEACell_ID) == nrow(seurat@meta.data)){
   "SEACell IDs match!"
 } else {stop("ERROR! SEACell IDs dont match!")}
 
 ## add each average PM score as metadata
 df <- df[,-1]
 for (module in colnames(df)){
-  seurat_data@meta.data[[module]] <- df[[module]]
+  seurat@meta.data[[module]] <- df[[module]]
   
   # feature plot of that PM
   png(paste0(plot_path, module, '_feature_plot.png'), width = 15, height = 15, units='cm', res=200)
   print(
-    FeaturePlot(seurat_data, features = module, pt.size = 1.4) +
+    FeaturePlot(seurat, features = module, pt.size = 1.4) +
       theme_void() +
       theme(plot.title = element_blank(),
             legend.text = element_text(size=16),
@@ -154,25 +237,246 @@ for (module in colnames(df)){
 }
 
 
-
 ########################################################################################################
 #                                 Plot co-accessibility of PMs                       #
 ########################################################################################################
 
+print("Plotting co-accessibility...")
+
+df <- column_to_rownames(df, "SEACell_ID")
+
+plot_path = "./plots/coaccessibility_plots/"
+dir.create(plot_path, recursive = T)
+
+# neural/NC with PM1
+PMA = "FullData_PM1"
+PMB = "FullData_PM6"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                                     module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                                     limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM7"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM10"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM11"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM12"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMA = "FullData_PM13"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM14"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM15"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
 
+# neural/NC with PM2
+PMA = "FullData_PM2"
+PMB = "FullData_PM6"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM7"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM10"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
-########################################################################################################
-#                                 Plot latent time on SEACells UMAPs                       #
-########################################################################################################
+PMB = "FullData_PM11"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM12"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMA = "FullData_PM13"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM14"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM15"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+# neural/NC with PM3
+PMA = "FullData_PM3"
+PMB = "FullData_PM6"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM7"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM10"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM11"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
 
+PMB = "FullData_PM12"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMA = "FullData_PM13"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM14"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM15"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+# neural/NC with PM4
+PMA = "FullData_PM4"
+PMB = "FullData_PM6"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM7"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM10"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM11"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM12"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMA = "FullData_PM13"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM14"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
+
+PMB = "FullData_PM15"
+png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
+plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             limit = 0.3)
+graphics.off()
