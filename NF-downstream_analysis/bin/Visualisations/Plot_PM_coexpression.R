@@ -34,7 +34,7 @@ if(opt$verbose) print(opt)
     ncores = 8
     
     # data paths for the different inputs
-    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_Dynamics/FullData/" # SEACells metadata + PM averages
+    data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_GAMs/FullData/" # SEACells metadata + PM averages
     data_path = "./output/NF-downstream_analysis/Processing/FullData/Metacell_metadata_latent_time/" # temp metadata
     data_path = "./output/NF-downstream_analysis/Processing/ss4/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/" # latent time on metacells metadata 
     # output paths:
@@ -186,10 +186,29 @@ print("Data read in!")
 
 print("Adding latent time and lineage probs to seurat object...")
 
-# print(head(metadata$rna_latent_time))
-# seurat@meta.data[[rna_latent_time]] <- df[[module]]
+print(head(metadata))
 
-## this is wrong need to fix
+## extract only the correct stage metacells
+metadata <- metadata[grepl(unique(seurat@meta.data$stage), metadata$Rownames), ]
+
+## reorg metadata so in order of cells as appear in the seurat object
+metadata <- metadata %>%
+  mutate(Rownames = gsub("_", "-", Rownames)) %>%
+  mutate(Rownames = substr(Rownames, 1, nchar(Rownames) - 4))
+metadata <- metadata %>% arrange(Rownames)
+head(metadata)
+
+## check that the seacells match and are in the same order
+if (sum(rownames(seurat@meta.data) == metadata$Rownames) == nrow(seurat@meta.data)){
+  "SEACell IDs match!"
+} else {stop("ERROR! SEACell IDs dont match!")}
+
+## add latent time and lineage probs as metadata to seurat object
+seurat@meta.data[["rna_latent_time"]] <- metadata$rna_latent_time
+seurat@meta.data[["rna_lineage_neural_probability"]] <- metadata$rna_lineage_neural_probability
+seurat@meta.data[["rna_lineage_NC_probability"]] <- metadata$rna_lineage_NC_probability
+seurat@meta.data[["rna_lineage_placodal_probability"]] <- metadata$rna_lineage_placodal_probability
+
 
 ########################################################################################################
 #                                 Add PMs as features to seurat object                               #
