@@ -209,6 +209,48 @@ seurat@meta.data[["rna_lineage_neural_probability"]] <- metadata$rna_lineage_neu
 seurat@meta.data[["rna_lineage_NC_probability"]] <- metadata$rna_lineage_NC_probability
 seurat@meta.data[["rna_lineage_placodal_probability"]] <- metadata$rna_lineage_placodal_probability
 
+head(seurat@meta.data)
+
+## plot feature plots of these metadata
+png(paste0(plot_path, 'rna_latent_time_feature_plot.png'), width = 15, height = 15, units='cm', res=200)
+print(
+  FeaturePlot(seurat, features = "rna_latent_time", pt.size = 2) +
+    theme_void() +
+    theme(plot.title = element_blank(),
+          legend.text = element_text(size=16),
+          legend.key.size = unit(1, 'cm'))
+) 
+graphics.off()
+
+png(paste0(plot_path, 'rna_lineage_neural_probability_feature_plot'), width = 15, height = 15, units='cm', res=200)
+print(
+  FeaturePlot(seurat, features = "rna_lineage_neural_probability", pt.size = 2) +
+    theme_void() +
+    theme(plot.title = element_blank(),
+          legend.text = element_text(size=16),
+          legend.key.size = unit(1, 'cm'))
+) 
+graphics.off()
+
+png(paste0(plot_path, 'rna_lineage_NC_probability_feature_plot'), width = 15, height = 15, units='cm', res=200)
+print(
+  FeaturePlot(seurat, features = "rna_lineage_NC_probability", pt.size = 2) +
+    theme_void() +
+    theme(plot.title = element_blank(),
+          legend.text = element_text(size=16),
+          legend.key.size = unit(1, 'cm'))
+) 
+graphics.off()
+
+png(paste0(plot_path, 'rna_lineage_placodal_probability_feature_plot'), width = 15, height = 15, units='cm', res=200)
+print(
+  FeaturePlot(seurat, features = "rna_lineage_placodal_probability", pt.size = 2) +
+    theme_void() +
+    theme(plot.title = element_blank(),
+          legend.text = element_text(size=16),
+          legend.key.size = unit(1, 'cm'))
+) 
+graphics.off()
 
 ########################################################################################################
 #                                 Add PMs as features to seurat object                               #
