@@ -606,7 +606,7 @@ workflow A {
                 // [rds_files, [sample_id:ss4], [ss4_seacells_seurat_integrated.RDS]]
                 // [rds_files, [sample_id:ss8], [ss8_seacells_seurat_integrated.RDS]]
             .map{ [ it[1], [it[0]] + it[2] ]}
-            .view()
+            //.view()
                 // [ [sample_id:HH5], [rds_files, HH5_seacells_seurat_integrated.RDS] ]
                 // [ [sample_id:HH6], [rds_files, HH6_seacells_seurat_integrated.RDS] ]
                 // [ [sample_id:HH7], [rds_files, HH7_seacells_seurat_integrated.RDS] ]
