@@ -114,6 +114,8 @@ print(head(metadata))
 
 print("Metadata read in!")
 
+# Set rownames as a column and write the metadata out again
+metadata <- rownames_to_column(metadata, var = "Rownames")
 write_csv(metadata, paste0(rds_path, "Combined_SEACell_integrated_metadata_latent_time.csv"))
 
 ########## NORMALISED COUNTS MATRIX ############# - are these scaled?
