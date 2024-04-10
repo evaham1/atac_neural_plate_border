@@ -35,7 +35,6 @@ if(opt$verbose) print(opt)
     
     # data paths for the different inputs
     data_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/4_PM_GAMs/FullData/" # SEACells metadata + PM averages
-    data_path = "./output/NF-downstream_analysis/Processing/FullData/Metacell_metadata_latent_time/" # temp metadata
     data_path = "./output/NF-downstream_analysis/Processing/ss4/SEACELLS_INTEGRATING_WF/Integrated_SEACells_label_transfer/rds_files/" # latent time on metacells metadata 
     # output paths:
     rds_path = "./output/NF-downstream_analysis/Downstream_processing/Cluster_peaks/5_PM_FeaturePlots/ss4/rds_files/"
@@ -283,6 +282,7 @@ if (sum(rownames(seurat@meta.data) == df$SEACell_ID) == nrow(seurat@meta.data)){
 } else {stop("ERROR! SEACell IDs dont match!")}
 
 ## add each average PM score as metadata
+SEACell_IDs <- df[,1]
 df <- df[,-1]
 for (module in colnames(df)){
   seurat@meta.data[[module]] <- df[[module]]
@@ -306,12 +306,13 @@ for (module in colnames(df)){
 
 print("Plotting co-accessibility...")
 
-df <- column_to_rownames(df, "SEACell_ID")
+rownames(df) <- SEACell_IDs
+head(df)
 
 plot_path = "./plots/coaccessibility_plots/"
 dir.create(plot_path, recursive = T)
 
-# neural/NC with PM1
+# neural/NC with placodal PM1
 PMA = "FullData_PM1"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
@@ -370,7 +371,7 @@ plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,
 graphics.off()
 
 
-# neural/NC with PM2
+# neural/NC with placodal PM2
 PMA = "FullData_PM2"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
@@ -428,7 +429,7 @@ plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,
                              limit = 0.3)
 graphics.off()
 
-# neural/NC with PM3
+# neural/NC with placodal PM3
 PMA = "FullData_PM3"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
@@ -486,7 +487,7 @@ plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,
                              limit = 0.3)
 graphics.off()
 
-# neural/NC with PM4
+# neural/NC with placodal PM4
 PMA = "FullData_PM4"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
