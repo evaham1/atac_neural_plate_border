@@ -63,7 +63,7 @@ if(opt$verbose) print(opt)
 
 ## adapted from Alex's coexpression UMAP plot
 plot_umap_pm_coaccessibility <- function(seurat_object, PM_avgs, pm_1, pm_2, col.threshold = 0, two.colors = c("red", "blue"), negative.color = 'gray80', limit = 0, 
-                                         highlight_cell_size = 1, module_names = c('Gene module 1', 'Gene module 2'), show_legend = TRUE,
+                                        module_names = c('Gene module 1', 'Gene module 2'), show_legend = TRUE,
                                          axes_label_size = 12, axes_title_size = 10, axes_tick_size = 0.15){
   
   # set params
@@ -110,7 +110,7 @@ plot_umap_pm_coaccessibility <- function(seurat_object, PM_avgs, pm_1, pm_2, col
   
   umap_plot <- ggplot(plot_data, aes(x = UMAP_1, y = UMAP_2, colour = cell_cols)) +
     geom_point(colour = negative.color, size = 6) +
-    geom_point(data = plot_data %>% filter(cell_cols != negative.color), size = highlight_cell_size) +
+    geom_point(data = plot_data %>% filter(cell_cols != negative.color), size = 6) +
     scale_colour_manual(values=plot_data %>% filter(cell_cols != negative.color) %>% dplyr::pull(cell_cols))+
     theme_void() +
     NoLegend()
@@ -317,56 +317,56 @@ PMA = "FullData_PM1"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                                     module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                                     module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                                      limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM7"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM10"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM11"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM12"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMA = "FullData_PM13"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM14"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM15"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
@@ -376,56 +376,56 @@ PMA = "FullData_PM2"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM7"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM10"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM11"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM12"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM13"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM14"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM15"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
@@ -434,56 +434,56 @@ PMA = "FullData_PM3"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM7"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM10"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM11"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM12"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM13"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM14"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM15"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
@@ -492,55 +492,55 @@ PMA = "FullData_PM4"
 PMB = "FullData_PM6"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM7"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM10"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM11"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM12"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM13"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM14"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
 
 PMB = "FullData_PM15"
 png(paste0(plot_path, 'Coaccessibility_plot_', substr(PMA, 10, 14), "-", substr(PMB, 10, 14), '.png'), width = 15, height = 15, units='cm', res=200)
 plot_umap_pm_coaccessibility(seurat, df, PMA, PMB,  
-                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)), highlight_cell_size = 2,
+                             module_names = c(substr(PMA, 10, 14), substr(PMB, 10, 14)),
                              limit = 0.3)
 graphics.off()
