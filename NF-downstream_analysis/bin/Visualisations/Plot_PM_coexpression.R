@@ -109,7 +109,7 @@ plot_umap_pm_coaccessibility <- function(seurat_object, PM_avgs, pm_1, pm_2, col
   plot_data <- merge(plot_data, as.data.frame(cell_cols), by=0) %>% column_to_rownames('Row.names')
   
   umap_plot <- ggplot(plot_data, aes(x = UMAP_1, y = UMAP_2, colour = cell_cols)) +
-    geom_point(colour = negative.color, size = 2) +
+    geom_point(colour = negative.color, size = 6) +
     geom_point(data = plot_data %>% filter(cell_cols != negative.color), size = highlight_cell_size) +
     scale_colour_manual(values=plot_data %>% filter(cell_cols != negative.color) %>% dplyr::pull(cell_cols))+
     theme_void() +
@@ -213,7 +213,7 @@ head(seurat@meta.data)
 ## plot feature plots of these metadata
 png(paste0(plot_path, 'rna_latent_time_feature_plot.png'), width = 15, height = 15, units='cm', res=200)
 print(
-  FeaturePlot(seurat, features = "rna_latent_time", pt.size = 2) +
+  FeaturePlot(seurat, features = "rna_latent_time", pt.size = 6) +
     theme_void() +
     theme(plot.title = element_blank(),
           legend.text = element_text(size=16),
@@ -223,7 +223,7 @@ graphics.off()
 
 png(paste0(plot_path, 'rna_lineage_neural_probability_feature_plot.png'), width = 15, height = 15, units='cm', res=200)
 print(
-  FeaturePlot(seurat, features = "rna_lineage_neural_probability", pt.size = 2) +
+  FeaturePlot(seurat, features = "rna_lineage_neural_probability", pt.size = 6) +
     theme_void() +
     theme(plot.title = element_blank(),
           legend.text = element_text(size=16),
@@ -243,7 +243,7 @@ graphics.off()
 
 png(paste0(plot_path, 'rna_lineage_placodal_probability_feature_plot.png'), width = 15, height = 15, units='cm', res=200)
 print(
-  FeaturePlot(seurat, features = "rna_lineage_placodal_probability", pt.size = 2) +
+  FeaturePlot(seurat, features = "rna_lineage_placodal_probability", pt.size = 6) +
     theme_void() +
     theme(plot.title = element_blank(),
           legend.text = element_text(size=16),
@@ -290,7 +290,7 @@ for (module in colnames(df)){
   # feature plot of that PM
   png(paste0(plot_path, module, '_feature_plot.png'), width = 15, height = 15, units='cm', res=200)
   print(
-    FeaturePlot(seurat, features = module, pt.size = 1.4) +
+    FeaturePlot(seurat, features = module, pt.size = 6) +
       theme_void() +
       theme(plot.title = element_blank(),
             legend.text = element_text(size=16),
