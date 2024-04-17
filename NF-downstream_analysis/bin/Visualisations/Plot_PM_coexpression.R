@@ -309,10 +309,10 @@ print("Plotting co-accessibility...")
 rownames(df) <- SEACell_IDs
 head(df)
 
-plot_path = "./plots/coaccessibility_plots/limit_0.5/"
+plot_path = "./plots/coaccessibility_plots/limit_0.4/"
 dir.create(plot_path, recursive = T)
 
-limit = 0.5
+limit = 0.4
 
 # neural/NC with placodal PM1
 PMA = "FullData_PM1"
