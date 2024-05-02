@@ -12,13 +12,15 @@ ml Graphviz
 
 export TERM=xterm
 export NXF_VER=21.10.6
-export NXF_SINGULARITY_CACHEDIR=/camp/home/thierya/working/NF_singularity
+export NXF_SINGULARITY_CACHEDIR=/nemo/lab/briscoej/working/hamrude/NF_singularity
+export NXF_HOME=/nemo/lab/briscoej/working/hamrude/nextflow
+export NXF_WORK=work/
 
 ## UPDATE PIPLINE
-nextflow pull luslab/cheshic-nf-multi-omic
+nextflow pull Streit-lab/cellranger_multiomic
 
-nextflow run luslab/cheshic-nf-multi-omic \
-    -r cellranger \
+nextflow run Streit-lab/cellranger_multiomic \
+    -r main \
     -c ./conf/crick_params.config \
     --sample_sheet ./samplesheet.csv \
     --outdir ../output/NF-cellranger_align \

@@ -1,0 +1,6 @@
+sample_id,data
+HH5,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH5/Transfer_labels_and_peaks/rds_files/HH5_Save-ArchR
+HH6,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH6/Transfer_labels_and_peaks/rds_files/HH6_Save-ArchR
+HH7,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/HH7/Transfer_labels_and_peaks/rds_files/HH7_Save-ArchR
+ss4,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss4/Transfer_labels_and_peaks/rds_files/ss4_Save-ArchR
+ss8,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-downstream_analysis/Processing/ss8/Transfer_labels_and_peaks/rds_files/ss8_Save-ArchR

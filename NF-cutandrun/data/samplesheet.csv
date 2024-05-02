@@ -1,0 +1,5 @@
+group,replicate,fastq_1,fastq_2,control
+h3k27ac,1,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402875_SRR8603109_1.fastq.gz,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402875_SRR8603109_2.fastq.gz,igg_ctrl
+h3k27ac,2,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402876_SRR8603110_1.fastq.gz,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402876_SRR8603110_2.fastq.gz,igg_ctrl
+h3k27ac,3,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402877_SRR8603111_1.fastq.gz,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402877_SRR8603111_2.fastq.gz,igg_ctrl
+igg_ctrl,1,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402890_SRR8603124_1.fastq.gz,/flask/scratch/briscoej/hamrude/atac_neural_plate_border/output/NF-cutandrun-H3k27ac_fetchngs/fastq/SRX5402890_SRR8603124_2.fastq.gz,
