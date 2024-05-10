@@ -1,19 +1,18 @@
 # Neural Plate Border Analysis
 
-This repository contains all the code used for analysis pertaining to the Neural Plate Border project. 
+This repository contains all the code used for analysis pertaining to the Neural Plate Border project. This project focused on understanding how cell fate decisions are made in the developing ectoderm of the chick embryo. This project involved analysis of scRNA-seq and scATAC-seq data created by the Streit lab, and publicly avaliable CUT&RUN and HiChip data. 
 
 ## Repository Organisation
-This repository contains all the code used for the analysis of scRNA-seq and scATAC-seq data from the chick neural plate border, as well as publically avaliable CUT&RUN and HiChip data. Each folder beginning with 'NF-' contains an independent Nextflow pipeline for a subset of the analysis. Some of the analysis includes custom pipelines whilst others utilise NF-core or shared pipelines. All of the custom code used to analyse the scATAC-seq neural plate border atlas is found in 'NF-downstream_analysis'. 
+Each folder beginning with 'NF-' contains an independent subset of the analysis. Some of the folders run NF-core pipelines (click [here](https://nf-co.re/pipelines) to see all NF-core pipelines), and some of the folders run our shared Streitlab Nextflow pipelines (click [here](https://github.com/Streit-lab) to see all Streitlab repositories). Two folders (NF-hichip_downstream and NF-downstream_analysis) contain custom Nextflow pipelines, details of how to re-run these pipelines can be found below. 
 
-| Folder | Description | README | 
-| ------ | ------ | ------ | 
-| NF-cellranger_align | Runs a shared streit-lab alignment pipeline  | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cellranger_align) | 
-| NF-cut_and_run | Runs NF-core pipeline to align CUT&RUN data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cutandrun) | 
-| NF-downstream_analysis* | Runs a custom Nextflow pipeline to perform analysis on scATAC-seq data and integrate it with previously published scRNA-seq data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-downstream_analysis) | 
-| NF-enhancer_annotation_and_motif_analysis | Runs a shared streit-lab pipeline to annotate genomic regions to genes and run motif scanning | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-enhancer_annotation_and_motif_analysis) | 
-| NF-hic | Runs NF-core pipeline to align HiC daata | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-hic)
-| NF-hichip_downstream* | Runs custom Nextflow pipeline to perform analysis on HiChip data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-hichip-downstream) | 
+| Folder | Pipeline Origin | Description | README | 
+| ------ | ------ | ------ | ------ | 
+| NF-cellranger_align | Streit-lab pipeline | Aligns scRNA-seq and scATAC-seq data  | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cellranger_align) | 
+| NF-cut_and_run | NF-core pipeline | Downloads and aligns CUT&RUN data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cutandrun) | 
+| NF-downstream_analysis | Custom pipeline | Analyses scATAC-seq data and integrate it with previously published scRNA-seq data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-downstream_analysis) | 
+| NF-enhancer_annotation_and_motif_analysis | Streit-lab pipeline | Annotates genomic regions to genes and run motif scanning | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-enhancer_annotation_and_motif_analysis) | 
+| NF-hic | NF-core pipeline | Aligns HiChip daata | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-hic)
+| NF-hichip_downstream | Custom pipeline | Analyses HiChip data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-hichip-downstream) | 
 
-Pipelines with * indiciate those which are custom Nextflow pipelines created specifically for analysis pertaining to the Neural Plate Border project. Although these pipelines have been created with a specific analysis in mind, their organisation in a Nextflow pipeline means that they can be easily reused in whole or in part (see below). 
-
-## Reproducing analysis
+## Reproducing analysis in NF-hichip_downstream and NF-downstream_analysis
+Although the two custom pipelines in this repository have been created with a specific analysis in mind, their organisation in a Nextflow pipeline means that they can be easily reused in whole or in part (see below). 
