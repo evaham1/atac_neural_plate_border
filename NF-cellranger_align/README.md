@@ -1,29 +1,5 @@
-Outline of 'Downstream_analysis' pipeline:
+# NF-cellranger_align
 
-PREPROCESSING (input: cellranger output directory)
-    - EDIT_GTF (adds 'chr' to gtf)
-    - PREPROCESS (sets up ArchR object from cellranger output: "/outs/fragments.tsv.gz")
+This folder contains the run script to run the alignment of 10X single cell RNA and ATAC sequencing using a [custom Streit-lab Nextflow pipeline](https://github.com/Streit-lab/cellranger_multiomic). This pipeline runs [Cellranger](https://www.10xgenomics.com/support/software/cell-ranger/latest) to align sequenced reads to the genome and identify gene counts (scRNA-seq) or fragments and peaks (for scATAC-seq). 
 
-FILTERING
-    - FILTER (filters on nFrags)
-    - SPLIT_STAGES
-    - FILTER_CLUSTER_LOOP (filter clusters)
-    - CLUSTER_POSTFILTER
-            - GENE_SCORES_POSTFILTER
-            - HEATMAP_GEX
-    - PEAK_CALL_POSTFILTER
-            - HEATMAP_PEAKS
-
-FULL_PROCESSING
-    - FILTER_FULL (use cell ids from stages to filter whole data)
-    - CLUSTER_POSTFILTER
-            - GENE_SCORES_POSTFILTER
-            - HEATMAP_GEX
-    - PEAK_CALL_POSTFILTER
-            - HEATMAP_PEAKS
-        
-INTEGRATING
-    - UNCON_INTEGRATE
-            - CLUSTER_IDENTIFY 
-
-TBC
+For your own 10X scRNA-seq alignment, we would recommend the [scRNA-seq Nextflow pipeline](https://nf-co.re/scrnaseq/2.6.0) as it is regularly maintained and updated. 
