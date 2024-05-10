@@ -5,7 +5,7 @@ This repository contains all the code used for the analysis of scRNA-seq and scA
 | Folder | Description | README | 
 | ------ | ------ | ------ | 
 | NF-cellranger_align | Runs a shared streit-lab alignment pipeline  | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cellranger_align) | 
-| NF-cut_and_run | Runs NF-core pipeline to align CUT&RUN data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cellranger_align) | 
+| NF-cut_and_run | Runs NF-core pipeline to align CUT&RUN data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cutandrun) | 
 | Google Drive | [plugins/googledrive/README.md][PlGd] | README | 
 | OneDrive | [plugins/onedrive/README.md][PlOd] | README | 
 | Medium | [plugins/medium/README.md][PlMe] | README | 
