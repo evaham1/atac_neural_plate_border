@@ -6,7 +6,7 @@ This repository contains all the code used for the analysis of scRNA-seq and scA
 | ------ | ------ | ------ | 
 | NF-cellranger_align | Runs a shared streit-lab alignment pipeline  | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cellranger_align) | 
 | NF-cut_and_run | Runs NF-core pipeline to align CUT&RUN data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-cutandrun) | 
-| Google Drive | [plugins/googledrive/README.md][PlGd] | README | 
-| OneDrive | [plugins/onedrive/README.md][PlOd] | README | 
-| Medium | [plugins/medium/README.md][PlMe] | README | 
-| Google Analytics | [plugins/googleanalytics/README.md][PlGa] | README | 
+| NF-downstream_analysis | Runs a custom Nextflow pipeline to perform analysis on scATAC-seq data and integrate it with previously published scRNA-seq data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-downstream_analysis) | 
+| NF-enhancer_annotation_and_motif_analysis | Runs a shared streit-lab pipeline to annotate genomic regions to genes and run motif scanning | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-enhancer_annotation_and_motif_analysis) | 
+| NF-hic | Runs NF-core pipeline to align HiC daata | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-hic)
+| NF-hichip_downstream | Runs custom Nextflow pipeline to perform analysis on HiChip data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-hichip-downstream) | 

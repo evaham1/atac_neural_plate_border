@@ -1,0 +1,3 @@
+# NF-enhancer_annotation_and_motif_analysis
+
+This folder contains the run scripts to run a [custom Streit-lab Nextflow pipeline](https://github.com/Streit-lab/enhancer_annotation_and_motif_analysis) which takes genome coordinates and annotates them to genes based on a user-defined window size. It also runs homer motif enrichment on these coordinates to predict potential upstream regulators. For more information on this pipeline and its usage see its [README file](https://github.com/Streit-lab/enhancer_annotation_and_motif_analysis). 
