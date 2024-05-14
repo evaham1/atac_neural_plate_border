@@ -15,4 +15,8 @@ Each folder beginning with 'NF-' contains an independent subset of the analysis.
 | NF-hichip_downstream | Custom pipeline | Analyses HiChip data | [README file](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-hichip-downstream) | 
 
 ## Reproducing analysis in NF-hichip_downstream and NF-downstream_analysis
-Although the two custom pipelines in this repository have been created with a specific analysis in mind, their organisation in a Nextflow pipeline means that they can be easily reused in whole or in part (see below). 
+Although the two custom pipelines in this repository have been created with a specific analysis in mind, their organisation in a Nextflow pipeline means that they can be easily reused in whole or in part. 
+
+how to just reproduce everything exactly - just change run script and profile
+how to adjust things like data and params, see read mes for each one
+can also just use the r or python scripts independently, have been made as generalisable as possible (eg converting seurat/scanpy scripts)
