@@ -9,7 +9,7 @@ First, the chick genome was split into equal sized 5kb bins and these bins were 
 ## 1. Bin generation and overlapping with genes and enhancers
 This part of the pipeline is independent of the HiChip data, instead it is dependent on the genome (in this case Galgal6 genome was used) and peak coordinates which are used as a proxy for active enhancers (in this case the coordinates of peaks called from the scATAC-seq chick ectoderm atlas was used). These files can be changed as indicated by the orange colour in the workflow schematic. Once edited, this workflow will emit genomic bin coordinates with information about which bins contain enhancers (i.e. peaks) and genes (i.e. promoters). 
 
-*add schematic here
+![plot](nfhichip_bins.png)
 
 ### Re-using the steps in this workflow
 The processes [EXTRACT_PROMOTERS](https://github.com/evaham1/atac_neural_plate_border/blob/main/NF-hichip-downstream/modules/local/extract_promoters/main.nf) and [INTERSECT_BINS](https://github.com/evaham1/atac_neural_plate_border/blob/main/NF-hichip-downstream/modules/local/intersect_bins/main.nf) are custom-made Nextflow modules. The EXTRACT_PROMOTERS module calls a Bash script called [extract_promoters.sh](https://github.com/evaham1/atac_neural_plate_border/blob/main/NF-hichip-downstream/bin/extract_promoters.sh) which identifies each gene start site and extracts 3kb upstream of it as a promoter whilst accounting for different chromsome lengths. The INTERSECT_BINS module runs 'bedtools intersect' from the [bedtools toolset](https://bedtools.readthedocs.io/en/latest/). 
@@ -21,7 +21,7 @@ Each of these processes can be re-used as they are in your own pipeline or edite
 ## 2. Loop calling on HiChip data using HiCDCPlus
 This part of the pipeline takes the HiChip data which has been aligned to the genome using the NF-core HiC pipeline (see the NF-hic folder in this repository, files end with '.allValidPairs') and calls loops in each HiChip data sample. For this analysis, the loop calling was performed using the chick UCSC genome build, which names each chromosomes as 'chr1', 'chr2', etc. As the ensembl has different genome nomenclature, an extra process was run to edit the HiChip data so it can be processed with the UCSC genome. 
 
-*Picture of workflow
+![plot](nfhichip_loops.png)
 
 ### Re-using the steps in this workflow
 The process [EDIT_VALIDPAIR](https://github.com/evaham1/atac_neural_plate_border/blob/main/NF-hichip-downstream/modules/local/edit_ValidPairs/main.nf) is a custom Nextflow module which runs the bash script [edit_validpairs.sh](https://github.com/evaham1/atac_neural_plate_border/blob/main/NF-hichip-downstream/bin/edit_validpairs.sh) which adds 'chr' to the beginning of each chromosome in the data. This module and its corresponding script can be reused into any Nextflow pipeline to add 'chr' to validpairs datasets. 
