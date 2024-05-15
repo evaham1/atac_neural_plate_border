@@ -20,3 +20,7 @@ Although the two custom pipelines in this repository have been created with a sp
 how to just reproduce everything exactly - just change run script and profile
 how to adjust things like data and params, see read mes for each one
 can also just use the r or python scripts independently, have been made as generalisable as possible (eg converting seurat/scanpy scripts)
+
+data is read in using sample sheets for multiple samples and the profile with channels for params/reference genomes/etc
+explain how to edit these if just changing input data
+
