@@ -327,34 +327,6 @@ workflow A {
         TRANSFER_LATENT_TIME_MINUS_CONTAM( ch_transfer_latent_time_minus_contam )
 
 
-        ////// PLOTTING /////// - maybe move to multiview section once I've tested that it works
-
-        // Plot diff peaks between clusters in stages
-        PLOT_DIFF_PEAKS( TRANSFER_LABELS_AND_PEAKS.out )
-
-        // Plot UMAPs of dim reduction using different subsets
-        PLOT_DIM_RED_GENOMIC_SUBSETS( TRANSFER_LABELS_AND_PEAKS.out )
-
-        // Coaccessibility plots grouped by clusters
-        // need to have the stages objects + the coaccessibility csv from full data
-        INTEGRATE.out
-            .map{it[1].findAll{it =~ /csv_files/}[0]}
-            .set{ ch_full_coaccessibility }
-        TRANSFER_LABELS_AND_PEAKS.out
-            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
-            .set{ stages_labelled_data }
-        stages_labelled_data
-            .combine(ch_full_coaccessibility)
-            //.view() //[[sample_id:ss8], [rds_files], csv_files]
-            .map { row -> [row[0], [row[1][0], row[2]]]}
-            //.view() //[[sample_id:HH7], [rds_files, csv_files]]
-            .set{ch_stages_coaccessibility}
-        
-        
-
-
-
-
     } else {
        
        // NEED TO UPDATE
@@ -558,6 +530,29 @@ workflow A {
             //.view() //[[sample_id:FullData], [HH5_Save-ArchR, HH6_Save-ArchR, HH7_Save-ArchR, ss4_Save-ArchR, ss8_Save-ArchR, FullData_Save-ArchR]]
             .set { ch_transfer_metacell_IDs_to_full }
         TRANSFER_METACELL_LABELS_TO_FULLDATA( ch_transfer_metacell_IDs_to_full )
+
+                ////// PLOTTING /////// - maybe move to multiview section once I've tested that it works
+
+        // Plot diff peaks between clusters in stages
+        PLOT_DIFF_PEAKS( TRANSFER_LABELS_AND_PEAKS.out )
+
+        // Plot UMAPs of dim reduction using different subsets
+        PLOT_DIM_RED_GENOMIC_SUBSETS( TRANSFER_LABELS_AND_PEAKS.out )
+
+        // Coaccessibility plots grouped by clusters
+        // need to have the stages objects + the coaccessibility csv from full data
+        INTEGRATE.out
+            .map{it[1].findAll{it =~ /csv_files/}[0]}
+            .set{ ch_full_coaccessibility }
+        TRANSFER_LABELS_AND_PEAKS.out
+            .map { row -> [row[0], row[1].findAll { it =~ ".*rds_files" }] }
+            .set{ stages_labelled_data }
+        stages_labelled_data
+            .combine(ch_full_coaccessibility)
+            //.view() //[[sample_id:ss8], [rds_files], csv_files]
+            .map { row -> [row[0], [row[1][0], row[2]]]}
+            //.view() //[[sample_id:HH7], [rds_files, csv_files]]
+            .set{ch_stages_coaccessibility}
 
 
         /////     Make Peak Module Dynamic Plots (GAMs)      ///////
