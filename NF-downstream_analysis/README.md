@@ -44,3 +44,5 @@ At the end of this section of the pipeline, some additional processing steps are
 
 ### Re-using the steps in this workflow
 Each step in this section of the pipeline runs a generic R script which can be re-used for other scATAC-seq analysis. [14 R scripts](https://github.com/evaham1/atac_neural_plate_border/tree/main/NF-downstream_analysis/bin/ArchR_utilities) have been created which run various steps of scATAC-seq analysis using the ArchR package. These scripts process the data by clustering, peak calling and integrating, but also create extra visualisations and QC checks using custom functions from the [scHelper package](https://github.com/alexthiery/scHelper). At the top of each R script are a list of script options which can be overwritten externally, either in a config file if running through a Nextflow pipeline or in the bash command if running the R script on the command line. As many arguments such as clustering resolution have been abstracted out in this way, these R scripts can be run for any analysis without modification. 
+
+## scMEGA Processing (mega_processing)
